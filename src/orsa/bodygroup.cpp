@@ -1,0 +1,1131 @@
+#include <orsa/bodygroup.h>
+
+// #include <orsa/attitude.h>
+#include <orsa/paul.h>
+#include <orsa/slerp.h>
+#include <orsa/spline.h>
+#include <orsa/util.h>
+#include <orsa/vector.h>
+
+#include <algorithm>
+#include <map>
+
+using namespace std;
+using namespace orsa;
+
+BodyGroup::BodyGroup() : Referenced(true) {
+  _itr = new Interaction;
+}
+
+BodyGroup::~BodyGroup() {
+  
+}
+
+void BodyGroup::clear() {
+  _name.clear();
+  _b_list.clear();
+  _b_interval.clear();
+  // cachedLargestBodyID.reset();
+}
+
+bool BodyGroup::setName(const std::string & s) {
+  _name = s;
+  return true;
+}
+
+const std::string & BodyGroup::getName() const {
+  return _name;
+}
+
+bool BodyGroup::addBody(const Body * b) {
+  
+  // cachedLargestBodyID.reset();
+  
+  const BodyList::const_iterator _b = find(_b_list.begin(),_b_list.end(),b);
+  //
+  if (_b != _b_list.end()) {
+    ORSA_ERROR("Body already included in BodyGroup.");
+    return false;
+  } 
+  
+  if (!(b->getInitialConditions().translational.get())) {
+    ORSA_ERROR("...");
+    return false;
+  }	
+  
+  // if (b->getBodyPosVelCallback()) {
+  if (!(b->getInitialConditions().translational->dynamic())) {
+    _b_list.push_back(b);
+    return true;
+  } else {
+    _b_list.push_back(b);
+    // const osg::ref_ptr<const orsa::BodyInitialConditions> _bic = b->getInitialConditions();
+    const IBPS ibps = b->getInitialConditions();
+    // if (ibps != 0) {
+    insertIBPS(ibps, b);
+    /* 
+       } else {
+       ORSA_ERROR("Body with undefined initial conditions");
+       }
+    */
+    return true;
+  }
+}
+
+bool BodyGroup::removeBody(const Body *) {
+  
+  // cachedLargestBodyID.reset();
+  
+#warning "this method is probably buggy, needs more testing!"
+  return false;
+  /* 
+     BodyList::iterator _bl = find(_b_list.begin(),_b_list.end(),b);
+     if (_bl != _b_list.end()) {
+     _b_list.erase(_bl);
+     BodyIntervalMap::iterator _bi = _b_interval.find(b);
+     if (_bi != _b_interval.end()) {
+     _b_interval.erase(_bi);
+     return true;
+     } else {
+     ORSA_DEBUG("Body found in list but not in map");
+     return false;
+     }
+     } else {
+     ORSA_ERROR("Body not included in BodyGroup");
+     return false;
+     }
+     return false;
+  */
+}
+
+/* 
+   Body::BodyID BodyGroup::largestBodyID() const { 
+   if (cachedLargestBodyID.isSet()) {
+   // ORSA_DEBUG("cached!");
+   return cachedLargestBodyID.get();
+   }
+   // ORSA_DEBUG("not cached...");
+   orsa::Body::BodyID id = 0;
+   BodyGroup::BodyList::const_iterator b_it = getBodyList().begin();
+   while (b_it != getBodyList().end()) { 
+   id = std::max(id,(*b_it)->id());
+   ++b_it;
+   }
+   cachedLargestBodyID = id;
+   ORSA_DEBUG("largestBodyID: %i",id);
+   return id;
+   }
+*/
+
+/* 
+   bool BodyGroup::insertTRV(const TRV & trv,
+   const Body * b,
+   const bool replace) {
+   getBodyInterval(b)->insert(trv,replace);
+   return true;
+   }
+*/
+
+bool BodyGroup::insertIBPS(const orsa::IBPS & ibps,
+			   const orsa::Body * b,
+			   const bool         replace) {
+  return getBodyInterval(b)->insert(ibps,replace);
+}
+
+bool BodyGroup::getIBPS(orsa::IBPS       & ibps,
+			const orsa::Body * b,
+			const orsa::Time & t) const {
+  // if (b->getBodyPosVelCallback()) {
+  if (!(b->getInitialConditions().translational->dynamic())) { 
+    // trv.t = t;
+    // b->getBodyPosVelCallback()->getPosVel(t,trv.r,trv.v);
+    ibps = b->getInitialConditions();
+    return true;
+  } else {
+    // BodyGroup::TRV _trv1, _trv2;
+    IBPS ibps1, ibps2;
+    // orsa::Interval<BodyGroup::TRV> * _b_interval = getBodyInterval(b);
+    osg::ref_ptr<const orsa::BodyGroup::BodyInterval> bi = getBodyInterval(b);
+    // trv.t = t;
+    ibps.time = t;
+    // if (_b_interval->getSubInterval(trv, _trv1, _trv2)) {
+    if (bi->getSubInterval(ibps,ibps1,ibps2)) {
+      if ((ibps.time.getRef() == ibps2.time.getRef()) && (t == ibps1.time.getRef())) {
+	ibps = ibps1;
+	return true;
+      } else {
+	// ORSA_ERROR("point not present in interval...");
+	return false;
+      }
+    } else {
+      // ORSA_ERROR("problems encountered in getSubInterval(...) call");
+      return false;
+    }	
+  }
+}
+
+bool BodyGroup::getClosestIBPS(orsa::IBPS       & ibps,
+			       const orsa::Body * b,
+			       const orsa::Time & t) const {
+  if (!(b->getInitialConditions().translational->dynamic())) { 
+    ibps = b->getInitialConditions();
+    ibps.update(t);
+    return true;
+  } else {
+    // BodyGroup::TRV _trv1, _trv2;
+    IBPS ibps1, ibps2;
+    // orsa::Interval<BodyGroup::TRV> * _b_interval = getBodyInterval(b);
+    osg::ref_ptr<const orsa::BodyGroup::BodyInterval> bi = getBodyInterval(b);
+    // trv.t = t;
+    ibps.time = t; 
+    // if (_b_interval->getSubInterval(trv, _trv1, _trv2)) {
+    if (bi->getSubInterval(ibps,ibps1,ibps2)) {
+      // if (fabs((_trv1.t-t).asDouble()) < fabs((_trv2.t-t).asDouble())) {
+      if (fabs((ibps1.time.getRef()-t).asDouble()) < 
+	  fabs((ibps2.time.getRef()-t).asDouble())) {
+	ibps = ibps1;
+      } else {
+	ibps = ibps2;
+      }  
+      return true;
+    } else {
+      return false;
+    }	
+  }
+}
+
+bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
+				    const orsa::Body * b,
+				    const orsa::Time & t) const {
+  
+  // ORSA_DEBUG("b: %x",b);
+  // 
+  /* if (!b) {
+     return false;
+     }
+  */
+  
+  if (!b->alive(t)) {
+    // ORSA_DEBUG("out, body [%s]",b->getName().c_str());
+    return false;
+  }
+  
+  /* 
+     ORSA_DEBUG("body: [%s]  bodies: %i",
+     b->getName().c_str(),
+     size());
+  */
+  
+  if (b->getInitialConditions().translational->dynamic()) {
+    IBPS ibps1, ibps2;
+    osg::ref_ptr<const orsa::BodyGroup::BodyInterval> bi = getBodyInterval(b);
+    ibps.time = t; 
+    if (!bi) {
+      ORSA_DEBUG("problems... body: [%s]",b->getName().c_str());
+      return false;
+    }
+    if (bi->getSubInterval(ibps,ibps1,ibps2)) {
+      if ((t == ibps1.time.getRef()) && (t == ibps2.time.getRef())) {
+	ibps = ibps1;	
+	// ORSA_DEBUG("out, body [%s]",b->getName().c_str());
+	return true;
+      } else {
+	if ( (t < ibps1.time.getRef()) || 
+	     (t > ibps2.time.getRef())) {
+	  ORSA_WARNING("outside boundaries!!");
+	  getClosestIBPS(ibps,b,t);
+	  ORSA_DEBUG("out, body [%s]",b->getName().c_str());
+	  return false;
+	}
+	if (ibps1.time.getRef() == ibps2.time.getRef()) {
+	  ibps = ibps1;
+	  ORSA_DEBUG("out, body [%s]",b->getName().c_str());
+	  return true;	  
+	} else {
+	  // to copy pointers...
+	  ibps = ibps1;	
+	  // set time again...
+	  ibps.time = t; 
+	  
+	  if (ibps.translational.get()) {
+	    osg::ref_ptr<orsa::PhysicalSpline<orsa::Vector> > s = new orsa::PhysicalSpline<orsa::Vector>;
+	    //
+	    if (s->set(ibps1.translational->position(),
+		       ibps1.translational->velocity(),
+		       ibps1.time.getRef(),
+		       ibps2.translational->position(),
+		       ibps2.translational->velocity(),
+		       ibps2.time.getRef())) {
+	      orsa::Vector r,v;
+	      if (s->get(r,v,t)) {
+		ibps.translational->setPosition(r);
+		ibps.translational->setVelocity(v);
+		/* 
+		   ORSA_DEBUG("spline, r: %Ff   r1: %Ff   r2: %Ff",
+		   r.length().get_mpf_t(),
+		   ibps1.translational->position().length().get_mpf_t(),
+		   ibps2.translational->position().length().get_mpf_t());
+		*/
+	      }
+	    } else {
+	      ORSA_DEBUG("problems...");
+	      return false;
+	    }
+	  } 
+	  
+	  if (ibps.rotational.get()) {
+	    
+	    // ORSA_DEBUG("CODE NEEDED HERE!!");
+	    // 
+	    /* 
+	       orsa::Double sPhi,sPhiDot,sTheta,sThetaDot,sPsi,sPsiDot;
+	       
+	       osg::ref_ptr<orsa::PhysicalSpline<orsa::Double> > sAngle = 
+	       new orsa::PhysicalSpline<orsa::Double>;
+	       
+	       if (sAngle->set(ibps1.rotational->getPhi(),
+	       ibps1.rotational->getPhiDot(),
+	       ibps1.time.getRef(),
+	       ibps2.rotational->getPhi(),
+	       ibps2.rotational->getPhiDot(),
+	       ibps2.time.getRef())) {
+	       if (!sAngle->get(sPhi,sPhiDot,t)) {
+	       ORSA_DEBUG("problems...");
+	       return false;
+	       }
+	       } else {
+	       ORSA_DEBUG("problems...");
+	       return false;   
+	       }	
+	       
+	       if (sAngle->set(ibps1.rotational->getTheta(),
+	       ibps1.rotational->getThetaDot(),
+	       ibps1.time.getRef(),
+	       ibps2.rotational->getTheta(),
+	       ibps2.rotational->getThetaDot(),
+	       ibps2.time.getRef())) {
+	       if (!sAngle->get(sTheta,sThetaDot,t)) {
+	       ORSA_DEBUG("problems...");
+	       return false;
+	       }
+	       } else {
+	       ORSA_DEBUG("problems...");
+	       return false;   
+	       }	
+	       
+	       if (sAngle->set(ibps1.rotational->getPsi(),
+	       ibps1.rotational->getPsiDot(),
+	       ibps1.time.getRef(),
+	       ibps2.rotational->getPsi(),
+	       ibps2.rotational->getPsiDot(),
+	       ibps2.time.getRef())) {
+	       if (!sAngle->get(sPsi,sPsiDot,t)) {
+	       ORSA_DEBUG("problems...");
+	       return false;
+	       }
+	       } else {
+	       ORSA_DEBUG("problems...");
+	       return false;   
+	       }	
+	       
+	       ibps.rotational->set(sPhi,
+	       sTheta,
+	       sPsi,
+	       sPhiDot,
+	       sThetaDot,
+	       sPsiDot);
+	    */
+	    //
+
+	    // for now I interpolate both q and omega linearly
+	    // in the future, q should be interpolated using omega directly..
+	    
+	    if (1) {
+	      
+	      // ORSA_DEBUG("interpolation...");
+	      
+	      orsa::Quaternion sQ, sQDot;
+	      
+	      /* 
+		 osg::ref_ptr<orsa::PhysicalSpline<orsa::Quaternion> > spline = 
+		 new orsa::PhysicalSpline<orsa::Quaternion>;
+		 
+		 if (spline->set(ibps1.rotational->getQ(),
+		 ibps1.rotational->getQDot(),
+		 ibps1.time.getRef(),
+		 ibps2.rotational->getQ(),
+		 ibps2.rotational->getQDot(),
+		 ibps2.time.getRef())) {
+		 if (!spline->get(sQ,sQDot,t)) {
+		 ORSA_DEBUG("problems...");
+		 return false;
+		 }
+		 } else {
+		 ORSA_DEBUG("problems...");
+		 return false;   
+		 }	
+	      */
+
+	      osg::ref_ptr<orsa::Slerp> slerp = new Slerp;
+	      
+	      if (slerp->set(ibps1.rotational->getQ(),
+			     ibps1.time.getRef(),
+			     ibps2.rotational->getQ(),
+			     ibps2.time.getRef())) {
+		if (!slerp->get(sQ,t)) {
+		  ORSA_DEBUG("problems...");
+		  return false;
+		}
+	      } else {
+		ORSA_DEBUG("problems...");
+		return false;   
+	      }	
+	      
+	      sQ = unitQuaternion(sQ);
+	      
+	      /* 
+		 if (slerp->set(ibps1.rotational->getQDot(),
+		 ibps1.time.getRef(),
+		 ibps2.rotational->getQDot(),
+		 ibps2.time.getRef())) {
+		 if (!slerp->get(sQDot,t)) {
+		 ORSA_DEBUG("problems...");
+		 return false;
+		 }
+		 } else {
+		 ORSA_DEBUG("problems...");
+		 return false;   
+		 }	
+	      */
+	      
+	      // ORSA_DEBUG("FINIRE QUI!!!!");
+	      
+	      // important constraint on qDot!
+	      /* 
+		 const orsa::Double delta = 
+		 sQ.getScalar()*sQDot.getScalar() +
+		 sQ.getVector()*sQDot.getVector();
+		 //
+		 sQDot -= sQ*delta;
+	      */
+	      
+	      ibps.rotational->set(sQ,
+				   ibps1.rotational->getOmega());
+	      
+	      // ORSA_DEBUG("sQDot.getVector(): %Fg",sQDot.getVector().length().get_mpf_t());
+	      
+	    }
+	    
+	  }
+	  
+	  // ORSA_DEBUG("out, body [%s]",b->getName().c_str());
+	  return true;
+	}
+      }	
+    } else {
+      // ORSA_DEBUG("problems...");
+      ORSA_DEBUG("problems... body: [%s] dynamic: %i",
+		 b->getName().c_str(),
+		 b->getInitialConditions().translational->dynamic());
+      // ORSA_DEBUG("..out..");
+      return false;
+    }	
+  } else {
+    ibps = b->getInitialConditions();
+    ibps.update(t);
+    // ORSA_DEBUG("out, body [%s]",b->getName().c_str());
+    return true;
+  } 
+}
+
+bool BodyGroup::getInterpolatedPosition(Vector     & position,
+					const Body * b,
+					const Time & t) const {
+  orsa::IBPS ibps;
+  if (getInterpolatedIBPS(ibps,b,t)) {
+    if (ibps.translational.get()) {
+      position = ibps.translational->position();
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+}
+
+bool BodyGroup::getInterpolatedVelocity(Vector     & velocity,
+					const Body * b,
+					const Time & t) const {
+  orsa::IBPS ibps;
+  if (getInterpolatedIBPS(ibps,b,t)) {
+    if (ibps.translational.get()) {
+      velocity = ibps.translational->velocity();
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+}
+
+bool BodyGroup::getInterpolatedPosVel(Vector     & position,
+				      Vector     & velocity,
+				      const Body * b,
+				      const Time & t) const {
+  orsa::IBPS ibps;
+  if (getInterpolatedIBPS(ibps,b,t)) {
+    if (ibps.translational.get()) {
+      position = ibps.translational->position();
+      velocity = ibps.translational->velocity();
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+}
+
+bool BodyGroup::getInterpolatedMass(Double     & mass,
+				    const Body * b,
+				    const Time & t) const {
+  orsa::IBPS ibps;
+  if (getInterpolatedIBPS(ibps,b,t)) {
+    if (ibps.inertial.get()) {
+      mass = ibps.inertial->mass();
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+}
+
+class TimeBool {
+public:
+  TimeBool(const orsa::Time & t,
+	   const orsa::Time & t0) : 
+    time(t), 
+    refTime(t0) { }
+  // check(true) { }
+public:
+  bool operator < (const TimeBool & rhs) const {
+    if (refTime != rhs.refTime) {
+      ORSA_ERROR("inconsistent reference time");
+    }
+    return (abs((time-refTime).getMuSec()) < 
+	    abs((rhs.time-rhs.refTime).getMuSec()));
+  }
+public:
+  const orsa::Time time, refTime;
+public:
+  // bool check;
+};
+
+bool BodyGroup::getClosestCommonTime(orsa::Time       & t,
+				     const orsa::Time & refTime,
+				     const bool         massive_only) const {
+  
+  typedef std::list<TimeBool> TimeList;
+  TimeList timeList;
+  
+  BodyGroup::BodyList::const_iterator b_it = getBodyList().begin();
+  while (b_it != getBodyList().end()) { 
+    
+    /* 
+       if (massive_only && (*b_it)->getMass() <= epsilon()) {
+       ++b_it;
+       continue;
+       }	
+    */
+    //
+    if (massive_only && (*b_it)->getInitialConditions().inertial->mass() <= epsilon()) { 
+      ++b_it;
+      continue;
+    }
+    
+    if (!(*b_it)->getInitialConditions().translational->dynamic()) { 
+      ++b_it;
+      continue;
+    }
+    
+    if (timeList.size() == 0) {
+      
+      const osg::ref_ptr<const orsa::BodyGroup::BodyInterval> i_b_it = getBodyInterval((*b_it).get());
+      const orsa::BodyGroup::BodyInterval::DataType & interval_data = i_b_it->getData();
+      orsa::BodyGroup::BodyInterval::DataType::const_iterator interval_data_it = interval_data.begin();
+      while (interval_data_it != interval_data.end()) {
+	timeList.push_back(TimeBool((*interval_data_it).time.getRef(),
+				    refTime));
+	++interval_data_it;
+      }
+      
+      // sort for candidate closest time...
+      timeList.sort();
+      
+      TimeList::iterator tl_it = timeList.begin();
+      while (tl_it != timeList.end()) {
+	
+	IBPS ibps;
+	
+	bool found=true;
+	
+	unsigned int trials=0;
+	
+	BodyGroup::BodyList::const_iterator b2_it = b_it; ++b2_it;
+	while (b2_it != getBodyList().end()) { 
+	  
+	  ++trials;
+	  
+	  if (b2_it == b_it) {
+	    ++b2_it;
+	    continue;
+	  }
+	  
+	  /* 
+	     if (massive_only && (*b2_it)->getMass() <= epsilon()) {
+	     ++b2_it;
+	     continue;
+	     }	
+	  */
+	  //
+	  if (massive_only && (*b2_it)->getInitialConditions().inertial->mass() <= epsilon()) { 
+	    ++b2_it;
+	    continue;
+	  }
+	  
+	  if (!(*b2_it)->getInitialConditions().translational->dynamic()) { 
+	    ++b2_it;
+	    continue;
+	  }
+	  
+	  if (!getIBPS(ibps,(*b2_it).get(),(*tl_it).time)) {
+	    found=false;
+	    break;
+	  }
+	  
+	  ++b2_it;
+	}
+	
+	if (found) {
+	  // ORSA_DEBUG("FOUND in %i trials",trials);
+	  t = (*tl_it).time;
+	  return true;
+	}
+	
+	++tl_it;
+      }	
+      
+      return false;
+    }
+    
+    ++b_it;
+  }
+  
+  return false;
+}
+
+bool BodyGroup::getCommonInterval(orsa::Time & start, orsa::Time & stop, const bool massive_only) const {
+  
+  Cache<Time> _min, _max;
+  
+  BodyIntervalMap::const_iterator _bi = _b_interval.begin();
+  
+  while (_bi != _b_interval.end()) {
+    
+    /* 
+       ORSA_DEBUG("common--------> body: [%s]    interval size: %i",
+       _bi.key()->getName().c_str(),
+       _bi.value()->size());
+    */
+    
+    /* 
+       if (massive_only && (_bi.key()->getMass() <= epsilon())) {
+       ++_bi;
+       continue;
+       }
+    */
+    //
+    if (massive_only && _bi.key()->getInitialConditions().inertial->mass() <= epsilon()) { 
+      ++_bi;
+      continue;
+    }
+    //
+    /* 
+       if (_bi.key()->getBodyPosVelCallback() != 0) {
+       ++_bi;
+       continue;
+       }
+    */
+    //
+    if (!(_bi.key()->getInitialConditions().translational->dynamic())) { 
+      ++_bi;
+      continue;
+    }
+    
+    const osg::ref_ptr<orsa::BodyGroup::BodyInterval> _interval = _bi.value();
+    if ( (!_min.isSet()) && 
+	 (!_max.isSet()) ) {
+      _min.set(_interval->min().time.getRef());
+      _max.set(_interval->max().time.getRef());
+    } else if ( (_min.isSet()) && 
+		(_max.isSet()) ) {
+      if ( (_interval->min().time.getRef() > _max.getRef()) ||
+	   (_interval->max().time.getRef() < _min.getRef()) ) {
+	ORSA_DEBUG("no common interval found");
+	return false;
+      } else {
+	if (_interval->min().time.getRef() > _min.getRef()) {
+	  _min.set(_interval->min().time.getRef());
+	}
+	if (_interval->max().time.getRef() < _max.getRef()) {
+	  _max.set(_interval->max().time.getRef());
+	}
+      }
+    } else {
+      // one only is set, quite odd...
+      ORSA_ERROR("logic error: we shouldn't be here");
+    }
+    ++_bi;
+  }
+  if ( (_min.isSet()) && 
+       (_max.isSet()) && 
+       (_min.getRef() <= _max.getRef()) ) {
+    start = _min.getRef();
+    stop  = _max.getRef();
+    
+    // ORSA_DEBUG("common--------> done.");
+    
+    return true;
+  }
+  
+  // ORSA_DEBUG("common--------> done.");
+  
+  return false;  
+}
+
+bool BodyGroup::getGlobalInterval(orsa::Time & start, orsa::Time & stop, const bool massive_only) const {
+  Cache<Time> _min, _max;
+  BodyIntervalMap::const_iterator _bi = _b_interval.begin();
+  while (_bi != _b_interval.end()) {
+    // ORSA_DEBUG("considering body [%s]   interval size: %i",_bi.key()->getName().c_str(),_bi.value()->size());
+    if (massive_only && (_bi.key()->getInitialConditions().inertial->mass() <= epsilon())) {
+      ++_bi;
+      continue;
+    }	
+    /* 
+       if (_bi.key()->getBodyPosVelCallback() != 0) {
+       ++_bi;
+       continue;
+       }
+    */
+    //
+    if (!(_bi.key()->getInitialConditions().translational->dynamic())) { 
+      ++_bi;
+      continue;
+    }
+    
+    const osg::ref_ptr<orsa::BodyGroup::BodyInterval> _interval = _bi.value();
+    if ( (!_min.isSet()) && 
+	 (!_max.isSet()) ) {
+      // if ( (_bi.key()->alive(_interval->min().t)) &&
+      // (_bi.key()->alive(_interval->max().t)) ) {
+      _min.set(_interval->min().time.getRef());
+      _max.set(_interval->max().time.getRef());
+      // ORSA_DEBUG("min: %Ff   max: %Ff",_min.getRef().asDouble().get_mpf_t(),_max.getRef().asDouble().get_mpf_t());
+      // ORSA_DEBUG("//1//");
+      // } 
+    } else if ( (_min.isSet()) && 
+		(_max.isSet()) ) {
+      if (_interval->min().time.getRef() < _min.getRef()) {
+	_min.set(_interval->min().time.getRef());
+	// ORSA_DEBUG("//2//");
+      }
+      if (_interval->max().time.getRef() > _max.getRef()) {
+	_max.set(_interval->max().time.getRef());
+    	// ORSA_DEBUG("//3//");
+      }
+    } else {
+      // one only is set, quite odd...
+      ORSA_ERROR("logic error: we shouldn't be here");
+    }
+    ++_bi;
+  }
+  if ( (_min.isSet()) && 
+       (_max.isSet()) && 
+       (_min.getRef() <= _max.getRef()) ) {
+    start = _min.getRef();
+    stop  = _max.getRef();
+    /* 
+       ORSA_DEBUG("start: %Ff   stop: %Ff",
+       start.asDouble().get_mpf_t(),
+       stop.asDouble().get_mpf_t());
+    */
+    return true;
+  } else {
+    ORSA_WARNING("start and stop are unset...");
+    return false;  
+  }
+}
+
+const orsa::BodyGroup::BodyInterval * BodyGroup::getBodyInterval(const orsa::Body * b) const {
+  // ORSA_DEBUG("body: [%s]",b->getName().c_str());
+  if (_b_interval[b].get()) {
+    return (_b_interval[b].get());
+  } else {
+    ORSA_ERROR("cannot use const version of getBodyInterval");
+    return (0);
+  }
+}
+
+orsa::BodyGroup::BodyInterval * BodyGroup::getBodyInterval(const orsa::Body * b) {
+  if (_b_interval[b].get()) {
+    return (_b_interval[b].get());
+  } else {
+    /* 
+       osg::ref_ptr<orsa::BodyGroup::BodyInterval> bi = new orsa::BodyGroup::BodyInterval;
+       bi->enableDataStoring();
+       _b_interval[b] = bi;
+       // ORSA_DEBUG("creating new interval for body [%s] ... done.",b->getName().c_str());
+       return (bi.get());
+    */
+    //
+    // ORSA_DEBUG("creating new interval for body [%s]",b->getName().c_str());
+    orsa::BodyGroup::BodyInterval * bi = new orsa::BodyGroup::BodyInterval;
+    bi->enableDataStoring();
+    _b_interval[b] = bi;
+    // ORSA_DEBUG("creating new interval for body [%s] ... done.",b->getName().c_str());
+    return (bi);
+  }
+}
+
+const Body * BodyGroup::getBody(const std::string & bodyName) const {
+  // returns the "first" body found with this name, or zero
+  BodyList::const_iterator it = _b_list.begin();
+  while (it != _b_list.end()) {
+    if ((*it)->getName() == bodyName) {
+      return (*it).get();
+    }
+    ++it;
+  }
+  return 0;
+}
+
+/* 
+   orsa::Vector BodyGroup::centerOfMassPosition(const orsa::Time & t) {
+   orsa::Double sum_mb(orsa::zero());
+   orsa::Vector sum_mb_rb(0,0,0);
+   //
+   orsa::Double mb;
+   orsa::Vector rb;
+   BodyList::const_iterator it = _b_list.begin();
+   while (it != _b_list.end()) {
+   mb = (*it)->getMass();
+   if (mb > orsa::zero()) {
+   ORSA_DEBUG("more checks needed for extended bodies");
+   if (getInterpolatedPosition(rb,(*it).get(),t)) {
+   sum_mb    += mb;
+   sum_mb_rb += mb*rb;
+   }
+   }
+   ++it;
+   }
+   return (sum_mb_rb/sum_mb);
+   }
+*/
+
+void BodyGroup::centerOfMassPosVel(orsa::Vector     & r,
+				   orsa::Vector     & v,
+				   const orsa::Time & t) const {
+  
+  orsa::Double sum_mb(orsa::zero());
+  orsa::Vector sum_mb_rb(0,0,0);
+  orsa::Vector sum_mb_vb(0,0,0);
+  
+  orsa::Double mb;
+  orsa::Vector rb;
+  orsa::Vector vb;
+  
+  BodyList::const_iterator it = _b_list.begin();
+  while (it != _b_list.end()) {
+    // mb = (*it)->getMass();
+    if (getInterpolatedMass(mb,(*it).get(),t)) {
+      if (mb > orsa::zero()) {
+	// ORSA_DEBUG("more checks needed for extended bodies");
+#warning "more checks needed for extended bodies"
+	
+	if (getInterpolatedPosVel(rb,vb,(*it).get(),t)) {
+	  sum_mb    += mb;
+	  sum_mb_rb += mb*rb;
+	  sum_mb_vb += mb*vb;
+	}
+      }
+    }
+    ++it;
+  }
+  
+  r = sum_mb_rb/sum_mb;
+  v = sum_mb_vb/sum_mb;
+}
+
+orsa::Double BodyGroup::totalEnergy(const orsa::Time & t) const {
+  
+  orsa::Vector r,v;
+  centerOfMassPosVel(r,v,t);
+  const orsa::Vector rcm = r;
+  const orsa::Vector vcm = v;
+  
+  osg::ref_ptr<PaulMoment> dummy_pm = new PaulMoment(0);
+  dummy_pm->setM(one(),0,0,0);
+  dummy_pm->setCenterOfMass(orsa::Vector(0,0,0));
+  dummy_pm->setInertiaMoment(orsa::Matrix::identity());
+  
+  orsa::Double E(orsa::zero());
+  
+  // kinetic energy contribution
+  {
+    orsa::Double m;
+    BodyList::const_iterator it = _b_list.begin();
+    while (it != _b_list.end()) {
+      
+      if (!(*it)->alive(t)) {
+	++it;
+	continue;
+      }
+      
+      if (!getInterpolatedMass(m,(*it).get(),t)) {
+	ORSA_DEBUG("problems...");
+      }	
+      
+      if (getInterpolatedPosVel(r,v,(*it).get(),t)) {
+	v -= vcm;
+	E += m*v*v/2;
+      }
+      
+      ++it;
+    }
+  }
+  
+  // rotational energy contribution 
+  {
+    orsa::Double m;
+    BodyList::const_iterator it = _b_list.begin();
+    while (it != _b_list.end()) {
+      
+      if (!(*it)->alive(t)) {
+	++it;
+	continue;
+      }
+      
+      if (!getInterpolatedMass(m,(*it).get(),t)) {
+	ORSA_DEBUG("problems...");
+      }	
+      
+      /* osg::ref_ptr<orsa::Attitude> attitude =
+	 new BodyAttitude((*it).get(),this);
+      */
+      //
+      const orsa::Matrix g2l = orsa::globalToLocal((*it).get(),this,t);
+      
+      if ((*it)->getPaulMoment()) {
+	orsa::IBPS ibps;
+	if (getInterpolatedIBPS(ibps,(*it).get(),t)) {
+	  if (ibps.rotational.get()) {
+	    const orsa::Vector omega = 
+	      g2l * ibps.rotational->getOmega();
+	    E += 
+	      omega * 
+	      (*it)->getPaulMoment()->getInertiaMoment() * m *
+	      omega / 2;
+	  }
+	}
+      }
+      
+      ++it;
+    }
+  }
+  
+  // potential energy contribution
+  {
+    orsa::Vector r1, v1, r2, v2;
+    
+    BodyList::const_iterator it1 = _b_list.begin();
+    while (it1 != _b_list.end()) {
+      
+      if (!(*it1)->alive(t)) {
+	++it1;
+	continue;
+      }
+      
+      if (!getInterpolatedPosVel(r1,v1,(*it1).get(),t)) {
+	ORSA_DEBUG("problems...");
+      }
+      
+      /* osg::ref_ptr<orsa::Attitude> b1_attitude = 
+	 new orsa::BodyAttitude((*it1).get(),this);
+      */
+      //
+      const orsa::Matrix b1_l2g = orsa::localToGlobal((*it1).get(),this,t);
+      const orsa::Matrix b1_g2l = orsa::globalToLocal((*it1).get(),this,t);
+      
+      osg::ref_ptr<const PaulMoment> b1_pm = 
+	((*it1)->getPaulMoment()) ? 
+	((*it1)->getPaulMoment()) :
+	(dummy_pm.get());
+     
+      BodyList::const_iterator it2 = _b_list.begin();
+      while (it2 != _b_list.end()) {
+	
+	if (!(*it2)->alive(t)) {
+	  ++it2;
+	  continue;
+	}
+	
+	if ((*it1).get() == (*it2).get()) {
+	  break;
+        }
+	
+	if (!getInterpolatedPosVel(r2,v2,(*it2).get(),t)) {
+	  ORSA_DEBUG("problems...");
+	}
+	
+	/* osg::ref_ptr<orsa::Attitude> b2_attitude = 
+	   new orsa::BodyAttitude((*it2).get(),this);
+	*/
+	//
+	const orsa::Matrix b2_l2g = orsa::localToGlobal((*it2).get(),this,t);
+	const orsa::Matrix b2_g2l = orsa::globalToLocal((*it2).get(),this,t);
+	
+	osg::ref_ptr<const PaulMoment> b2_pm = 
+	  ((*it2)->getPaulMoment()) ? 
+	  ((*it2)->getPaulMoment()) :
+	  (dummy_pm.get());
+	
+	// dr = r2-r1
+	const orsa::Vector dr =
+	  (r2 + b2_l2g*b2_pm->getCenterOfMass()) - 
+	  (r1 + b1_l2g*b1_pm->getCenterOfMass());
+	
+	orsa::Double m1, m2;
+	
+	if ( (!getInterpolatedMass(m1,(*it1).get(),t)) ||
+	     (!getInterpolatedMass(m2,(*it2).get(),t)) ) {
+	  ORSA_DEBUG("problems...");
+	}	
+	
+	E -= 
+	  orsa::Unit::instance()->getG() *
+	  m1 * 
+	  m2 *
+	  Paul::gravitationalPotential(b1_pm.get(),
+				       b1_g2l,
+				       b2_pm.get(),
+				       b2_g2l,
+				       dr);
+	
+	++it2;
+      }
+      
+      ++it1;
+    }
+  }
+  
+  return E;
+}
+
+orsa::Vector BodyGroup::totalAngularMomentum(const orsa::Time & t) const {
+  
+  orsa::Vector r, v;
+  centerOfMassPosVel(r, v, t);
+  const orsa::Vector rcm = r;
+  const orsa::Vector vcm = v;
+  
+  osg::ref_ptr<PaulMoment> dummy_pm = new PaulMoment(0);
+  dummy_pm->setM(one(),0,0,0);
+  dummy_pm->setCenterOfMass(orsa::Vector(0,0,0));
+  dummy_pm->setInertiaMoment(orsa::Matrix::identity());
+  
+  orsa::Vector L(0,0,0);
+  
+  // contribution from body's rotation
+  {
+    orsa::Double m;
+    BodyList::const_iterator it = _b_list.begin();
+    while (it != _b_list.end()) {
+      
+      if (!(*it)->alive(t)) {
+	++it;
+	continue;
+      }
+      
+      if (!getInterpolatedMass(m,(*it).get(),t)) {
+	ORSA_DEBUG("problems...");
+      }	
+      
+      /* osg::ref_ptr<orsa::Attitude> attitude =
+	 new BodyAttitude((*it).get(),this);
+      */
+      //
+      const orsa::Matrix g2l = orsa::globalToLocal((*it).get(),this,t);
+      
+      if ((*it)->getPaulMoment()) {
+	orsa::IBPS ibps;
+	if (getInterpolatedIBPS(ibps,(*it).get(),t)) {
+	  if (ibps.rotational.get()) {
+	    const orsa::Vector omega = 
+	      g2l * ibps.rotational->getOmega();
+	    L += 
+	      (*it)->getPaulMoment()->getInertiaMoment() * m *
+	      omega;
+	  }
+	}
+      }
+      
+      ++it;
+    }
+  }
+  
+  // contribution from rotation about the barycenter
+  {
+    orsa::Double m;
+    BodyList::const_iterator it = _b_list.begin();
+    while (it != _b_list.end()) {
+      
+      if (!(*it)->alive(t)) {
+	++it;
+	continue;
+      }
+      
+      if (!getInterpolatedMass(m,(*it).get(),t)) {
+	ORSA_DEBUG("problems...");
+      }	
+      
+      if (!getInterpolatedPosVel(r,v,(*it).get(),t)) {
+	ORSA_DEBUG("problems...");
+      }
+      
+      /* osg::ref_ptr<orsa::Attitude> b_attitude = 
+	 new orsa::BodyAttitude((*it).get(),this);
+      */
+      //
+      const orsa::Matrix l2g = orsa::localToGlobal((*it).get(),this,t);
+      
+      osg::ref_ptr<const PaulMoment> b_pm = 
+	((*it)->getPaulMoment()) ? 
+	((*it)->getPaulMoment()) :
+	(dummy_pm.get());
+      
+      const orsa::Vector rb = r + l2g*b_pm->getCenterOfMass() - rcm;
+      const orsa::Vector vb = v + vcm;
+      
+      L += m * orsa::externalProduct(rb,vb);
+      
+      ++it;
+    }
+  }
+  
+  return L;
+}

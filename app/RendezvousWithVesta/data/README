@@ -1,0 +1,15 @@
+This directory contains some of the data files needed by
+RendezvousWithVesta in order to run. These files must be present
+in the same directory from which RendezvousWithVesta is launched.
+The files present here are:
+
+- multipole_core_ellipsoid.dat
+- multipole_core_thomas.dat     
+- multipole_uniform_ellipsoid.dat
+- multipole_uniform_thomas.dat
+- vesta_thomas.dat
+
+A few more files are needed, and can be downloaded from here:
+
+- ftp://naif.jpl.nasa.gov/pub/naif/DAWN/kernels/spk/de405.bsp
+- ftp://naif.jpl.nasa.gov/pub/naif/DAWN/kernels/spk/vesta-2003-2013.bsp
