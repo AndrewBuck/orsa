@@ -4,12 +4,12 @@ using namespace orsa;
 
 Box::Box() { }
 
-Box::Box(const orsa::Double & xMin,
-	 const orsa::Double & xMax,
-	 const orsa::Double & yMin,
-	 const orsa::Double & yMax,
-	 const orsa::Double & zMin,
-	 const orsa::Double & zMax) {
+Box::Box(const double & xMin,
+	 const double & xMax,
+	 const double & yMin,
+	 const double & yMax,
+	 const double & zMin,
+	 const double & zMax) {
   set(xMin, xMax, yMin, yMax, zMin, zMax);
 }
 
@@ -18,12 +18,12 @@ Box::Box(const orsa::Vector & v1,
   set(v1, v2);
 }
 
-void Box::set(const orsa::Double & xMin,
-	      const orsa::Double & xMax,
-	      const orsa::Double & yMin,
-	      const orsa::Double & yMax,
-	      const orsa::Double & zMin,
-	      const orsa::Double & zMax) {
+void Box::set(const double & xMin,
+	      const double & xMax,
+	      const double & yMin,
+	      const double & yMax,
+	      const double & zMin,
+	      const double & zMax) {
   _xMin.set(xMin);
   _xMax.set(xMax);
   _yMin.set(yMin);
@@ -77,7 +77,7 @@ void Box::reset() {
   _zMax.reset();
 }
 
-Double Box::volume() const {
+double Box::volume() const {
   return fabs((_xMax.getRef()-_xMin.getRef())*
 	      (_yMax.getRef()-_yMin.getRef())*
 	      (_zMax.getRef()-_zMin.getRef()));

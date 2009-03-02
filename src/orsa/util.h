@@ -36,12 +36,12 @@ namespace orsa {
   
   class IntPowCache {
   public:
-    IntPowCache(const orsa::Double & x) : _x(x) { }
+    IntPowCache(const double & x) : _x(x) { }
   public:
     virtual ~IntPowCache() { }
   public:
     /* 
-       const orsa::Double get(const int p) const {
+       const double get(const int p) const {
        if (!_data[p].isSet()) {
        // this could be more efficient...
        _data[p] = int_pow(_x,p);
@@ -50,7 +50,7 @@ namespace orsa {
        }
     */
     //
-    inline const orsa::Double get(const int p) const {      
+    inline const double get(const int p) const {      
       if (_data[p].isSet()) {
 	return _data[p].getRef();
       } else {
@@ -59,26 +59,26 @@ namespace orsa {
 	} else if (p < 0) {
 	  _data[p] = get(p+1) / _x;
 	} else {
-	  _data[p] = orsa::one();
+	  _data[p] = 1;
 	}
 	return _data[p].getRef();
       }
     }
   protected:
-    const orsa::Double _x;
+    const double _x;
   protected:
-    // mutable QHash <int, orsa::Cache<orsa::Double> > _data;
-    mutable std::map <int, orsa::Cache<orsa::Double> > _data;
+    // mutable QHash <int, orsa::Cache<double> > _data;
+    mutable std::map <int, orsa::Cache<double> > _data;
   };
   
   bool eulerAnglesToMatrix(orsa::Matrix       & m,
-			   const orsa::Double & psi,
-			   const orsa::Double & theta,
-			   const orsa::Double & phi);
+			   const double & psi,
+			   const double & theta,
+			   const double & phi);
   
-  bool matrixToEulerAngles(orsa::Double       & psi,
-			   orsa::Double       & theta,
-			   orsa::Double       & phi,
+  bool matrixToEulerAngles(double       & psi,
+			   double       & theta,
+			   double       & phi,
 			   const orsa::Matrix & m);
   
   // wrapper
@@ -111,15 +111,15 @@ namespace orsa {
 			     const orsa::Time       & t);
   
   // p = albedo, H = absolute magnitude
-  orsa::Double asteroidDiameter(const orsa::Double & p, 
-				const orsa::Double & H);
+  double asteroidDiameter(const double & p, 
+				const double & H);
   
   /* 
      class ConstantZRotation : public PrecomputedRotationalBodyProperty {
      public:	
      ConstantZRotation(const orsa::Time   & t0,
-     const orsa::Double & phi0,
-     const orsa::Double & omega) : 
+     const double & phi0,
+     const double & omega) : 
      PrecomputedRotationalBodyProperty(),
      _t0(t0), 
      _phi0(phi0),
@@ -127,12 +127,12 @@ namespace orsa {
      public:    
      bool update(const orsa::Time & t);
      public:
-     bool get(orsa::Double & phi,
-     orsa::Double & theta,
-     orsa::Double & psi,
-     orsa::Double & phiDot,
-     orsa::Double & thetaDot,
-     orsa::Double & psiDot) const {
+     bool get(double & phi,
+     double & theta,
+     double & psi,
+     double & phiDot,
+     double & thetaDot,
+     double & psiDot) const {
      if (!matrixToEulerAngles(psi,
      theta,
      phi,
@@ -146,38 +146,38 @@ namespace orsa {
      return true;
      }
      public:
-     orsa::Double getPhi() const { 
-     orsa::Double phi,theta,psi,phiDot,thetaDot,psiDot;
+     double getPhi() const { 
+     double phi,theta,psi,phiDot,thetaDot,psiDot;
      if (!get(phi, theta, psi, phiDot, thetaDot, psiDot)) {
      ORSA_DEBUG("problems...");
      }
      return phi;
      }
-     orsa::Double getTheta() const { 
-     orsa::Double phi,theta,psi,phiDot,thetaDot,psiDot;
+     double getTheta() const { 
+     double phi,theta,psi,phiDot,thetaDot,psiDot;
      if (!get(phi, theta, psi, phiDot, thetaDot, psiDot)) {
      ORSA_DEBUG("problems...");
      }
      return theta;
      }
-     orsa::Double getPsi() const { 
-     orsa::Double phi,theta,psi,phiDot,thetaDot,psiDot;
+     double getPsi() const { 
+     double phi,theta,psi,phiDot,thetaDot,psiDot;
      if (!get(phi, theta, psi, phiDot, thetaDot, psiDot)) {
      ORSA_DEBUG("problems...");
      }
      return psi;
      }
-     orsa::Double getPhiDot()   const { ORSA_DEBUG("implement dot section..."); return zero(); }
-     orsa::Double getThetaDot() const { ORSA_DEBUG("implement dot section..."); return zero(); }
-     orsa::Double getPsiDot()   const { ORSA_DEBUG("implement dot section..."); return zero(); }
+     double getPhiDot()   const { ORSA_DEBUG("implement dot section..."); return 0; }
+     double getThetaDot() const { ORSA_DEBUG("implement dot section..."); return 0; }
+     double getPsiDot()   const { ORSA_DEBUG("implement dot section..."); return 0; }
      public:
      RotationalBodyProperty * clone() const {
      return new ConstantZRotation(*this);
      }	
      private:
      const orsa::Time   _t0;
-     const orsa::Double _phi0;
-     const orsa::Double _omega;
+     const double _phi0;
+     const double _omega;
      private:
      orsa::Cache<orsa::Matrix> _m;
      };

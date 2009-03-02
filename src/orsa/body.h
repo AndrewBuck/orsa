@@ -55,9 +55,9 @@ namespace orsa {
   
   class MassBodyProperty : public BodyProperty {
   public:
-    virtual orsa::Double mass() const = 0;
+    virtual double mass() const = 0;
   public:
-    virtual bool setMass(const orsa::Double &) = 0;
+    virtual bool setMass(const double &) = 0;
   public:
     virtual MassBodyProperty * clone() const = 0;
   };
@@ -73,13 +73,13 @@ namespace orsa {
   
   class ConstantMassBodyProperty : public MassBodyProperty {
   public:
-    ConstantMassBodyProperty(const orsa::Double & m) : MassBodyProperty(), _m(m) { }
+    ConstantMassBodyProperty(const double & m) : MassBodyProperty(), _m(m) { }
   protected:
-    const orsa::Double _m;
+    const double _m;
   public:
-    orsa::Double mass() const { return _m; }
+    double mass() const { return _m; }
   public:
-    bool setMass(const orsa::Double &) {
+    bool setMass(const double &) {
       ORSA_ERROR("this method should not have been called, please check your code.");
       return false;
     }
@@ -97,7 +97,7 @@ namespace orsa {
   public:
     BodyPropertyType type() const { return BP_PRECOMPUTED; }
   public:
-    bool setMass(const orsa::Double &) {
+    bool setMass(const double &) {
       ORSA_ERROR("this method should not have been called, please check your code.");
       return false;
     }
@@ -109,11 +109,11 @@ namespace orsa {
   public:
     bool update(const orsa::Time &) { return true; }
   public:
-    orsa::Double mass() const {
+    double mass() const {
       return _mass.getRef();
     }
   public:
-    bool setMass(const orsa::Double & m) {
+    bool setMass(const double & m) {
       _mass = m;
       return true;
     }
@@ -122,7 +122,7 @@ namespace orsa {
       return new DynamicMassBodyProperty(*this);
     }
   protected:
-    orsa::Cache<orsa::Double> _mass;
+    orsa::Cache<double> _mass;
   };
   
   /***/
@@ -167,27 +167,27 @@ namespace orsa {
     bool update(const orsa::Time &) { return true; }
   public:
     orsa::Vector position() const { 
-      // ORSA_DEBUG("_position: %.20Fe",_position.getRef().length().get_mpf_t());
+      // ORSA_DEBUG("_position: %.20Fe",_position.getRef().length());
       // orsa::print(_position.getRef());
       return _position.getRef();
     }
   public:
     orsa::Vector velocity() const {
-      // ORSA_DEBUG("_velocity: %.20Fe",_velocity.getRef().length().get_mpf_t());
+      // ORSA_DEBUG("_velocity: %.20Fe",_velocity.getRef().length());
       // orsa::print(_velocity.getRef());
       return _velocity.getRef();
     }
   public:
     bool setPosition(const orsa::Vector & r) { 
       _position = r;
-      // ORSA_DEBUG("_position: %.20Fe",_position.getRef().length().get_mpf_t());
+      // ORSA_DEBUG("_position: %.20Fe",_position.getRef().length());
       // orsa::print(_position.getRef());
       return true;
     }
   public: 
     bool setVelocity(const orsa::Vector & v) {
       _velocity = v;
-      // ORSA_DEBUG("_velocity: %.20Fe",_velocity.getRef().length().get_mpf_t());
+      // ORSA_DEBUG("_velocity: %.20Fe",_velocity.getRef().length());
       // orsa::print(_velocity.getRef());
       return true;
     }
@@ -284,7 +284,7 @@ namespace orsa {
 	     const orsa::Vector     & omega) {
       _q     = q;
       _omega = omega;
-      // ORSA_DEBUG("omega: %Fg",_omega.getRef().length().get_mpf_t());
+      // ORSA_DEBUG("omega: %Fg",_omega.getRef().length());
       return true;
     }
   public:
@@ -383,17 +383,17 @@ namespace orsa {
     
     /* 
        public:
-       virtual bool setMass(const orsa::Double & mass) {
-       // ORSA_DEBUG("called setMass(%Fg) [***]",mass.get_mpf_t());
+       virtual bool setMass(const double & mass) {
+       // ORSA_DEBUG("called setMass(%Fg) [***]",mass());
        return (_mass.set(mass) && _mu.set(Unit::instance()->getG()*mass));
        }
        public:
-       virtual bool setMu(const orsa::Double & mu) {
-       // ORSA_DEBUG("called setMu(%Fg) [***]",mu.get_mpf_t());
+       virtual bool setMu(const double & mu) {
+       // ORSA_DEBUG("called setMu(%Fg) [***]",mu());
        return (_mass.set(mu/Unit::instance()->getG()) && _mu.set(mu));
        }
        public:
-       virtual const Double & getMass() const {
+       virtual const double & getMass() const {
        if (_mass.isSet()) {
        return _mass.getRef();
        } else {
@@ -402,7 +402,7 @@ namespace orsa {
        return _mass.getRef();
        }
        public:
-       virtual const Double & getMu() const {
+       virtual const double & getMu() const {
        if (_mu.isSet()) {
        return _mu.getRef();
        } else {
@@ -411,8 +411,8 @@ namespace orsa {
        return _mu.getRef(); 
        }
        protected:
-       orsa::Cache<orsa::Double> _mass;
-       orsa::Cache<orsa::Double> _mu;
+       orsa::Cache<double> _mass;
+       orsa::Cache<double> _mu;
     */
     
   public:
@@ -437,7 +437,7 @@ namespace orsa {
     orsa::Cache<orsa::IBPS> _ibps;
     
   public:
-    bool setRadius(const orsa::Double & r) {
+    bool setRadius(const double & r) {
       if (_shape.get()) {
 	ORSA_ERROR("cannot set radius, this body has a predefined shape");
 	return false;
@@ -447,17 +447,17 @@ namespace orsa {
       }
     }
   public:	
-    const orsa::Double & getRadius() const {
+    const double getRadius() const {
       if (_shape.get()) {
 	return _shape->boundingRadius();
       } else if (_radius.isSet()) {
 	return _radius.getRef();
       } else {
-	return orsa::zero();
+	return 0;
       }
     }
   protected:
-    orsa::Cache<orsa::Double> _radius;
+    orsa::Cache<double> _radius;
     
   public:
     virtual bool setName(const std::string &);
@@ -520,7 +520,7 @@ namespace orsa {
     
     // comet particle beta
   public:
-    orsa::Cache<orsa::Double>      beta;
+    orsa::Cache<double>      beta;
     osg::ref_ptr<const orsa::Body> betaSun;
     
     // bio

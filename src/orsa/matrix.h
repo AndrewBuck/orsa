@@ -14,53 +14,53 @@ namespace orsa {
   public:
     Matrix();
     Matrix(const Matrix &);
-    Matrix(const Double m11, 
-	   const Double m12,
-	   const Double m13,
-	   const Double m21,
-	   const Double m22,
-	   const Double m23,
-	   const Double m31,
-	   const Double m32,
-	   const Double m33);
+    Matrix(const double m11, 
+	   const double m12,
+	   const double m13,
+	   const double m21,
+	   const double m22,
+	   const double m23,
+	   const double m31,
+	   const double m32,
+	   const double m33);
     
   public:
-    void set(const Double m11, 
-	     const Double m12,
-	     const Double m13,
-	     const Double m21,
-	     const Double m22,
-	     const Double m23,
-	     const Double m31,
-	     const Double m32,
-	     const Double m33); 
+    void set(const double m11, 
+	     const double m12,
+	     const double m13,
+	     const double m21,
+	     const double m22,
+	     const double m23,
+	     const double m31,
+	     const double m32,
+	     const double m33); 
 
-    void get(Double & m11, 
-	     Double & m12,
-	     Double & m13,
-	     Double & m21,
-	     Double & m22,
-	     Double & m23,
-	     Double & m31,
-	     Double & m32,
-	     Double & m33) const;
+    void get(double & m11, 
+	     double & m12,
+	     double & m13,
+	     double & m21,
+	     double & m22,
+	     double & m23,
+	     double & m31,
+	     double & m32,
+	     double & m33) const;
 
   public:
-    const Double & getM11() const { return m11; }
-    const Double & getM12() const { return m12; }
-    const Double & getM13() const { return m13; }
-    const Double & getM21() const { return m21; }
-    const Double & getM22() const { return m22; }
-    const Double & getM23() const { return m23; }
-    const Double & getM31() const { return m31; }
-    const Double & getM32() const { return m32; }
-    const Double & getM33() const { return m33; }
+    const double & getM11() const { return m11; }
+    const double & getM12() const { return m12; }
+    const double & getM13() const { return m13; }
+    const double & getM21() const { return m21; }
+    const double & getM22() const { return m22; }
+    const double & getM23() const { return m23; }
+    const double & getM31() const { return m31; }
+    const double & getM32() const { return m32; }
+    const double & getM33() const { return m33; }
     
   public:
     osg::Matrixd getMatrixd() const;
     
   public:
-    Double determinant() const;
+    double determinant() const;
  
   public:
     static Matrix identity();
@@ -70,25 +70,25 @@ namespace orsa {
     static void transpose(const Matrix & src, Matrix & transposed);
     
   public:
-    static void OpenGLMatrix(const Matrix & src, Double opengl_matrix[16]);
+    static void OpenGLMatrix(const Matrix & src, double opengl_matrix[16]);
     
     // operators
     Matrix & operator += (const Matrix &);
     Matrix & operator -= (const Matrix &);
-    Matrix & operator *= (const Double &);
-    Matrix & operator /= (const Double &);
+    Matrix & operator *= (const double &);
+    Matrix & operator /= (const double &);
     
     // sign
     Matrix operator + () const;
     Matrix operator - () const;
     
   public:
-    Matrix rotX(const Double & alpha);
-    Matrix rotY(const Double & alpha);
-    Matrix rotZ(const Double & alpha);
+    Matrix rotX(const double & alpha);
+    Matrix rotY(const double & alpha);
+    Matrix rotZ(const double & alpha);
     
   public:
-    static Matrix axisRotation(const Vector & axis, const Double & alpha);
+    static Matrix axisRotation(const Vector & axis, const double & alpha);
     
   public:
     Matrix operator + (const Matrix &) const;
@@ -103,8 +103,8 @@ namespace orsa {
        friend Vector operator * (const Vector &, const Matrix &);
     */
     
-    // friend Matrix operator * (const Double  , const Matrix &);
-    // friend Matrix operator * (const Matrix &, const Double  );
+    // friend Matrix operator * (const double  , const Matrix &);
+    // friend Matrix operator * (const Matrix &, const double  );
     // friend Vector operator * (const Matrix &, const Vector &);
     // friend Vector operator * (const Vector &, const Matrix &);
     
@@ -113,21 +113,21 @@ namespace orsa {
     // void print() const;
     
   protected:
-    Double m11,m12,m13,m21,m22,m23,m31,m32,m33;
+    double m11,m12,m13,m21,m22,m23,m31,m32,m33;
   };
   
-  // Matrix operator * (const Double &, const Matrix &);
-  // Matrix operator * (const Matrix &, const Double &);
+  // Matrix operator * (const double &, const Matrix &);
+  // Matrix operator * (const Matrix &, const double &);
   // Vector operator * (const Matrix &, const Vector &);
   // Vector operator * (const Vector &, const Matrix &);
   
-  inline Matrix operator * (const Double & f, const Matrix & m) {
+  inline Matrix operator * (const double & f, const Matrix & m) {
     Matrix q(m);
     q *= f;
     return q;
   }
   
-  inline Matrix operator * (const Matrix & m, const Double & f) {
+  inline Matrix operator * (const Matrix & m, const double & f) {
     Matrix q(m);
     q *= f;
     return q;
@@ -148,8 +148,8 @@ namespace orsa {
   /* 
      Matrix operator + (const Matrix &, const Matrix &);
      Matrix operator - (const Matrix &, const Matrix &);
-     Matrix operator * (const Double  , const Matrix &);
-     Matrix operator * (const Matrix &, const Double  );
+     Matrix operator * (const double  , const Matrix &);
+     Matrix operator * (const Matrix &, const double  );
      Matrix operator * (const Matrix &, const Matrix &);
      Vector operator * (const Matrix &, const Vector &);
      Vector operator * (const Vector &, const Matrix &);

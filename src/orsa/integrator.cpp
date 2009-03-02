@@ -21,10 +21,10 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
   doAbort = false;
  
   /* 
-     ORSA_DEBUG("CALL start: %Ff [day]",
-     FromUnits(FromUnits(start.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t());
-     ORSA_DEBUG("CALL stop:  %Ff [day]",
-     FromUnits(FromUnits(stop.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t());
+     ORSA_DEBUG("CALL start: %f [day]",
+     FromUnits(FromUnits(start.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)());
+     ORSA_DEBUG("CALL stop:  %f [day]",
+     FromUnits(FromUnits(stop.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)());
   */
   
   // always start <= stop
@@ -45,10 +45,10 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
   // const Time t0 = t1;
   //
   if (0) {
-    ORSA_DEBUG("t1: %Ff [day]",
-	       FromUnits(FromUnits(t1.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t());
-    ORSA_DEBUG("t2: %Ff [day]",
-	       FromUnits(FromUnits(t2.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t());
+    ORSA_DEBUG("t1: %f [day]",
+	       FromUnits(FromUnits(t1.getMuSec().get_d(),Unit::MICROSECOND),Unit::DAY,-1));
+    ORSA_DEBUG("t2: %f [day]",
+	       FromUnits(FromUnits(t2.getMuSec().get_d(),Unit::MICROSECOND),Unit::DAY,-1));
   }
   //
   /* 
@@ -137,10 +137,10 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
       ORSA_DEBUG("problems...");
     }
     
-    ORSA_DEBUG("ctstart: %Ff [day]",
-	       FromUnits(FromUnits(ctstart.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t());
-    ORSA_DEBUG(" ctstop: %Ff [day]",
-	       FromUnits(FromUnits(ctstop.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t());
+    ORSA_DEBUG("ctstart: %f [day]",
+	       FromUnits(FromUnits(ctstart.getMuSec().get_d(),Unit::MICROSECOND),Unit::DAY,-1));
+    ORSA_DEBUG(" ctstop: %f [day]",
+	       FromUnits(FromUnits(ctstop.getMuSec().get_d(),Unit::MICROSECOND),Unit::DAY,-1));
     
     if ((ctstart==start) && (ctstop==stop)) {
       // nothing to be done...
@@ -182,10 +182,10 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
   
   //
   /* 
-     ORSA_DEBUG("t1: %Ff [day]",
-     FromUnits(FromUnits(_t1.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t());
-     ORSA_DEBUG("t2: %Ff [day]",
-     FromUnits(FromUnits(_t2.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t());
+     ORSA_DEBUG("t1: %f [day]",
+     FromUnits(FromUnits(_t1.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)());
+     ORSA_DEBUG("t2: %f [day]",
+     FromUnits(FromUnits(_t2.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)());
   */
   
   /* 
@@ -201,9 +201,9 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
   reset();
   
   // integration statistics
-  osg::ref_ptr< Statistic<Double> > stat = new Statistic<Double>;
+  osg::ref_ptr< Statistic<double> > stat = new Statistic<double>;
   //
-  osg::ref_ptr< RunningStatistic<Double> > rs = new RunningStatistic<Double>;
+  osg::ref_ptr< RunningStatistic<double> > rs = new RunningStatistic<double>;
   rs->setLength(10);  
   
   // orsa::Time dt = sampling_period;
@@ -232,8 +232,8 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
   while((tEnd-t)*sign.getRef() > zeroTime) {
     
     /* 
-       ORSA_DEBUG("next_dt: %Ff   (mu: %Zi)",
-       FromUnits(FromUnits(next_dt.getMuSec(),Unit::MICROSECOND),Unit::SECOND,-1).get_mpf_t(),
+       ORSA_DEBUG("next_dt: %f   (mu: %Zi)",
+       FromUnits(FromUnits(next_dt.getMuSec(),Unit::MICROSECOND),Unit::SECOND,-1)(),
        next_dt.getMuSec().get_mpz_t());
     */
     
@@ -251,17 +251,17 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
     
     call_dt = next_dt;
     
-    /* ORSA_DEBUG("call timestep: %Ff [day]     = %Ff",
-       FromUnits(FromUnits(call_dt.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t(),
-       call_dt.asDouble().get_mpf_t());
+    /* ORSA_DEBUG("call timestep: %f [day]     = %f",
+       FromUnits(FromUnits(call_dt.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)(),
+       call_dt.get_d());
     */
     
     // while (_t <= (stop+sampling_period)) { // one more step...
     // std::cerr << "Integrator::integrate(...) --> t: " << FromUnits(FromUnits(_t.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1) << " [day]" << std::endl;
     /* 
-       ORSA_DEBUG("Integrator::integrate(...) --> t: %Ff [day]     t: %Ff",
-       FromUnits(FromUnits(t.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t(),
-       t.asDouble().get_mpf_t());
+       ORSA_DEBUG("Integrator::integrate(...) --> t: %f [day]     t: %f",
+       FromUnits(FromUnits(t.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)(),
+       t.get_d());
     */
     // if (!(step(bg,_t,dt))) {
     if (!(step(bg,t,call_dt,next_dt))) {
@@ -281,11 +281,11 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
 	unsigned int counter=0;
 	while (_b_interval_data_it != _b_interval_data.end()) {
 	  ++counter;
-	  ORSA_DEBUG("checking interval [%05i/%05i] [%s] time: %.6Ff",
+	  ORSA_DEBUG("checking interval [%05i/%05i] [%s] time: %.6f",
 		     counter,
 		     (*_b_interval).size(),
 		     (*_b_it)->getName().c_str(),
-		     (*_b_interval_data_it).time.getRef().asDouble().get_mpf_t());
+		     (*_b_interval_data_it).time.getRef().get_d());
 	  ++_b_interval_data_it;
 	}
 	++_b_it;	
@@ -293,8 +293,8 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
     }
     
     /* 
-       ORSA_DEBUG("next timestep: %Ff [day]",
-       FromUnits(FromUnits(next_dt.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t());
+       ORSA_DEBUG("next timestep: %f [day]",
+       FromUnits(FromUnits(next_dt.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)());
     */
     
     // next_dt = call_dt;
@@ -305,18 +305,18 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
       
       t += call_dt;
       
-      stat->insert(call_dt.asDouble());
+      stat->insert(call_dt.get_d());
       
       // debug
-      /* ORSA_DEBUG("t: %Ff [day]   E: %24.16Fe",
-	 orsa::FromUnits(t.asDouble(),orsa::Unit::DAY,-1).get_mpf_t(),
-	 bg->totalEnergy(t).get_mpf_t());
+      /* ORSA_DEBUG("t: %f [day]   E: %24.16Fe",
+	 orsa::FromUnits(t.get_d(),orsa::Unit::DAY,-1)(),
+	 bg->totalEnergy(t)());
       */
       
       /* 
-	 ORSA_DEBUG("successful dt: %Ff +/- %Ff [day]",
-	 FromUnits(stat->average(),Unit::DAY,-1).get_mpf_t(),
-	 FromUnits(stat->averageError(),Unit::DAY,-1).get_mpf_t());
+	 ORSA_DEBUG("successful dt: %f +/- %f [day]",
+	 FromUnits(stat->average(),Unit::DAY,-1)(),
+	 FromUnits(stat->averageError(),Unit::DAY,-1)());
       */
       //
       
@@ -352,9 +352,9 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
 	    while (_b_interval_data_it != _b_interval_data.end()) {
 	      
 	      /* 
-		 ORSA_DEBUG("testing: body [%s]   t: %Ff   [tmp: %i]   this: %x   end: %x",
+		 ORSA_DEBUG("testing: body [%s]   t: %f   [tmp: %i]   this: %x   end: %x",
 		 (*_b_it)->getName().c_str(),
-		 (*_b_interval_data_it).time.getRef().asDouble().get_mpf_t(),
+		 (*_b_interval_data_it).time.getRef().get_d(),
 		 (*_b_interval_data_it).tmp,
 		 (&(*_b_interval_data_it)),
 		 (&(*(_b_interval_data.end()))));
@@ -376,18 +376,18 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
 	}
       }    
       //
-      rs->insert(call_dt.asDouble());
+      rs->insert(call_dt.get_d());
       if (rs->isFull()) {
 	/* 
-	   ORSA_DEBUG("running average dt: %Ff +/- %Ff [day]",
-	   FromUnits(rs->average(),Unit::DAY,-1).get_mpf_t(),
-	   FromUnits(rs->averageError(),Unit::DAY,-1).get_mpf_t());
+	   ORSA_DEBUG("running average dt: %f +/- %f [day]",
+	   FromUnits(rs->average(),Unit::DAY,-1)(),
+	   FromUnits(rs->averageError(),Unit::DAY,-1)());
 	*/
 	//
-	/* ORSA_DEBUG("radt: %Ff %Ff %Ff",
-	   FromUnits(FromUnits(t.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t(),
-	   FromUnits(rs->average(),Unit::SECOND,-1).get_mpf_t(),
-	   FromUnits(rs->averageError(),Unit::SECOND,-1).get_mpf_t());
+	/* ORSA_DEBUG("radt: %f %f %f",
+	   FromUnits(FromUnits(t.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)(),
+	   FromUnits(rs->average(),Unit::SECOND,-1)(),
+	   FromUnits(rs->averageError(),Unit::SECOND,-1)());
 	*/
 	/* 
 	   {
@@ -471,9 +471,9 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
       //
       while (_b_interval_data_it != _b_interval_data.end()) {
 	/* 
-	   ORSA_DEBUG("testing: body [%s]   t: %Ff   [tmp: %i]   this: %x   end: %x",
+	   ORSA_DEBUG("testing: body [%s]   t: %f   [tmp: %i]   this: %x   end: %x",
 	   (*_b_it)->getName().c_str(),
-	   (*_b_interval_data_it).t.asDouble().get_mpf_t(),
+	   (*_b_interval_data_it).t.get_d(),
 	   (*_b_interval_data_it).tmp,
 	   (&(*_b_interval_data_it)),
 	   (&(*(_b_interval_data.end()))));
@@ -508,15 +508,15 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
      ++counter;
      
      if ((*_b_interval_data_it).rotational->dynamic()) {
-     ORSA_DEBUG("[%05i/%05i] [%s] dyn: %i time: %.6Ff phi: %Ff theta: %Ff psi: %Ff",
+     ORSA_DEBUG("[%05i/%05i] [%s] dyn: %i time: %.6f phi: %f theta: %f psi: %f",
      counter,
      (*_b_interval).size(),
      (*_b_it)->getName().c_str(),
      (*_b_interval_data_it).rotational->dynamic(),
-     (*_b_interval_data_it).time.getRef().asDouble().get_mpf_t(),
-     (*_b_interval_data_it).rotational->getPhi().get_mpf_t(),
-     (*_b_interval_data_it).rotational->getTheta().get_mpf_t(),
-     (*_b_interval_data_it).rotational->getPsi().get_mpf_t());
+     (*_b_interval_data_it).time.getRef().get_d(),
+     (*_b_interval_data_it).rotational->getPhi(),
+     (*_b_interval_data_it).rotational->getTheta(),
+     (*_b_interval_data_it).rotational->getPsi());
      } 
      
      ++_b_interval_data_it;

@@ -2,22 +2,22 @@
 
 using namespace orsa;
 
-void Angle::setRad(const orsa::Double & a) {
-  // ORSA_DEBUG("args: a=%Ff",a.get_mpf_t());
+void Angle::setRad(const double & a) {
+  // ORSA_DEBUG("args: a=%f",a());
   _rad = a;
 }
 
-const orsa::Double & Angle::getRad(orsa::Double & a) const {
+const double & Angle::getRad(double & a) const {
   a = _rad;
   return _rad;
 }
 
-const orsa::Double & Angle::getRad() const {
+const double & Angle::getRad() const {
   return _rad;
 }
   
 /* 
-   void Angle::setDPS(const orsa::Double d, const orsa::Double p, const orsa::Double s) {
+   void Angle::setDPS(const double d, const double p, const double s) {
    if ( (d > 0) ||
    ( (d == 0) && (p > 0) ) ||
    ( (d == 0) && (p == 0) && (s >= 0) ) ) {
@@ -37,18 +37,18 @@ int Angle::check_sign(int sign) {
   }
 }
   
-void Angle::setDPS(const orsa::Double & d, 
-		   const orsa::Double & p, 
-		   const orsa::Double & s,
+void Angle::setDPS(const double & d, 
+		   const double & p, 
+		   const double & s,
 		   const int sign) {   
-  // ORSA_DEBUG("args: d=%Ff   p=%Ff   s=%Ff   sign: %i",d.get_mpf_t(),p.get_mpf_t(),s.get_mpf_t(),sign);
+  // ORSA_DEBUG("args: d=%f   p=%f   s=%f   sign: %i",d(),p(),s(),sign);
   _rad = check_sign(sign)*degToRad()*(d+p/60.0+s/3600.0);
 }
 
 /* 
-   void Angle::getDPS(orsa::Double & d, orsa::Double & p, orsa::Double & s) const {
-   orsa::Double frac;
-   orsa::Double fdeg = (180/pi())*_rad;
+   void Angle::getDPS(double & d, double & p, double & s) const {
+   double frac;
+   double fdeg = (180/pi())*_rad;
    if (fdeg < 0.0) {
    d    = -floor(-fdeg);
    frac = d - fdeg;
@@ -62,11 +62,11 @@ void Angle::setDPS(const orsa::Double & d,
    } 
 */
   
-void Angle::getDPS(orsa::Double & d, 
-		   orsa::Double & p, 
-		   orsa::Double & s,
+void Angle::getDPS(double & d, 
+		   double & p, 
+		   double & s,
 		   int & sign) const {
-  // const orsa::Double fdeg = (180.0/pi())*_rad;
+  // const double fdeg = (180.0/pi())*_rad;
   /* 
      if (fdeg < 0.0) {
      sign = -1;
@@ -85,15 +85,15 @@ void Angle::getDPS(orsa::Double & d,
     sign = 1;
   }
   //
-  const orsa::Double abs_fdeg = fabs(radToDeg()*_rad);
+  const double abs_fdeg = fabs(radToDeg()*_rad);
   d = floor(abs_fdeg);
-  const orsa::Double frac = abs_fdeg - d;
+  const double frac = abs_fdeg - d;
   p = floor(frac*60.0);  
   s = frac*3600.0 - p*60.0;
 } 
 
 /* 
-   void Angle::setHMS(const orsa::Double h, const orsa::Double m, const orsa::Double s) {
+   void Angle::setHMS(const double h, const double m, const double s) {
    if (h >= 0) 
    _rad = 15*(pi()/180)*(h+m/60.0+s/3600.0);
    else
@@ -101,21 +101,21 @@ void Angle::getDPS(orsa::Double & d,
    }
 */
   
-void Angle::setHMS(const orsa::Double & h, 
-		   const orsa::Double & m,
-		   const orsa::Double & s, 
+void Angle::setHMS(const double & h, 
+		   const double & m,
+		   const double & s, 
 		   const int sign) { 
-  // ORSA_DEBUG("args: h=%Ff   m=%Ff   s=%Ff   sign: %i",h.get_mpf_t(),m.get_mpf_t(),s.get_mpf_t(),sign);
+  // ORSA_DEBUG("args: h=%f   m=%f   s=%f   sign: %i",h(),m(),s(),sign);
   _rad = check_sign(sign)*15.0*degToRad()*(h+m/60.0+s/3600.0);
 }
 
-void Angle::getHMS(orsa::Double & h, 
-		   orsa::Double & m, 
-		   orsa::Double & s, 
+void Angle::getHMS(double & h, 
+		   double & m, 
+		   double & s, 
 		   int & sign) const {
   /* 
-     orsa::Double frac;
-     orsa::Double fh = (180/pi())*_rad/15.0;
+     double frac;
+     double fh = (180/pi())*_rad/15.0;
      if (fh < 0.0) {
      sign = -1;
      h    = -floor(-fh);
@@ -133,9 +133,9 @@ void Angle::getHMS(orsa::Double & h,
     sign = 1;
   }
   //
-  const orsa::Double abs_fh = fabs(radToDeg()*_rad/15.0);
+  const double abs_fh = fabs(radToDeg()*_rad/15.0);
   h = floor(abs_fh);
-  const orsa::Double frac = abs_fh - h;
+  const double frac = abs_fh - h;
   m = floor(frac*60.0);  
   s = frac*3600.0 - m*60.0; 
 }    

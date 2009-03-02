@@ -18,7 +18,7 @@ bioCallback::bioCallback(orsa::BodyGroup  * bg,
      orsa::Time t_start, t_stop;
      // bg->getCommonInterval(t_start,t_stop,false);
      bg->getGlobalInterval(t_start,t_stop,false);
-     _timing = new orsaOSG::AnimationTiming(-t_start.asDouble().get_d()/time_multiplier,
+     _timing = new orsaOSG::AnimationTiming(-t_start.get_d().get_d()/time_multiplier,
      time_multiplier);
   */
 }

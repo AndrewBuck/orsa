@@ -16,7 +16,7 @@ namespace orsaInputOutput {
   public:
     orsa::Orbit  orbit;
     orsa::Time   epoch;
-    orsa::Double H;
+    double H;
     orsa::Cache<mpz_class> number;
     std::string  designation;
   };

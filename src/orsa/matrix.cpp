@@ -25,15 +25,15 @@ Matrix::Matrix(const Matrix & m) {
   m33 = m.m33;
 }
 
-Matrix::Matrix(const Double _m11, 
-	       const Double _m12,
-	       const Double _m13,
-	       const Double _m21,
-	       const Double _m22,
-	       const Double _m23,
-	       const Double _m31,
-	       const Double _m32,
-	       const Double _m33) {
+Matrix::Matrix(const double _m11, 
+	       const double _m12,
+	       const double _m13,
+	       const double _m21,
+	       const double _m22,
+	       const double _m23,
+	       const double _m31,
+	       const double _m32,
+	       const double _m33) {
   m11 = _m11;
   m12 = _m12;
   m13 = _m13;
@@ -45,15 +45,15 @@ Matrix::Matrix(const Double _m11,
   m33 = _m33;
 }
 
-void Matrix::set(const Double _m11, 
-		 const Double _m12,
-		 const Double _m13,
-		 const Double _m21,
-		 const Double _m22,
-		 const Double _m23,
-		 const Double _m31,
-		 const Double _m32,
-		 const Double _m33) {
+void Matrix::set(const double _m11, 
+		 const double _m12,
+		 const double _m13,
+		 const double _m21,
+		 const double _m22,
+		 const double _m23,
+		 const double _m31,
+		 const double _m32,
+		 const double _m33) {
   m11 = _m11;
   m12 = _m12;
   m13 = _m13;
@@ -65,15 +65,15 @@ void Matrix::set(const Double _m11,
   m33 = _m33;
 }
 
-void Matrix::get(Double & _m11, 
-		 Double & _m12,
-		 Double & _m13,
-		 Double & _m21,
-		 Double & _m22,
-		 Double & _m23,
-		 Double & _m31,
-		 Double & _m32,
-		 Double & _m33) const {
+void Matrix::get(double & _m11, 
+		 double & _m12,
+		 double & _m13,
+		 double & _m21,
+		 double & _m22,
+		 double & _m23,
+		 double & _m31,
+		 double & _m32,
+		 double & _m33) const {
   _m11 = m11;
   _m12 = m12;
   _m13 = m13;
@@ -86,20 +86,20 @@ void Matrix::get(Double & _m11,
 }
 
 osg::Matrixd Matrix::getMatrixd() const {
-  return osg::Matrixd(getM11().get_d(),getM12().get_d(),getM13().get_d(),zero().get_d(),
-		      getM21().get_d(),getM22().get_d(),getM23().get_d(),zero().get_d(),
-		      getM31().get_d(),getM32().get_d(),getM33().get_d(),zero().get_d(),
-		      zero().get_d(),  zero().get_d(),  zero().get_d(), one().get_d());
+  return osg::Matrixd(getM11(),getM12(),getM13(),0,
+		      getM21(),getM22(),getM23(),0,
+		      getM31(),getM32(),getM33(),0,
+		      0,       0,       0,       1);
 }
 
-Double Matrix::determinant() const {
+double Matrix::determinant() const {
   return (m11*(m22*m33-m23*m32)-m12*(m21*m33-m31*m23)+m13*(m21*m32-m31*m22));
 }
 
 Matrix Matrix::identity() {
   Matrix M;
-  M.m11 = M.m22 = M.m33 = one();
-  M.m12 = M.m13 = M.m21 = M.m23 = M.m31 = M.m32 = zero();
+  M.m11 = M.m22 = M.m33 = 1;
+  M.m12 = M.m13 = M.m21 = M.m23 = M.m31 = M.m32 = 0;
   return M;
 }
 
@@ -107,18 +107,18 @@ bool Matrix::invert(const Matrix & src, Matrix & inverse) {
   
   const unsigned int m_size = 3;
   
-  Double t;
+  double t;
   unsigned int i, j, k, swap;
-  Double tmp[m_size][m_size];
-  Double local_inverse[m_size*m_size];
+  double tmp[m_size][m_size];
+  double local_inverse[m_size*m_size];
   
   // inverse = identity
   for (i=0;i<m_size;++i) {
     for (j=0;j<m_size;++j) {
       if (i==j) {
-	local_inverse[i*m_size+j] = one();
+	local_inverse[i*m_size+j] = 1;
       } else {
-	local_inverse[i*m_size+j] = zero();
+	local_inverse[i*m_size+j] = 0;
       }
     }
   }
@@ -212,23 +212,23 @@ void Matrix::transpose(const Matrix & src, Matrix & transposed) {
   transposed.m32 = src.m23;
 }
   
-void Matrix::OpenGLMatrix(const Matrix & src, Double opengl_matrix[16]) {
+void Matrix::OpenGLMatrix(const Matrix & src, double opengl_matrix[16]) {
   opengl_matrix[0]  = src.m11;
   opengl_matrix[1]  = src.m21;
   opengl_matrix[2]  = src.m31;
-  opengl_matrix[3]  = zero();
+  opengl_matrix[3]  = 0;
   opengl_matrix[4]  = src.m12;
   opengl_matrix[5]  = src.m22;
   opengl_matrix[6]  = src.m32;
-  opengl_matrix[7]  = zero();
+  opengl_matrix[7]  = 0;
   opengl_matrix[8]  = src.m13;
   opengl_matrix[9]  = src.m23;
   opengl_matrix[10] = src.m33;
-  opengl_matrix[11] = zero();
-  opengl_matrix[12] = zero();
-  opengl_matrix[13] = zero();
-  opengl_matrix[14] = zero();
-  opengl_matrix[15] = one();
+  opengl_matrix[11] = 0;
+  opengl_matrix[12] = 0;
+  opengl_matrix[13] = 0;
+  opengl_matrix[14] = 0;
+  opengl_matrix[15] = 1;
   //
   /* { 
      ORSA_DEBUG("Matrix::OpenGLMatrix() src.determinant(): %g",
@@ -264,7 +264,7 @@ Matrix & Matrix::operator -= (const Matrix & m) {
   return (*this);
 }
 
-Matrix & Matrix::operator *= (const Double & f) {
+Matrix & Matrix::operator *= (const double & f) {
   m11 *= f;
   m12 *= f;
   m13 *= f;
@@ -277,7 +277,7 @@ Matrix & Matrix::operator *= (const Double & f) {
   return (*this);
 }
 
-Matrix & Matrix::operator /= (const Double & f) {
+Matrix & Matrix::operator /= (const double & f) {
   m11 /= f;
   m12 /= f;
   m13 /= f;
@@ -309,14 +309,14 @@ Matrix Matrix::operator - () const {
 }
 
 // from the OpenGL Red Book, third edition, Appendix F, page 672
-Matrix Matrix::axisRotation(const Vector & v, const Double & alpha) {
+Matrix Matrix::axisRotation(const Vector & v, const double & alpha) {
   
   // NOTE: check if alpha sign agrees with other rotations...
   
   const Vector u = v.normalized();
   //
   Matrix S;
-  S.m11 = S.m22 = S.m33 = zero();
+  S.m11 = S.m22 = S.m33 = 0;
   S.m21 =  u.getZ();
   S.m12 = -u.getZ();
   S.m13 =  u.getY();
@@ -332,19 +332,19 @@ Matrix Matrix::axisRotation(const Vector & v, const Double & alpha) {
   P.m13 = P.m31 = u.getX()*u.getZ();
   P.m23 = P.m32 = u.getY()*u.getZ();
   //
-  Double s,c;
-  sincos(alpha,s,c);
+  double s,c;
+  sincos(alpha,&s,&c);
   //
   const Matrix M = P + c * (Matrix::identity() - P) + s * S;
   return M;
 }
 
-Matrix Matrix::rotX(const Double & alpha) {
-  Double s,c;
-  sincos(alpha,s,c);
+Matrix Matrix::rotX(const double & alpha) {
+  double s,c;
+  sincos(alpha,&s,&c);
   Matrix rot;
-  rot.m12 = rot.m13 = rot.m21 = rot.m31 = zero();
-  rot.m11 = one();
+  rot.m12 = rot.m13 = rot.m21 = rot.m31 = 0;
+  rot.m11 = 1;
   rot.m22 = rot.m33 = c;
   rot.m23 = -s;
   rot.m32 =  s;
@@ -359,12 +359,12 @@ Matrix Matrix::rotX(const Double & alpha) {
   return (*this);
 }
 
-Matrix Matrix::rotY(const Double & alpha) {
-  Double s,c;
-  sincos(alpha,s,c);
+Matrix Matrix::rotY(const double & alpha) {
+  double s,c;
+  sincos(alpha,&s,&c);
   Matrix rot;
-  rot.m12 = rot.m21 = rot.m23 = rot.m32 = zero();
-  rot.m22 = one();
+  rot.m12 = rot.m21 = rot.m23 = rot.m32 = 0;
+  rot.m22 = 1;
   rot.m11 = rot.m33 = c;
   rot.m13 =  s;
   rot.m31 = -s;
@@ -379,12 +379,12 @@ Matrix Matrix::rotY(const Double & alpha) {
   return (*this);
 }
 
-Matrix Matrix::rotZ(const Double & alpha) {
-  Double s,c;
-  sincos(alpha,s,c);
+Matrix Matrix::rotZ(const double & alpha) {
+  double s,c;
+  sincos(alpha,&s,&c);
   Matrix rot;
-  rot.m13 = rot.m23 = rot.m31 = rot.m32 = zero();
-  rot.m33 = one();
+  rot.m13 = rot.m23 = rot.m31 = rot.m32 = 0;
+  rot.m33 = 1;
   rot.m11 = rot.m22 = c;
   rot.m12 = -s;
   rot.m21 =  s;
@@ -416,13 +416,13 @@ Matrix Matrix::rotZ(const Double & alpha) {
    return Matrix(p+(-q));
    }
    
-   Matrix operator * (const Double f, const Matrix & m) {
+   Matrix operator * (const double f, const Matrix & m) {
    Matrix q(m);
    q *= f;
    return q;
    }
    
-   Matrix operator * (const Matrix & m, const Double f) {
+   Matrix operator * (const Matrix & m, const double f) {
    Matrix q(m);
    q *= f;
    return q;
@@ -489,13 +489,13 @@ Matrix Matrix::operator - (const Matrix & rhs) const {
 }
 
 /* 
-   Matrix operator * (const Double & f, const Matrix & m) {
+   Matrix operator * (const double & f, const Matrix & m) {
    Matrix q(m);
    q *= f;
    return q;
    }
    
-   Matrix operator * (const Matrix & m, const Double & f) {
+   Matrix operator * (const Matrix & m, const double & f) {
    Matrix q(m);
    q *= f;
    return q;

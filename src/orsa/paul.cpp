@@ -8,19 +8,19 @@
 
 using namespace orsa;
 
-orsa::Double Paul::C_lmn(const int l,
+double Paul::C_lmn(const int l,
 			 const int m,
 			 const int n) {
   if ( (l==0) &&
        (m==0) &&
        (n==0) ) { 
     ORSA_ERROR("singular C value...");
-    return zero();
+    return 0;
   }
   
-  const orsa::Double retVal = 
-    orsa::one() / 
-    orsa::Double(3.0 - 
+  const double retVal = 
+    1 / 
+    double(3.0 - 
 		 orsa::kronecker(l,0) - 
 		 orsa::kronecker(m,0) - 
 		 orsa::kronecker(n,0) );
@@ -28,7 +28,7 @@ orsa::Double Paul::C_lmn(const int l,
   /* 
      ORSA_DEBUG("C(%i,%i,%i) = %Fg",
      l,m,n,
-     retVal.get_mpf_t());
+     retVal());
   */
   
   return retVal;
@@ -53,7 +53,7 @@ Paul::t_lmnLMN::~t_lmnLMN() {
   _instance = 0;
 }
 
-orsa::Double Paul::t_lmnLMN::get(const int l,
+double Paul::t_lmnLMN::get(const int l,
 				 const int m,
 				 const int n,
 				 const int L,
@@ -71,16 +71,16 @@ orsa::Double Paul::t_lmnLMN::get(const int l,
     if ( (L==0) &&
 	 (M==0) &&
 	 (N==0) ) {
-      return orsa::one();
+      return 1;
     } else {
-      return orsa::zero();
+      return 0;
     }	
   }
   
   if ( ((l+L)%2) ||
        ((m+M)%2) ||
        ((n+N)%2) ) {
-    return zero();
+    return 0;
   }
   
   if ( (l<0) ||
@@ -89,13 +89,13 @@ orsa::Double Paul::t_lmnLMN::get(const int l,
        (L<0) ||
        (M<0) ||
        (N<0) ) {
-    return zero();
+    return 0;
   }
   
   if ( (L>l) || 
        (M>m) || 
        (N>n) ) {
-    return zero();
+    return 0;
   }
   
   /* 
@@ -111,7 +111,7 @@ orsa::Double Paul::t_lmnLMN::get(const int l,
   return trueGet(l,m,n,L,M,N);
 }
 
-orsa::Double Paul::t_lmnLMN::trueGet(const int l,
+double Paul::t_lmnLMN::trueGet(const int l,
 				     const int m,
 				     const int n,
 				     const int L,
@@ -131,13 +131,13 @@ orsa::Double Paul::t_lmnLMN::trueGet(const int l,
      (M==0) &&
      (N==0) ) { 
      // ORSA_DEBUG("--MARK-- 0,0,0");
-     return orsa::one();
+     return 1;
      }
      
      if ( (l==0) &&
      (m==0) &&
      (n==0) ) {
-     return orsa::zero();
+     return 0;
      }	
   */
   
@@ -148,9 +148,9 @@ orsa::Double Paul::t_lmnLMN::trueGet(const int l,
      if ( (L==0) &&
      (M==0) &&
      (N==0) ) {
-     return orsa::one();
+     return 1;
      } else {
-     return orsa::zero();
+     return 0;
      }	
      }
   */
@@ -159,7 +159,7 @@ orsa::Double Paul::t_lmnLMN::trueGet(const int l,
      if ( ((l+L)%2) ||
      ((m+M)%2) ||
      ((n+N)%2) ) {
-     return zero();
+     return 0;
      }
   */
   
@@ -170,7 +170,7 @@ orsa::Double Paul::t_lmnLMN::trueGet(const int l,
      (L<0) ||
      (M<0) ||
      (N<0) ) {
-     return zero();
+     return 0;
      }
   */
   
@@ -178,7 +178,7 @@ orsa::Double Paul::t_lmnLMN::trueGet(const int l,
      if ( (L>l) || 
      (M>m) || 
      (N>n) ) {
-     return zero();
+     return 0;
      }   
   */
   
@@ -256,7 +256,7 @@ orsa::Double Paul::t_lmnLMN::trueGet(const int l,
   // general rule
   if (!(_data[l][m][n][L][M][N].isSet())) {
     // ORSA_DEBUG("computing...");
-    const orsa::Double _C_lmn = C_lmn(l,m,n);
+    const double _C_lmn = C_lmn(l,m,n);
     _data[l][m][n][L][M][N] =
       (orsa::kronecker(l,0)-1)*( (2*l-_C_lmn)*get(l-1,m,n,L-1,M,N) +
 				 (l-1)*(l-_C_lmn)*get(l-2,m,n,L,M,N) ) +
@@ -269,7 +269,7 @@ orsa::Double Paul::t_lmnLMN::trueGet(const int l,
   /* 
      ORSA_DEBUG("get(%i,%i,%i,%i,%i,%i) = %Fg",
      l,m,n,L,M,N,
-     _data[l][m][n][L][M][N].getRef().get_mpf_t());
+     _data[l][m][n][L][M][N].getRef());
   */
   //
   return _data[l][m][n][L][M][N].getRef();
@@ -329,54 +329,54 @@ void Paul::t_lmnLMN::sort(int & l_out,
   */
 }
 
-orsa::Double Paul::gravitationalPotential(const orsa::PaulMoment * M1,
+double Paul::gravitationalPotential(const orsa::PaulMoment * M1,
 					  const orsa::Matrix     & A1_g2l,
 					  const orsa::PaulMoment * M2,
 					  const orsa::Matrix     & A2_g2l,
 					  const orsa::Vector     & R) {
   
-  // const orsa::Double oneOverR = one()/R.length();
+  // const double oneOverR = 1/R.length();
   //  
-  IntPowCache oneOverR_PC(one()/R.length());
+  IntPowCache oneOverR_PC(1/R.length());
   
   const orsa::Matrix & R1 = A1_g2l;
   const orsa::Matrix & R2 = A2_g2l;
   //
-  const orsa::Double l11 = R1.getM11();
-  const orsa::Double l21 = R1.getM12();
-  const orsa::Double l31 = R1.getM13();
+  const double l11 = R1.getM11();
+  const double l21 = R1.getM12();
+  const double l31 = R1.getM13();
   //
-  const orsa::Double m11 = R1.getM21();
-  const orsa::Double m21 = R1.getM22();
-  const orsa::Double m31 = R1.getM23();
+  const double m11 = R1.getM21();
+  const double m21 = R1.getM22();
+  const double m31 = R1.getM23();
   //
-  const orsa::Double n11 = R1.getM31();
-  const orsa::Double n21 = R1.getM32();
-  const orsa::Double n31 = R1.getM33();
+  const double n11 = R1.getM31();
+  const double n21 = R1.getM32();
+  const double n31 = R1.getM33();
   //
-  const orsa::Double l12 = R2.getM11();
-  const orsa::Double l22 = R2.getM12();
-  const orsa::Double l32 = R2.getM13();
+  const double l12 = R2.getM11();
+  const double l22 = R2.getM12();
+  const double l32 = R2.getM13();
   //
-  const orsa::Double m12 = R2.getM21();
-  const orsa::Double m22 = R2.getM22();
-  const orsa::Double m32 = R2.getM23();
+  const double m12 = R2.getM21();
+  const double m22 = R2.getM22();
+  const double m32 = R2.getM23();
   //
-  const orsa::Double n12 = R2.getM31();
-  const orsa::Double n22 = R2.getM32();
-  const orsa::Double n32 = R2.getM33();
+  const double n12 = R2.getM31();
+  const double n22 = R2.getM32();
+  const double n32 = R2.getM33();
   //
-  const orsa::Double lx = l11*l12+l21*l22+l31*l32;
-  const orsa::Double mx = m11*l12+m21*l22+m31*l32;
-  const orsa::Double nx = n11*l12+n21*l22+n31*l32;
+  const double lx = l11*l12+l21*l22+l31*l32;
+  const double mx = m11*l12+m21*l22+m31*l32;
+  const double nx = n11*l12+n21*l22+n31*l32;
   //
-  const orsa::Double ly = l11*m12+l21*m22+l31*m32;
-  const orsa::Double my = m11*m12+m21*m22+m31*m32;
-  const orsa::Double ny = n11*m12+n21*m22+n31*m32;
+  const double ly = l11*m12+l21*m22+l31*m32;
+  const double my = m11*m12+m21*m22+m31*m32;
+  const double ny = n11*m12+n21*m22+n31*m32;
   //
-  const orsa::Double lz = l11*n12+l21*n22+l31*n32;
-  const orsa::Double mz = m11*n12+m21*n22+m31*n32;
-  const orsa::Double nz = n11*n12+n21*n22+n31*n32;
+  const double lz = l11*n12+l21*n22+l31*n32;
+  const double mz = m11*n12+m21*n22+m31*n32;
+  const double nz = n11*n12+n21*n22+n31*n32;
   //
   IntPowCache lx_PC(lx);
   IntPowCache mx_PC(mx);
@@ -389,46 +389,46 @@ orsa::Double Paul::gravitationalPotential(const orsa::PaulMoment * M1,
   IntPowCache nz_PC(nz);
   //
   if (0) {
-    ORSA_DEBUG("lx: %Fg",lx.get_mpf_t());
-    ORSA_DEBUG("ly: %Fg",ly.get_mpf_t());
-    ORSA_DEBUG("lz: %Fg",lz.get_mpf_t());
-    ORSA_DEBUG("mx: %Fg",mx.get_mpf_t());
-    ORSA_DEBUG("my: %Fg",my.get_mpf_t());
-    ORSA_DEBUG("mz: %Fg",mz.get_mpf_t());
-    ORSA_DEBUG("nx: %Fg",nx.get_mpf_t());
-    ORSA_DEBUG("ny: %Fg",ny.get_mpf_t());
-    ORSA_DEBUG("nz: %Fg",nz.get_mpf_t());
+    ORSA_DEBUG("lx: %Fg",lx);
+    ORSA_DEBUG("ly: %Fg",ly);
+    ORSA_DEBUG("lz: %Fg",lz);
+    ORSA_DEBUG("mx: %Fg",mx);
+    ORSA_DEBUG("my: %Fg",my);
+    ORSA_DEBUG("mz: %Fg",mz);
+    ORSA_DEBUG("nx: %Fg",nx);
+    ORSA_DEBUG("ny: %Fg",ny);
+    ORSA_DEBUG("nz: %Fg",nz);
   }
   
-  const orsa::Double & csi  = R.getX();
-  const orsa::Double & eta  = R.getY();
-  const orsa::Double & zeta = R.getZ();
+  const double & csi  = R.getX();
+  const double & eta  = R.getY();
+  const double & zeta = R.getZ();
   //
   /* 
-     const orsa::Double csi1  = l11*csi + l21*eta + l31*zeta;
-     const orsa::Double eta1  = m11*csi + m21*eta + m31*zeta;
-     const orsa::Double zeta1 = n11*csi + n21*eta + n31*zeta;
+     const double csi1  = l11*csi + l21*eta + l31*zeta;
+     const double eta1  = m11*csi + m21*eta + m31*zeta;
+     const double zeta1 = n11*csi + n21*eta + n31*zeta;
   */
   //
   IntPowCache csi1_PC( l11*csi + l21*eta + l31*zeta);
   IntPowCache eta1_PC( m11*csi + m21*eta + m31*zeta);
   IntPowCache zeta1_PC(n11*csi + n21*eta + n31*zeta);
   
-  orsa::Double outerSum = orsa::zero();
+  double outerSum = 0;
   
   for (unsigned int i1=0; i1<=M1->order(); ++i1) {
     for (unsigned int j1=0; j1<=M1->order()-i1; ++j1) {
       for (unsigned int k1=0; k1<=M1->order()-i1-j1; ++k1) {
 	
-	if (M1->M(i1,j1,k1) == zero()) continue;
+	if (M1->M(i1,j1,k1) == 0) continue;
 	
 	for (unsigned int i2=0; i2<=M2->order(); ++i2) {
 	  for (unsigned int j2=0; j2<=M2->order()-i2; ++j2) {
 	    for (unsigned int k2=0; k2<=M2->order()-i2-j2; ++k2) {
 	      
-	      if (M2->M(i2,j2,k2) == zero()) continue;
+	      if (M2->M(i2,j2,k2) == 0) continue;
 	      
-	      orsa::Double innerSum = orsa::zero();
+	      double innerSum = 0;
 	      
 	      for (unsigned int i3=0; i3<=i2; ++i3) {
 		for (unsigned int j3=0; j3<=j2; ++j3) {
@@ -448,7 +448,7 @@ orsa::Double Paul::gravitationalPotential(const orsa::PaulMoment * M1,
 			     ORSA_DEBUG("k5: %i",k5);
 			  */
 			  
-			  orsa::Double fiveSum = orsa::zero();
+			  double fiveSum = 0;
 			  
 			  for (unsigned int L=0; L<=i5; ++L) {
 			    for (unsigned int M=0; M<=j5; ++M) {
@@ -469,9 +469,9 @@ orsa::Double Paul::gravitationalPotential(const orsa::PaulMoment * M1,
 			  
 			  innerSum +=
 			    fiveSum *
-			    orsa::binomial(i2,i3) * orsa::binomial(i3,i4) *
-			    orsa::binomial(j2,j3) * orsa::binomial(j3,j4) *
-			    orsa::binomial(k2,k3) * orsa::binomial(k3,k4) *
+			    mpz_class(orsa::binomial(i2,i3) * orsa::binomial(i3,i4) *
+				      orsa::binomial(j2,j3) * orsa::binomial(j3,j4) *
+				      orsa::binomial(k2,k3) * orsa::binomial(k3,k4)).get_d() *
 			    // orsa::int_pow(lx,i4) * orsa::int_pow(mx,i3-i4) * orsa::int_pow(nx,i2-i3) *  
 			    lx_PC.get(i4) * mx_PC.get(i3-i4) * nx_PC.get(i2-i3) *
 			    // orsa::int_pow(ly,j4) * orsa::int_pow(my,j3-j4) * orsa::int_pow(ny,j2-j3) *  
@@ -493,27 +493,27 @@ orsa::Double Paul::gravitationalPotential(const orsa::PaulMoment * M1,
 		M2->M(i2,j2,k2) *
 		// orsa::int_pow(oneOverR,i1+j1+k1+i2+j2+k2+1) / 
 		oneOverR_PC.get(i1+j1+k1+i2+j2+k2+1) / 
-		orsa::Double( factorial(i1) * factorial(j1) * factorial(k1) *
-			      factorial(i2) * factorial(j2) * factorial(k2) );
+		mpz_class(factorial(i1) * factorial(j1) * factorial(k1) *
+			  factorial(i2) * factorial(j2) * factorial(k2)).get_d();
 	      
 	      if (0) {
 		// debug
 		
-		const orsa::Double term = 
+		const double term = 
 		  innerSum * 
 		  orsa::power_sign(i1+j1+k1) *
 		  M1->M(i1,j1,k1) * 
 		  M2->M(i2,j2,k2) *
 		  // orsa::int_pow(oneOverR,i1+j1+k1+i2+j2+k2+1) / 
 		  oneOverR_PC.get(i1+j1+k1+i2+j2+k2+1) / 
-		  orsa::Double( factorial(i1) * factorial(j1) * factorial(k1) *
-				factorial(i2) * factorial(j2) * factorial(k2) );
+		  mpz_class(factorial(i1) * factorial(j1) * factorial(k1) *
+			    factorial(i2) * factorial(j2) * factorial(k2)).get_d();
 		
 		if (fabs(term*1.0e6) > fabs(outerSum)) {
 		  ORSA_DEBUG("[%02i][%02i][%02i][%02i][%02i][%02i]   outerSum: %14.6Fe   term: %14.6Fe",
 			     i1,j1,k1,i2,j2,k2,
-			     outerSum.get_mpf_t(),
-			     term.get_mpf_t());
+			     outerSum,
+			     term);
 		}
 		
 	      }
@@ -526,11 +526,11 @@ orsa::Double Paul::gravitationalPotential(const orsa::PaulMoment * M1,
     }
   }
   
-  const orsa::Double U = outerSum;
+  const double U = outerSum;
   
   /* 
      ORSA_DEBUG("Paul U: %.20Fe",
-     U.get_mpf_t());
+     U());
   */
   
   return U;
@@ -550,48 +550,48 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
      ORSA_DEBUG("A2: %x",A2);
   */
   
-  // const orsa::Double oneOverR = one()/R.length();
+  // const double oneOverR = 1/R.length();
   //  
-  IntPowCache oneOverR_PC(one()/R.length());
+  IntPowCache oneOverR_PC(1/R.length());
   
   const orsa::Matrix & R1 = A1_g2l;
   const orsa::Matrix & R2 = A2_g2l;
   //
-  const orsa::Double l11 = R1.getM11();
-  const orsa::Double l21 = R1.getM12();
-  const orsa::Double l31 = R1.getM13();
+  const double l11 = R1.getM11();
+  const double l21 = R1.getM12();
+  const double l31 = R1.getM13();
   //
-  const orsa::Double m11 = R1.getM21();
-  const orsa::Double m21 = R1.getM22();
-  const orsa::Double m31 = R1.getM23();
+  const double m11 = R1.getM21();
+  const double m21 = R1.getM22();
+  const double m31 = R1.getM23();
   //
-  const orsa::Double n11 = R1.getM31();
-  const orsa::Double n21 = R1.getM32();
-  const orsa::Double n31 = R1.getM33();
+  const double n11 = R1.getM31();
+  const double n21 = R1.getM32();
+  const double n31 = R1.getM33();
   //
-  const orsa::Double l12 = R2.getM11();
-  const orsa::Double l22 = R2.getM12();
-  const orsa::Double l32 = R2.getM13();
+  const double l12 = R2.getM11();
+  const double l22 = R2.getM12();
+  const double l32 = R2.getM13();
   //
-  const orsa::Double m12 = R2.getM21();
-  const orsa::Double m22 = R2.getM22();
-  const orsa::Double m32 = R2.getM23();
+  const double m12 = R2.getM21();
+  const double m22 = R2.getM22();
+  const double m32 = R2.getM23();
   //
-  const orsa::Double n12 = R2.getM31();
-  const orsa::Double n22 = R2.getM32();
-  const orsa::Double n32 = R2.getM33();
+  const double n12 = R2.getM31();
+  const double n22 = R2.getM32();
+  const double n32 = R2.getM33();
   //
-  const orsa::Double lx = l11*l12+l21*l22+l31*l32;
-  const orsa::Double mx = m11*l12+m21*l22+m31*l32;
-  const orsa::Double nx = n11*l12+n21*l22+n31*l32;
+  const double lx = l11*l12+l21*l22+l31*l32;
+  const double mx = m11*l12+m21*l22+m31*l32;
+  const double nx = n11*l12+n21*l22+n31*l32;
   //
-  const orsa::Double ly = l11*m12+l21*m22+l31*m32;
-  const orsa::Double my = m11*m12+m21*m22+m31*m32;
-  const orsa::Double ny = n11*m12+n21*m22+n31*m32;
+  const double ly = l11*m12+l21*m22+l31*m32;
+  const double my = m11*m12+m21*m22+m31*m32;
+  const double ny = n11*m12+n21*m22+n31*m32;
   //
-  const orsa::Double lz = l11*n12+l21*n22+l31*n32;
-  const orsa::Double mz = m11*n12+m21*n22+m31*n32;
-  const orsa::Double nz = n11*n12+n21*n22+n31*n32;
+  const double lz = l11*n12+l21*n22+l31*n32;
+  const double mz = m11*n12+m21*n22+m31*n32;
+  const double nz = n11*n12+n21*n22+n31*n32;
   //
   IntPowCache lx_PC(lx);
   IntPowCache mx_PC(mx);
@@ -604,57 +604,57 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
   IntPowCache nz_PC(nz);
   //
   if (0) {
-    ORSA_DEBUG("lx: %Fg",lx.get_mpf_t());
-    ORSA_DEBUG("ly: %Fg",ly.get_mpf_t());
-    ORSA_DEBUG("lz: %Fg",lz.get_mpf_t());
-    ORSA_DEBUG("mx: %Fg",mx.get_mpf_t());
-    ORSA_DEBUG("my: %Fg",my.get_mpf_t());
-    ORSA_DEBUG("mz: %Fg",mz.get_mpf_t());
-    ORSA_DEBUG("nx: %Fg",nx.get_mpf_t());
-    ORSA_DEBUG("ny: %Fg",ny.get_mpf_t());
-    ORSA_DEBUG("nz: %Fg",nz.get_mpf_t());
+    ORSA_DEBUG("lx: %Fg",lx);
+    ORSA_DEBUG("ly: %Fg",ly);
+    ORSA_DEBUG("lz: %Fg",lz);
+    ORSA_DEBUG("mx: %Fg",mx);
+    ORSA_DEBUG("my: %Fg",my);
+    ORSA_DEBUG("mz: %Fg",mz);
+    ORSA_DEBUG("nx: %Fg",nx);
+    ORSA_DEBUG("ny: %Fg",ny);
+    ORSA_DEBUG("nz: %Fg",nz);
   }
   
-  const orsa::Double & csi  = R.getX();
-  const orsa::Double & eta  = R.getY();
-  const orsa::Double & zeta = R.getZ();
+  const double & csi  = R.getX();
+  const double & eta  = R.getY();
+  const double & zeta = R.getZ();
   //
-  const orsa::Double csi1  = l11*csi + l21*eta + l31*zeta;
-  const orsa::Double eta1  = m11*csi + m21*eta + m31*zeta;
-  const orsa::Double zeta1 = n11*csi + n21*eta + n31*zeta;
+  const double csi1  = l11*csi + l21*eta + l31*zeta;
+  const double eta1  = m11*csi + m21*eta + m31*zeta;
+  const double zeta1 = n11*csi + n21*eta + n31*zeta;
   //
   IntPowCache csi1_PC(csi1);
   IntPowCache eta1_PC(eta1);
   IntPowCache zeta1_PC(zeta1);
   
-  // orsa::Double outerSum = orsa::zero();
+  // double outerSum = 0;
   //
-  orsa::Double Fx = orsa::zero();
-  orsa::Double Fy = orsa::zero();
-  orsa::Double Fz = orsa::zero();
+  double Fx = 0;
+  double Fy = 0;
+  double Fz = 0;
   
   for (unsigned int i1=0; i1<=M1->order(); ++i1) {
     for (unsigned int j1=0; j1<=M1->order()-i1; ++j1) {
       for (unsigned int k1=0; k1<=M1->order()-i1-j1; ++k1) {
 	
-	if (M1->M(i1,j1,k1) == zero()) continue;
+	if (M1->M(i1,j1,k1) == 0) continue;
 	
 	for (unsigned int i2=0; i2<=M2->order(); ++i2) {
 	  for (unsigned int j2=0; j2<=M2->order()-i2; ++j2) {
 	    for (unsigned int k2=0; k2<=M2->order()-i2-j2; ++k2) {
 	      
-	      if (M2->M(i2,j2,k2) == zero()) continue;
+	      if (M2->M(i2,j2,k2) == 0) continue;
 	      
 	      /* 
 		 ORSA_DEBUG("i1: %i   j1: %i   k1: %i   i2: %i   j2: %i   k2: %i",
 		 i1,j1,k1,i2,j2,k2);
 	      */
 	      
-	      // orsa::Double innerSum = orsa::zero();
+	      // double innerSum = 0;
 	      //
-	      orsa::Double innerFx = orsa::zero();
-	      orsa::Double innerFy = orsa::zero();
-	      orsa::Double innerFz = orsa::zero();
+	      double innerFx = 0;
+	      double innerFy = 0;
+	      double innerFz = 0;
 	      
 	      for (unsigned int i3=0; i3<=i2; ++i3) {
 		for (unsigned int j3=0; j3<=j2; ++j3) {
@@ -684,23 +684,23 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 			     i5,j5,k5);
 			  */
 			  
-			  // orsa::Double fiveSum = orsa::zero();
+			  // double fiveSum = 0;
 			  //
-			  orsa::Double fiveSumFx = orsa::zero();
-			  orsa::Double fiveSumFy = orsa::zero();
-			  orsa::Double fiveSumFz = orsa::zero();
+			  double fiveSumFx = 0;
+			  double fiveSumFy = 0;
+			  double fiveSumFz = 0;
 			  
 		          for (unsigned int L=0; L<=i5; ++L) {
 			    for (unsigned int M=0; M<=j5; ++M) {
 			      for (unsigned int N=0; N<=k5; ++N) {
 				
-				const orsa::Double local_t = orsa::Paul::t_lmnLMN::instance()->get(i5,j5,k5,L,M,N);
+				const double local_t = orsa::Paul::t_lmnLMN::instance()->get(i5,j5,k5,L,M,N);
 				
-				if (local_t == zero()) {
+				if (local_t == 0) {
 				  continue;
 				}
 				
-				const orsa::Double tR = local_t * oneOverR_PC.get(L+M+N);
+				const double tR = local_t * oneOverR_PC.get(L+M+N);
 				
 				if (L != 0) {
 				  fiveSumFx +=
@@ -733,13 +733,13 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 			    for (unsigned int M=0; M<=j5; ++M) {
 			      for (unsigned int N=0; N<=k5; ++N) {
 				
-				const orsa::Double local_t = orsa::Paul::t_lmnLMN::instance()->get(i5,j5,k5,L,M,N);
+				const double local_t = orsa::Paul::t_lmnLMN::instance()->get(i5,j5,k5,L,M,N);
 				
-				if (local_t == zero()) {
+				if (local_t == 0) {
 				  continue;
 				}
 				
-				const orsa::Double ntR = (i5+j5+k5+L+M+N+1) * local_t * oneOverR_PC.get(L+M+N+2);
+				const double ntR = (i5+j5+k5+L+M+N+1) * local_t * oneOverR_PC.get(L+M+N+2);
 				
 				fiveSumFx -=
 				  ntR *
@@ -762,17 +762,17 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 			    }
 			  }
 			  
-			  const orsa::Double commonInnerFactor = 
-			    orsa::binomial(i2,i3) * orsa::binomial(i3,i4) *
-			    orsa::binomial(j2,j3) * orsa::binomial(j3,j4) *
-			    orsa::binomial(k2,k3) * orsa::binomial(k3,k4) *
+			  const double commonInnerFactor = 
+			    mpz_class(orsa::binomial(i2,i3) * orsa::binomial(i3,i4) *
+				      orsa::binomial(j2,j3) * orsa::binomial(j3,j4) *
+				      orsa::binomial(k2,k3) * orsa::binomial(k3,k4)).get_d() *
 			    lx_PC.get(i4) * mx_PC.get(i3-i4) * nx_PC.get(i2-i3) *
 			    ly_PC.get(j4) * my_PC.get(j3-j4) * ny_PC.get(j2-j3) *
 			    lz_PC.get(k4) * mz_PC.get(k3-k4) * nz_PC.get(k2-k3);
 			  
 			  /* 
-			     ORSA_DEBUG("commonInnerFactor: %+12.6Ff",
-			     commonInnerFactor.get_mpf_t());
+			     ORSA_DEBUG("commonInnerFactor: %+12.6f",
+			     commonInnerFactor());
 			  */
 			  
 			  innerFx += fiveSumFx * commonInnerFactor;
@@ -794,21 +794,21 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 		 M1->M(i1,j1,k1) * 
 		 M2->M(i2,j2,k2) *
 		 oneOverR_PC.get(i1+j1+k1+i2+j2+k2+1) / 
-		 orsa::Double( factorial(i1) * factorial(j1) * factorial(k1) *
+		 double( factorial(i1) * factorial(j1) * factorial(k1) *
 		 factorial(i2) * factorial(j2) * factorial(k2) );
 	      */
 	      
-	      const orsa::Double commonFactor = 
+	      const double commonFactor = 
 		orsa::power_sign(i1+j1+k1) *
 		M1->M(i1,j1,k1) * 
 		M2->M(i2,j2,k2) *
 		oneOverR_PC.get(i1+j1+k1+i2+j2+k2+1) / 
-		orsa::Double( factorial(i1) * factorial(j1) * factorial(k1) *
-			      factorial(i2) * factorial(j2) * factorial(k2) );
+		mpz_class(factorial(i1) * factorial(j1) * factorial(k1) *
+			  factorial(i2) * factorial(j2) * factorial(k2)).get_d();
 	      
 	      /* 
 		 ORSA_DEBUG("commonFactor: %+18.12Fe",
-		 commonFactor.get_mpf_t());
+		 commonFactor());
 	      */
 	      
 	      Fx += innerFx * commonFactor;
@@ -818,9 +818,9 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 	      if (0) {
 		ORSA_DEBUG("[%02i][%02i][%02i][%02i][%02i][%02i]   F: %20.12Fe %20.12Fe %20.12Fe",
 			   i1,j1,k1,i2,j2,k2,
-			   Fx.get_mpf_t(),
-			   Fy.get_mpf_t(),
-			   Fz.get_mpf_t());
+			   Fx,
+			   Fy,
+			   Fz);
 	      }
 	      
 	    }
@@ -832,25 +832,25 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
   }
   
   /* 
-     ORSA_DEBUG("Paul Fx: %.20Fe",Fx.get_mpf_t());
-     ORSA_DEBUG("Paul Fy: %.20Fe",Fy.get_mpf_t());
-     ORSA_DEBUG("Paul Fz: %.20Fe",Fz.get_mpf_t());
+     ORSA_DEBUG("Paul Fx: %.20Fe",Fx());
+     ORSA_DEBUG("Paul Fy: %.20Fe",Fy());
+     ORSA_DEBUG("Paul Fz: %.20Fe",Fz());
   */
   
   // rotate back, capital X,Y,Z
-  const orsa::Double FX = l11*Fx + m11*Fy + n11*Fz;
-  const orsa::Double FY = l21*Fx + m21*Fy + n21*Fz;
-  const orsa::Double FZ = l31*Fx + m31*Fy + n31*Fz;
+  const double FX = l11*Fx + m11*Fy + n11*Fz;
+  const double FY = l21*Fx + m21*Fy + n21*Fz;
+  const double FZ = l31*Fx + m31*Fy + n31*Fz;
   
   const orsa::Vector F(-FX,-FY,-FZ);
   
   /* 
-     ORSA_DEBUG("Paul F.X: %.20Fe",F.getX().get_mpf_t());
-     ORSA_DEBUG("Paul F.Y: %.20Fe",F.getY().get_mpf_t());
-     ORSA_DEBUG("Paul F.Z: %.20Fe",F.getZ().get_mpf_t());
+     ORSA_DEBUG("Paul F.X: %.20Fe",F.getX());
+     ORSA_DEBUG("Paul F.Y: %.20Fe",F.getY());
+     ORSA_DEBUG("Paul F.Z: %.20Fe",F.getZ());
   */
   //
-  // ORSA_DEBUG("Paul Force: %.20Fe",F.length().get_mpf_t());
+  // ORSA_DEBUG("Paul Force: %.20Fe",F.length());
   
   return F;
 }
@@ -863,48 +863,48 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 				       const orsa::Vector     & R,
 				       const orsa::Time       & t) {
   
-  // const orsa::Double oneOverR = one()/R.length();
+  // const double oneOverR = 1/R.length();
   //  
-  IntPowCache oneOverR_PC(one()/R.length());
+  IntPowCache oneOverR_PC(1/R.length());
   
   const orsa::Matrix R1 = A1->globalToLocal(t);
   const orsa::Matrix R2 = A2->globalToLocal(t);
   //
-  const orsa::Double l11 = R1.getM11();
-  const orsa::Double l21 = R1.getM12();
-  const orsa::Double l31 = R1.getM13();
+  const double l11 = R1.getM11();
+  const double l21 = R1.getM12();
+  const double l31 = R1.getM13();
   //
-  const orsa::Double m11 = R1.getM21();
-  const orsa::Double m21 = R1.getM22();
-  const orsa::Double m31 = R1.getM23();
+  const double m11 = R1.getM21();
+  const double m21 = R1.getM22();
+  const double m31 = R1.getM23();
   //
-  const orsa::Double n11 = R1.getM31();
-  const orsa::Double n21 = R1.getM32();
-  const orsa::Double n31 = R1.getM33();
+  const double n11 = R1.getM31();
+  const double n21 = R1.getM32();
+  const double n31 = R1.getM33();
   //
-  const orsa::Double l12 = R2.getM11();
-  const orsa::Double l22 = R2.getM12();
-  const orsa::Double l32 = R2.getM13();
+  const double l12 = R2.getM11();
+  const double l22 = R2.getM12();
+  const double l32 = R2.getM13();
   //
-  const orsa::Double m12 = R2.getM21();
-  const orsa::Double m22 = R2.getM22();
-  const orsa::Double m32 = R2.getM23();
+  const double m12 = R2.getM21();
+  const double m22 = R2.getM22();
+  const double m32 = R2.getM23();
   //
-  const orsa::Double n12 = R2.getM31();
-  const orsa::Double n22 = R2.getM32();
-  const orsa::Double n32 = R2.getM33();
+  const double n12 = R2.getM31();
+  const double n22 = R2.getM32();
+  const double n32 = R2.getM33();
   //
-  const orsa::Double lx = l11*l12+l21*l22+l31*l32;
-  const orsa::Double mx = m11*l12+m21*l22+m31*l32;
-  const orsa::Double nx = n11*l12+n21*l22+n31*l32;
+  const double lx = l11*l12+l21*l22+l31*l32;
+  const double mx = m11*l12+m21*l22+m31*l32;
+  const double nx = n11*l12+n21*l22+n31*l32;
   //
-  const orsa::Double ly = l11*m12+l21*m22+l31*m32;
-  const orsa::Double my = m11*m12+m21*m22+m31*m32;
-  const orsa::Double ny = n11*m12+n21*m22+n31*m32;
+  const double ly = l11*m12+l21*m22+l31*m32;
+  const double my = m11*m12+m21*m22+m31*m32;
+  const double ny = n11*m12+n21*m22+n31*m32;
   //
-  const orsa::Double lz = l11*n12+l21*n22+l31*n32;
-  const orsa::Double mz = m11*n12+m21*n22+m31*n32;
-  const orsa::Double nz = n11*n12+n21*n22+n31*n32;
+  const double lz = l11*n12+l21*n22+l31*n32;
+  const double mz = m11*n12+m21*n22+m31*n32;
+  const double nz = n11*n12+n21*n22+n31*n32;
   //
   IntPowCache lx_PC(lx);
   IntPowCache mx_PC(mx);
@@ -917,48 +917,48 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
   IntPowCache nz_PC(nz);
   //
   if (1) {
-    ORSA_DEBUG("lx: %Fg",lx.get_mpf_t());
-    ORSA_DEBUG("ly: %Fg",ly.get_mpf_t());
-    ORSA_DEBUG("lz: %Fg",lz.get_mpf_t());
-    ORSA_DEBUG("mx: %Fg",mx.get_mpf_t());
-    ORSA_DEBUG("my: %Fg",my.get_mpf_t());
-    ORSA_DEBUG("mz: %Fg",mz.get_mpf_t());
-    ORSA_DEBUG("nx: %Fg",nx.get_mpf_t());
-    ORSA_DEBUG("ny: %Fg",ny.get_mpf_t());
-    ORSA_DEBUG("nz: %Fg",nz.get_mpf_t());
+    ORSA_DEBUG("lx: %Fg",lx());
+    ORSA_DEBUG("ly: %Fg",ly());
+    ORSA_DEBUG("lz: %Fg",lz());
+    ORSA_DEBUG("mx: %Fg",mx());
+    ORSA_DEBUG("my: %Fg",my());
+    ORSA_DEBUG("mz: %Fg",mz());
+    ORSA_DEBUG("nx: %Fg",nx());
+    ORSA_DEBUG("ny: %Fg",ny());
+    ORSA_DEBUG("nz: %Fg",nz());
   }
   
-  const orsa::Double & csi  = R.getX();
-  const orsa::Double & eta  = R.getY();
-  const orsa::Double & zeta = R.getZ();
+  const double & csi  = R.getX();
+  const double & eta  = R.getY();
+  const double & zeta = R.getZ();
   //
-  const orsa::Double csi1  = l11*csi + l21*eta + l31*zeta;
-  const orsa::Double eta1  = m11*csi + m21*eta + m31*zeta;
-  const orsa::Double zeta1 = n11*csi + n21*eta + n31*zeta;
+  const double csi1  = l11*csi + l21*eta + l31*zeta;
+  const double eta1  = m11*csi + m21*eta + m31*zeta;
+  const double zeta1 = n11*csi + n21*eta + n31*zeta;
   //
   IntPowCache csi1_PC(csi1);
   IntPowCache eta1_PC(eta1);
   IntPowCache zeta1_PC(zeta1);
   
-  orsa::Double Fx = orsa::zero();
-  orsa::Double Fy = orsa::zero();
-  orsa::Double Fz = orsa::zero();
+  double Fx = 0;
+  double Fy = 0;
+  double Fz = 0;
   
   for (unsigned int i1=0; i1<=M1->order(); ++i1) {
     for (unsigned int j1=0; j1<=M1->order()-i1; ++j1) {
       for (unsigned int k1=0; k1<=M1->order()-i1-j1; ++k1) {
 	
-	if (M1->M(i1,j1,k1) == zero()) continue;
+	if (M1->M(i1,j1,k1) == 0) continue;
 	
 	for (unsigned int i2=0; i2<=M2->order(); ++i2) {
 	  for (unsigned int j2=0; j2<=M2->order()-i2; ++j2) {
 	    for (unsigned int k2=0; k2<=M2->order()-i2-j2; ++k2) {
 	      
-	      if (M2->M(i2,j2,k2) == zero()) continue;
+	      if (M2->M(i2,j2,k2) == 0) continue;
 	      
-	      orsa::Double innerFx = orsa::zero();
-	      orsa::Double innerFy = orsa::zero();
-	      orsa::Double innerFz = orsa::zero();
+	      double innerFx = 0;
+	      double innerFy = 0;
+	      double innerFz = 0;
 	      
 	      for (unsigned int i3=0; i3<=i2; ++i3) {
 		for (unsigned int j3=0; j3<=j2; ++j3) {
@@ -972,9 +972,9 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 			  const unsigned int j5 = j1 + i3 - i4 + j3 - j4 + k3 - k4;
 			  const unsigned int k5 = k1 + i2 - i3 + j2 - j3 + k2 - k3;
 			  
-			  orsa::Double fiveSumFx = orsa::zero();
-			  orsa::Double fiveSumFy = orsa::zero();
-			  orsa::Double fiveSumFz = orsa::zero();
+			  double fiveSumFx = 0;
+			  double fiveSumFy = 0;
+			  double fiveSumFz = 0;
 			  
 		          for (unsigned int L=0; L<=i5; ++L) {
 			    for (unsigned int M=0; M<=j5; ++M) {
@@ -1039,7 +1039,7 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 			    }
 			  }
 			  
-			  const orsa::Double commonInnerFactor = 
+			  const double commonInnerFactor = 
 			    orsa::binomial(i2,i3) * orsa::binomial(i3,i4) *
 			    orsa::binomial(j2,j3) * orsa::binomial(j3,j4) *
 			    orsa::binomial(k2,k3) * orsa::binomial(k3,k4) *
@@ -1059,12 +1059,12 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 		}
 	      }
 	      
-	      const orsa::Double commonFactor = 
+	      const double commonFactor = 
 		orsa::power_sign(i1+j1+k1) *
 		M1->M(i1,j1,k1) * 
 		M2->M(i2,j2,k2) *
 		oneOverR_PC.get(i1+j1+k1+i2+j2+k2+1) / 
-		orsa::Double( factorial(i1) * factorial(j1) * factorial(k1) *
+		double( factorial(i1) * factorial(j1) * factorial(k1) *
 			      factorial(i2) * factorial(j2) * factorial(k2) );
 	      
 	      Fx += innerFx * commonFactor;
@@ -1074,9 +1074,9 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 	      if (1) {
 		ORSA_DEBUG("[%02i][%02i][%02i][%02i][%02i][%02i]   F: %20.12Fe %20.12Fe %20.12Fe",
 			   i1,j1,k1,i2,j2,k2,
-			   Fx.get_mpf_t(),
-			   Fy.get_mpf_t(),
-			   Fz.get_mpf_t());
+			   Fx(),
+			   Fy(),
+			   Fz());
 	      }
 	      
 	    }
@@ -1087,20 +1087,20 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
     }
   }
   
-  ORSA_DEBUG("Paul Fx: %.20Fe",Fx.get_mpf_t());
-  ORSA_DEBUG("Paul Fy: %.20Fe",Fy.get_mpf_t());
-  ORSA_DEBUG("Paul Fz: %.20Fe",Fz.get_mpf_t());
+  ORSA_DEBUG("Paul Fx: %.20Fe",Fx());
+  ORSA_DEBUG("Paul Fy: %.20Fe",Fy());
+  ORSA_DEBUG("Paul Fz: %.20Fe",Fz());
   
   // rotate back, capital X,Y,Z
-  const orsa::Double FX = l11*Fx + m11*Fy + n11*Fz;
-  const orsa::Double FY = l21*Fx + m21*Fy + n21*Fz;
-  const orsa::Double FZ = l31*Fx + m31*Fy + n31*Fz;
+  const double FX = l11*Fx + m11*Fy + n11*Fz;
+  const double FY = l21*Fx + m21*Fy + n21*Fz;
+  const double FZ = l31*Fx + m31*Fy + n31*Fz;
   
   const orsa::Vector F(-FX,-FY,-FZ);
   
-  ORSA_DEBUG("Paul F.X: %.20Fe",F.getX().get_mpf_t());
-  ORSA_DEBUG("Paul F.Y: %.20Fe",F.getY().get_mpf_t());
-  ORSA_DEBUG("Paul F.Z: %.20Fe",F.getZ().get_mpf_t());
+  ORSA_DEBUG("Paul F.X: %.20Fe",F.getX());
+  ORSA_DEBUG("Paul F.Y: %.20Fe",F.getY());
+  ORSA_DEBUG("Paul F.Z: %.20Fe",F.getZ());
   
   return F;
 }
@@ -1112,48 +1112,48 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 				       const orsa::Matrix     & A2_g2l,
 				       const orsa::Vector     & R) {
   
-  // const orsa::Double oneOverR = one()/R.length();
+  // const double oneOverR = 1/R.length();
   //  
-  IntPowCache oneOverR_PC(one()/R.length());
+  IntPowCache oneOverR_PC(1/R.length());
   
   const orsa::Matrix & R1 = A1_g2l;
   const orsa::Matrix & R2 = A2_g2l;
   //
-  const orsa::Double l11 = R1.getM11();
-  const orsa::Double l21 = R1.getM12();
-  const orsa::Double l31 = R1.getM13();
+  const double l11 = R1.getM11();
+  const double l21 = R1.getM12();
+  const double l31 = R1.getM13();
   //
-  const orsa::Double m11 = R1.getM21();
-  const orsa::Double m21 = R1.getM22();
-  const orsa::Double m31 = R1.getM23();
+  const double m11 = R1.getM21();
+  const double m21 = R1.getM22();
+  const double m31 = R1.getM23();
   //
-  const orsa::Double n11 = R1.getM31();
-  const orsa::Double n21 = R1.getM32();
-  const orsa::Double n31 = R1.getM33();
+  const double n11 = R1.getM31();
+  const double n21 = R1.getM32();
+  const double n31 = R1.getM33();
   //
-  const orsa::Double l12 = R2.getM11();
-  const orsa::Double l22 = R2.getM12();
-  const orsa::Double l32 = R2.getM13();
+  const double l12 = R2.getM11();
+  const double l22 = R2.getM12();
+  const double l32 = R2.getM13();
   //
-  const orsa::Double m12 = R2.getM21();
-  const orsa::Double m22 = R2.getM22();
-  const orsa::Double m32 = R2.getM23();
+  const double m12 = R2.getM21();
+  const double m22 = R2.getM22();
+  const double m32 = R2.getM23();
   //
-  const orsa::Double n12 = R2.getM31();
-  const orsa::Double n22 = R2.getM32();
-  const orsa::Double n32 = R2.getM33();
+  const double n12 = R2.getM31();
+  const double n22 = R2.getM32();
+  const double n32 = R2.getM33();
   //
-  const orsa::Double lx = l11*l12+l21*l22+l31*l32;
-  const orsa::Double mx = m11*l12+m21*l22+m31*l32;
-  const orsa::Double nx = n11*l12+n21*l22+n31*l32;
+  const double lx = l11*l12+l21*l22+l31*l32;
+  const double mx = m11*l12+m21*l22+m31*l32;
+  const double nx = n11*l12+n21*l22+n31*l32;
   //
-  const orsa::Double ly = l11*m12+l21*m22+l31*m32;
-  const orsa::Double my = m11*m12+m21*m22+m31*m32;
-  const orsa::Double ny = n11*m12+n21*m22+n31*m32;
+  const double ly = l11*m12+l21*m22+l31*m32;
+  const double my = m11*m12+m21*m22+m31*m32;
+  const double ny = n11*m12+n21*m22+n31*m32;
   //
-  const orsa::Double lz = l11*n12+l21*n22+l31*n32;
-  const orsa::Double mz = m11*n12+m21*n22+m31*n32;
-  const orsa::Double nz = n11*n12+n21*n22+n31*n32;
+  const double lz = l11*n12+l21*n22+l31*n32;
+  const double mz = m11*n12+m21*n22+m31*n32;
+  const double nz = n11*n12+n21*n22+n31*n32;
   //
   IntPowCache lx_PC(lx);
   IntPowCache mx_PC(mx);
@@ -1166,50 +1166,50 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
   IntPowCache nz_PC(nz);
   //
   if (0) {
-    ORSA_DEBUG("lx: %Fg",lx.get_mpf_t());
-    ORSA_DEBUG("ly: %Fg",ly.get_mpf_t());
-    ORSA_DEBUG("lz: %Fg",lz.get_mpf_t());
-    ORSA_DEBUG("mx: %Fg",mx.get_mpf_t());
-    ORSA_DEBUG("my: %Fg",my.get_mpf_t());
-    ORSA_DEBUG("mz: %Fg",mz.get_mpf_t());
-    ORSA_DEBUG("nx: %Fg",nx.get_mpf_t());
-    ORSA_DEBUG("ny: %Fg",ny.get_mpf_t());
-    ORSA_DEBUG("nz: %Fg",nz.get_mpf_t());
+    ORSA_DEBUG("lx: %Fg",lx);
+    ORSA_DEBUG("ly: %Fg",ly);
+    ORSA_DEBUG("lz: %Fg",lz);
+    ORSA_DEBUG("mx: %Fg",mx);
+    ORSA_DEBUG("my: %Fg",my);
+    ORSA_DEBUG("mz: %Fg",mz);
+    ORSA_DEBUG("nx: %Fg",nx);
+    ORSA_DEBUG("ny: %Fg",ny);
+    ORSA_DEBUG("nz: %Fg",nz);
   }
   
-  const orsa::Double & csi  = R.getX();
-  const orsa::Double & eta  = R.getY();
-  const orsa::Double & zeta = R.getZ();
+  const double & csi  = R.getX();
+  const double & eta  = R.getY();
+  const double & zeta = R.getZ();
   //
-  const orsa::Double csi1  = l11*csi + l21*eta + l31*zeta;
-  const orsa::Double eta1  = m11*csi + m21*eta + m31*zeta;
-  const orsa::Double zeta1 = n11*csi + n21*eta + n31*zeta;
+  const double csi1  = l11*csi + l21*eta + l31*zeta;
+  const double eta1  = m11*csi + m21*eta + m31*zeta;
+  const double zeta1 = n11*csi + n21*eta + n31*zeta;
   //
   IntPowCache csi1_PC(csi1);
   IntPowCache eta1_PC(eta1);
   IntPowCache zeta1_PC(zeta1);
   
-  orsa::Double Tx = orsa::zero();
-  orsa::Double Ty = orsa::zero();
-  orsa::Double Tz = orsa::zero();
+  double Tx = 0;
+  double Ty = 0;
+  double Tz = 0;
   
   for (unsigned int i1=0; i1<=M1->order(); ++i1) {
     for (unsigned int j1=0; j1<=M1->order()-i1; ++j1) {
       for (unsigned int k1=0; k1<=M1->order()-i1-j1; ++k1) {
 	
-	if ( (M1->M(i1+1,j1,k1) == zero()) &&
-	     (M1->M(i1,j1+1,k1) == zero()) &&
-	     (M1->M(i1,j1,k1+1) == zero()) ) continue;
+	if ( (M1->M(i1+1,j1,k1) == 0) &&
+	     (M1->M(i1,j1+1,k1) == 0) &&
+	     (M1->M(i1,j1,k1+1) == 0) ) continue;
 	
 	for (unsigned int i2=0; i2<=M2->order(); ++i2) {
 	  for (unsigned int j2=0; j2<=M2->order()-i2; ++j2) {
 	    for (unsigned int k2=0; k2<=M2->order()-i2-j2; ++k2) {
 	      
-	      if (M2->M(i2,j2,k2) == zero()) continue;
+	      if (M2->M(i2,j2,k2) == 0) continue;
 	      
-	      orsa::Double innerFx = orsa::zero();
-	      orsa::Double innerFy = orsa::zero();
-	      orsa::Double innerFz = orsa::zero();
+	      double innerFx = 0;
+	      double innerFy = 0;
+	      double innerFz = 0;
 	      
 	      for (unsigned int i3=0; i3<=i2; ++i3) {
 		for (unsigned int j3=0; j3<=j2; ++j3) {
@@ -1229,9 +1229,9 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 			     ORSA_DEBUG("k5: %i",k5);
 			  */
 			  
-			  orsa::Double fiveSumFx = orsa::zero();
-			  orsa::Double fiveSumFy = orsa::zero();
-			  orsa::Double fiveSumFz = orsa::zero();
+			  double fiveSumFx = 0;
+			  double fiveSumFy = 0;
+			  double fiveSumFz = 0;
 			  
 		          for (unsigned int L=0; L<=i5; ++L) {
 			    for (unsigned int M=0; M<=j5; ++M) {
@@ -1296,10 +1296,10 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 			    }
 			  }
 			  
-			  const orsa::Double commonInnerFactor = 
-			    orsa::binomial(i2,i3) * orsa::binomial(i3,i4) *
-			    orsa::binomial(j2,j3) * orsa::binomial(j3,j4) *
-			    orsa::binomial(k2,k3) * orsa::binomial(k3,k4) *
+			  const double commonInnerFactor = 
+			    mpz_class(orsa::binomial(i2,i3) * orsa::binomial(i3,i4) *
+				      orsa::binomial(j2,j3) * orsa::binomial(j3,j4) *
+				      orsa::binomial(k2,k3) * orsa::binomial(k3,k4)).get_d() *
 			    lx_PC.get(i4) * mx_PC.get(i3-i4) * nx_PC.get(i2-i3) *
 			    ly_PC.get(j4) * my_PC.get(j3-j4) * ny_PC.get(j2-j3) *
 			    lz_PC.get(k4) * mz_PC.get(k3-k4) * nz_PC.get(k2-k3);
@@ -1317,12 +1317,12 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 	      }
 	      
 	      /* 
-		 const orsa::Double commonFactor = 
+		 const double commonFactor = 
 		 orsa::power_sign(i1+j1+k1) *
 		 M1->M(i1,j1,k1) * 
 		 M2->M(i2,j2,k2) *
 		 oneOverR_PC.get(i1+j1+k1+i2+j2+k2+1) / 
-		 orsa::Double( factorial(i1) * factorial(j1) * factorial(k1) *
+		 double( factorial(i1) * factorial(j1) * factorial(k1) *
 		 factorial(i2) * factorial(j2) * factorial(k2) );
 		 
 		 Fx += innerFx * commonFactor;
@@ -1330,23 +1330,23 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 		 Fz += innerFz * commonFactor;
 	      */
 	      
-	      const orsa::Double commonFactor = 
+	      const double commonFactor = 
 		orsa::power_sign(i1+j1+k1) *
 		M2->M(i2,j2,k2) *
 		oneOverR_PC.get(i1+j1+k1+i2+j2+k2+1) / 
-		orsa::Double( factorial(i1) * factorial(j1) * factorial(k1) *
-			      factorial(i2) * factorial(j2) * factorial(k2) );
+		mpz_class(factorial(i1) * factorial(j1) * factorial(k1) *
+			  factorial(i2) * factorial(j2) * factorial(k2)).get_d();
 	      
 	      /* 
-		 ORSA_DEBUG("commonFactor: %Fe",commonFactor.get_mpf_t());
+		 ORSA_DEBUG("commonFactor: %Fe",commonFactor());
 		 
-		 ORSA_DEBUG("innerFx: %Fe",innerFx.get_mpf_t());
-		 ORSA_DEBUG("innerFy: %Fe",innerFy.get_mpf_t());
-		 ORSA_DEBUG("innerFz: %Fe",innerFz.get_mpf_t());
+		 ORSA_DEBUG("innerFx: %Fe",innerFx());
+		 ORSA_DEBUG("innerFy: %Fe",innerFy());
+		 ORSA_DEBUG("innerFz: %Fe",innerFz());
 		 
-		 ORSA_DEBUG("M1->M(i1+1,j1,k1): %Fe",M1->M(i1+1,j1,k1).get_mpf_t());
-		 ORSA_DEBUG("M1->M(i1,j1+1,k1): %Fe",M1->M(i1,j1+1,k1).get_mpf_t());
-		 ORSA_DEBUG("M1->M(i1,j1,k1+1): %Fe",M1->M(i1,j1,k1+1).get_mpf_t());
+		 ORSA_DEBUG("M1->M(i1+1,j1,k1): %Fe",M1->M(i1+1,j1,k1));
+		 ORSA_DEBUG("M1->M(i1,j1+1,k1): %Fe",M1->M(i1,j1+1,k1));
+		 ORSA_DEBUG("M1->M(i1,j1,k1+1): %Fe",M1->M(i1,j1,k1+1));
 	      */
 	      
 	      Tx += commonFactor * (M1->M(i1,j1+1,k1)*innerFz - M1->M(i1,j1,k1+1)*innerFy);
@@ -1356,9 +1356,9 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 	      if (0) {
 		ORSA_DEBUG("[%02i][%02i][%02i][%02i][%02i][%02i]   T: %20.12Fe %20.12Fe %20.12Fe",
 			   i1,j1,k1,i2,j2,k2,
-			   Tx.get_mpf_t(),
-			   Ty.get_mpf_t(),
-			   Tz.get_mpf_t());
+			   Tx,
+			   Ty,
+			   Tz);
 	      }
 	      
 	    }
@@ -1370,21 +1370,21 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
   }
   
   /* 
-     ORSA_DEBUG("Paul Tx: %.20Fe",Tx.get_mpf_t());
-     ORSA_DEBUG("Paul Ty: %.20Fe",Ty.get_mpf_t());
-     ORSA_DEBUG("Paul Tz: %.20Fe",Tz.get_mpf_t());
+     ORSA_DEBUG("Paul Tx: %.20Fe",Tx());
+     ORSA_DEBUG("Paul Ty: %.20Fe",Ty());
+     ORSA_DEBUG("Paul Tz: %.20Fe",Tz());
   */
   
   // rotate back, capital X,Y,Z
-  const orsa::Double TX = l11*Tx + m11*Ty + n11*Tz;
-  const orsa::Double TY = l21*Tx + m21*Ty + n21*Tz;
-  const orsa::Double TZ = l31*Tx + m31*Ty + n31*Tz;
+  const double TX = l11*Tx + m11*Ty + n11*Tz;
+  const double TY = l21*Tx + m21*Ty + n21*Tz;
+  const double TZ = l31*Tx + m31*Ty + n31*Tz;
   
   const orsa::Vector T(-TX,-TY,-TZ);
   
-  ORSA_DEBUG("Paul T.X: %.20Fe",T.getX().get_mpf_t());
-  ORSA_DEBUG("Paul T.Y: %.20Fe",T.getY().get_mpf_t());
-  ORSA_DEBUG("Paul T.Z: %.20Fe",T.getZ().get_mpf_t());
+  ORSA_DEBUG("Paul T.X: %.20Fe",T.getX());
+  ORSA_DEBUG("Paul T.Y: %.20Fe",T.getY());
+  ORSA_DEBUG("Paul T.Z: %.20Fe",T.getZ());
   
   return T;
 }

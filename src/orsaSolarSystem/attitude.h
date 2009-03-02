@@ -11,10 +11,10 @@ namespace orsaSolarSystem {
   
   public:
     ConstantZRotationEcliptic_RotationalBodyProperty(const orsa::Time   & t0,
-						     const orsa::Double & phi0,
-						     const orsa::Double & omega,
-						     const orsa::Double & lambda,
-						     const orsa::Double & beta);
+						     const double & phi0,
+						     const double & omega,
+						     const double & lambda,
+						     const double & beta);
     
   public:
     ConstantZRotationEcliptic_RotationalBodyProperty(const ConstantZRotationEcliptic_RotationalBodyProperty &);
@@ -44,9 +44,9 @@ namespace orsaSolarSystem {
     bool update(const orsa::Time &);
   private:
     const orsa::Time   _t0;
-    const orsa::Double _phi0;
-    const orsa::Double _omega;
-    const orsa::Double _lambda, _beta;    
+    const double _phi0;
+    const double _omega;
+    const double _lambda, _beta;    
   protected:
     orsa::Cache<orsa::Quaternion> _q;
     orsa::Cache<orsa::Vector>     _omegaVector;
@@ -58,10 +58,10 @@ namespace orsaSolarSystem {
   /* class ConstantZRotationEclipticAttitude : public orsa::Attitude {
      public:	
      ConstantZRotationEclipticAttitude(const orsa::Time   & t0,
-     const orsa::Double & phi0,
-     const orsa::Double & omega,
-     const orsa::Double & lambda,
-     const orsa::Double & beta);
+     const double & phi0,
+     const double & omega,
+     const double & lambda,
+     const double & beta);
      
      protected:
      virtual ~ConstantZRotationEclipticAttitude();
@@ -74,9 +74,9 @@ namespace orsaSolarSystem {
      
      private:
      const orsa::Time   _t0;
-     const orsa::Double _phi0;
-     const orsa::Double _omega;
-     const orsa::Double _lambda, _beta;    
+     const double _phi0;
+     const double _omega;
+     const double _lambda, _beta;    
      };
   */
   
@@ -84,10 +84,10 @@ namespace orsaSolarSystem {
   public orsa::PrecomputedRotationalBodyProperty {
   public:
     ConstantZRotationEquatorial_RotationalBodyProperty(const orsa::Time   & t0,
-						       const orsa::Double & phi0,
-						       const orsa::Double & omega,
-						       const orsa::Double & alpha,
-						       const orsa::Double & delta);
+						       const double & phi0,
+						       const double & omega,
+						       const double & alpha,
+						       const double & delta);
   public:
     bool get(orsa::Quaternion & q,
 	     orsa::Vector     & omega) const { 
@@ -106,9 +106,9 @@ namespace orsaSolarSystem {
     bool update(const orsa::Time &);
   private:
     const orsa::Time   _t0;
-    const orsa::Double _phi0;
-    const orsa::Double _omega;
-    const orsa::Double _alpha, _delta;    
+    const double _phi0;
+    const double _omega;
+    const double _alpha, _delta;    
   protected:
     orsa::Cache<orsa::Quaternion> _q;
     orsa::Cache<orsa::Vector>     _omegaVector;
@@ -120,10 +120,10 @@ namespace orsaSolarSystem {
   /* class ConstantZRotationEquatorialAttitude : public orsa::Attitude {
      public:	
      ConstantZRotationEquatorialAttitude(const orsa::Time   & t0,
-     const orsa::Double & phi0,
-     const orsa::Double & omega,
-     const orsa::Double & alpha,
-     const orsa::Double & delta);
+     const double & phi0,
+     const double & omega,
+     const double & alpha,
+     const double & delta);
      
      protected:
      virtual ~ConstantZRotationEquatorialAttitude();
@@ -136,9 +136,9 @@ namespace orsaSolarSystem {
      
      private:
      const orsa::Time   _t0;
-     const orsa::Double _phi0;
-     const orsa::Double _omega;
-     const orsa::Double _alpha, _delta;    
+     const double _phi0;
+     const double _omega;
+     const double _alpha, _delta;    
      };
   */
   

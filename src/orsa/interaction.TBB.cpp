@@ -94,13 +94,13 @@ public:
      void operator()(const tbb::blocked_range<unsigned int> & range) {
      // ORSA_DEBUG("range: %04i - %04i",range.begin(),range.end());
      orsa::Vector a_ref_b, a_b;
-     const orsa::Double G = orsa::Unit::instance()->getG();
+     const double G = orsa::Unit::instance()->getG();
      for (unsigned int k=range.begin(); k!=range.end(); ++k) {
      
      const orsa::BodyPair & bp = bodyPairVector[k];
      
-     const orsa::Double m_ref_b = bp.ref_b_ibps->inertial->mass();
-     const orsa::Double m_b     = bp.b_ibps->inertial->mass();
+     const double m_ref_b = bp.ref_b_ibps->inertial->mass();
+     const double m_b     = bp.b_ibps->inertial->mass();
      
      const orsa::Body * ref_b = bp.ref_b;
      const orsa::Body * b     = bp.b;
@@ -109,7 +109,7 @@ public:
      bp.b_ibps->translational->position() - 
      bp.ref_b_ibps->translational->position();
      
-     const Double _l = _d.length();
+     const double _l = _d.length();
      
      _d /= (_l*_l*_l);
      
@@ -276,7 +276,7 @@ public:
 
 Interaction::Interaction() : osg::Referenced(true) { 
   dummyPaulMoment = new PaulMoment(0);
-  dummyPaulMoment->setM(one(),0,0,0);
+  dummyPaulMoment->setM(1,0,0,0);
   dummyPaulMoment->setCenterOfMass(orsa::Vector(0,0,0));
   dummyPaulMoment->setInertiaMoment(orsa::Matrix::identity());
 }	
@@ -319,7 +319,7 @@ bool Interaction::acceleration(InteractionVector & a,
      {
      // create body pairs list
      // ORSA_DEBUG("pairs creation started...");
-     // orsa::Double m_ref_b, m_b;
+     // double m_ref_b, m_b;
      BodyGroup::BodyList::const_iterator ref_b_it = bl.begin();
      while (ref_b_it != bl.end()) {
      if (!(*ref_b_it)->alive(t)) {
@@ -502,11 +502,11 @@ bool Interaction::bodyPairAccelerationTerm(orsa::Vector     & a_ref_b,
      bp->ref_b_ibps,bp->ref_b_ibps->inertial.get(),bp->ref_b->getName().c_str());
   */
   
-  const orsa::Double m_ref_b = bp->ref_b_ibps->inertial->mass();
+  const double m_ref_b = bp->ref_b_ibps->inertial->mass();
   
-  const orsa::Double m_b     = bp->b_ibps->inertial->mass();
+  const double m_b     = bp->b_ibps->inertial->mass();
   
-  // orsa::Double m_ref_b, m_b;
+  // double m_ref_b, m_b;
   
   BodyGroup::BodyList bl = bg->getBodyList();
   
@@ -602,30 +602,30 @@ bool Interaction::bodyPairAccelerationTerm(orsa::Vector     & a_ref_b,
   /* 
      if (ref_b->getPropulsion() != 0) {
      osg::ref_ptr<PropulsionEvent> pe = ref_b->getPropulsion()->getPropulsionEvent(t);
-     // if (pe.thrustMagnitude.getRef() > orsa::zero()) {
-     // ORSA_DEBUG("using propulsion!! time: %Ff",t.asDouble().get_mpf_t());
+     // if (pe.thrustMagnitude.getRef() > 0) {
+     // ORSA_DEBUG("using propulsion!! time: %f",t.get_d());
      
      // IMPORTANT!!!!
      // ORSA_DEBUG("a=F/m and F=thrust, so I have to divide by the instantaneous mass...");
      
      // a[(*ref_b_it).get()] += pe.thrustMagnitude.getRef() * pe.thrustDirection();
      
-     const orsa::Double bodyMass = ref_b->getMass() - ref_b->getPropulsion()->massLost(t);
+     const double bodyMass = ref_b->getMass() - ref_b->getPropulsion()->massLost(t);
      
      if (ref_b->getPropulsion()->thrustToMass.isSet()) {
-     ORSA_DEBUG("t: %Ff   bodyMass: %Fg",
-     t.asDouble().get_mpf_t(),
-     bodyMass.get_mpf_t());
+     ORSA_DEBUG("t: %f   bodyMass: %Fg",
+     t.get_d(),
+     bodyMass());
      }
      
-     if (bodyMass > orsa::zero()) {
+     if (bodyMass > 0) {
      a_ref_b += pe->thrust.getRef() / bodyMass;
      } else {
-     ORSA_DEBUG("problem: non-positive mass!! (m=%Fe)",bodyMass.get_mpf_t());
+     ORSA_DEBUG("problem: non-positive mass!! (m=%Fe)",bodyMass());
      }
      
      // } else {
-     // ORSA_DEBUG("not using propulsion, time: %Ff",t.asDouble().get_mpf_t());
+     // ORSA_DEBUG("not using propulsion, time: %f",t.get_d());
      // }
      }
   */
@@ -700,14 +700,14 @@ bool Interaction::bodyPairAccelerationTerm(orsa::Vector     & a_ref_b,
      (*b_it)->getName().c_str());
   */
   
-  /* if ((b->getMass() == zero()) && 
-     (ref_b->getMass() == zero())) {
+  /* if ((b->getMass() == 0) && 
+     (ref_b->getMass() == 0)) {
      return true;
      }
   */
   
-  if ((m_b == zero()) && 
-      (m_ref_b == zero())) {
+  if ((m_b == 0) && 
+      (m_ref_b == 0)) {
     return true;
   }
   
@@ -826,7 +826,7 @@ bool Interaction::bodyPairAccelerationTerm(orsa::Vector     & a_ref_b,
       bp->b_ibps->translational->position() - 
       bp->ref_b_ibps->translational->position();
     
-    const Double _l = _d.length();
+    const double _l = _d.length();
     
     /* 
        if (_l > epsilon()) {
@@ -835,7 +835,7 @@ bool Interaction::bodyPairAccelerationTerm(orsa::Vector     & a_ref_b,
     _d /= (_l*_l*_l);
     
     if (ref_b->betaSun == b) {
-      const orsa::Vector accTerm = (one() - ref_b->beta.getRef()) * _d;
+      const orsa::Vector accTerm = (1 - ref_b->beta.getRef()) * _d;
       // a[(*ref_b_it).get()] += (*b_it)->getMu()     * accTerm;
       // a[    (*b_it).get()] -= (*ref_b_it)->getMu() * accTerm;
       // a_ref_b += b->getMu()     * accTerm;
@@ -918,7 +918,7 @@ bool Interaction::torque(InteractionVector & N,
   
   {
     // main loop
-    orsa::Double m_ref_b, m_b;
+    double m_ref_b, m_b;
     
     // BodyGroup::BodyList::const_iterator ref_b_it = bl.begin();
     // while (ref_b_it != bl.end()) {
@@ -1031,8 +1031,8 @@ bool Interaction::torque(InteractionVector & N,
 	  ORSA_DEBUG("problems...");
 	}
 	
-	if ((m_b == zero()) && 
-	    (m_ref_b == zero())) {
+	if ((m_b == 0) && 
+	    (m_ref_b == 0)) {
 	  // ++b_it;
 	  continue;
 	}

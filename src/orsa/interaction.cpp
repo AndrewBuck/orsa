@@ -11,7 +11,7 @@ using namespace orsa;
 
 Interaction::Interaction() : osg::Referenced(true) { 
   dummyPaulMoment = new PaulMoment(0);
-  dummyPaulMoment->setM(one(),0,0,0);
+  dummyPaulMoment->setM(1,0,0,0);
   dummyPaulMoment->setCenterOfMass(orsa::Vector(0,0,0));
   dummyPaulMoment->setInertiaMoment(orsa::Matrix::identity());
 }	
@@ -43,7 +43,7 @@ bool Interaction::acceleration(InteractionVector & a,
   
   {
     // main loop
-    orsa::Double m_ref_b, m_b;
+    double m_ref_b, m_b;
     
     // BodyGroup::BodyList::const_iterator ref_b_it = bl.begin();
     // while (ref_b_it != bl.end()) {
@@ -129,30 +129,30 @@ bool Interaction::acceleration(InteractionVector & a,
       /* 
 	 if (ref_b->getPropulsion() != 0) {
 	 osg::ref_ptr<PropulsionEvent> pe = ref_b->getPropulsion()->getPropulsionEvent(t);
-	 // if (pe.thrustMagnitude.getRef() > orsa::zero()) {
-	 // ORSA_DEBUG("using propulsion!! time: %Ff",t.asDouble().get_mpf_t());
+	 // if (pe.thrustMagnitude.getRef() > 0) {
+	 // ORSA_DEBUG("using propulsion!! time: %f",t.get_d());
      
 	 // IMPORTANT!!!!
 	 // ORSA_DEBUG("a=F/m and F=thrust, so I have to divide by the instantaneous mass...");
 	 
 	 // a[(*ref_b_it).get()] += pe.thrustMagnitude.getRef() * pe.thrustDirection();
 	 
-	 const orsa::Double bodyMass = ref_b->getMass() - ref_b->getPropulsion()->massLost(t);
+	 const double bodyMass = ref_b->getMass() - ref_b->getPropulsion()->massLost(t);
 	 
 	 if (ref_b->getPropulsion()->thrustToMass.isSet()) {
-	 ORSA_DEBUG("t: %Ff   bodyMass: %Fg",
-	 t.asDouble().get_mpf_t(),
-	 bodyMass.get_mpf_t());
+	 ORSA_DEBUG("t: %f   bodyMass: %Fg",
+	 t.get_d(),
+	 bodyMass());
 	 }
 	 
-	 if (bodyMass > orsa::zero()) {
+	 if (bodyMass > 0) {
 	 a_ref_b += pe->thrust.getRef() / bodyMass;
 	 } else {
-	 ORSA_DEBUG("problem: non-positive mass!! (m=%Fe)",bodyMass.get_mpf_t());
+	 ORSA_DEBUG("problem: non-positive mass!! (m=%Fe)",bodyMass());
 	 }
 	 
 	 // } else {
-	 // ORSA_DEBUG("not using propulsion, time: %Ff",t.asDouble().get_mpf_t());
+	 // ORSA_DEBUG("not using propulsion, time: %f",t.get_d());
 	 // }
 	 }
       */
@@ -197,8 +197,8 @@ bool Interaction::acceleration(InteractionVector & a,
 	  return true;
 	}
 	
-	if ((m_b == zero()) && 
-	    (m_ref_b == zero())) {
+	if ((m_b == 0) && 
+	    (m_ref_b == 0)) {
 	  continue;
 	}
 	
@@ -305,7 +305,7 @@ bool Interaction::acceleration(InteractionVector & a,
 	    b_ibps.translational->position() - 
 	    ref_b_ibps.translational->position();
 	  
-	  const Double _l = _d.length();
+	  const double _l = _d.length();
 	  
 	  /* 
 	     if (_l > epsilon()) {
@@ -314,7 +314,7 @@ bool Interaction::acceleration(InteractionVector & a,
 	  _d /= (_l*_l*_l);
 	  
 	  if (ref_b->betaSun == b) {
-	    const orsa::Vector accTerm = (one() - ref_b->beta.getRef()) * _d;
+	    const orsa::Vector accTerm = (1 - ref_b->beta.getRef()) * _d;
 	    // a[(*ref_b_it).get()] += (*b_it)->getMu()     * accTerm;
 	    // a[    (*b_it).get()] -= (*ref_b_it)->getMu() * accTerm;
 	    // a_ref_b += b->getMu()     * accTerm;
@@ -397,7 +397,7 @@ bool Interaction::torque(InteractionVector & N,
   
   {
     // main loop
-    orsa::Double m_ref_b, m_b;
+    double m_ref_b, m_b;
     
     // BodyGroup::BodyList::const_iterator ref_b_it = bl.begin();
     // while (ref_b_it != bl.end()) {
@@ -510,8 +510,8 @@ bool Interaction::torque(InteractionVector & N,
 	  ORSA_DEBUG("problems...");
 	}
 	
-	if ((m_b == zero()) && 
-	    (m_ref_b == zero())) {
+	if ((m_b == 0) && 
+	    (m_ref_b == 0)) {
 	  // ++b_it;
 	  continue;
 	}

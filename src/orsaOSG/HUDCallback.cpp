@@ -20,14 +20,14 @@ void HUDCallback::operator () (osg::Node * node, osg::NodeVisitor * nv) {
       {
 	char label[1024];
 	// int y, m, d, H, M, S, ms;
-	// gmp_sprintf(label,"%Ff",orsa::FromUnits(FromUnits(simulationTime.getMuSec(), orsa::Unit::MICROSECOND), orsa::Unit::DAY,-1).get_mpf_t());
+	// gmp_sprintf(label,"%f",orsa::FromUnits(FromUnits(simulationTime.getMuSec(), orsa::Unit::MICROSECOND), orsa::Unit::DAY,-1));
 	
-	gmp_sprintf(label,"JD %Ff",orsaSolarSystem::timeToJulian(simulationTime).get_mpf_t());
+	gmp_sprintf(label,"JD %f",orsaSolarSystem::timeToJulian(simulationTime));
 	//
 	/* 
 	   const double tf = (double)((float)(orsaSolarSystem::julianTime(simulationTime).get_d()));
-	   gmp_sprintf(label,"JD %Ff   float: %f",
-	   orsaSolarSystem::julianTime(simulationTime).get_mpf_t(),
+	   gmp_sprintf(label,"JD %f   float: %f",
+	   orsaSolarSystem::julianTime(simulationTime),
 	   tf);
 	*/
 	

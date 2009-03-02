@@ -180,9 +180,9 @@ bool BodyGroup::getClosestIBPS(orsa::IBPS       & ibps,
     ibps.time = t; 
     // if (_b_interval->getSubInterval(trv, _trv1, _trv2)) {
     if (bi->getSubInterval(ibps,ibps1,ibps2)) {
-      // if (fabs((_trv1.t-t).asDouble()) < fabs((_trv2.t-t).asDouble())) {
-      if (fabs((ibps1.time.getRef()-t).asDouble()) < 
-	  fabs((ibps2.time.getRef()-t).asDouble())) {
+      // if (fabs((_trv1.t-t).get_d()) < fabs((_trv2.t-t).get_d())) {
+      if (fabs((ibps1.time.getRef()-t).get_d()) < 
+	  fabs((ibps2.time.getRef()-t).get_d())) {
 	ibps = ibps1;
       } else {
 	ibps = ibps2;
@@ -261,10 +261,10 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
 		ibps.translational->setPosition(r);
 		ibps.translational->setVelocity(v);
 		/* 
-		   ORSA_DEBUG("spline, r: %Ff   r1: %Ff   r2: %Ff",
-		   r.length().get_mpf_t(),
-		   ibps1.translational->position().length().get_mpf_t(),
-		   ibps2.translational->position().length().get_mpf_t());
+		   ORSA_DEBUG("spline, r: %f   r1: %f   r2: %f",
+		   r.length(),
+		   ibps1.translational->position().length(),
+		   ibps2.translational->position().length());
 		*/
 	      }
 	    } else {
@@ -278,10 +278,10 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
 	    // ORSA_DEBUG("CODE NEEDED HERE!!");
 	    // 
 	    /* 
-	       orsa::Double sPhi,sPhiDot,sTheta,sThetaDot,sPsi,sPsiDot;
+	       double sPhi,sPhiDot,sTheta,sThetaDot,sPsi,sPsiDot;
 	       
-	       osg::ref_ptr<orsa::PhysicalSpline<orsa::Double> > sAngle = 
-	       new orsa::PhysicalSpline<orsa::Double>;
+	       osg::ref_ptr<orsa::PhysicalSpline<double> > sAngle = 
+	       new orsa::PhysicalSpline<double>;
 	       
 	       if (sAngle->set(ibps1.rotational->getPhi(),
 	       ibps1.rotational->getPhiDot(),
@@ -402,7 +402,7 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
 	      
 	      // important constraint on qDot!
 	      /* 
-		 const orsa::Double delta = 
+		 const double delta = 
 		 sQ.getScalar()*sQDot.getScalar() +
 		 sQ.getVector()*sQDot.getVector();
 		 //
@@ -412,7 +412,7 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
 	      ibps.rotational->set(sQ,
 				   ibps1.rotational->getOmega());
 	      
-	      // ORSA_DEBUG("sQDot.getVector(): %Fg",sQDot.getVector().length().get_mpf_t());
+	      // ORSA_DEBUG("sQDot.getVector(): %Fg",sQDot.getVector().length());
 	      
 	    }
 	    
@@ -488,7 +488,7 @@ bool BodyGroup::getInterpolatedPosVel(Vector     & position,
   }
 }
 
-bool BodyGroup::getInterpolatedMass(Double     & mass,
+bool BodyGroup::getInterpolatedMass(double     & mass,
 				    const Body * b,
 				    const Time & t) const {
   orsa::IBPS ibps;
@@ -735,7 +735,7 @@ bool BodyGroup::getGlobalInterval(orsa::Time & start, orsa::Time & stop, const b
       // (_bi.key()->alive(_interval->max().t)) ) {
       _min.set(_interval->min().time.getRef());
       _max.set(_interval->max().time.getRef());
-      // ORSA_DEBUG("min: %Ff   max: %Ff",_min.getRef().asDouble().get_mpf_t(),_max.getRef().asDouble().get_mpf_t());
+      // ORSA_DEBUG("min: %f   max: %f",_min.getRef().get_d(),_max.getRef().get_d());
       // ORSA_DEBUG("//1//");
       // } 
     } else if ( (_min.isSet()) && 
@@ -760,9 +760,9 @@ bool BodyGroup::getGlobalInterval(orsa::Time & start, orsa::Time & stop, const b
     start = _min.getRef();
     stop  = _max.getRef();
     /* 
-       ORSA_DEBUG("start: %Ff   stop: %Ff",
-       start.asDouble().get_mpf_t(),
-       stop.asDouble().get_mpf_t());
+       ORSA_DEBUG("start: %f   stop: %f",
+       start.get_d(),
+       stop.get_d());
     */
     return true;
   } else {
@@ -816,15 +816,15 @@ const Body * BodyGroup::getBody(const std::string & bodyName) const {
 
 /* 
    orsa::Vector BodyGroup::centerOfMassPosition(const orsa::Time & t) {
-   orsa::Double sum_mb(orsa::zero());
+   double sum_mb(0);
    orsa::Vector sum_mb_rb(0,0,0);
    //
-   orsa::Double mb;
+   double mb;
    orsa::Vector rb;
    BodyList::const_iterator it = _b_list.begin();
    while (it != _b_list.end()) {
    mb = (*it)->getMass();
-   if (mb > orsa::zero()) {
+   if (mb > 0) {
    ORSA_DEBUG("more checks needed for extended bodies");
    if (getInterpolatedPosition(rb,(*it).get(),t)) {
    sum_mb    += mb;
@@ -841,11 +841,11 @@ void BodyGroup::centerOfMassPosVel(orsa::Vector     & r,
 				   orsa::Vector     & v,
 				   const orsa::Time & t) const {
   
-  orsa::Double sum_mb(orsa::zero());
+  double sum_mb(0);
   orsa::Vector sum_mb_rb(0,0,0);
   orsa::Vector sum_mb_vb(0,0,0);
   
-  orsa::Double mb;
+  double mb;
   orsa::Vector rb;
   orsa::Vector vb;
   
@@ -853,7 +853,7 @@ void BodyGroup::centerOfMassPosVel(orsa::Vector     & r,
   while (it != _b_list.end()) {
     // mb = (*it)->getMass();
     if (getInterpolatedMass(mb,(*it).get(),t)) {
-      if (mb > orsa::zero()) {
+      if (mb > 0) {
 	// ORSA_DEBUG("more checks needed for extended bodies");
 #warning "more checks needed for extended bodies"
 	
@@ -871,7 +871,7 @@ void BodyGroup::centerOfMassPosVel(orsa::Vector     & r,
   v = sum_mb_vb/sum_mb;
 }
 
-orsa::Double BodyGroup::totalEnergy(const orsa::Time & t) const {
+double BodyGroup::totalEnergy(const orsa::Time & t) const {
   
   orsa::Vector r,v;
   centerOfMassPosVel(r,v,t);
@@ -879,15 +879,15 @@ orsa::Double BodyGroup::totalEnergy(const orsa::Time & t) const {
   const orsa::Vector vcm = v;
   
   osg::ref_ptr<PaulMoment> dummy_pm = new PaulMoment(0);
-  dummy_pm->setM(one(),0,0,0);
+  dummy_pm->setM(1,0,0,0);
   dummy_pm->setCenterOfMass(orsa::Vector(0,0,0));
   dummy_pm->setInertiaMoment(orsa::Matrix::identity());
   
-  orsa::Double E(orsa::zero());
+  double E(0);
   
   // kinetic energy contribution
   {
-    orsa::Double m;
+    double m;
     BodyList::const_iterator it = _b_list.begin();
     while (it != _b_list.end()) {
       
@@ -911,7 +911,7 @@ orsa::Double BodyGroup::totalEnergy(const orsa::Time & t) const {
   
   // rotational energy contribution 
   {
-    orsa::Double m;
+    double m;
     BodyList::const_iterator it = _b_list.begin();
     while (it != _b_list.end()) {
       
@@ -1009,7 +1009,7 @@ orsa::Double BodyGroup::totalEnergy(const orsa::Time & t) const {
 	  (r2 + b2_l2g*b2_pm->getCenterOfMass()) - 
 	  (r1 + b1_l2g*b1_pm->getCenterOfMass());
 	
-	orsa::Double m1, m2;
+	double m1, m2;
 	
 	if ( (!getInterpolatedMass(m1,(*it1).get(),t)) ||
 	     (!getInterpolatedMass(m2,(*it2).get(),t)) ) {
@@ -1044,7 +1044,7 @@ orsa::Vector BodyGroup::totalAngularMomentum(const orsa::Time & t) const {
   const orsa::Vector vcm = v;
   
   osg::ref_ptr<PaulMoment> dummy_pm = new PaulMoment(0);
-  dummy_pm->setM(one(),0,0,0);
+  dummy_pm->setM(1,0,0,0);
   dummy_pm->setCenterOfMass(orsa::Vector(0,0,0));
   dummy_pm->setInertiaMoment(orsa::Matrix::identity());
   
@@ -1052,7 +1052,7 @@ orsa::Vector BodyGroup::totalAngularMomentum(const orsa::Time & t) const {
   
   // contribution from body's rotation
   {
-    orsa::Double m;
+    double m;
     BodyList::const_iterator it = _b_list.begin();
     while (it != _b_list.end()) {
       
@@ -1090,7 +1090,7 @@ orsa::Vector BodyGroup::totalAngularMomentum(const orsa::Time & t) const {
   
   // contribution from rotation about the barycenter
   {
-    orsa::Double m;
+    double m;
     BodyList::const_iterator it = _b_list.begin();
     while (it != _b_list.end()) {
       

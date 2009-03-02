@@ -45,8 +45,8 @@ namespace orsa {
       return _mu_sec;
     }
   public:
-    Double asDouble() const {
-      return (FromUnits(Double(_mu_sec),Unit::MICROSECOND));
+    double get_d() const {
+      return (FromUnits(_mu_sec.get_d(),Unit::MICROSECOND));
     }
   public:
     inline Time & operator += (const Time & rhs) {

@@ -7,9 +7,9 @@
 
 namespace orsaSolarSystem {
   
-  orsa::Double obleq(const orsa::Time &);
+  double obleq(const orsa::Time &);
   
-  orsa::Double obleqJ2000();
+  double obleqJ2000();
   
   orsa::Matrix eclipticToEquatorial();
   orsa::Matrix equatorialToEcliptic();

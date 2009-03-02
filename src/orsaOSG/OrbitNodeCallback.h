@@ -61,14 +61,14 @@ namespace orsaOSG {
 	      
 	      if (goodOrbit) {
 		
-		if (orbit.e < orsa::one()) {
+		if (orbit.e < 1) {
 		  
 		  needToClearOrbit=false;
 		  
 		  /* 
-		     ORSA_DEBUG("a: %Ff KM   e: %Ff",
-		     FromUnits(orbit.a,orsa::Unit::KM,-1).get_mpf_t(),
-		     orbit.e.get_mpf_t());
+		     ORSA_DEBUG("a: %f KM   e: %f",
+		     FromUnits(orbit.a,orsa::Unit::KM,-1)(),
+		     orbit.e());
 		  */
 		  
 		  orsa::Matrix m = orsa::Matrix::identity();
@@ -78,7 +78,7 @@ namespace orsaOSG {
 		  m.rotZ(-orbit.omega_pericenter);
 		  // scale
 		  const orsa::Matrix m_scale(orbit.a, 0, 0,
-					     0, orbit.a*sqrt(orsa::one()-orbit.e*orbit.e),0,
+					     0, orbit.a*sqrt(1-orbit.e*orbit.e),0,
 					     0, 0, orbit.a);	
 		  //
 		  /* const orsa::Double orbit_a_AU = orsa::FromUnits(orbit.a,orsa::Unit::AU,-1);

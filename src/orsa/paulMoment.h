@@ -79,8 +79,8 @@ namespace orsa {
 			const unsigned int sample_points,
 			const int random_seed);
   private:
-    void _moment(std::vector< std::vector< std::vector< orsa::Double > > > & M,
-		 std::vector< std::vector< std::vector< orsa::Double > > > & M_uncertainty,
+    void _moment(std::vector< std::vector< std::vector< double > > > & M,
+		 std::vector< std::vector< std::vector< double > > > & M_uncertainty,
 		 const orsa::Vector                                        & center_of_mass,
 		 const orsa::Vector                                        & center_of_mass_uncertainty,
 		 const std::vector<bool>                                   & in,
@@ -106,17 +106,17 @@ namespace orsa {
     */
     
   public:
-    const Double M (const unsigned int i,
+    const double M (const unsigned int i,
 		    const unsigned int j, 
 		    const unsigned int k) const {
       if (i+j+k <= _order.getRef()) {
 	return _M[i][j][k];
       } else {
-	return zero();
+	return 0;
       }
     }
   public:
-    void setM (const Double & val,
+    void setM (const double & val,
 	       const unsigned int i, 
 	       const unsigned int j, 
 	       const unsigned int k) {
@@ -127,7 +127,7 @@ namespace orsa {
       }
     }
   protected:
-    std::vector< std::vector< std::vector< orsa::Double > > > _M, _M_uncertainty;
+    std::vector< std::vector< std::vector<double> > > _M, _M_uncertainty;
     
   protected:
     orsa::Cache<unsigned int> _sample_points;

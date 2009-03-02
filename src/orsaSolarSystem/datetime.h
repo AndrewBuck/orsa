@@ -40,8 +40,8 @@ namespace orsaSolarSystem {
 			 const orsaSolarSystem::TimeScale ts);
   
   // conversion
-  inline orsa::Double MJD2JD(const orsa::Double & MJD) { return (MJD+orsa::Double("2400000.5")); }
-  inline orsa::Double JD2MJD(const orsa::Double &  JD) { return ( JD-orsa::Double("2400000.5")); }
+  inline double MJD2JD(const double & MJD) { return (MJD+2400000.5); }
+  inline double JD2MJD(const double &  JD) { return ( JD-2400000.5); }
   
   orsa::Time gregorTime(int y, 
 			int m, 
@@ -53,7 +53,7 @@ namespace orsaSolarSystem {
   
   orsa::Time gregorTime(int y, 
 			int m, 
-			orsa::Double d);
+			double d);
   
   void gregorDay(const orsa::Time & t,
 		 int & y,
@@ -68,16 +68,16 @@ namespace orsaSolarSystem {
 		 int & y,
 		 int & m,
 		 int & d,
-		 orsa::Double & fd);
+		 double & fd);
   
-  orsa::Double timeToJulian(const orsa::Time &);
-  orsa::Time   julianToTime(const orsa::Double &);
+  double timeToJulian(const orsa::Time &);
+  orsa::Time   julianToTime(const double &);
   
   orsa::Time J2000();
   
   orsa::Time now();
   
-  orsa::Double dayFraction(const orsa::Time &);
+  double dayFraction(const orsa::Time &);
   
 }; // namespace orsaSolarSystem
 

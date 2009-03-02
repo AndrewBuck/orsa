@@ -97,41 +97,41 @@ namespace orsa {
     UnitBaseScale<MassUnit>   _mass;
     
   protected:
-    orsa::Double getTimeScale(const TimeUnit & tu) const;
-    orsa::Double getLengthScale(const LengthUnit &) const; 
-    orsa::Double getMassScale(const MassUnit &) const; 
+    double getTimeScale(const TimeUnit & tu) const;
+    double getLengthScale(const LengthUnit &) const; 
+    double getMassScale(const MassUnit &) const; 
     
   protected:
-    orsa::Double getTimeScale() const;    
-    orsa::Double getLengthScale() const; 
-    orsa::Double getMassScale() const; 
+    double getTimeScale() const;    
+    double getLengthScale() const; 
+    double getMassScale() const; 
     
   protected:
     void recompute();
     
   public:
-    inline orsa::Double FromUnits(const orsa::Double & x,
+    inline double FromUnits(const double & x,
 				  const TimeUnit & tu, 
 				  const mpz_class & power = mpz_class("1")) const { 
       return (x*int_pow(getTimeScale(tu)/getTimeScale(),power));
     }
   public:
-    inline orsa::Double FromUnits(const orsa::Double & x,
+    inline double FromUnits(const double & x,
 				  const LengthUnit & lu,
 				  const mpz_class & power = mpz_class("1")) const { 
       return (x*int_pow(getLengthScale(lu)/getLengthScale(),power)); 
     }
   public:
-    inline orsa::Double FromUnits(const orsa::Double & x, 
+    inline double FromUnits(const double & x, 
 				  const MassUnit & mu, 
 				  const mpz_class & power = mpz_class("1")) const {
       
       /* 
-	 ORSA_DEBUG("called FromUnits(%Fg,%Zi) [mass] [inner]",x.get_mpf_t(),power.get_mpz_t());
-	 ORSA_DEBUG("getMassScale(mu): %Fg",getMassScale(mu).get_mpf_t());
-	 ORSA_DEBUG("getMassScale(): %Fg",getMassScale().get_mpf_t());
-	 const orsa::Double retVal = x*int_pow(getMassScale(mu)/getMassScale(),power);
-	 ORSA_DEBUG("retVal: %Fg [inner]",retVal.get_mpf_t());
+	 ORSA_DEBUG("called FromUnits(%Fg,%Zi) [mass] [inner]",x(),power.get_mpz_t());
+	 ORSA_DEBUG("getMassScale(mu): %Fg",getMassScale(mu)());
+	 ORSA_DEBUG("getMassScale(): %Fg",getMassScale());
+	 const double retVal = x*int_pow(getMassScale(mu)/getMassScale(),power);
+	 ORSA_DEBUG("retVal: %Fg [inner]",retVal());
 	 return retVal;
       */
       
@@ -152,51 +152,51 @@ namespace orsa {
     };
     
   public:
-    inline orsa::Double getG()    const { return G; };
-    inline orsa::Double getMSun() const { return MSun; };
-    inline orsa::Double getC()    const { return c; }; // c = speed of light
-    inline orsa::Double getC2()   const { return c2; }; // c2 = speed of light squared
+    inline double getG()    const { return G; };
+    inline double getMSun() const { return MSun; };
+    inline double getC()    const { return c; }; // c = speed of light
+    inline double getC2()   const { return c2; }; // c2 = speed of light squared
   public:
-    orsa::Double getG_MKS() const;
+    double getG_MKS() const;
     
   private:
-    orsa::Double G,G_base;
-    orsa::Double MSun,MSun_base;
-    orsa::Double MJupiter_base, MEarth_base, MMoon_base;
-    orsa::Double AU_base;
-    orsa::Double c,c2,c_base;
-    orsa::Double r_earth_base;
-    orsa::Double r_moon_base;
-    orsa::Double parsec_base;
+    double G,G_base;
+    double MSun,MSun_base;
+    double MJupiter_base, MEarth_base, MMoon_base;
+    double AU_base;
+    double c,c2,c_base;
+    double r_earth_base;
+    double r_moon_base;
+    double parsec_base;
  
   private:
-    const orsa::Double        G_MKS;
-    const orsa::Double     MSUN_MKS;
-    const orsa::Double MJUPITER_MKS;
-    const orsa::Double   MEARTH_MKS;
-    const orsa::Double    MMOON_MKS;
-    const orsa::Double       AU_MKS;
-    const orsa::Double        c_MKS;
-    const orsa::Double  R_EARTH_MKS;
-    const orsa::Double   R_MOON_MKS;
+    const double        G_MKS;
+    const double     MSUN_MKS;
+    const double MJUPITER_MKS;
+    const double   MEARTH_MKS;
+    const double    MMOON_MKS;
+    const double       AU_MKS;
+    const double        c_MKS;
+    const double  R_EARTH_MKS;
+    const double   R_MOON_MKS;
   };
   
   
   // _99%_ the user interface follows 
-  inline orsa::Double FromUnits(const orsa::Double & x, const Unit::TimeUnit & tu, const mpz_class & power = mpz_class("1")) {
+  inline double FromUnits(const double & x, const Unit::TimeUnit & tu, const mpz_class & power = mpz_class("1")) {
     return Unit::instance()->FromUnits(x, tu, power);
   }
   
-  inline orsa::Double FromUnits(const orsa::Double & x, const Unit::LengthUnit & lu, const mpz_class & power = mpz_class("1")) {
+  inline double FromUnits(const double & x, const Unit::LengthUnit & lu, const mpz_class & power = mpz_class("1")) {
     return Unit::instance()->FromUnits(x, lu, power);
   }
   
-  inline orsa::Double FromUnits(const orsa::Double & x, const Unit::MassUnit & mu, const mpz_class & power = mpz_class("1")) {
+  inline double FromUnits(const double & x, const Unit::MassUnit & mu, const mpz_class & power = mpz_class("1")) {
     
     /* 
-       ORSA_DEBUG("called FromUnits(%Fg,%Zi) [mass]",x.get_mpf_t(),power.get_mpz_t());
-       const orsa::Double retVal = Unit::instance()->FromUnits(x, mu, power);
-       ORSA_DEBUG("retVal: %Fg",retVal.get_mpf_t());
+       ORSA_DEBUG("called FromUnits(%Fg,%Zi) [mass]",x(),power.get_mpz_t());
+       const double retVal = Unit::instance()->FromUnits(x, mu, power);
+       ORSA_DEBUG("retVal: %Fg",retVal());
        return retVal;
     */
     

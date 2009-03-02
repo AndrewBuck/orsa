@@ -45,26 +45,26 @@ bool MPCCometFile::processLine(const char * line) {
   
   const Time Tp = orsaSolarSystem::gregorTime(atoi(s_Tp_y.c_str()),
 					      atoi(s_Tp_m.c_str()),
-					      Double(s_Tp_d));
+					      atof(s_Tp_d.c_str()));
   
   const Time epoch = orsaSolarSystem::gregorTime(atoi(s_epoch_y.c_str()),
 						 atoi(s_epoch_m.c_str()),
-						 Double(s_epoch_d));
+						 atof(s_epoch_d.c_str()));
   
   Orbit orbit;
-  orbit.mu = orsa::Unit::instance()->getG()*orsa::FromUnits(orsa::one(),orsa::Unit::MSUN); 
-  orbit.e  = Double(s_e);
+  orbit.mu = orsa::Unit::instance()->getG()*orsa::FromUnits(1,orsa::Unit::MSUN); 
+  orbit.e  = atof(s_e.c_str());
   //
   if (orbit.e > 0.99) {
     // non-periodic orbit, not included for the moment
     return false;
   }
   //
-  orbit.a                = FromUnits(Double(s_q)/(one()-orbit.e),orsa::Unit::AU);
-  orbit.i                = degToRad() * Double(s_i);
-  orbit.omega_node       = degToRad() * Double(s_node);
-  orbit.omega_pericenter = degToRad() * Double(s_peri);
-  orbit.M                = twopi()*(epoch-Tp).asDouble()/orbit.period();
+  orbit.a                = FromUnits(atof(s_q.c_str())/(1-orbit.e),orsa::Unit::AU);
+  orbit.i                = degToRad() * atof(s_i.c_str());
+  orbit.omega_node       = degToRad() * atof(s_node.c_str());
+  orbit.omega_pericenter = degToRad() * atof(s_peri.c_str());
+  orbit.M                = twopi()*(epoch-Tp).get_d()/orbit.period();
   
   MPCCometDataElement element;
   //

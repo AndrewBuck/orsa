@@ -72,7 +72,7 @@ namespace orsa {
 				 const bool fullLine = false) const = 0;
     
   public:
-    const orsa::Double & boundingRadius() const { 
+    const double & boundingRadius() const { 
       if (!_r_max.isSet()) {
 	if (!_updateCache()) {
 	  ORSA_DEBUG("problems encountered while updating cached values");
@@ -101,7 +101,7 @@ namespace orsa {
   protected:
     virtual bool _updateCache() const = 0;
   protected:
-    mutable orsa::Cache<orsa::Double> _r_min, _r_max;
+    mutable orsa::Cache<double> _r_min, _r_max;
   protected:    
     mutable orsa::Box _boundingBox;
   protected:    
@@ -204,7 +204,7 @@ namespace orsa {
 			 const bool fullLine = false) const;
     
   protected:
-    mutable orsa::Cache<orsa::Double> _delta_min, _delta_max;
+    mutable orsa::Cache<double> _delta_min, _delta_max;
     
   protected:
     // reference points inside model, used by _isInside_useLineMethod
@@ -240,32 +240,32 @@ namespace orsa {
     mutable std::vector<Vector> _face_normal;   // size: [face]
     
   public:
-    orsa::Double _getFaceArea(const unsigned int face_index) const;
+    double _getFaceArea(const unsigned int face_index) const;
   protected:  
-    mutable std::vector<orsa::Double> _face_area;   // size: [face]
+    mutable std::vector<double> _face_area;   // size: [face]
     
   public:
-    typedef std::vector<orsa::Double> AngleVector;
+    typedef std::vector<double> AngleVector;
   public:
     //! lightSource and observerPosition are relative to the Shape
     //! delta is the angle, at the observer, between the center of the shape and the vertex
     bool vertexIlluminationAngles(const orsa::Vector & lightSource,
 				  const orsa::Vector & observerPosition,
-				  orsa::Double       & phase,
+				  double       & phase,
 				  AngleVector        & i, 
 				  AngleVector        & e,
 				  AngleVector        & delta,
-				  const orsa::Double & deltaMax,
+				  const double & deltaMax,
 				  const bool includeShadows = false) const;
   public:
     /* // this needs to be perfectioned before use
        bool faceIlluminationAngles(const orsa::Vector & lightSource,
        const orsa::Vector & observerPosition,
-       orsa::Double       & phase,
+       double       & phase,
        AngleVector        & i, 
        AngleVector        & e,
        AngleVector        & delta,
-       const orsa::Double & deltaMax,
+       const double & deltaMax,
        const bool includeShadows = false) const;
     */
   };
@@ -294,14 +294,14 @@ namespace orsa {
     
   protected:
     // lat: -90 to +90, lon: 0 to 360
-    Double _lat_step_DEG;
-    Double _lon_step_DEG;
+    double _lat_step_DEG;
+    double _lon_step_DEG;
   public:
-    const Double & getLatStepDEG() const { return _lat_step_DEG; }
-    const Double & getLonStepDEG() const { return _lon_step_DEG; }
+    const double & getLatStepDEG() const { return _lat_step_DEG; }
+    const double & getLonStepDEG() const { return _lon_step_DEG; }
     
   public:
-    typedef std::vector < std::vector< Double > > RadiusTable;
+    typedef std::vector < std::vector< double > > RadiusTable;
   protected:
     RadiusTable _rt;
   public:
@@ -313,20 +313,20 @@ namespace orsa {
   class EllipsoidShape : public orsa::Shape {
   public:
     //! a,b,c are the three semi-axis respectively relative to x,y,z  
-    EllipsoidShape(const orsa::Double & a,
-		   const orsa::Double & b,
-		   const orsa::Double & c) :
+    EllipsoidShape(const double & a,
+		   const double & b,
+		   const double & c) :
       Shape(),
       _a(a),
       _a2(a*a),
-      _am2(one()/_a2),
+      _am2(1/_a2),
       _b(b),
       _b2(b*b),
-      _bm2(one()/_b2),
+      _bm2(1/_b2),
       _c(c),
       _c2(c*c),
-      _cm2(one()/_c2),
-      _dummy_closest(zero(),zero(),zero()) {
+      _cm2(1/_c2),
+      _dummy_closest(0,0,0) {
       _init();
     }
   private:
@@ -340,9 +340,9 @@ namespace orsa {
     }
     
   public:
-    void getABC(orsa::Double & a,
-	        orsa::Double & b,
-		orsa::Double & c) const {
+    void getABC(double & a,
+	        double & b,
+		double & c) const {
       a = _a;
       b = _b;
       c = _c;
@@ -385,7 +385,7 @@ namespace orsa {
     */
     
   protected:
-    orsa::Double _a, _a2, _am2, _b, _b2, _bm2, _c, _c2, _cm2;
+    double _a, _a2, _am2, _b, _b2, _bm2, _c, _c2, _cm2;
     
   protected:
     const orsa::Vector _dummy_closest;    

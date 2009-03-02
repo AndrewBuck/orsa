@@ -20,7 +20,7 @@ namespace orsa {
     virtual ~Covariance();
     
   private:
-    std::vector<std::vector<orsa::Cache<orsa::Double> > > _covm;
+    std::vector<std::vector<orsa::Cache<double> > > _covm;
   };
   
 } // namespace orsa

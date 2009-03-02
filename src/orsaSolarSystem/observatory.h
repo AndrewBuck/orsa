@@ -15,7 +15,7 @@ namespace orsaSolarSystem {
   
   class Observatory {
   public:
-    orsa::Cache<orsa::Double> lon, pxy, pz;
+    orsa::Cache<double> lon, pxy, pz;
     orsa::Cache<std::string> obsCode;
     orsa::Cache<std::string> name;
   };

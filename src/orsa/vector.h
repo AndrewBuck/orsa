@@ -15,25 +15,24 @@ namespace orsa {
     
     // constructors
   public:
-    // the three components are orsa::Double that automatically initializes to zero
     Vector() { }
   public:
     Vector(const Vector & v) : _x(v._x), _y(v._y), _z(v._z) { }
   public:	
-    Vector(const orsa::Double & x, 
-	   const orsa::Double & y, 
-	   const orsa::Double & z) : _x(x), _y(y), _z(z) { }
+    Vector(const double & x, 
+	   const double & y, 
+	   const double & z) : _x(x), _y(y), _z(z) { }
   public:     
     ~Vector() { }
     
   public:
-    inline const orsa::Double & getX() const { return _x; }
-    inline const orsa::Double & getY() const { return _y; }
-    inline const orsa::Double & getZ() const { return _z; }
+    inline const double & getX() const { return _x; }
+    inline const double & getY() const { return _y; }
+    inline const double & getZ() const { return _z; }
   public:    
-    inline void setX(const orsa::Double & x) { _x = x; _reset_cache(); }
-    inline void setY(const orsa::Double & y) { _y = y; _reset_cache(); }
-    inline void setZ(const orsa::Double & z) { _z = z; _reset_cache(); }    
+    inline void setX(const double & x) { _x = x; _reset_cache(); }
+    inline void setY(const double & y) { _y = y; _reset_cache(); }
+    inline void setZ(const double & z) { _z = z; _reset_cache(); }    
   public:
     osg::Vec3f getVec3f() const;
     osg::Vec3d getVec3d() const;
@@ -55,7 +54,7 @@ namespace orsa {
       return *this;
     }
     
-    Vector & operator *= (const orsa::Double & f) {
+    Vector & operator *= (const double & f) {
       _x *= f;
       _y *= f;
       _z *= f;
@@ -63,7 +62,7 @@ namespace orsa {
       return *this;
     }
     
-    Vector & operator /= (const orsa::Double & f) {
+    Vector & operator /= (const double & f) {
       _x /= f;
       _y /= f;
       _z /= f;
@@ -90,15 +89,15 @@ namespace orsa {
     }
     
     // scalar product
-    inline orsa::Double operator * (const Vector & rhs) const {
-      return orsa::Double(getX()*rhs.getX()+
+    inline double operator * (const Vector & rhs) const {
+      return double(getX()*rhs.getX()+
 		    getY()*rhs.getY()+
 		    getZ()*rhs.getZ());
     }
     
     // rotation
     /* 
-       Vector & rotate (const orsa::Double, const orsa::Double, const orsa::Double);
+       Vector & rotate (const double, const double, const double);
     */
     
     // set
@@ -110,7 +109,7 @@ namespace orsa {
        }
     */
     
-    inline void set(const orsa::Double & x, const orsa::Double & y, const orsa::Double & z) {
+    inline void set(const double & x, const double & y, const double & z) {
       _x = x;
       _y = y;
       _z = z;
@@ -119,30 +118,30 @@ namespace orsa {
     
     // metrics
     /* 
-       orsa::Double length() const {
+       double length() const {
        return sqrt( (_x*_x) +
        (_y*_y) +
        (_z*_z) );
        }
     */
     //
-    const orsa::Double & length() const;
+    const double & length() const;
     
     /* 
-       orsa::Double lengthSquared() const {
+       double lengthSquared() const {
        return ( (_x*_x) +
        (_y*_y) +
        (_z*_z) );
        }
     */
     //    
-    const orsa::Double & lengthSquared() const;
+    const double & lengthSquared() const;
     
-    orsa::Double manhattanLength() const {
+    double manhattanLength() const {
       return (fabs(_x)+fabs(_y)+fabs(_z));
     }
     //
-    // orsa::Double manhattanLength() const;    
+    // double manhattanLength() const;    
     
     /* 
        inline bool isZero() const {
@@ -184,12 +183,12 @@ namespace orsa {
     Vector & normalize();
     
   protected:
-    orsa::Double _x, _y, _z;
+    double _x, _y, _z;
     
     // cache
   private:
-    // mutable Cache<Double> _l, _l2, _ml;
-    mutable Cache<orsa::Double> _l, _l2;
+    // mutable Cache<double> _l, _l2, _ml;
+    mutable Cache<double> _l, _l2;
   private:
     void _reset_cache() const {
       _l.reset();
@@ -204,19 +203,19 @@ namespace orsa {
     void _update_l2() const;
   };
   
-  inline Vector operator * (const orsa::Double & f, const Vector & v) {
+  inline Vector operator * (const double & f, const Vector & v) {
     return Vector(v.getX()*f, 
 		  v.getY()*f, 
 		  v.getZ()*f);
   }
   
-  inline Vector operator * (const Vector & v, const orsa::Double & f) {
+  inline Vector operator * (const Vector & v, const double & f) {
     return Vector(v.getX()*f, 
 		  v.getY()*f, 
 		  v.getZ()*f);
   }
   
-  inline Vector operator / (const Vector & v, const orsa::Double & f) {
+  inline Vector operator / (const Vector & v, const double & f) {
     return Vector(v.getX()/f, 
 		  v.getY()/f, 
 		  v.getZ()/f); 
@@ -260,14 +259,14 @@ namespace orsa {
   
   // scalar product
   /* 
-     orsa::Double operator * (const Vector & u, const Vector & v) {
+     double operator * (const Vector & u, const Vector & v) {
      return (u.getX()*v.getX()+
      u.getY()*v.getY()+
      u.getZ()*v.getZ());
      }  
   */
   //
-  // orsa::Double operator * (const Vector &, const Vector &);
+  // double operator * (const Vector &, const Vector &);
   
   /* 
      bool operator == (const Vector & v1, const Vector & v2) {

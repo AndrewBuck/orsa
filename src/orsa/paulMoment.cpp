@@ -68,7 +68,7 @@ void PaulMoment::_randomVectorInside(std::vector<bool>  & in,
   /* 
      in.clear();
      in.reserve(sample_points);
-     const Double boundingRadius = _shape->boundingRadius();
+     const double boundingRadius = _shape->boundingRadius();
      unsigned int _iter = 0;
      while (_iter < sample_points) {
      in.push_back(_shape->isInside(__randomVectorUtil(rnd,boundingRadius)));
@@ -94,7 +94,7 @@ void PaulMoment::_randomVectorInside(std::vector<bool>  & in,
     for (unsigned int j=0; j<sample_points; ++j) {
       if (in[j]) ++_inside;
     }
-    ORSA_DEBUG("inside: %i (%F5.2f\%)",_inside,Double(100.0*Double(_inside)/Double(sample_points)).get_mpf_t());
+    ORSA_DEBUG("inside: %i (%F5.2f\%)",_inside,double(100.0*double(_inside)/double(sample_points)));
   }
   
   // ORSA_DEBUG("done with _randomVectorInside(...).");
@@ -115,20 +115,20 @@ void PaulMoment::_centerOfMass(Vector                  & center_of_mass,
   gsl_rng * rnd = gsl_rng_alloc(gsl_rng_gfsr4);
   gsl_rng_set(rnd,random_seed);
   
-  osg::ref_ptr<orsa::Statistic<orsa::Double> > _stat_M   = new orsa::Statistic<orsa::Double>;
+  osg::ref_ptr<orsa::Statistic<double> > _stat_M   = new orsa::Statistic<double>;
   //
-  osg::ref_ptr<orsa::Statistic<orsa::Double> > _stat_CMx = new orsa::Statistic<orsa::Double>;
-  osg::ref_ptr<orsa::Statistic<orsa::Double> > _stat_CMy = new orsa::Statistic<orsa::Double>;
-  osg::ref_ptr<orsa::Statistic<orsa::Double> > _stat_CMz = new orsa::Statistic<orsa::Double>;
+  osg::ref_ptr<orsa::Statistic<double> > _stat_CMx = new orsa::Statistic<double>;
+  osg::ref_ptr<orsa::Statistic<double> > _stat_CMy = new orsa::Statistic<double>;
+  osg::ref_ptr<orsa::Statistic<double> > _stat_CMz = new orsa::Statistic<double>;
   //
-  // const Double _R_max = _shape->boundingRadius();
-  // const Double boundingRadius = _shape->boundingRadius();
+  // const double _R_max = _shape->boundingRadius();
+  // const double boundingRadius = _shape->boundingRadius();
   const Box boundingBox = _shape->boundingBox();
   unsigned int _iter = 0;
   while (_iter < sample_points) {
     const Vector & _v = __randomVectorUtil(rnd,boundingBox);
     if (in[_iter]) {
-      const orsa::Double density = _massDistribution->density(_v);
+      const double density = _massDistribution->density(_v);
       _stat_M->insert(density);
       //
       _stat_CMx->insert(density*_v.getX());
@@ -163,14 +163,14 @@ void PaulMoment::_centerOfMass(Vector                  & center_of_mass,
   if (0) {
     // debug output
     ORSA_DEBUG("cm.x: %14.6Fe +/- %14.6Fe",
-	       center_of_mass.getX().get_mpf_t(),
-	       center_of_mass_uncertainty.getX().get_mpf_t());
+	       center_of_mass.getX(),
+	       center_of_mass_uncertainty.getX());
     ORSA_DEBUG("cm.y: %14.6Fe +/- %14.6Fe",
-	       center_of_mass.getY().get_mpf_t(),
-	       center_of_mass_uncertainty.getY().get_mpf_t());
+	       center_of_mass.getY(),
+	       center_of_mass_uncertainty.getY());
     ORSA_DEBUG("cm.z: %14.6Fe +/- %14.6Fe",
-	       center_of_mass.getZ().get_mpf_t(),
-	       center_of_mass_uncertainty.getZ().get_mpf_t());
+	       center_of_mass.getZ(),
+	       center_of_mass_uncertainty.getZ());
   }
   
   // ORSA_DEBUG("done with _centerOfMass(...).");
@@ -195,15 +195,15 @@ void PaulMoment::_inertiaMoment(Matrix                  & inertia_moment,
   gsl_rng * rnd = gsl_rng_alloc(gsl_rng_gfsr4);
   gsl_rng_set(rnd,random_seed);
   
-  osg::ref_ptr<orsa::Statistic<orsa::Double> > _stat_Ixx = new orsa::Statistic<orsa::Double>;
-  osg::ref_ptr<orsa::Statistic<orsa::Double> > _stat_Iyy = new orsa::Statistic<orsa::Double>;
-  osg::ref_ptr<orsa::Statistic<orsa::Double> > _stat_Izz = new orsa::Statistic<orsa::Double>;
-  osg::ref_ptr<orsa::Statistic<orsa::Double> > _stat_Ixy = new orsa::Statistic<orsa::Double>;
-  osg::ref_ptr<orsa::Statistic<orsa::Double> > _stat_Ixz = new orsa::Statistic<orsa::Double>;
-  osg::ref_ptr<orsa::Statistic<orsa::Double> > _stat_Iyz = new orsa::Statistic<orsa::Double>;
+  osg::ref_ptr<orsa::Statistic<double> > _stat_Ixx = new orsa::Statistic<double>;
+  osg::ref_ptr<orsa::Statistic<double> > _stat_Iyy = new orsa::Statistic<double>;
+  osg::ref_ptr<orsa::Statistic<double> > _stat_Izz = new orsa::Statistic<double>;
+  osg::ref_ptr<orsa::Statistic<double> > _stat_Ixy = new orsa::Statistic<double>;
+  osg::ref_ptr<orsa::Statistic<double> > _stat_Ixz = new orsa::Statistic<double>;
+  osg::ref_ptr<orsa::Statistic<double> > _stat_Iyz = new orsa::Statistic<double>;
   //
-  // const Double _R_max = _shape->boundingRadius();
-  // const Double boundingRadius = _shape->boundingRadius();
+  // const double _R_max = _shape->boundingRadius();
+  // const double boundingRadius = _shape->boundingRadius();
   const Box boundingBox = _shape->boundingBox();
   unsigned int _iter = 0;
   while (_iter < sample_points) {
@@ -248,31 +248,31 @@ void PaulMoment::_inertiaMoment(Matrix                  & inertia_moment,
   if (0) {
     // debug output    
     ORSA_DEBUG("Ixx:  %14.6Fe +/- %14.6Fe",
-	       Double(_stat_Ixx->average()).get_mpf_t(),
-	       Double(_stat_Ixx->averageError()).get_mpf_t());
+	       double(_stat_Ixx->average()),
+	       double(_stat_Ixx->averageError()));
     ORSA_DEBUG("Iyy:  %14.6Fe +/- %14.6Fe",
-	       Double(_stat_Iyy->average()).get_mpf_t(),
-	       Double(_stat_Iyy->averageError()).get_mpf_t());
+	       double(_stat_Iyy->average()),
+	       double(_stat_Iyy->averageError()));
     ORSA_DEBUG("Izz:  %14.6Fe +/- %14.6Fe",
-	       Double(_stat_Izz->average()).get_mpf_t(),
-	       Double(_stat_Izz->averageError()).get_mpf_t());
+	       double(_stat_Izz->average()),
+	       double(_stat_Izz->averageError()));
     //
     ORSA_DEBUG("Ixy:  %14.6Fe +/- %14.6Fe",
-	       Double(_stat_Ixy->average()).get_mpf_t(),
-	       Double(_stat_Ixy->averageError()).get_mpf_t());
+	       double(_stat_Ixy->average()),
+	       double(_stat_Ixy->averageError()));
     ORSA_DEBUG("Ixz:  %14.6Fe +/- %14.6Fe",
-	       Double(_stat_Ixz->average()).get_mpf_t(),
-	       Double(_stat_Ixz->averageError()).get_mpf_t());
+	       double(_stat_Ixz->average()),
+	       double(_stat_Ixz->averageError()));
     ORSA_DEBUG("Iyz:  %14.6Fe +/- %14.6Fe",
-	       Double(_stat_Iyz->average()).get_mpf_t(),
-	       Double(_stat_Iyz->averageError()).get_mpf_t());
+	       double(_stat_Iyz->average()),
+	       double(_stat_Iyz->averageError()));
   }
   
   // ORSA_DEBUG("done with _inertiaMoment(...).");
 }
 
-void PaulMoment::_moment(std::vector< std::vector< std::vector<orsa::Double> > > & Mo,
-			 std::vector< std::vector< std::vector<orsa::Double> > > & Mo_uncertainty,
+void PaulMoment::_moment(std::vector< std::vector< std::vector<double> > > & Mo,
+			 std::vector< std::vector< std::vector<double> > > & Mo_uncertainty,
 			 const Vector                                            & center_of_mass,
 			 const Vector                                            & center_of_mass_uncertainty,
 			 const std::vector<bool>                                 & in,
@@ -290,11 +290,11 @@ void PaulMoment::_moment(std::vector< std::vector< std::vector<orsa::Double> > >
   
   const unsigned int _order_plus_one = _order.getRef()+1;
   //
-  osg::ref_ptr<orsa::Statistic<orsa::Double> > _stat_M = new orsa::Statistic<orsa::Double>;
+  osg::ref_ptr<orsa::Statistic<double> > _stat_M = new orsa::Statistic<double>;
   //
-  std::vector< std::vector< std::vector< osg::ref_ptr< orsa::Statistic<orsa::Double> > > > > _stat_Mo(_order_plus_one);
+  std::vector< std::vector< std::vector< osg::ref_ptr< orsa::Statistic<double> > > > > _stat_Mo(_order_plus_one);
   //
-  // std::vector< std::vector< std::vector< osg::ref_ptr< orsa::Statistic<orsa::Double> > > > > _stat_Vo(_order_plus_one);
+  // std::vector< std::vector< std::vector< osg::ref_ptr< orsa::Statistic<double> > > > > _stat_Vo(_order_plus_one);
   //
   _stat_Mo.resize(_order_plus_one);
   // _stat_Vo.resize(_order_plus_one);
@@ -305,8 +305,8 @@ void PaulMoment::_moment(std::vector< std::vector< std::vector<orsa::Double> > >
       _stat_Mo[i][j].resize(_order_plus_one-i-j);
       // _stat_Vo[i][j].resize(_order_plus_one-i-j);
       for (unsigned int k=0; k<_order_plus_one-i-j; ++k) {
-	_stat_Mo[i][j][k] = new orsa::Statistic<orsa::Double>;
-     	// _stat_Vo[i][j][k] = new orsa::Statistic<orsa::Double>;
+	_stat_Mo[i][j][k] = new orsa::Statistic<double>;
+     	// _stat_Vo[i][j][k] = new orsa::Statistic<double>;
       }
     }
   }
@@ -323,15 +323,15 @@ void PaulMoment::_moment(std::vector< std::vector< std::vector<orsa::Double> > >
        for (unsigned int k=0; k<_order_plus_one-i-j; ++k) {
        _stat_Vo[i][j][k]->insert(int_pow(_v.getX(),i+1)*
        int_pow(_v.getY(),j+1)*
-       int_pow(_v.getZ(),k+1)/orsa::Double((i+1)*(j+1)*(k+1)));
+       int_pow(_v.getZ(),k+1)/double((i+1)*(j+1)*(k+1)));
        }
        }
        }
     */
     //
     if (in[_iter]) {
-      const orsa::Double density = _massDistribution->density(_v + center_of_mass);
-      // ORSA_DEBUG("density: %Ff",density.get_mpf_t());
+      const double density = _massDistribution->density(_v + center_of_mass);
+      // ORSA_DEBUG("density: %f",density());
       _stat_M->insert(density);
       //
       for (unsigned int i=0; i<_order_plus_one; ++i) {
@@ -361,13 +361,13 @@ void PaulMoment::_moment(std::vector< std::vector< std::vector<orsa::Double> > >
     }
   }
   //
-  // const Double _test_norm = one()/(Legendre::norm(0,0)*_stat_C[0][0]->average());
-  // const Double _test_norm = _stat_M->sum()/(Legendre::norm(0,0)*_stat_C[0][0]->sum());
-  // const Double _test_norm = _stat_M->sum() / _stat_Mo[0][0][0]->sum();
+  // const double _test_norm = 1/(Legendre::norm(0,0)*_stat_C[0][0]->average());
+  // const double _test_norm = _stat_M->sum()/(Legendre::norm(0,0)*_stat_C[0][0]->sum());
+  // const double _test_norm = _stat_M->sum() / _stat_Mo[0][0][0]->sum();
   //
   /* 
      ORSA_DEBUG("_test_norm: %Fg",
-     _test_norm.get_mpf_t());
+     _test_norm());
   */
   //
   /* 
@@ -485,7 +485,7 @@ void PaulMoment::_moment(std::vector< std::vector< std::vector<orsa::Double> > >
   // one more time, so that Mo[0][0][0] == 1.0 (by definition...)
   if (0) {
     ORSA_DEBUG("renormalizing...");
-    const orsa::Double localNorm = Mo[0][0][0];
+    const double localNorm = Mo[0][0][0];
     for (unsigned int i=0; i<_order_plus_one; ++i) {
       for (unsigned int j=0; j<_order_plus_one-i; ++j) {
 	for (unsigned int k=0; k<_order_plus_one-i-j; ++k) {
@@ -503,7 +503,7 @@ void PaulMoment::_moment(std::vector< std::vector< std::vector<orsa::Double> > >
 	for (unsigned int k=0; k<_order_plus_one-i-j; ++k) {
 	  
 	  if (3*Mo_uncertainty[i][j][k] > fabs(Mo[i][j][k])) {
-	    Mo[i][j][k] = zero();
+	    Mo[i][j][k] = 0;
 	  }	
 	  
 	}
@@ -524,11 +524,11 @@ void PaulMoment::_moment(std::vector< std::vector< std::vector<orsa::Double> > >
 	  for (unsigned int k=0; k<_order_plus_one-i-j; ++k) {
 	    
 	    if (i+j+k == localOrder) {
-	      if (Mo[i][j][k] > zero()) {
+	      if (Mo[i][j][k] > 0) {
 		ORSA_DEBUG("M[%02i][%02i][%02i]: %14.6Fe +/- %14.6Fe",
 			   i,j,k,
-			   Mo[i][j][k].get_mpf_t(),
-			   Mo_uncertainty[i][j][k].get_mpf_t());
+			   Mo[i][j][k],
+			   Mo_uncertainty[i][j][k]);
 	      }
 	    }
 	    
@@ -541,7 +541,7 @@ void PaulMoment::_moment(std::vector< std::vector< std::vector<orsa::Double> > >
   }
   
   
-  if (1) {
+  if (0) {
     // debug output
     
     // MORE debugging, with N_{ijk}
@@ -552,13 +552,13 @@ void PaulMoment::_moment(std::vector< std::vector< std::vector<orsa::Double> > >
        for (unsigned int j=0; j<sample_points; ++j) {
        if (in[j]) ++_inside;
        }
-       const orsa::Double volume = _shape->boundingBox().volume()*Double(_inside)/Double(sample_points);
+       const double volume = _shape->boundingBox().volume()*double(_inside)/double(sample_points);
     */
     
-    const orsa::Double r0 = _shape->boundingRadius();
+    const double r0 = _shape->boundingRadius();
     //
     ORSA_DEBUG("r0: %Fg [km]",
-	       FromUnits(r0,Unit::KM,-1).get_mpf_t());    
+	       FromUnits(r0,Unit::KM,-1));    
     
     for (unsigned int localOrder=0; localOrder<_order_plus_one; ++localOrder) {
       
@@ -567,18 +567,18 @@ void PaulMoment::_moment(std::vector< std::vector< std::vector<orsa::Double> > >
 	  for (unsigned int k=0; k<_order_plus_one-i-j; ++k) {
 	    
 	    if (i+j+k == localOrder) {
-	      // if (Mo[i][j][k] > zero()) {
+	      // if (Mo[i][j][k] > 0) {
 	      /* 
 		 ORSA_DEBUG("M[%02i][%02i][%02i]: %14.6Fe +/- %14.6Fe",
 		 i,j,k,
-		 Mo[i][j][k].get_mpf_t(),
-		 Mo_uncertainty[i][j][k].get_mpf_t());
+		 Mo[i][j][k](),
+		 Mo_uncertainty[i][j][k]());
 	      */
 	      //
 	      ORSA_DEBUG("N[%02i][%02i][%02i]: %14.6Fe +/- %14.6Fe",
 			 i,j,k,
-			 orsa::Double(Mo[i][j][k]/(int_pow(r0,i+j+k))).get_mpf_t(),
-			 orsa::Double(Mo_uncertainty[i][j][k]/(int_pow(r0,i+j+k))).get_mpf_t());
+			 double(Mo[i][j][k]/(int_pow(r0,i+j+k))),
+			 double(Mo_uncertainty[i][j][k]/(int_pow(r0,i+j+k))));
 	      // }
 	    }
 	  }
@@ -620,8 +620,8 @@ bool PaulMoment::computeUsingShape(const unsigned int sample_points,
      std::vector<bool> _in;
      {
      char filename[1024];
-     gmp_sprintf(filename,"eros_in_vector_%Ff_%i_%i.dat",
-     _R0.get().get_mpf_t(),
+     gmp_sprintf(filename,"eros_in_vector_%f_%i_%i.dat",
+     _R0.get(),
      sample_points,
      random_seed);
      if (!_read_in_vector_from_file(_in,filename)) {
@@ -637,9 +637,9 @@ bool PaulMoment::computeUsingShape(const unsigned int sample_points,
     for (unsigned int j=0; j<sample_points; ++j) {
       if (_in[j]) ++_inside;
     }
-    ORSA_DEBUG("volume: %Ff +/- %Ff  km^3",
-	       FromUnits(_shape->boundingBox().volume()*Double(_inside)/Double(sample_points),Unit::KM,-3).get_mpf_t(),
-	       FromUnits(_shape->boundingBox().volume()*sqrt(Double(_inside))/Double(sample_points),Unit::KM,-3).get_mpf_t());
+    ORSA_DEBUG("volume: %f +/- %f  km^3",
+	       FromUnits(_shape->boundingBox().volume()*double(_inside)/double(sample_points),Unit::KM,-3),
+	       FromUnits(_shape->boundingBox().volume()*sqrt(double(_inside))/double(sample_points),Unit::KM,-3));
   }
   
   {
@@ -689,30 +689,30 @@ bool PaulMoment::computeUsingShape(const unsigned int sample_points,
    ORSA_WARNING("cannot open file %s",filename.c_str());
    return false;
    }
-   gmp_fprintf(fp,"%18.10Fe\n",FromUnits(_R0.getRef(),Unit::M,-1).get_mpf_t());
+   gmp_fprintf(fp,"%18.10Fe\n",FromUnits(_R0.getRef(),Unit::M,-1));
    gmp_fprintf(fp,"%i\n",_order.getRef());
    gmp_fprintf(fp,"%i\n",_sample_points.getRef());
    //
    gmp_fprintf(fp,"%18.10Fe %18.10Fe\n",
-   FromUnits(_center_of_mass.getX(),Unit::M,-1).get_mpf_t(),
-   FromUnits(_center_of_mass_uncertainty.getX(),Unit::M,-1).get_mpf_t());
+   FromUnits(_center_of_mass.getX(),Unit::M,-1),
+   FromUnits(_center_of_mass_uncertainty.getX(),Unit::M,-1));
    gmp_fprintf(fp,"%18.10Fe %18.10Fe\n",
-   FromUnits(_center_of_mass.getY(),Unit::M,-1).get_mpf_t(),
-   FromUnits(_center_of_mass_uncertainty.getY(),Unit::M,-1).get_mpf_t());
+   FromUnits(_center_of_mass.getY(),Unit::M,-1),
+   FromUnits(_center_of_mass_uncertainty.getY(),Unit::M,-1));
    gmp_fprintf(fp,"%18.10Fe %18.10Fe\n",
-   FromUnits(_center_of_mass.getZ(),Unit::M,-1).get_mpf_t(),
-   FromUnits(_center_of_mass_uncertainty.getZ(),Unit::M,-1).get_mpf_t());
+   FromUnits(_center_of_mass.getZ(),Unit::M,-1),
+   FromUnits(_center_of_mass_uncertainty.getZ(),Unit::M,-1));
    //
    for (unsigned int l=0; l<_C.size(); ++l) {
    for (unsigned int m=0; m<=l; ++m) {
    gmp_fprintf(fp,
    "%18.10Fe %18.10Fe\n",
-   _C[l][m].get_mpf_t(),
-   _C_uncertainty[l][m].get_mpf_t());
+   _C[l][m](),
+   _C_uncertainty[l][m]());
    gmp_fprintf(fp,
    "%18.10Fe %18.10Fe\n",
-   _S[l][m].get_mpf_t(),
-   _S_uncertainty[l][m].get_mpf_t());
+   _S[l][m](),
+   _S_uncertainty[l][m]());
    }
    }
    fclose(fp);
@@ -729,9 +729,9 @@ bool PaulMoment::computeUsingShape(const unsigned int sample_points,
    return false;
    }
    {
-   Double R0;
+   double R0;
    gmp_fscanf(fp,"%Fe",
-   R0.get_mpf_t()); // '&' not required for GMP vars
+   R0()); // '&' not required for GMP vars
    _R0.set(FromUnits(R0,Unit::M));
    }
    {
@@ -749,17 +749,17 @@ bool PaulMoment::computeUsingShape(const unsigned int sample_points,
    }
    //
    {
-   Double x, dx, y, dy, z, dz;
+   double x, dx, y, dy, z, dz;
    //
    gmp_fscanf(fp,"%Fe %Fe",
-   FromUnits(x,Unit::M).get_mpf_t(),
-   FromUnits(dx,Unit::M).get_mpf_t()); // '&' not required for GMP vars
+   FromUnits(x,Unit::M),
+   FromUnits(dx,Unit::M)); // '&' not required for GMP vars
    gmp_fscanf(fp,"%Fe %Fe",
-   FromUnits(y,Unit::M).get_mpf_t(),
-   FromUnits(dy,Unit::M).get_mpf_t()); // '&' not required for GMP vars
+   FromUnits(y,Unit::M),
+   FromUnits(dy,Unit::M)); // '&' not required for GMP vars
    gmp_fscanf(fp,"%Fe %Fe",
-   FromUnits(z,Unit::M).get_mpf_t(),
-   FromUnits(dz,Unit::M).get_mpf_t()); // '&' not required for GMP vars
+   FromUnits(z,Unit::M),
+   FromUnits(dz,Unit::M)); // '&' not required for GMP vars
    //
    _center_of_mass.set(x,y,z);
    _center_of_mass_uncertainty.set(dx,dy,dz);
@@ -783,18 +783,18 @@ bool PaulMoment::computeUsingShape(const unsigned int sample_points,
    }
    //
    {
-   Double _c, _dc, _s, _ds;
+   double _c, _dc, _s, _ds;
    for (unsigned int l=0; l<_order_plus_one; ++l) {
    for (unsigned int m=0; m<=l; ++m) {
    gmp_fscanf(fp,"%Fe %Fe",
-   _c.get_mpf_t(),
-   _dc.get_mpf_t()); // '&' not required for GMP vars
+   _c(),
+   _dc()); // '&' not required for GMP vars
    _C[l][m] = _c;
    _C_uncertainty[l][m] = _dc;
    //
    gmp_fscanf(fp,"%Fe %Fe",
-   _s.get_mpf_t(),
-   _ds.get_mpf_t()); // '&' not required for GMP vars
+   _s(),
+   _ds()); // '&' not required for GMP vars
    _S[l][m] = _s;
    _S_uncertainty[l][m] = _ds;
    //
@@ -898,11 +898,11 @@ bool PaulMoment::computeUsingShape(const unsigned int sample_points,
    
    // read R0
    if (fgets(line,1024,fp) != NULL) {
-   Double R0;
+   double R0;
    gmp_sscanf(line,"%*s %Fe",
-   R0.get_mpf_t()); // '&' not required for GMP vars
+   R0()); // '&' not required for GMP vars
    _R0.set(FromUnits(R0,Unit::KM));
-   // ORSA_DEBUG("read R0: %Fg [km]",FromUnits(_R0.getRef(),Unit::KM,-1).get_mpf_t());
+   // ORSA_DEBUG("read R0: %Fg [km]",FromUnits(_R0.getRef(),Unit::KM,-1));
    } else {
    ORSA_ERROR("problems while reading file [%s]",filename.c_str());
    return false;
@@ -920,30 +920,30 @@ bool PaulMoment::computeUsingShape(const unsigned int sample_points,
    return false;
    }
    
-   Double file_entry;
+   double file_entry;
    for (unsigned int l=0; l<_order_plus_one; ++l) {
    for (unsigned int m=0; m<=l; ++m) {
    // C
-   gmp_fscanf(fp,"%Fg",file_entry.get_mpf_t());
-   // ORSA_DEBUG("file_entry: %Fg",file_entry.get_mpf_t());      
+   gmp_fscanf(fp,"%Fg",file_entry());
+   // ORSA_DEBUG("file_entry: %Fg",file_entry());      
    _C[l][m]             = file_entry;
-   _C_uncertainty[l][m] = zero();
+   _C_uncertainty[l][m] = 0;
    //
-   // ORSA_DEBUG("C[%02i][%02i] = %16.12Ff",l,m,_C[l][m].get_mpf_t());      
+   // ORSA_DEBUG("C[%02i][%02i] = %16.12f",l,m,_C[l][m]());      
    
    // S
    if (m==0) {
-   _S[l][m]             = zero();
-   _S_uncertainty[l][m] = zero();
+   _S[l][m]             = 0;
+   _S_uncertainty[l][m] = 0;
    } else {
-   gmp_fscanf(fp,"%Fg",file_entry.get_mpf_t());
-   // ORSA_DEBUG("file_entry: %Fg",file_entry.get_mpf_t());     
+   gmp_fscanf(fp,"%Fg",file_entry());
+   // ORSA_DEBUG("file_entry: %Fg",file_entry());     
    //
    _S[l][m]             = file_entry;
-   _S_uncertainty[l][m] = zero();
+   _S_uncertainty[l][m] = 0;
    }
    //
-   // ORSA_DEBUG("S[%02i][%02i] = %16.12Ff",l,m,_S[l][m].get_mpf_t());      
+   // ORSA_DEBUG("S[%02i][%02i] = %16.12f",l,m,_S[l][m]());      
    }
    }
    fclose(fp);
@@ -976,12 +976,12 @@ bool PaulMoment::computeUsingShape(const unsigned int sample_points,
    
    // read R0
    if (fgets(line,1024,fp) != NULL) {
-   Double R0;
-   gmp_sscanf(line,"OBR = %Ff,",
-   R0.get_mpf_t()); // '&' not required for GMP vars
+   double R0;
+   gmp_sscanf(line,"OBR = %f,",
+   R0()); // '&' not required for GMP vars
    _R0.set(FromUnits(R0,Unit::KM));
    //
-   ORSA_DEBUG("read R0: %Fg [km]",FromUnits(_R0.getRef(),Unit::KM,-1).get_mpf_t());
+   ORSA_DEBUG("read R0: %Fg [km]",FromUnits(_R0.getRef(),Unit::KM,-1));
    } else {
    ORSA_ERROR("problems while reading file [%s]",filename.c_str());
    return false;
@@ -1007,11 +1007,11 @@ bool PaulMoment::computeUsingShape(const unsigned int sample_points,
    // GM
    if (fgets(line,1024,fp) != NULL) {
    unsigned int index;
-   orsa::Double GM;
-   gmp_sscanf(line,"GM(%d) =   %Ff,",&index,GM.get_mpf_t());
+   double GM;
+   gmp_sscanf(line,"GM(%d) =   %f,",&index,GM());
    GM = FromUnits(FromUnits(GM,Unit::KM,3),Unit::SECOND,-2);
    //
-   ORSA_DEBUG("M: %Fe kg",FromUnits(GM/Unit::instance()->getG(),Unit::KG,-1).get_mpf_t());
+   ORSA_DEBUG("M: %Fe kg",FromUnits(GM/Unit::instance()->getG(),Unit::KG,-1));
    }
    
    const unsigned int _order_plus_one = _order.getRef()+1;
@@ -1034,12 +1034,12 @@ bool PaulMoment::computeUsingShape(const unsigned int sample_points,
    // important, because not all the values are in the file;
    for (unsigned int l=0; l<_order_plus_one; ++l) {
    for (unsigned int m=0; m<=l; ++m) {
-   _C[l][m] = zero();
-   _S[l][m] = zero();
+   _C[l][m] = 0;
+   _S[l][m] = 0;
    }
    }
    // set C[0][0] to one
-   _C[0][0] = one();
+   _C[0][0] = 1;
    }  
    
    while (1) {
@@ -1056,8 +1056,8 @@ bool PaulMoment::computeUsingShape(const unsigned int sample_points,
    //
    // ORSA_DEBUG("valChar: %s",valChar);
    //
-   _C[l][0] = -Double(valChar);
-   // ORSA_DEBUG("C[%i][0]: %Fe",l,_C[l][0].get_mpf_t());
+   _C[l][0] = -double(valChar);
+   // ORSA_DEBUG("C[%i][0]: %Fe",l,_C[l][0]());
    }
    }
    if (l==_order.getRef()) {
@@ -1082,8 +1082,8 @@ bool PaulMoment::computeUsingShape(const unsigned int sample_points,
    // qremove trailing comma...
    if (strlen(valCharC) > 0) valCharC[strlen(valCharC)-1] = '\0';
    //
-   _C[lC][mC] = Double(valCharC);
-   // ORSA_DEBUG("C[%i][%i]: %Fe",lC,mC,_C[lC][mC].get_mpf_t());
+   _C[lC][mC] = double(valCharC);
+   // ORSA_DEBUG("C[%i][%i]: %Fe",lC,mC,_C[lC][mC]());
    }
    //
    {
@@ -1093,8 +1093,8 @@ bool PaulMoment::computeUsingShape(const unsigned int sample_points,
    // qremove trailing comma...
    if (strlen(valCharS) > 0) valCharS[strlen(valCharS)-1] = '\0';
    //
-   _S[lS][mS] = Double(valCharS);
-   // ORSA_DEBUG("S[%i][%i]: %Fe",lS,mS,_S[lS][mS].get_mpf_t());
+   _S[lS][mS] = double(valCharS);
+   // ORSA_DEBUG("S[%i][%i]: %Fe",lS,mS,_S[lS][mS]());
    }
    }
    }

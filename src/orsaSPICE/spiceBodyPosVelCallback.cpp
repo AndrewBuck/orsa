@@ -54,8 +54,8 @@ bool SpiceBodyPosVelCallback::update(const orsa::Time & t) {
   _velocity = v;
   
   /* 
-     ORSA_DEBUG("_position.length(): %.20Fe   [%s]",
-     _position.getRef().length().get_mpf_t(),
+     ORSA_DEBUG("_position.length(): %.20e   [%s]",
+     _position.getRef().length(),
      _name.c_str());
   */
   

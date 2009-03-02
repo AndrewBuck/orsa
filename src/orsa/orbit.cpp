@@ -8,29 +8,29 @@
 
 using namespace orsa;
 
-// Double Orbit::eccentricAnomaly(const Double & e, const Double & M) {
+// double Orbit::eccentricAnomaly(const double & e, const double & M) {
 //
-Double Orbit::eccentricAnomaly(const Double & e, const Double & M) {
+double Orbit::eccentricAnomaly(const double & e, const double & M) {
   
-  if (e >= one()) {
-    ORSA_WARNING("static orsa::Orbit::eccentricAnomaly(e,M) called with eccentricity = %Fg (greater than 1.0); returning M.",e.get_mpf_t());
+  if (e >= 1) {
+    ORSA_WARNING("static orsa::Orbit::eccentricAnomaly(e,M) called with eccentricity = %Fg (greater than 1.0); returning M.",e);
     //
     return M;
   }
   
-  Double E = 0.0;
-  if (e < Double("0.8")) {
+  double E = 0.0;
+  if (e < 0.8) {
     
-    const Double sm = sin(M);
-    const Double cm = cos(M);
+    const double sm = sin(M);
+    const double cm = cos(M);
     
     // begin with a guess accurate to order e^3 
-    Double x = M+e*sm*(one()+e*(cm+e*(one()-Double("1.5")*sm*sm)));
+    double x = M+e*sm*(1+e*(cm+e*(1-1.5*sm*sm)));
     
-    Double sx,cx;
+    double sx,cx;
     E = x;
-    Double old_E;
-    Double es,ec,f,fp,fpp,fppp,dx;
+    double old_E;
+    double es,ec,f,fp,fpp,fppp,dx;
     
     unsigned int count = 0;
     const unsigned int max_count = 1024;
@@ -42,12 +42,12 @@ Double Orbit::eccentricAnomaly(const Double & e, const Double & M) {
       es = e*sx;
       ec = e*cx;
       f = x - es  - M;
-      fp = one() - ec; 
+      fp = 1 - ec; 
       fpp = es;
       fppp = ec; 
       dx = -f/fp;
-      dx = -f/(fp + dx*fpp/two());
-      dx = -f/(fp + dx*fpp/two() + dx*dx*fppp/Double("6.0"));
+      dx = -f/(fp + dx*fpp/2);
+      dx = -f/(fp + dx*fpp/2 + dx*dx*fppp/6);
       //
       old_E = E;
       E = x + dx;
@@ -59,12 +59,12 @@ Double Orbit::eccentricAnomaly(const Double & e, const Double & M) {
     
     if (count >= max_count) {
       ORSA_ERROR("Orbit::eccentricAnomaly(...): max count reached");
-      // ORSA_ERROR("Orbit::eccentricAnomaly(): max count reached, e = %Fg    E = %Fg   fabs(E-old_E) = %Fg   10*(fabs(E)+fabs(M))*epsilon() = %g",e,E,fabs(E-old_E),10*(fabs(E)+fabs(M))*std::numeric_limits<Double>::epsilon());
+      // ORSA_ERROR("Orbit::eccentricAnomaly(): max count reached, e = %Fg    E = %Fg   fabs(E-old_E) = %Fg   10*(fabs(E)+fabs(M))*epsilon() = %g",e,E,fabs(E-old_E),10*(fabs(E)+fabs(M))*std::numeric_limits<double>::epsilon());
     }
     
   } else {
     
-    Double m = fmod(Double("10")*twopi()+fmod(M,twopi()),twopi());
+    double m = fmod(10*twopi()+fmod(M,twopi()),twopi());
     bool iflag = false;
     if (m > pi()) {
       m = twopi() - m;
@@ -72,11 +72,10 @@ Double Orbit::eccentricAnomaly(const Double & e, const Double & M) {
     }
     
     // Make a first guess that works well for e near 1.  
-    // Double x = pow(Double("6.0")*m,one()/Double("3.0")) - m;
-    Double x = cbrt(Double("6.0")*m) - m;
+    double x = cbrt(6*m) - m;
     E = x;
-    Double old_E;
-    Double sa,ca,esa,eca,f,fp,dx;
+    double old_E;
+    double sa,ca,esa,eca,f,fp,dx;
     
     unsigned int count = 0;
     const unsigned int max_count = 128;
@@ -88,10 +87,10 @@ Double Orbit::eccentricAnomaly(const Double & e, const Double & M) {
       esa = e*sa;
       eca = e*ca;
       f = x - esa;
-      fp = one() - eca;
+      fp = 1 - eca;
       dx = -f/fp;
       dx = -f/(fp + 0.5*dx*esa);
-      dx = -f/(fp + 0.5*dx*(esa+one()/Double("3.0")*eca*dx));
+      dx = -f/(fp + 0.5*dx*(esa+eca*dx/3));
       x += dx;
       //
       old_E = E;
@@ -107,14 +106,14 @@ Double Orbit::eccentricAnomaly(const Double & e, const Double & M) {
     
     if (count >= max_count) {
       ORSA_WARNING("Orbit::eccentricAnomaly(...): max count reached...");
-      // ORSA_WARNING("Orbit::GetEccentricAnomaly(): max count reached, e = %g    E = %g   fabs(E-old_E) = %g   10*(fabs(E)+fabs(M))*std::numeric_limits<Double>::epsilon() = %g",e,E,fabs(E-old_E),10*(fabs(E)+fabs(M))*std::numeric_limits<Double>::epsilon());
+      // ORSA_WARNING("Orbit::GetEccentricAnomaly(): max count reached, e = %g    E = %g   fabs(E-old_E) = %g   10*(fabs(E)+fabs(M))*std::numeric_limits<double>::epsilon() = %g",e,E,fabs(E-old_E),10*(fabs(E)+fabs(M))*std::numeric_limits<double>::epsilon());
     }
   }
   
   return E;
 }
 
-Double Orbit::eccentricAnomaly() const {
+double Orbit::eccentricAnomaly() const {
   return eccentricAnomaly(e,M);
 }
 
@@ -143,7 +142,7 @@ bool Orbit::compute(const Body * b, const Body * ref_b, BodyGroup * bg, const Ti
   
   // mu = b->getMu()+ref_b->getMu();
   // 
-  orsa::Double m_b, m_ref_b;
+  double m_b, m_ref_b;
   if (!bg->getInterpolatedMass(m_b,b,t)) {
     ORSA_DEBUG("problems...");
   } 
@@ -153,9 +152,9 @@ bool Orbit::compute(const Body * b, const Body * ref_b, BodyGroup * bg, const Ti
   //
   if (b->betaSun == ref_b) {
     ORSA_DEBUG("beta-orbit...");
-    // mu = (one() - b->beta.getRef())*b->getMu() + ref_b->getMu();
+    // mu = (1 - b->beta.getRef())*b->getMu() + ref_b->getMu();
     mu = orsa::Unit::instance()->getG() * 
-      ((one()-b->beta.getRef())*m_b + m_ref_b);
+      ((1-b->beta.getRef())*m_b + m_ref_b);
   } else {
     // mu = b->getMu()+ref_b->getMu();
     mu = orsa::Unit::instance()->getG() * 
@@ -169,7 +168,7 @@ bool Orbit::compute(const Body * b, const Body * ref_b, BodyGroup * bg, const Ti
 
 bool Orbit::compute(const orsa::Vector & relative_position,
 		    const orsa::Vector & relative_velocity,
-		    const orsa::Double & mu_in) {
+		    const double & mu_in) {
   
   ////////////////////////////////////////////////////
   // This alghoritm is taken from the swift package, 
@@ -178,10 +177,10 @@ bool Orbit::compute(const orsa::Vector & relative_position,
   
   mu = mu_in;
   
-  // const Double tiny = 1.0e-100; // about 4.0e-15
+  // const double tiny = 1.0e-100; // about 4.0e-15
   
   // internals
-  Double  face,cape,capf,tmpf,cw,sw,w,u;
+  double  face,cape,capf,tmpf,cw,sw,w,u;
   int ialpha = 0;
   
   //  ORSA_DEBUG("--MARK--");
@@ -191,10 +190,10 @@ bool Orbit::compute(const orsa::Vector & relative_position,
   // angular momentum
   Vector h = externalProduct(relative_position,relative_velocity);
   
-  Double h2 = h.lengthSquared();
-  Double hh = h.length();
+  double h2 = h.lengthSquared();
+  double hh = h.length();
   
-  // ORSA_DEBUG("hh: %Fg",hh.get_mpf_t());
+  // ORSA_DEBUG("hh: %Fg",hh());
   
   // inclination
   i = acos(h.getZ()/hh);
@@ -202,11 +201,11 @@ bool Orbit::compute(const orsa::Vector & relative_position,
   // i = asin(sqrt(h.getX()*h.getX()+h.getY()*h.getY())/hh);
   
   // Compute longitude of ascending node omega_node and the argument of latitude u
-  // Double fac = secure_sqrt(secure_pow(h.x,2)+secure_pow(h.y,2))/h2;
-  Double fac = sqrt(h.getX()*h.getX()+h.getY()*h.getY())/h2;
+  // double fac = secure_sqrt(secure_pow(h.x,2)+secure_pow(h.y,2))/h2;
+  double fac = sqrt(h.getX()*h.getX()+h.getY()*h.getY())/h2;
   
   if (fac < epsilon()) {
-    omega_node = zero();
+    omega_node = 0;
     u = atan2(relative_position.getY(), relative_position.getX());
     if ( fabs(i-pi()) < epsilon()) u = -u;
   } else {
@@ -214,24 +213,24 @@ bool Orbit::compute(const orsa::Vector & relative_position,
     u = atan2(relative_position.getZ()/sin(i), relative_position.getX()*cos(omega_node)+relative_position.getY()*sin(omega_node));
   }
   
-  if (omega_node < zero()) omega_node += twopi();
-  if (u < zero()) u += twopi();
+  if (omega_node < 0) omega_node += twopi();
+  if (u < 0) u += twopi();
   
   //  Compute the radius r and velocity squared v2, and the dot
   //  product rdotv, the energy per unit mass energy 
-  Double r  = relative_position.length();
-  Double v2 = relative_velocity.lengthSquared();
+  double r  = relative_position.length();
+  double v2 = relative_velocity.lengthSquared();
   
-  Double vdotr  = relative_position*relative_velocity;
+  double vdotr  = relative_position*relative_velocity;
   
-  Double energy = v2/two() - mu/r;
+  double energy = 0.5*v2 - mu/r;
   
   // Determine type of conic section and label it via ialpha
   if (fabs(energy*r/mu) < epsilon()) {
     ialpha = 0;
   } else {
-    if (energy < zero()) ialpha = -1;
-    if (energy > zero()) ialpha = +1;
+    if (energy < 0) ialpha = -1;
+    if (energy > 0) ialpha = +1;
   }
   
   // Depending on the conic type, determine the remaining elements 
@@ -239,74 +238,74 @@ bool Orbit::compute(const orsa::Vector & relative_position,
   // ellipse 
   if (ialpha == -1) {
     
-    a   = -mu/(two()*energy); 
+    a   = -mu/(2*energy); 
     
-    fac = one() - h2/(mu*a); 
+    fac = 1 - h2/(mu*a); 
     
     if (fac > epsilon()) {
       e = sqrt(fac);
       face = (a-r)/(a*e);
       
-      if (face > one()) {
-	cape = zero();
+      if (face > 1) {
+	cape = 0;
       } else {
-	if (face > -one())
+	if (face > -1)
 	  cape = acos(face);
 	else
 	  cape = pi();
       }
       
-      if (vdotr < zero()) cape = twopi() - cape;
-      cw = (cos(cape)-e)/(one()-e*cos(cape));                  
-      sw = sqrt(one()-e*e)*sin(cape)/(one()-e*cos(cape));  
+      if (vdotr < 0) cape = twopi() - cape;
+      cw = (cos(cape)-e)/(1-e*cos(cape));                  
+      sw = sqrt(1-e*e)*sin(cape)/(1-e*cos(cape));  
       w = atan2(sw,cw);
-      if (w < zero()) w += twopi();
+      if (w < 0) w += twopi();
     } else {
-      e = zero();
+      e = 0;
       w = u;
       cape = u;
     }
     
     M = cape - e*sin(cape);
     omega_pericenter = u - w;
-    if (omega_pericenter < zero()) omega_pericenter += twopi();
+    if (omega_pericenter < 0) omega_pericenter += twopi();
     omega_pericenter = fmod(omega_pericenter,twopi());
   }
   
   // hyperbola
   if (ialpha == 1) {
     
-    a   = mu/(two()*energy); 
+    a   = mu/(2*energy); 
     fac = h2/(mu*a); 
     
     if (fac > epsilon()) {
       
-      e = sqrt(one()+fac);
+      e = sqrt(1+fac);
       tmpf = (a+r)/(a*e);
-      if (tmpf < one()) tmpf = one();
+      if (tmpf < 1) tmpf = 1;
       
-      capf = log(tmpf+sqrt(tmpf*tmpf-one()));
+      capf = log(tmpf+sqrt(tmpf*tmpf-1));
       
-      if (vdotr < zero()) capf = -capf;
+      if (vdotr < 0) capf = -capf;
       
-      cw = (e-cosh(capf))/(e*cosh(capf)-one()); 
-      sw = sqrt(e*e-one())*sinh(capf)/(e*cosh(capf)-one());
+      cw = (e-cosh(capf))/(e*cosh(capf)-1); 
+      sw = sqrt(e*e-1)*sinh(capf)/(e*cosh(capf)-1);
       w  = atan2(sw,cw);
-      if (w < zero()) w += twopi();
+      if (w < 0) w += twopi();
     } else {
       // we only get here if a hyperbola is essentially a parabola 
       // so we calculate e and w accordingly to avoid singularities
-      e = one();
-      tmpf = h2/(two()*mu); 
-      w = acos(two()*tmpf/r - one());
-      if (vdotr < zero()) w = twopi() - w;
+      e = 1;
+      tmpf = h2/(2*mu); 
+      w = acos(2*tmpf/r - 1);
+      if (vdotr < 0) w = twopi() - w;
       tmpf = (a+r)/(a*e);
-      capf = log(tmpf+sqrt(tmpf*tmpf-one()));
+      capf = log(tmpf+sqrt(tmpf*tmpf-1));
     }
     
     M = e * sinh(capf) - capf; 
     omega_pericenter = u - w;
-    if (omega_pericenter < zero()) omega_pericenter += twopi();
+    if (omega_pericenter < 0) omega_pericenter += twopi();
     omega_pericenter = fmod(omega_pericenter,twopi());
   }
   
@@ -314,15 +313,15 @@ bool Orbit::compute(const orsa::Vector & relative_position,
   //  NOTE - in this case we use "a" to mean pericentric distance
   if (ialpha == 0) {
     
-    a = Double("0.5")*h2/mu;
-    e = one();
-    w = acos(two()*a/r - one());
-    if (vdotr < zero()) w = twopi() - w;
-    tmpf = tan(w/two());
+    a = 0.5*h2/mu;
+    e = 1;
+    w = acos(2*a/r - 1);
+    if (vdotr < 0) w = twopi() - w;
+    tmpf = tan(w/2);
     
-    M = tmpf*(one()+tmpf*tmpf/three());
+    M = tmpf*(1+tmpf*tmpf/3);
     omega_pericenter = u - w;
-    if (omega_pericenter < zero()) omega_pericenter += twopi();
+    if (omega_pericenter < 0) omega_pericenter += twopi();
     omega_pericenter = fmod(omega_pericenter,twopi());
   }
   
@@ -336,7 +335,7 @@ bool Orbit::relativePosVel(Vector & relativePosition, Vector & relativeVelocity)
   // ORBEL_EL2XV.F file written by M. Duncan.
   /////////////////////////////////////////////////////
   
-  Double s,c;
+  double s,c;
   
 #ifdef _ORBIT_RPV_SPEEDUP_
   
@@ -345,61 +344,61 @@ bool Orbit::relativePosVel(Vector & relativePosition, Vector & relativeVelocity)
   if (_cached_omega_pericenter.isSet()) {
     if (_cached_omega_pericenter.getRef() != omega_pericenter) {
       _cached_omega_pericenter = omega_pericenter;
-      sincos(omega_pericenter,_sp,_cp);
+      sincos(omega_pericenter,&_sp,&_cp);
     } else {
       // ORSA_DEBUG("-- speedup --");
     }
   } else {
     _cached_omega_pericenter = omega_pericenter;
-    sincos(omega_pericenter,_sp,_cp);
+    sincos(omega_pericenter,&_sp,&_cp);
   } 
   //
-  const Double sp = _sp;
-  const Double cp = _cp;
+  const double sp = _sp;
+  const double cp = _cp;
   
   if (_cached_omega_node.isSet()) {
     if (_cached_omega_node.getRef() != omega_node) {
       _cached_omega_node = omega_node;
-      sincos(omega_node,_so,_co);
+      sincos(omega_node,&_so,&_co);
     } else {
       // ORSA_DEBUG("-- speedup --");
     }
   } else {
     _cached_omega_node = omega_node;
-    sincos(omega_node,_so,_co);
+    sincos(omega_node,&_so,&_co);
   } 
   //
-  const Double so = _so;
-  const Double co = _co;
+  const double so = _so;
+  const double co = _co;
   
   if (_cached_i.isSet()) {
     if (_cached_i.getRef() != i) {
       _cached_i = i;
-      sincos(i,_si,_ci);
+      sincos(i,&_si,&_ci);
     } else {
       // ORSA_DEBUG("-- speedup --");
     }
   } else {
     _cached_i = i;
-    sincos(i,_si,_ci);
+    sincos(i,&_si,&_ci);
   } 
   //
-  const Double si = _si;
-  const Double ci = _ci;
+  const double si = _si;
+  const double ci = _ci;
   
 #else // _ORBIT_RPV_SPEEDUP_
   
-  sincos(omega_pericenter,s,c);
-  const Double sp = s;
-  const Double cp = c;
+  sincos(omega_pericenter,&s,&c);
+  const double sp = s;
+  const double cp = c;
   
-  sincos(omega_node,s,c);
-  const Double so = s;
-  const Double co = c;
+  sincos(omega_node,&s,&c);
+  const double so = s;
+  const double co = c;
   
-  sincos(i,s,c);
-  const Double si = s;
-  const Double ci = c;
+  sincos(i,&s,&c);
+  const double si = s;
+  const double ci = c;
   
 #endif // _ORBIT_RPV_SPEEDUP_
   
@@ -413,38 +412,36 @@ bool Orbit::relativePosVel(Vector & relativePosition, Vector & relativeVelocity)
   
   // Get the other quantities depending on orbit type
   
-  // Double  cape,scap,ccap,sqe,sqgma,tmp;
-  Double  cape,tmp;
-  Double  xfac1,xfac2,vfac1,vfac2;
+  // double  cape,scap,ccap,sqe,sqgma,tmp;
+  double  cape,tmp;
+  double  xfac1,xfac2,vfac1,vfac2;
   
-  Double  capf,shcap,chcap;
-  Double  zpara;
+  double  capf,shcap,chcap;
+  double  zpara;
   
-  // ORSA_DEBUG("e: %Ff",e.get_mpf_t());
-  
-  if (e < one()) {
+  if (e < 1) {
     
     cape = eccentricAnomaly();
     
-    sincos(cape,s,c);
-    const Double scap = s;
-    const Double ccap = c;
+    sincos(cape,&s,&c);
+    const double scap = s;
+    const double ccap = c;
 
 #ifdef _ORBIT_RPV_SPEEDUP_
     
     if (_cached_e.isSet()) {
       if (_cached_e.getRef() != e) {
 	_cached_e = e;
-	_sqe = sqrt(one() - e*e);
+	_sqe = sqrt(1 - e*e);
       } else {
 	// ORSA_DEBUG("-- speedup --");
       }  
     } else {
       _cached_e = e;
-      _sqe = sqrt(one() - e*e);
+      _sqe = sqrt(1 - e*e);
     } 
     //
-    const Double sqe = _sqe;
+    const double sqe = _sqe;
     
     if (_cached_mu.isSet() && _cached_a.isSet()) {
       if ((_cached_mu.getRef() != mu) || (_cached_a.getRef() != a)) {
@@ -460,37 +457,37 @@ bool Orbit::relativePosVel(Vector & relativePosition, Vector & relativeVelocity)
       _sqgma = sqrt(fabs(mu*a));
     }
     //    
-    const Double sqgma = _sqgma;
+    const double sqgma = _sqgma;
     
 #else // _ORBIT_RPV_SPEEDUP_
-    const Double sqe   = sqrt(one() - e*e);
-    const Double sqgma = sqrt(fabs(mu*a));
+    const double sqe   = sqrt(1 - e*e);
+    const double sqgma = sqrt(fabs(mu*a));
 #endif // _ORBIT_RPV_SPEEDUP_
 
     xfac1 = a*(ccap - e);
     xfac2 = a*sqe*scap;
     // ri = 1/r
-    const Double ri = one()/(a*(one() - e*ccap));
+    const double ri = 1/(a*(1 - e*ccap));
     vfac1 = -ri * sqgma * scap;
     vfac2 =  ri * sqgma * ccap * sqe;
     
   } else if (e > 1.0) {
     
-    Double x,shx,chx,esh,ech;
-    Double f,fp,fpp,fppp,dx;
+    double x,shx,chx,esh,ech;
+    double f,fp,fpp,fppp,dx;
     
     // use the 'right' value for M -- NEEDED!
-    Double local_M = M;
+    double local_M = M;
     if (fabs(local_M-twopi()) < fabs(local_M)) {
       local_M -= twopi();
     }
     
     // begin with a guess proposed by Danby	
-    if (local_M < zero()) {
-      tmp = -two()*local_M/e + Double("1.8");
+    if (local_M < 0) {
+      tmp = -2*local_M/e + 1.8;
       x = -log(tmp);
     } else {
-      tmp = +two()*local_M/e + Double("1.8");
+      tmp = +2*local_M/e + 1.8;
       x =  log(tmp);
     }
     
@@ -504,12 +501,12 @@ bool Orbit::relativePosVel(Vector & relativePosition, Vector & relativeVelocity)
       esh = e*shx;
       ech = e*chx;
       f = esh-x-local_M;
-      fp = ech - one(); 
+      fp = ech - 1; 
       fpp = esh; 
       fppp = ech; 
       dx = -f/fp;
-      dx = -f/(fp + dx*fpp/two());
-      dx = -f/(fp + dx*fpp/two() + dx*dx*fppp/Double("6.0"));
+      dx = -f/(fp + dx*fpp/2);
+      dx = -f/(fp + dx*fpp/2 + dx*dx*fppp/6);
       capf = x + dx;
       ++count;
       // } while ((fabs(dx) > 1.0e-14) && (count < 100));
@@ -518,30 +515,29 @@ bool Orbit::relativePosVel(Vector & relativePosition, Vector & relativeVelocity)
     shcap = sinh(capf);
     chcap = cosh(capf);
     
-    const Double sqe   = sqrt(e*e-one());
-    const Double sqgma = sqrt(fabs(mu*fabs(a)));
+    const double sqe   = sqrt(e*e-1);
+    const double sqgma = sqrt(fabs(mu*fabs(a)));
     xfac1 = a*(e-chcap);
     xfac2 = a*sqe*shcap;
-    const Double ri = one()/(a*(e*chcap - one()));
+    const double ri = 1/(a*(e*chcap - 1));
     vfac1 = -ri * sqgma * shcap;
     vfac2 =  ri * sqgma * chcap * sqe;
     
   } else { // e = 1.0 within roundoff errors
     
-    Double q = M;
+    double q = M;
     if (q < 1.0e-3) {
-      zpara = q*(one() - (q*q/three())*(one()-q*q));
+      zpara = q*(1 - (q*q/3)*(1-q*q));
     } else {
-      Double x = Double("0.5")*(three()*q+sqrt(Double("9.0")*(q*q)+Double("4.0")));
-      // Double tmp = secure_pow(x,(1.0/3.0));
-      Double tmp = cbrt(x);
-      zpara = tmp - one()/tmp;
+      double x = 0.5*(3*q+sqrt(9*(q*q)+4));
+      double tmp = cbrt(x);
+      zpara = tmp - 1/tmp;
     }
     
-    const Double sqgma = sqrt(fabs(two()*mu*a));
-    xfac1 = a*(one() - zpara*zpara);
-    xfac2 = two()*a*zpara;
-    const Double ri = one()/(a*(one() + zpara*zpara));
+    const double sqgma = sqrt(fabs(2*mu*a));
+    xfac1 = a*(1 - zpara*zpara);
+    xfac2 = 2*a*zpara;
+    const double ri = 1/(a*(1 + zpara*zpara));
     vfac1 = -ri * sqgma * zpara;
     vfac2 =  ri * sqgma;
     
@@ -563,7 +559,7 @@ public:
     o1(o1_in),
     o2(o2_in) { }
 public:
-  orsa::Double fun(const orsa::MultiminParameters * par) const {
+  double fun(const orsa::MultiminParameters * par) const {
     o1.M = par->get("M1");
     o2.M = par->get("M2");
     orsa::Vector r1, r2;
@@ -575,12 +571,12 @@ public:
   mutable orsa::Orbit o1, o2;
 };
 
-bool orsa::MOID(orsa::Double       & moid,
-		orsa::Double       & M1,
-		orsa::Double       & M2,
+bool orsa::MOID(double       & moid,
+		double       & M1,
+		double       & M2,
 		const orsa::Orbit  & o1,
 		const orsa::Orbit  & o2,
-		const orsa::Double & epsAbs) {
+		const double & epsAbs) {
   
   ORSA_DEBUG("called...");
   
@@ -597,13 +593,13 @@ bool orsa::MOID(orsa::Double       & moid,
   
   // inital tentative solution, using original orbit::M values
   if (multimin->run_nmsimplex(128,
-			      epsAbs.get_d())) {
+			      epsAbs)) {
     moid = multimin->fun(multimin->getMultiminParameters());
     M1   = multimin->getMultiminParameters()->get("M1");
     M2   = multimin->getMultiminParameters()->get("M2");
     found=true;
     
-    ORSA_DEBUG("moid: %.16Ff [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1).get_mpf_t());
+    ORSA_DEBUG("moid: %.16Ff [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1));
   }
   
   const unsigned int numTests=5;
@@ -611,7 +607,7 @@ bool orsa::MOID(orsa::Double       & moid,
     par->set("M1", k*orsa::twopi()/numTests);
     par->set("M2",-k*orsa::twopi()/numTests);
     if (multimin->run_nmsimplex(128,
-				epsAbs.get_d())) {
+				epsAbs)) {
       if ((found && (multimin->fun(multimin->getMultiminParameters()) < moid)) ||
 	  (!found) ) {      
 	moid = multimin->fun(multimin->getMultiminParameters());
@@ -620,7 +616,7 @@ bool orsa::MOID(orsa::Double       & moid,
 	found=true;
 	
 	ORSA_DEBUG("better value! k: %i *******",k);
-	ORSA_DEBUG("moid: %.16Ff [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1).get_mpf_t());
+	ORSA_DEBUG("moid: %.16Ff [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1));
       }
     }
   }
@@ -631,10 +627,10 @@ bool orsa::MOID(orsa::Double       & moid,
      for (unsigned int k=0; k<1024; ++k) {
      par->set("M1",rng->gsl_rng_uniform()*orsa::twopi());
      par->set("M2",rng->gsl_rng_uniform()*orsa::twopi());
-     const orsa::Double tmp_moid = multimin->fun(par.get());
+     const double tmp_moid = multimin->fun(par.get());
      if (tmp_moid < moid) {
      ORSA_DEBUG("************ FOUND SMALLER MOID IN STRESS TEST ***********");
-     ORSA_DEBUG("moid: %.16Ff [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1).get_mpf_t());
+     ORSA_DEBUG("moid: %.16Ff [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1));
      exit(0);
      }	
      }
@@ -648,13 +644,12 @@ bool orsa::MOID(orsa::Double       & moid,
 
 /**********/
 
-Double orsa::HillRadius(const Double & a,
-			const Double & m,
-			const Double & M) {
-  ORSA_DEBUG("check this equation...");
-  return (a*cbrt(m/(three()*M)));
+double orsa::HillRadius(const double & a,
+			const double & m,
+			const double & M) {
+  // ORSA_DEBUG("check this equation...");
+  return (a*cbrt(m/(3*M)));
 }
-
 
 const Body * orsa::HillParentBody(const Body * b,
 				  BodyGroup * bg,
@@ -663,7 +658,7 @@ const Body * orsa::HillParentBody(const Body * b,
   ORSA_DEBUG("this function is still incomplete...");
   
   const Body * pb = 0;
-  Double pb_d_H = -1;
+  double pb_d_H = -1;
   
   Vector p_b;
   if (!(bg->getInterpolatedPosition(p_b,b,t))) {
@@ -672,7 +667,7 @@ const Body * orsa::HillParentBody(const Body * b,
     return (pb);
   }
   
-  orsa::Double m_b, m_b_it;
+  double m_b, m_b_it;
   if (!bg->getInterpolatedMass(m_b,b,t)) {
     ORSA_DEBUG("problems...");
   }
@@ -689,8 +684,8 @@ const Body * orsa::HillParentBody(const Body * b,
       ORSA_DEBUG("problems...");
     }
     
-    if ((m_b_it == zero()) && 
-	(m_b    == zero())) {
+    if ((m_b_it == 0) && 
+	(m_b    == 0)) {
       ++_b_it;
       // ORSA_DEBUG("continue...");
       continue;
@@ -702,17 +697,17 @@ const Body * orsa::HillParentBody(const Body * b,
 	Vector p_b_parent, p_b_it;
 	if (bg->getInterpolatedPosition(p_b_parent,parent_b,t) &&
 	    bg->getInterpolatedPosition(p_b_it,(*_b_it).get(),t)) {
-	  orsa::Double m_parent;
+	  double m_parent;
 	  if (!bg->getInterpolatedMass(m_parent,parent_b,t)) {
 	    ORSA_DEBUG("problems...");
 	  }
-	  const Double a = (p_b_parent-p_b_it).length();
-	  const Double m = m_b_it;
-	  const Double M = m_parent;
-	  const Double r_H = orsa::HillRadius(a,m,M);
-	  const Double d_H = (p_b-p_b_it).length()/r_H;
+	  const double a = (p_b_parent-p_b_it).length();
+	  const double m = m_b_it;
+	  const double M = m_parent;
+	  const double r_H = orsa::HillRadius(a,m,M);
+	  const double d_H = (p_b-p_b_it).length()/r_H;
 	  if ((d_H < pb_d_H) || 
-	      (pb_d_H < zero())) {
+	      (pb_d_H < 0)) {
 	    pb     = (*_b_it).get();
 	    pb_d_H = d_H;
 	  }
@@ -739,7 +734,7 @@ const Body * orsa::simpleParentBody(const Body * b,
 				    const Time & t) {
   
   const Body * pb = 0;
-  Double pb_a = -1;
+  double pb_a = -1;
   
   Vector r_b, v_b;
   if (!(bg->getInterpolatedPosVel(r_b,v_b,b,t))) {
@@ -748,7 +743,7 @@ const Body * orsa::simpleParentBody(const Body * b,
     return (pb);
   }
   
-  orsa::Double m_b, m_b_it;
+  double m_b, m_b_it;
   if (!bg->getInterpolatedMass(m_b,b,t)) {
     ORSA_DEBUG("problems...");
   }
@@ -771,8 +766,8 @@ const Body * orsa::simpleParentBody(const Body * b,
       continue;
     }
     
-    if ((m_b_it == zero()) && 
-	(m_b    == zero())) {
+    if ((m_b_it == 0) && 
+	(m_b    == 0)) {
       ++_b_it;
       // ORSA_DEBUG("continue...");
       continue;
@@ -782,9 +777,9 @@ const Body * orsa::simpleParentBody(const Body * b,
        if ((*_b_it)->getMass() > b->getMass()) {
        Vector p_b_it;
        if (bg->getInterpolatedPosition(p_b_it,(*_b_it).get(),t)) {
-       const Double d2 = (p_b-p_b_it).lengthSquared();
+       const double d2 = (p_b-p_b_it).lengthSquared();
        if ((d2 < pb_d2) || 
-       (pb_d2 < zero())) {
+       (pb_d2 < 0)) {
        pb   = (*_b_it).get();
        pb_d2 = d2;
        }
@@ -796,9 +791,9 @@ const Body * orsa::simpleParentBody(const Body * b,
        if ((*_b_it)->getMass() > b->getMass()) {
        Vector p_b_it;
        if (bg->getInterpolatedPosition(p_b_it,(*_b_it).get(),t)) {
-       const Double m2d2 = ((*_b_it)->getMass()*(*_b_it)->getMass())/(p_b-p_b_it).lengthSquared();
+       const double m2d2 = ((*_b_it)->getMass()*(*_b_it)->getMass())/(p_b-p_b_it).lengthSquared();
        if ((m2d2 > pb_m2d2) || 
-       (pb_m2d2 < zero())) {
+       (pb_m2d2 < 0)) {
        pb   = (*_b_it).get();
        pb_m2d2 = m2d2;
        }
@@ -809,25 +804,25 @@ const Body * orsa::simpleParentBody(const Body * b,
     if (m_b_it > m_b) {
       Vector r_b_it, v_b_it;
       if (bg->getInterpolatedPosVel(r_b_it,v_b_it,(*_b_it).get(),t)) {
-	// const Double E = Double("0.5")*(v_b-v_b_it).lengthSquared() - (*_b_it)->getMu()/(r_b-r_b_it).length();
-	const Double E = Double("0.5")*(v_b-v_b_it).lengthSquared() - 
+	// const double E = 0.5*(v_b-v_b_it).lengthSquared() - (*_b_it)->getMu()/(r_b-r_b_it).length();
+	const double E = 0.5*(v_b-v_b_it).lengthSquared() - 
 	  orsa::Unit::instance()->getG() * m_b_it/(r_b-r_b_it).length();
-	// const Double a = - (*_b_it)->getMu() / (2*E);
-	const Double a = - orsa::Unit::instance()->getG() * m_b_it / (2*E);
+	// const double a = - (*_b_it)->getMu() / (2*E);
+	const double a = - orsa::Unit::instance()->getG() * m_b_it / (2*E);
 	
 	/* 
 	   ORSA_DEBUG("---------------- b: %s  b_it: %s   a: %Fg    dr: %Fg  dv: %Fg  mu: %Fg",
 	   b->getName().c_str(),
 	   (*_b_it)->getName().c_str(),
-	   a.get_mpf_t(),
-	   (r_b-r_b_it).length().get_mpf_t(),
-	   (v_b-v_b_it).length().get_mpf_t(),
-	   (*_b_it)->getMu().get_mpf_t());
+	   a(),
+	   (r_b-r_b_it).length(),
+	   (v_b-v_b_it).length(),
+	   (*_b_it)->getMu());
 	*/
 	
-	if ((a > zero()) &&
+	if ((a > 0) &&
 	    ((a < pb_a) || 
-	     (pb_a < zero()))) {
+	     (pb_a < 0))) {
 	  pb   = (*_b_it).get();
 	  pb_a = a;
 	}
@@ -843,7 +838,7 @@ const Body * orsa::simpleParentBody(const Body * b,
 ////
 OrbitProxy::OrbitProxy(const orsa::Body   * b, 
 		       orsa::BodyGroup    * bg,
-		       const orsa::Double & accuracy,
+		       const double       & accuracy,
 		       const orsa::Time   & maxPeriod) :
   osg::Referenced(),
   _b(b),
@@ -891,8 +886,8 @@ bool OrbitProxy::insertBOT(OrbitProxy::BOT  & bot,
        _b->getName().c_str(),
        bot.b->getName().c_str(),
        _interval->size(),
-       FromUnits(bot.o.a,Unit::KM,-1).get_mpf_t(),
-       bot.o.e.get_mpf_t());
+       FromUnits(bot.o.a,Unit::KM,-1)(),
+       bot.o.e());
     */
     
     return true;
@@ -937,10 +932,10 @@ bool OrbitProxy::interpolatedBOT(OrbitProxy::BOT       & bot,
   
   bot.t = t;
   
-  const orsa::Double beta = 
-    (t-bot1.t).asDouble() / 
-    (bot2.t-bot1.t).asDouble();
-  const orsa::Double oneMinusBeta = one()-beta;
+  const double beta = 
+    (t-bot1.t).get_d() / 
+    (bot2.t-bot1.t).get_d();
+  const double oneMinusBeta = 1-beta;
   
   bot.o.a =
     oneMinusBeta*bot1.o.a + 
@@ -960,7 +955,7 @@ bool OrbitProxy::interpolatedBOT(OrbitProxy::BOT       & bot,
      beta*bot2.o.omega_node;
   */
   //
-  orsa::Double delta_omega_node = bot2.o.omega_node - bot1.o.omega_node;
+  double delta_omega_node = bot2.o.omega_node - bot1.o.omega_node;
   if (fabs(bot2.o.omega_node - bot1.o.omega_node + twopi()) < 
       fabs(delta_omega_node)) delta_omega_node = bot2.o.omega_node - bot1.o.omega_node + twopi();
   if (fabs(bot2.o.omega_node - bot1.o.omega_node - twopi()) < 
@@ -975,7 +970,7 @@ bool OrbitProxy::interpolatedBOT(OrbitProxy::BOT       & bot,
      beta*bot2.o.omega_pericenter;
   */
   //
-  orsa::Double delta_omega_pericenter = bot2.o.omega_pericenter - bot1.o.omega_pericenter;
+  double delta_omega_pericenter = bot2.o.omega_pericenter - bot1.o.omega_pericenter;
   if (fabs(bot2.o.omega_pericenter - bot1.o.omega_pericenter + twopi()) < 
       fabs(delta_omega_pericenter)) delta_omega_pericenter = bot2.o.omega_pericenter - bot1.o.omega_pericenter + twopi();
   if (fabs(bot2.o.omega_pericenter - bot1.o.omega_pericenter - twopi()) < 
@@ -986,17 +981,17 @@ bool OrbitProxy::interpolatedBOT(OrbitProxy::BOT       & bot,
   
   /* 
      bot.o.M =
-     oneMinusBeta*(bot1.o.M + twopi()*(t-bot1.t).asDouble()/bot1.o.period()) +
-     beta*(bot2.o.M + twopi()*(t-bot2.t).asDouble()/bot2.o.period());
+     oneMinusBeta*(bot1.o.M + twopi()*(t-bot1.t).get_d()/bot1.o.period()) +
+     beta*(bot2.o.M + twopi()*(t-bot2.t).get_d()/bot2.o.period());
   */
   //
-  orsa::Double delta_M = 
+  double delta_M = 
     (bot2.o.M-bot1.o.M) + 
-    twopi()*((t-bot2.t).asDouble()/bot2.o.period()-(t-bot1.t).asDouble()/bot1.o.period());
+    twopi()*((t-bot2.t).get_d()/bot2.o.period()-(t-bot1.t).get_d()/bot1.o.period());
   if (fabs(delta_M + twopi()) < fabs(delta_M)) delta_M += twopi();
   if (fabs(delta_M - twopi()) < fabs(delta_M)) delta_M -= twopi();
   bot.o.M = 
-    (bot1.o.M + twopi()*(t-bot1.t).asDouble()/bot1.o.period()) +
+    (bot1.o.M + twopi()*(t-bot1.t).get_d()/bot1.o.period()) +
     beta*delta_M;
   
   bot.o.mu =
@@ -1035,8 +1030,8 @@ bool OrbitProxy::getOrbit(orsa::Orbit      & orbit,
     const Interval<BOT>::DataType & data = _interval->getData();
     const OrbitProxy::BOT           min  = *(data.begin());
     const OrbitProxy::BOT           more = *(++(data.begin()));
-    const orsa::Double              d    = delta(min, more);
-    const orsa::Double              s    = fabs((min.t-t).asDouble()/(more.t-min.t).asDouble());
+    const double              d    = delta(min, more);
+    const double              s    = fabs((min.t-t).get_d()/(more.t-min.t).get_d());
     if ( (d*s < _accuracy) && 
 	 (interpolatedBOT(bot,
 			  min,
@@ -1054,8 +1049,8 @@ bool OrbitProxy::getOrbit(orsa::Orbit      & orbit,
     const Interval<BOT>::DataType & data = _interval->getData();
     const OrbitProxy::BOT           max  = *(--data.end());
     const OrbitProxy::BOT           less = *(--(--data.end()));
-    const orsa::Double              d    = delta(less, max);
-    const orsa::Double              s    = fabs((t-max.t).asDouble()/(max.t-less.t).asDouble());
+    const double              d    = delta(less, max);
+    const double              s    = fabs((t-max.t).get_d()/(max.t-less.t).get_d());
     if ( (d*s < _accuracy) &&
 	 (interpolatedBOT(bot,
 			  less,
@@ -1107,7 +1102,7 @@ bool OrbitProxy::getOrbit(orsa::Orbit      & orbit,
     return true;
   }
   
-  const orsa::Double d = delta(botMin,botMax);
+  const double d = delta(botMin,botMax);
   if (d > _accuracy) {
     if (OrbitProxy::insertBOT(bot,t)) {
       orbit = bot.o;
@@ -1128,15 +1123,15 @@ bool OrbitProxy::getOrbit(orsa::Orbit      & orbit,
   }  
 }
   
-orsa::Double OrbitProxy::delta(const BOT & bot1,
+double OrbitProxy::delta(const BOT & bot1,
 			       const BOT & bot2) {
-  if (bot1.b.get() != bot2.b.get()) return one();
-  Double d = 
+  if (bot1.b.get() != bot2.b.get()) return 1;
+  double d = 
     fabs((bot2.o.a-bot1.o.a)/(fabs(bot1.o.a)+epsilon())) +
     fabs((bot2.o.e-bot1.o.e)/(fabs(bot1.o.e)+epsilon())) +
     fabs((bot2.o.i-bot1.o.i)/(fabs(bot1.o.i)+epsilon())) +
     fabs((bot2.o.omega_node-bot1.o.omega_node)/(fabs(bot1.o.omega_node)+epsilon())) +
     fabs((bot2.o.omega_pericenter-bot1.o.omega_pericenter)/(fabs(bot1.o.omega_pericenter)+epsilon()));
-  // ORSA_DEBUG("delta: %Ff",d.get_mpf_t());
+  // ORSA_DEBUG("delta: %f",d());
   return d;
 }

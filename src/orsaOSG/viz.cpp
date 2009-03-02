@@ -75,7 +75,7 @@ protected:
 */
 
 Viz::Viz(orsa::BodyGroup * bg, 
-	 const orsa::Double & timeMultiplier) :
+	 const double & timeMultiplier) :
   osg::Referenced(),
   _bg(bg),
   _timeMultiplier(timeMultiplier) { }
@@ -114,7 +114,7 @@ osg::Group * Viz::createRoot() {
 	/* 
 	   osg::Light * sunLight2 = sunLightSource->getLight();
 	   // sunLight2->setPosition( osg::Vec4d(1e10, 0.0, 0.0, 1.0));
-	   // sunLight2->setPosition( osg::Vec4d(0.0, FromUnits(0.0,Unit::KM).get_d(), 0.0, 1.0));
+	   // sunLight2->setPosition( osg::Vec4d(0.0, FromUnits(0.0,Unit::KM), 0.0, 1.0));
 	   // sunLight2->setDirection( osg::Vec3d(0.0, -1.0, 0.0));
 	   // sunLight2->setConstantAttenuation(0.3);
 	   //
@@ -156,14 +156,14 @@ osg::Group * Viz::createRoot() {
       
     osg::Geometry * cageGeometry = new osg::Geometry();
       
-    // const orsa::Double step = FromUnits(16.0,Unit::KM);
-    const orsa::Double step = FromUnits(1.0,Unit::AU);
+    // const double step = FromUnits(16.0,Unit::KM);
+    const double step = FromUnits(1.0,Unit::AU);
     //
     const          int num_lines_1d_one_side = abs(5); // must be positive
     const unsigned int num_lines_1d          = 1+2*abs(num_lines_1d_one_side);
     const unsigned int num_lines             = 3*num_lines_1d*num_lines_1d;
     // 
-    const orsa::Double edge = num_lines_1d_one_side*step;
+    const double edge = num_lines_1d_one_side*step;
     
     osg::Vec3Array * vertices = new osg::Vec3Array(2*num_lines);
     unsigned int _vertices_index = 0;
@@ -171,9 +171,9 @@ osg::Group * Viz::createRoot() {
     // X 
     for (int j = -num_lines_1d_one_side; j <= num_lines_1d_one_side; ++j) {
       for (int k = -num_lines_1d_one_side; k <= num_lines_1d_one_side; ++k) {
-	(*vertices)[_vertices_index].set(-edge.get_d(),j*step.get_d(),k*step.get_d());
+	(*vertices)[_vertices_index].set(-edge,j*step,k*step);
 	++_vertices_index;
-	(*vertices)[_vertices_index].set( edge.get_d(),j*step.get_d(),k*step.get_d());
+	(*vertices)[_vertices_index].set( edge,j*step,k*step);
 	++_vertices_index;
       }
     }
@@ -181,9 +181,9 @@ osg::Group * Viz::createRoot() {
     // Y 
     for (int i = -num_lines_1d_one_side; i <= num_lines_1d_one_side; ++i) {
       for (int k = -num_lines_1d_one_side; k <= num_lines_1d_one_side; ++k) {
-	(*vertices)[_vertices_index].set(i*step.get_d(),-edge.get_d(),k*step.get_d());
+	(*vertices)[_vertices_index].set(i*step,-edge,k*step);
 	++_vertices_index;
-	(*vertices)[_vertices_index].set(i*step.get_d(), edge.get_d(),k*step.get_d());
+	(*vertices)[_vertices_index].set(i*step, edge,k*step);
 	++_vertices_index;
       }
     }
@@ -191,9 +191,9 @@ osg::Group * Viz::createRoot() {
     // Z
     for (int i = -num_lines_1d_one_side; i <= num_lines_1d_one_side; ++i) {
       for (int j = -num_lines_1d_one_side; j <= num_lines_1d_one_side; ++j) {
-	(*vertices)[_vertices_index].set(i*step.get_d(),j*step.get_d(),-edge.get_d());
+	(*vertices)[_vertices_index].set(i*step,j*step,-edge);
 	++_vertices_index;
-	(*vertices)[_vertices_index].set(i*step.get_d(),j*step.get_d(), edge.get_d());
+	(*vertices)[_vertices_index].set(i*step,j*step, edge);
 	++_vertices_index;
       }
     }
@@ -236,13 +236,13 @@ osg::Group * Viz::createRoot() {
     const unsigned int n_points = 1024;
     //
     osg::Vec3Array * coords = new osg::Vec3Array(n_points);
-    const Double dx = twopi()/n_points;
-    Double s,c;
+    const double dx = twopi()/n_points;
+    double s,c;
     for (unsigned int j=0; j<n_points; ++j) {
-      sincos(dx*j,s,c);
-      (*coords)[j].set(osg::Vec3d(c.get_d()-1.0,s.get_d(),0.0));
+      sincos(dx*j,&s,&c);
+      (*coords)[j].set(osg::Vec3d(c-1.0,s,0.0));
       // sincos(dx*(j+1),s,c);
-      // (*coords)[j].set(osg::Vec3d(c.get_d(),s.get_d(),0.0));
+      // (*coords)[j].set(osg::Vec3d(c,s,0.0));
     }
     //
     unitOffsetCircle->setVertexArray(coords);
@@ -276,14 +276,14 @@ osg::Group * Viz::createRoot() {
      //
      osg::Vec3Array * coords = new osg::Vec3Array(pointsPerSegment);
      {
-     // const Double dx = twopi()/numCirclePoints;
-     const Double dx = twopi()/(numCirclePoints-numSegments);
-     Double ds, dc;
-     const double AU = FromUnits(1,orsa::Unit::AU).get_d();
+     // const double dx = twopi()/numCirclePoints;
+     const double dx = twopi()/(numCirclePoints-numSegments);
+     double ds, dc;
+     const double AU = FromUnits(1,orsa::Unit::AU);
      for (unsigned int j=0; j<pointsPerSegment; ++j) {
      // for (unsigned int j=s*pointsPerSegment; j<(s+1)*pointsPerSegment; ++j) {
      sincos(dx*(j+s*pointsPerSegment),ds,dc);
-     (*coords)[j].set(osg::Vec3d(AU*(dc.get_d()-1.0),AU*ds.get_d(),0.0));
+     (*coords)[j].set(osg::Vec3d(AU*(dc-1.0),AU*ds,0.0));
      }
      }
      //
@@ -382,8 +382,8 @@ osg::Group * Viz::createRoot() {
     /* 
        if (0) {
        
-       // double characterSize=FromUnits(.01,Unit::AU).get_d();
-       double characterSize=FromUnits(30,Unit::KM).get_d();
+       // double characterSize=FromUnits(.01,Unit::AU);
+       double characterSize=FromUnits(30,Unit::KM);
        
        osg::Vec3 center(0.0,0.0,0.0);
        
@@ -403,7 +403,7 @@ osg::Group * Viz::createRoot() {
        if (0) {
        // sphere	
        osg::ShapeDrawable * shape = new osg::ShapeDrawable(new osg::Sphere(osg::Vec3d(0,0,0),
-       FromUnits(1000.0,Unit::M).get_d()));
+       FromUnits(1000.0,Unit::M)));
        
        shape->getOrCreateStateSet()->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
        
@@ -413,7 +413,7 @@ osg::Group * Viz::createRoot() {
        if (0) {
        // cube
        osg::ShapeDrawable * shape = new osg::ShapeDrawable(new osg::Box(osg::Vec3d(0,0,0),
-       FromUnits(.01,Unit::AU).get_d()));
+       FromUnits(.01,Unit::AU)));
        
        shape->getOrCreateStateSet()->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
        
@@ -517,7 +517,7 @@ osg::Group * Viz::createRoot() {
       case orsa::Shape::SHAPE_ELLIPSOID:
 	{
 	  
-	  orsa::Double a,b,c;
+	  double a,b,c;
 	  
 	  {
 	    const orsa::EllipsoidShape * es = dynamic_cast<const orsa::EllipsoidShape * > ((*_b_it)->getShape());
@@ -529,9 +529,9 @@ osg::Group * Viz::createRoot() {
 	  
 	  PositionAttitudeTransform * pat = new PositionAttitudeTransform;
 	  //
-	  pat->setScale(osg::Vec3d(a.get_d(),
-				   b.get_d(),
-				   c.get_d()));
+	  pat->setScale(osg::Vec3d(a,
+				   b,
+				   c));
 	  
 	  osg::ShapeDrawable * shape = 
 	    new osg::ShapeDrawable(new osg::Sphere(osg::Vec3d(0,0,0),1.0));
@@ -562,7 +562,7 @@ osg::Group * Viz::createRoot() {
 	 // GSL rng init
 	 gsl_rng * rnd = gsl_rng_alloc(gsl_rng_gfsr4);
 	 gsl_rng_set(rnd,85719); // random seed
-	 // const Double _R_max = (*_b_it)->getShape()->boundingRadius();
+	 // const double _R_max = (*_b_it)->getShape()->boundingRadius();
 	 const orsa::Box boundingBox = (*_b_it)->getShape()->boundingBox();
 	 
 	 for (unsigned int k=0; k<n_points; ++k) {
@@ -610,83 +610,83 @@ osg::Group * Viz::createRoot() {
 	
 	osg::Vec3Array * coords = new osg::Vec3Array(24);
 	// x_min face
-	(*coords)[0].set(osg::Vec3d(boundingBox.getXMin().get_d(),
-				    boundingBox.getYMin().get_d(),
-				    boundingBox.getZMin().get_d()));
-	(*coords)[1].set(osg::Vec3d(boundingBox.getXMin().get_d(),
-				    boundingBox.getYMax().get_d(),
-				    boundingBox.getZMin().get_d()));
-	(*coords)[2].set(osg::Vec3d(boundingBox.getXMin().get_d(),
-				    boundingBox.getYMax().get_d(),
-				    boundingBox.getZMax().get_d()));
-	(*coords)[3].set(osg::Vec3d(boundingBox.getXMin().get_d(),
-				    boundingBox.getYMin().get_d(),
-				    boundingBox.getZMax().get_d()));
+	(*coords)[0].set(osg::Vec3d(boundingBox.getXMin(),
+				    boundingBox.getYMin(),
+				    boundingBox.getZMin()));
+	(*coords)[1].set(osg::Vec3d(boundingBox.getXMin(),
+				    boundingBox.getYMax(),
+				    boundingBox.getZMin()));
+	(*coords)[2].set(osg::Vec3d(boundingBox.getXMin(),
+				    boundingBox.getYMax(),
+				    boundingBox.getZMax()));
+	(*coords)[3].set(osg::Vec3d(boundingBox.getXMin(),
+				    boundingBox.getYMin(),
+				    boundingBox.getZMax()));
 	// x_max face
-	(*coords)[4].set(osg::Vec3d(boundingBox.getXMax().get_d(),
-				    boundingBox.getYMin().get_d(),
-				    boundingBox.getZMin().get_d()));
-	(*coords)[5].set(osg::Vec3d(boundingBox.getXMax().get_d(),
-				    boundingBox.getYMin().get_d(),
-				    boundingBox.getZMin().get_d()));
-	(*coords)[6].set(osg::Vec3d(boundingBox.getXMax().get_d(),
-				    boundingBox.getYMin().get_d(),
-				    boundingBox.getZMin().get_d()));
-	(*coords)[7].set(osg::Vec3d(boundingBox.getXMax().get_d(),
-				    boundingBox.getYMin().get_d(),
-				    boundingBox.getZMin().get_d()));
+	(*coords)[4].set(osg::Vec3d(boundingBox.getXMax(),
+				    boundingBox.getYMin(),
+				    boundingBox.getZMin()));
+	(*coords)[5].set(osg::Vec3d(boundingBox.getXMax(),
+				    boundingBox.getYMin(),
+				    boundingBox.getZMin()));
+	(*coords)[6].set(osg::Vec3d(boundingBox.getXMax(),
+				    boundingBox.getYMin(),
+				    boundingBox.getZMin()));
+	(*coords)[7].set(osg::Vec3d(boundingBox.getXMax(),
+				    boundingBox.getYMin(),
+				    boundingBox.getZMin()));
 	// y_min face
-	(*coords)[8].set(osg::Vec3d(boundingBox.getXMin().get_d(),
-				    boundingBox.getYMin().get_d(),
-				    boundingBox.getZMin().get_d()));
-	(*coords)[9].set(osg::Vec3d(boundingBox.getXMax().get_d(),
-				    boundingBox.getYMin().get_d(),
-				    boundingBox.getZMin().get_d()));
-	(*coords)[10].set(osg::Vec3d(boundingBox.getXMax().get_d(),
-				     boundingBox.getYMin().get_d(),
-				     boundingBox.getZMax().get_d()));
-	(*coords)[11].set(osg::Vec3d(boundingBox.getXMin().get_d(),
-				     boundingBox.getYMin().get_d(),
-				     boundingBox.getZMax().get_d()));
+	(*coords)[8].set(osg::Vec3d(boundingBox.getXMin(),
+				    boundingBox.getYMin(),
+				    boundingBox.getZMin()));
+	(*coords)[9].set(osg::Vec3d(boundingBox.getXMax(),
+				    boundingBox.getYMin(),
+				    boundingBox.getZMin()));
+	(*coords)[10].set(osg::Vec3d(boundingBox.getXMax(),
+				     boundingBox.getYMin(),
+				     boundingBox.getZMax()));
+	(*coords)[11].set(osg::Vec3d(boundingBox.getXMin(),
+				     boundingBox.getYMin(),
+				     boundingBox.getZMax()));
 	// y_max face
-	(*coords)[12].set(osg::Vec3d(boundingBox.getXMin().get_d(),
-				     boundingBox.getYMax().get_d(),
-				     boundingBox.getZMin().get_d()));
-	(*coords)[13].set(osg::Vec3d(boundingBox.getXMax().get_d(),
-				     boundingBox.getYMax().get_d(),
-				     boundingBox.getZMin().get_d()));
-	(*coords)[14].set(osg::Vec3d(boundingBox.getXMax().get_d(),
-				     boundingBox.getYMax().get_d(),
-				     boundingBox.getZMax().get_d()));
-	(*coords)[15].set(osg::Vec3d(boundingBox.getXMin().get_d(),
-				     boundingBox.getYMax().get_d(),
-				     boundingBox.getZMax().get_d()));
+	(*coords)[12].set(osg::Vec3d(boundingBox.getXMin(),
+				     boundingBox.getYMax(),
+				     boundingBox.getZMin()));
+	(*coords)[13].set(osg::Vec3d(boundingBox.getXMax(),
+				     boundingBox.getYMax(),
+				     boundingBox.getZMin()));
+	(*coords)[14].set(osg::Vec3d(boundingBox.getXMax(),
+				     boundingBox.getYMax(),
+				     boundingBox.getZMax()));
+	(*coords)[15].set(osg::Vec3d(boundingBox.getXMin(),
+				     boundingBox.getYMax(),
+				     boundingBox.getZMax()));
 	// z_min face
-	(*coords)[16].set(osg::Vec3d(boundingBox.getXMin().get_d(),
-				     boundingBox.getYMin().get_d(),
-				     boundingBox.getZMin().get_d()));
-	(*coords)[17].set(osg::Vec3d(boundingBox.getXMax().get_d(),
-				     boundingBox.getYMin().get_d(),
-				     boundingBox.getZMin().get_d()));
-	(*coords)[18].set(osg::Vec3d(boundingBox.getXMax().get_d(),
-				     boundingBox.getYMax().get_d(),
-				     boundingBox.getZMin().get_d()));
-	(*coords)[19].set(osg::Vec3d(boundingBox.getXMin().get_d(),
-				     boundingBox.getYMax().get_d(),
-				     boundingBox.getZMin().get_d()));
+	(*coords)[16].set(osg::Vec3d(boundingBox.getXMin(),
+				     boundingBox.getYMin(),
+				     boundingBox.getZMin()));
+	(*coords)[17].set(osg::Vec3d(boundingBox.getXMax(),
+				     boundingBox.getYMin(),
+				     boundingBox.getZMin()));
+	(*coords)[18].set(osg::Vec3d(boundingBox.getXMax(),
+				     boundingBox.getYMax(),
+				     boundingBox.getZMin()));
+	(*coords)[19].set(osg::Vec3d(boundingBox.getXMin(),
+				     boundingBox.getYMax(),
+				     boundingBox.getZMin()));
 	// z_max face
-	(*coords)[20].set(osg::Vec3d(boundingBox.getXMin().get_d(),
-				     boundingBox.getYMin().get_d(),
-				     boundingBox.getZMax().get_d()));
-	(*coords)[21].set(osg::Vec3d(boundingBox.getXMax().get_d(),
-				     boundingBox.getYMin().get_d(),
-				     boundingBox.getZMax().get_d()));
-	(*coords)[22].set(osg::Vec3d(boundingBox.getXMax().get_d(),
-				     boundingBox.getYMax().get_d(),
-				     boundingBox.getZMax().get_d()));
-	(*coords)[23].set(osg::Vec3d(boundingBox.getXMin().get_d(),
-				     boundingBox.getYMax().get_d(),
-				     boundingBox.getZMax().get_d()));
+	(*coords)[20].set(osg::Vec3d(boundingBox.getXMin(),
+				     boundingBox.getYMin(),
+				     boundingBox.getZMax()));
+	(*coords)[21].set(osg::Vec3d(boundingBox.getXMax(),
+				     boundingBox.getYMin(),
+				     boundingBox.getZMax()));
+	(*coords)[22].set(osg::Vec3d(boundingBox.getXMax(),
+				     boundingBox.getYMax(),
+				     boundingBox.getZMax()));
+	(*coords)[23].set(osg::Vec3d(boundingBox.getXMin(),
+				     boundingBox.getYMax(),
+				     boundingBox.getZMax()));
 	//
 	boxGeometry->setVertexArray(coords);
 	
@@ -720,13 +720,13 @@ osg::Group * Viz::createRoot() {
       // no shape, just a point
       // ORSA_DEBUG("POINT...");
       
-      Double radius = (*_b_it)->getRadius();
-      if (radius == zero()) {
+      double radius = (*_b_it)->getRadius();
+      if (radius == 0) {
 	radius = FromUnits(10.0,Unit::KM); // hmm...
       }
       
       osg::ShapeDrawable* shape = new osg::ShapeDrawable(new osg::Sphere(osg::Vec3d(0,0,0),
-									 radius.get_d()));
+									 radius));
       
       shape->getOrCreateStateSet()->setMode(GL_LIGHTING,osg::StateAttribute::ON);
       

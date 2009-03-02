@@ -12,11 +12,11 @@ namespace orsa {
   //! NOTE: always 0 <= m <= l, i.e. non-negative m
   class Legendre {
   public:
-    Legendre(const Double x) : _x(x), _sqrt_one_minus_x2(sqrt(one()-x*x)) {
+    Legendre(const double x) : _x(x), _sqrt_one_minus_x2(sqrt(1-x*x)) {
       // ORSA_DEBUG("RecursiveLegendre created, x = %g",_x);
     }
   public:
-    Legendre(const Double x, const unsigned int hint_order) : _x(x), _sqrt_one_minus_x2(sqrt(one()-x*x)) { 
+    Legendre(const double x, const unsigned int hint_order) : _x(x), _sqrt_one_minus_x2(sqrt(1-x*x)) { 
       // ORSA_DEBUG("RecursiveLegendre created, x = %g",_x);
       _P.resize(1+hint_order);
       _dP.resize(1+hint_order);
@@ -50,9 +50,9 @@ namespace orsa {
 	// _P[l][m].set(power_sign(l)*bi_factorial(2*mpz_class(l)-1)*int_pow(_sqrt_one_minus_x2,l));
 	// second sign convention (-1)^m
 	// _P[l][m].set(power_sign(m)*power_sign(l)*__fact_fact__(2.0*l-1.0)*__int_pow__(_sqrt_one_minus_x2,l));
-	// _P[l][m].set(power_sign(m)*power_sign(l)*bi_factorial(2.0*l-one())*int_pow(_sqrt_one_minus_x2,l));
+	// _P[l][m].set(power_sign(m)*power_sign(l)*bi_factorial(2.0*l-1)*int_pow(_sqrt_one_minus_x2,l));
 	// _P[l][m].set(power_sign(m)*power_sign(l)*bi_factorial(2*l-1)*int_pow(_sqrt_one_minus_x2,l));
-	_P[l][m].set(power_sign(m)*power_sign(l)*bi_factorial(2*mpz_class(l)-1)*int_pow(_sqrt_one_minus_x2,l));
+	_P[l][m].set(power_sign(m)*power_sign(l)*bi_factorial(2*mpz_class(l)-1).get_d()*int_pow(_sqrt_one_minus_x2,l));
 	//
 	// ORSA_DEBUG("check: P(%i,%i) = %g",l,m,_P[l][m].get());
 	return;
@@ -62,7 +62,7 @@ namespace orsa {
 	//
 	// there is not a sign dependence here
 	// first sign convention
-	_P[l][m].set(_x*(2.0*m+one())*_P[m][m].getRef());
+	_P[l][m].set(_x*(2.0*m+1)*_P[m][m].getRef());
 	// second sign convention (-1)^m
 	// _P[l][m].set(_x*(2.0*m+1.0)*_P[m][m].get());
 	//
@@ -138,7 +138,7 @@ namespace orsa {
 	} else {
 	  ORSA_DEBUG("PROBLEM: division by zero... FIX FIX FIX (how?)");
 	  //
-	  _dP[l][m].set(zero());
+	  _dP[l][m].set(0);
 	}
       } else {
 	__check_P__(l,m);
@@ -148,18 +148,18 @@ namespace orsa {
 	} else {
 	  ORSA_DEBUG("PROBLEM: division by zero... FIX FIX FIX (how?)");
 	  //
-	  _dP[l][m].set(zero());
+	  _dP[l][m].set(0);
 	}
       }
       // ORSA_DEBUG("computed value: dP(%i,%i) = %g",l,m,_dP[l][m].get());
     }
   public:
-    const Double P(const unsigned int l, 
+    const double P(const unsigned int l, 
 		   const unsigned int m) const {
       // ORSA_DEBUG("called P(%i,%i)",l,m);
       if (m > l) {
 	ORSA_ERROR("incorrect values: m > l (%i > %i)",m,l);
-	return zero();
+	return 0;
       }
       if (_P.size() < (1+l)) {
 	_P.resize(1+l);
@@ -190,11 +190,11 @@ namespace orsa {
     }
   public:
     //! dP returns the value of dP/d theta, assuming P=P(cos theta);
-    const Double dP(const unsigned int l, 
+    const double dP(const unsigned int l, 
 		    const unsigned int m) const {
       if (m > l) {
 	ORSA_ERROR("incorrect values: l < m (%i < %i)",l,m);
-	return zero();
+	return 0;
       }
       if (_dP.size() < (1+l)) {
 	_dP.resize(1+l);
@@ -210,39 +210,39 @@ namespace orsa {
     }
   public:
     /* 
-       static Double norm(const unsigned int l,
+       static double norm(const unsigned int l,
        const unsigned int m) {
     */
     //
-   static Double norm(const mpz_class & l,
+   static double norm(const mpz_class & l,
 		      const mpz_class & m);
    /* 
-      static Double norm(const mpz_class & l,
+      static double norm(const mpz_class & l,
       const mpz_class & m) {
       // return sqrt((__fact__(l-m)*(2.0*l+1.0)*(2.0-__kronecker__(0,m)))/(__fact__(l+m)));
       // return sqrt((factorial(l-m)*(2.0*l+1.0)*(2.0-__kronecker__(0,m)))/(__fact__(l+m)));
       //
-      // return sqrt(Double(factorial(l-m)*(2-kronecker(0,m)))/Double(factorial(l+m)));
+      // return sqrt(double(factorial(l-m)*(2-kronecker(0,m)))/double(factorial(l+m)));
       //
-      // return sqrt(Double(factorial(l-m)*(2-kronecker(0,m))*(2*l-1))/Double(factorial(l+m)));
+      // return sqrt(double(factorial(l-m)*(2-kronecker(0,m))*(2*l-1))/double(factorial(l+m)));
       //
-      // ORSA_DEBUG("pre-sqrt: %Fg",Double(Double(factorial(l+m))/Double(factorial(l-m)*(2-kronecker(0,m))*(2*l+1))).get_mpf_t());
+      // ORSA_DEBUG("pre-sqrt: %Fg",double(double(factorial(l+m))/double(factorial(l-m)*(2-kronecker(0,m))*(2*l+1)))());
       //
       // almost same as paper
-      // return sqrt(Double(factorial(l+m))/Double(factorial(l-m)*(2-kronecker(0,m))*(2*l+1)));
+      // return sqrt(double(factorial(l+m))/double(factorial(l-m)*(2-kronecker(0,m))*(2*l+1)));
       //
       // another test
-      return sqrt(one()/Double((2-kronecker(0,m))*(2*l+1)));
+      return sqrt(1/double((2-kronecker(0,m))*(2*l+1)));
       } 
    */
    
   private:
     // Legendre(l,m)
-    mutable std::vector<std::vector<orsa::Cache<orsa::Double> > > _P;
-    mutable std::vector<std::vector<orsa::Cache<orsa::Double> > > _dP;
+    mutable std::vector<std::vector<orsa::Cache<double> > > _P;
+    mutable std::vector<std::vector<orsa::Cache<double> > > _dP;
   private:
-    const Double _x;
-    const Double _sqrt_one_minus_x2;
+    const double _x;
+    const double _sqrt_one_minus_x2;
   };
   
 } // namespace orsa

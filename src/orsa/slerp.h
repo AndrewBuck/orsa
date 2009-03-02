@@ -29,8 +29,8 @@ namespace orsa {
       _set = true;
       
       /* 
-	 ORSA_DEBUG("t0: %Ff",_t0.asDouble().get_mpf_t());
-	 ORSA_DEBUG("t1: %Ff",_t1.asDouble().get_mpf_t());
+	 ORSA_DEBUG("t0: %f",_t0.get_d());
+	 ORSA_DEBUG("t1: %f",_t1.get_d());
       */
       
       if (!valid()) {
@@ -38,11 +38,11 @@ namespace orsa {
       }
       
       // update derived vars
-      _period = (_t1 - _t0).asDouble();
+      _period = (_t1 - _t0).get_d();
       //
       _Omega = acos(_q0.getVector()*_q1.getVector());
       //
-      // _oneOverSinOmega = one()/sin(_Omega);
+      // _oneOverSinOmega = 1/sin(_Omega);
       
       return valid();
     }
@@ -64,23 +64,23 @@ namespace orsa {
       // Add a check: t MUST be between _t0 and _t1 included
       if (t < _t0) {
 	ORSA_ERROR("t < t0");
-	ORSA_DEBUG("t.: %Ff",t.asDouble().get_mpf_t());
-	ORSA_DEBUG("t0: %Ff",_t0.asDouble().get_mpf_t());
-	ORSA_DEBUG("t1: %Ff",_t1.asDouble().get_mpf_t());
+	ORSA_DEBUG("t.: %f",t.get_d());
+	ORSA_DEBUG("t0: %f",_t0.get_d());
+	ORSA_DEBUG("t1: %f",_t1.get_d());
 	q = _q0;
       	return false;
       }
       //
       if (t > _t1) {
 	ORSA_ERROR("t > t1");
-	ORSA_DEBUG("t.: %Ff",t.asDouble().get_mpf_t());
-	ORSA_DEBUG("t0: %Ff",_t0.asDouble().get_mpf_t());
-	ORSA_DEBUG("t1: %Ff",_t1.asDouble().get_mpf_t());
+	ORSA_DEBUG("t.: %f",t.get_d());
+	ORSA_DEBUG("t0: %f",_t0.get_d());
+	ORSA_DEBUG("t1: %f",_t1.get_d());
 	q = _q1;
 	return false;
       }
       
-      const Double u = (t - _t0).asDouble() / _period;
+      const double u = (t - _t0).get_d() / _period;
       
       // q = (sin((1-u)*_Omega)*_q0 + sin(u*_Omega)*_q1)*_oneOverSinOmega;
       //
@@ -95,9 +95,9 @@ namespace orsa {
     
     // derived vars
   protected:
-    Double _period;
-    Double _Omega;
-    // Double _oneOverSinOmega;
+    double _period;
+    double _Omega;
+    // double _oneOverSinOmega;
   };
   
 } // namespace orsa

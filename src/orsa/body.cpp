@@ -26,7 +26,7 @@ IBPS::IBPS(const IBPS & ibps) {
   /* 
      if (ibps.dynamic()) {
      // time = ibps.time.getRef();
-     // ORSA_DEBUG("copy constructor, time: %.6Ff",time.getRef().asDouble().get_mpf_t());
+     // ORSA_DEBUG("copy constructor, time: %.6f",time.getRef().get_d());
      }  
   */
   if (ibps.inertial.get()) {
@@ -72,7 +72,7 @@ const IBPS & IBPS::operator = (const IBPS & ibps) {
   /* 
      if (ibps.dynamic()) {
      // time = ibps.time.getRef();
-     // ORSA_DEBUG("copy operator, time: %.6Ff",time.getRef().asDouble().get_mpf_t());
+     // ORSA_DEBUG("copy operator, time: %.6f",time.getRef().get_d());
      } 
   */
   if (ibps.inertial.get()) {
@@ -127,7 +127,7 @@ orsa::Vector RotationalBodyProperty::omegaDot (const orsa::Quaternion & q,
 orsa::Quaternion RotationalBodyProperty::qFiniteRotation (const orsa::Quaternion & q,
 							  const orsa::Vector     & omega,
 							  const orsa::Time       & dt) {
-  const orsa::Double angle = omega.length() * dt.asDouble() / 2;
+  const double angle = omega.length() * dt.get_d() / 2;
   return unitQuaternion(Quaternion(cos(angle),sin(angle)*(omega.normalized()))*q);
 }
 
@@ -143,56 +143,56 @@ orsa::Vector RotationalBodyProperty::newOmega (const orsa::Vector & omega,
   
   if (omegaDot.length() < orsa::epsilon()) {
     ORSA_DEBUG("omegaDot is really tiny...");
-    return (omega + omegaDot * dt.asDouble());
+    return (omega + omegaDot * dt.get_d());
   }
   
   // test
-  // return orsa::Vector(omega + omegaDot * dt.asDouble());
+  // return orsa::Vector(omega + omegaDot * dt.get_d());
   
-  const orsa::Double  omegaMagnitude = omega.length();
+  const double  omegaMagnitude = omega.length();
   const orsa::Vector uOmega          = omega.normalized();
 
-  const orsa::Double  omegaDotMagnitude = omegaDot.length();
+  const double  omegaDotMagnitude = omegaDot.length();
   const orsa::Vector uOmegaDot          = omegaDot.normalized();
   
   orsa::Vector newOmega;
   
   if (omegaMagnitude > orsa::epsilon()) {
     
-    const orsa::Double radialComponent = omegaDot * uOmega;
+    const double radialComponent = omegaDot * uOmega;
     
-    ORSA_DEBUG("radialComponent/omegaDotMagnitude: %Fg",Double(radialComponent/omegaDotMagnitude).get_mpf_t());
+    ORSA_DEBUG("radialComponent/omegaDotMagnitude: %g",radialComponent/omegaDotMagnitude);
     
     const orsa::Vector  tangentOmegaDot          = omegaDot - radialComponent * uOmega;
-    const orsa::Double  tangentOmegaDotMagnitude = tangentOmegaDot.length();
+    const double  tangentOmegaDotMagnitude = tangentOmegaDot.length();
     const orsa::Vector uTangentOmegaDot          = tangentOmegaDot.normalized();
     
     const orsa::Vector uRotationAxis = (orsa::externalProduct(uOmega,uTangentOmegaDot)).normalized();
-    const orsa::Double rotationAngle  = tangentOmegaDotMagnitude * dt.asDouble() / omegaMagnitude;
+    const double rotationAngle  = tangentOmegaDotMagnitude * dt.get_d() / omegaMagnitude;
     
     // rotate old omega direction around uRotationAxis of angle rotationAngle
-    const orsa::Double     qAngle = rotationAngle / 2; // factor 2 due to the quaternion angle definition
+    const double     qAngle = rotationAngle / 2; // factor 2 due to the quaternion angle definition
     const orsa::Quaternion qRot   = unitQuaternion(Quaternion(cos(qAngle),sin(qAngle)*uRotationAxis));
     
-    newOmega = (radialComponent * dt.asDouble() + omegaMagnitude) * (qRot*uOmega*conjugate(qRot)).getVector().normalized();
+    newOmega = (radialComponent * dt.get_d() + omegaMagnitude) * (qRot*uOmega*conjugate(qRot)).getVector().normalized();
     //
     /* 
        newOmega = 
-       radialComponent * dt.asDouble() * uOmega +
+       radialComponent * dt.get_d() * uOmega +
        omegaMagnitude * (qRot*uOmega*conjugate(qRot)).getVector().normalized();
     */
     
   } else {
     
-    newOmega = omega + omegaDot * dt.asDouble();
+    newOmega = omega + omegaDot * dt.get_d();
   }
   
   // ORSA_DEBUG("omega comparison...");
   // print(omega);
   print(newOmega);
   
-  ORSA_DEBUG("scalar product: %20.16Ff",
-	     orsa::Double(newOmega.normalized() * omega.normalized()).get_mpf_t());
+  ORSA_DEBUG("scalar product: %20.16f",
+	     newOmega.normalized() * omega.normalized());
   
   return newOmega;  
 }

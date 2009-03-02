@@ -89,7 +89,7 @@ bool orsa::FrenetSerret(const orsa::Body * b,
     T = v_t.normalized();
     // const orsa::Vector dv = v_tdt-v_t;
     // should chech that velocity is not constant...
-    N = ((v_tdt-v_t)/dt.asDouble()).normalized();
+    N = ((v_tdt-v_t)/dt.get_d()).normalized();
     B = externalProduct(T,N).normalized();
     //
     /* 
@@ -109,9 +109,9 @@ bool orsa::FrenetSerret(const orsa::Body * b,
 }
 
 bool orsa::eulerAnglesToMatrix(orsa::Matrix       & m,
-			       const orsa::Double & psi,
-			       const orsa::Double & theta,
-			       const orsa::Double & phi) {
+			       const double & psi,
+			       const double & theta,
+			       const double & phi) {
   
   // ORSA_DEBUG("this code needs to be verified!!");
   // #warning "this code needs to be verified!!"
@@ -127,18 +127,18 @@ bool orsa::eulerAnglesToMatrix(orsa::Matrix       & m,
   return true;
 }	
 
-bool orsa::matrixToEulerAngles(orsa::Double       & psi,
-			       orsa::Double       & theta,
-			       orsa::Double       & phi,
+bool orsa::matrixToEulerAngles(double       & psi,
+			       double       & theta,
+			       double       & phi,
 			       const orsa::Matrix & m) {
   
   // const orsa::Matrix l2g = localToGlobal(t);
   
-  // const orsa::Double sinTheta = sqrt(one()-int_pow(m.getM33(),2));
-  const orsa::Double cosTheta = m.getM33();
+  // const double sinTheta = sqrt(1-int_pow(m.getM33(),2));
+  const double cosTheta = m.getM33();
   
   // if (fabs(sinTheta) > epsilon()) {
-  if ((one()-cosTheta*cosTheta) > (epsilon()*epsilon())) {
+  if ((1-cosTheta*cosTheta) > (epsilon()*epsilon())) {
     
     psi   = atan2(-m.getM13(),
 		   m.getM23());
@@ -156,14 +156,14 @@ bool orsa::matrixToEulerAngles(orsa::Double       & psi,
     } else {
       // we should not be here...
       ORSA_DEBUG("problems...");
-      theta = zero();
+      theta = 0;
     }
     
   } else {
     
     // ORSA_DEBUG("using singular code...");
     
-    psi = theta = zero();
+    psi = theta = 0;
     
     phi = atan2(m.getM21(), 
 		m.getM11());
@@ -172,9 +172,9 @@ bool orsa::matrixToEulerAngles(orsa::Double       & psi,
   
   if (0) {
     
-    ORSA_DEBUG("psi..: %Ff",  psi.get_mpf_t());
-    ORSA_DEBUG("theta: %Ff",theta.get_mpf_t());
-    ORSA_DEBUG("phi..: %Ff",  phi.get_mpf_t());
+    ORSA_DEBUG("psi..: %f",  psi);
+    ORSA_DEBUG("theta: %f",theta);
+    ORSA_DEBUG("phi..: %f",  phi);
     
     orsa::Matrix m = orsa::Matrix::identity();
     //
@@ -184,38 +184,38 @@ bool orsa::matrixToEulerAngles(orsa::Double       & psi,
     
     const orsa::Matrix dm = m-m;
     
-    ORSA_DEBUG("m: %Ff %Ff %Ff %Ff %Ff %Ff %Ff %Ff %Ff",
-	       m.getM11().get_mpf_t(),
-	       m.getM12().get_mpf_t(),
-	       m.getM13().get_mpf_t(),
-	       m.getM21().get_mpf_t(),
-	       m.getM22().get_mpf_t(),
-	       m.getM23().get_mpf_t(),
-	       m.getM31().get_mpf_t(),
-	       m.getM32().get_mpf_t(),
-	       m.getM33().get_mpf_t());
+    ORSA_DEBUG("m: %f %f %f %f %f %f %f %f %f",
+	       m.getM11(),
+	       m.getM12(),
+	       m.getM13(),
+	       m.getM21(),
+	       m.getM22(),
+	       m.getM23(),
+	       m.getM31(),
+	       m.getM32(),
+	       m.getM33());
     
-    ORSA_DEBUG("m: %Ff %Ff %Ff %Ff %Ff %Ff %Ff %Ff %Ff",
-	       m.getM11().get_mpf_t(),
-	       m.getM12().get_mpf_t(),
-	       m.getM13().get_mpf_t(),
-	       m.getM21().get_mpf_t(),
-	       m.getM22().get_mpf_t(),
-	       m.getM23().get_mpf_t(),
-	       m.getM31().get_mpf_t(),
-	       m.getM32().get_mpf_t(),
-	       m.getM33().get_mpf_t());
+    ORSA_DEBUG("m: %f %f %f %f %f %f %f %f %f",
+	       m.getM11(),
+	       m.getM12(),
+	       m.getM13(),
+	       m.getM21(),
+	       m.getM22(),
+	       m.getM23(),
+	       m.getM31(),
+	       m.getM32(),
+	       m.getM33());
     
-    ORSA_DEBUG("dm: %Ff %Ff %Ff %Ff %Ff %Ff %Ff %Ff %Ff",
-	       dm.getM11().get_mpf_t(),
-	       dm.getM12().get_mpf_t(),
-	       dm.getM13().get_mpf_t(),
-	       dm.getM21().get_mpf_t(),
-	       dm.getM22().get_mpf_t(),
-	       dm.getM23().get_mpf_t(),
-	       dm.getM31().get_mpf_t(),
-	       dm.getM32().get_mpf_t(),
-	       dm.getM33().get_mpf_t());
+    ORSA_DEBUG("dm: %f %f %f %f %f %f %f %f %f",
+	       dm.getM11(),
+	       dm.getM12(),
+	       dm.getM13(),
+	       dm.getM21(),
+	       dm.getM22(),
+	       dm.getM23(),
+	       dm.getM31(),
+	       dm.getM32(),
+	       dm.getM33());
   }
   
   return true;
@@ -224,13 +224,13 @@ bool orsa::matrixToEulerAngles(orsa::Double       & psi,
 
 orsa::Matrix orsa::QuaternionToMatrix (const orsa::Quaternion & q) {
   
-  const orsa::Double s = q.getScalar();
+  const double s = q.getScalar();
   const orsa::Vector v = q.getVector();
   
-  const orsa::Double q0 = s;
-  const orsa::Double q1 = v.getX();
-  const orsa::Double q2 = v.getY();
-  const orsa::Double q3 = v.getZ();
+  const double q0 = s;
+  const double q1 = v.getX();
+  const double q2 = v.getY();
+  const double q3 = v.getZ();
   
   // Eq. (7.7) book by J.B. Kuipers on Quaternions
   return orsa::Matrix(2*q0*q0-1+2*q1*q1,   2*q1*q2-2*q0*q3, 2*q1*q3+2*q0*q2,
@@ -243,11 +243,11 @@ orsa::Quaternion orsa::MatrixToQuaternion (const orsa::Matrix & m) {
   
   // From Sec. 7.9 of Quaternions book bu J.B. Kuipers
   
-  const orsa::Double q0 = sqrt(m.getM11()+m.getM22()+m.getM33()+1)/2;
+  const double q0 = sqrt(m.getM11()+m.getM22()+m.getM33()+1)/2;
   
-  const orsa::Double q1 = (m.getM23()-m.getM32())/(4*q0);
-  const orsa::Double q2 = (m.getM31()-m.getM13())/(4*q0);
-  const orsa::Double q3 = (m.getM12()-m.getM21())/(4*q0);
+  const double q1 = (m.getM23()-m.getM32())/(4*q0);
+  const double q2 = (m.getM31()-m.getM13())/(4*q0);
+  const double q3 = (m.getM12()-m.getM21())/(4*q0);
   
   return orsa::Quaternion(q0, orsa::Vector(q1,q2,q3));
 }
@@ -301,8 +301,8 @@ orsa::Matrix orsa::globalToLocal(const orsa::Body       * b,
   }
 }
 
-orsa::Double orsa::asteroidDiameter(const orsa::Double & p, 
-				    const orsa::Double & H) {
+double orsa::asteroidDiameter(const double & p, 
+				    const double & H) {
   return orsa::FromUnits(1329,orsa::Unit::KM)*pow(10,-0.2*H)/sqrt(p);
 }
 
@@ -310,7 +310,7 @@ orsa::Double orsa::asteroidDiameter(const orsa::Double & p,
 
 /* 
    bool ConstantZRotation::update(const orsa::Time & t) {
-   const Double _phi = _phi0 + _omega*(t-_t0).asDouble();
+   const double _phi = _phi0 + _omega*(t-_t0).get_d();
    orsa::Matrix localMatrix = Matrix::identity();
    // same rotation as Attitude::localToGlobal(t)
    localMatrix.rotZ(_phi);
@@ -327,9 +327,9 @@ void orsa::principalAxis(orsa::Matrix & genericToPrincipal,
   const orsa::Matrix & I = inertiaMatrix;
   
   double data[] = { 
-    I.getM11().get_d(), I.getM12().get_d(), I.getM13().get_d(), 
-    I.getM21().get_d(), I.getM22().get_d(), I.getM23().get_d(), 
-    I.getM31().get_d(), I.getM32().get_d(), I.getM33().get_d()};
+    I.getM11(), I.getM12(), I.getM13(), 
+    I.getM21(), I.getM22(), I.getM23(), 
+    I.getM31(), I.getM32(), I.getM33()};
   
   gsl_matrix_view m = gsl_matrix_view_array (data, 3, 3);
   

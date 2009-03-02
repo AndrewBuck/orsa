@@ -35,7 +35,7 @@ orsa::Time AnimationTime::getSimulationTime(const int frameID) const {
       _elapsedMSec = _initialTime.getRef().elapsed();
       _lastFrameID = frameID;
       
-      if (_timeMultiplier < orsa::zero()) {
+      if (_timeMultiplier < 0) {
 	_lastSimulationTime = 
 	  t_stop + 
 	  orsa::Time((_elapsedMSec*mpz_class(1000*_timeMultiplier)) % period.getMuSec());
@@ -50,12 +50,12 @@ orsa::Time AnimationTime::getSimulationTime(const int frameID) const {
   }
   
   /* 
-     ORSA_DEBUG("frameID: %03i   simTime: %Ff   t: %Ff this: %x",
+     ORSA_DEBUG("frameID: %03i   simTime: %f   t: %f this: %x",
      frameID,
      orsa::FromUnits(FromUnits(_lastSimulationTime.getMuSec(), 
      orsa::Unit::MICROSECOND), 
-     orsa::Unit::DAY,-1).get_mpf_t(),
-     _lastSimulationTime.asDouble().get_mpf_t(),
+     orsa::Unit::DAY,-1)(),
+     _lastSimulationTime.get_d(),
      this);	     
   */
   

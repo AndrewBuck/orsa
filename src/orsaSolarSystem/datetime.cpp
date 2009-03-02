@@ -13,7 +13,7 @@ using namespace orsaSolarSystem;
 
 struct TAI_minus_UTC_element {
   int day,month,year;
-  orsa::Double TAI_minus_UTC;
+  double TAI_minus_UTC;
 };
 
 inline bool operator == (const TAI_minus_UTC_element & x, 
@@ -72,7 +72,7 @@ const TAI_minus_UTC_element TAI_minus_UTC_table[] = {
 
 struct ET_minus_UT_element {
   int day,month,year;
-  orsa::Double ET_minus_UT;
+  double ET_minus_UT;
 };
 
 inline bool operator == (const ET_minus_UT_element & x,
@@ -336,10 +336,10 @@ const ET_minus_UT_element ET_minus_UT_table[] = {
   {0,0,0,0} // ET_minus_UT_table_final_element
 };
 
-static orsa::Double deltaSeconds(int y, int m, int d, 
+static double deltaSeconds(int y, int m, int d, 
 				 const orsaSolarSystem::TimeScale ts) {
   
-  orsa::Double ds=0;
+  double ds=0;
   
   switch (ts) {
     
@@ -475,17 +475,17 @@ orsa::Time orsaSolarSystem::gregorTime(int y,
 
 orsa::Time orsaSolarSystem::gregorTime(int y, 
 				       int m, 
-				       orsa::Double d) {
+				       double d) {
   // test with negative years!!
-  // const int int_d = (int)d.get_d();
-  const int int_d = (int)(floor(d.get_d()));
+  // const int int_d = (int)d;
+  const int int_d = (int)(floor(d));
   return gregorTime(y,
 		    m,
 		    int_d,
 		    0,
 		    0,
 		    0,
-		    (int)(Double((d-int_d)*86400000).get_d())); // this las number, the ms, should be always in the valid range for the int type
+		    (int)((d-int_d)*86400000)); // this las number, the ms, should be always in the valid range for the int type
 }
 
 void orsaSolarSystem::gregorDay(const orsa::Time & t,
@@ -521,7 +521,7 @@ void orsaSolarSystem::gregorDay(const orsa::Time & t,
 				int & y,
 				int & m,
 				int & d,
-				orsa::Double & fd) {
+				double & fd) {
   
   const mpz_class muDay("86400000000");
   
@@ -530,15 +530,15 @@ void orsaSolarSystem::gregorDay(const orsa::Time & t,
 		 &m,
 		 &d);
   mpz_class dayFractionMuSec = mpz_class(t.getMuSec() % muDay);
-  fd = orsa::Double(dayFractionMuSec) / orsa::Double(muDay);
+  fd = dayFractionMuSec.get_d() / muDay.get_d();
 }
 
-orsa::Double orsaSolarSystem::timeToJulian(const orsa::Time & t) {
-  return orsa::FromUnits(FromUnits(t.getMuSec(), orsa::Unit::MICROSECOND), orsa::Unit::DAY,-1) - orsa::Double("0.5");
+double orsaSolarSystem::timeToJulian(const orsa::Time & t) {
+  return orsa::FromUnits(FromUnits(t.getMuSec().get_d(), orsa::Unit::MICROSECOND), orsa::Unit::DAY,-1) - 0.5;
 }
 
-orsa::Time orsaSolarSystem::julianToTime(const orsa::Double & jd) {
-  return orsa::Time(orsa::FromUnits(orsa::FromUnits(jd+orsa::Double("0.5"), orsa::Unit::DAY), orsa::Unit::MICROSECOND,-1));
+orsa::Time orsaSolarSystem::julianToTime(const double & jd) {
+  return orsa::Time(orsa::FromUnits(orsa::FromUnits(jd+0.5, orsa::Unit::DAY), orsa::Unit::MICROSECOND,-1));
 }
 
 orsa::Time orsaSolarSystem::J2000() {
@@ -581,8 +581,8 @@ orsa::Time orsaSolarSystem::now() {
    }
 */
 
-orsa::Double orsaSolarSystem::dayFraction(const orsa::Time & t) {
+double orsaSolarSystem::dayFraction(const orsa::Time & t) {
   // rough...
-  return FromUnits(orsa::Time(t.getMuSec() % mpz_class("86400000000")).asDouble(),Unit::DAY,-1);
-  // return FromUnits(orsa::Time((t.getMuSec()+mpz_class("86400000000")) % mpz_class("86400000000")).asDouble(),Unit::DAY,-1);
+  return FromUnits(mpz_class(t.getMuSec() % mpz_class("86400000000")).get_d(),Unit::DAY,-1);
+  // return FromUnits(orsa::Time((t.getMuSec()+mpz_class("86400000000")) % mpz_class("86400000000")).get_d(),Unit::DAY,-1);
 }

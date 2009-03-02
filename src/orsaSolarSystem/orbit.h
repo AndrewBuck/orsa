@@ -18,10 +18,10 @@ namespace orsaSolarSystem {
   
   class Residual {
   public:
-    orsa::Cache<orsa::Double> delta_ra, delta_dec;
+    orsa::Cache<double> delta_ra, delta_dec;
   };
   
-  orsa::Double RMS(const std::vector<orsaSolarSystem::Residual> &);
+  double RMS(const std::vector<orsaSolarSystem::Residual> &);
   
   class OrbitWithEpoch : public orsa::Orbit {
   public:
@@ -91,12 +91,12 @@ namespace orsaSolarSystem {
       }
     } 
   protected:
-    mutable std::vector<orsa::Double> pre_f;
-    mutable std::vector<std::vector<orsa::Double> > pre_df_m; // -1*delta
-    mutable std::vector<std::vector<orsa::Double> > pre_df_p; // +1*delta
+    mutable std::vector<double> pre_f;
+    mutable std::vector<std::vector<double> > pre_df_m; // -1*delta
+    mutable std::vector<std::vector<double> > pre_df_p; // +1*delta
     
   protected:
-    virtual orsa::Double fun(const orsa::MultifitParameters *, 
+    virtual double fun(const orsa::MultifitParameters *, 
 			     const orsa::MultifitData *,
 			     const unsigned int p, 
 			     const int          d,
@@ -116,7 +116,7 @@ namespace orsaSolarSystem {
     }
     
   protected:	
-    void realFunction(std::vector<orsa::Double>      & result,
+    void realFunction(std::vector<double>      & result,
 		      const orsa::MultifitParameters * par, 
 		      const orsa::MultifitData       * data) const {
       
@@ -140,7 +140,7 @@ namespace orsaSolarSystem {
 	  bg->addBody(sun.get());
 	}
       
-	orsa::Double mSun;
+	double mSun;
 	if (!bg->getInterpolatedMass(mSun,
 				     sun.get(),
 				     orbitEpoch.getRef())) { 
@@ -340,7 +340,7 @@ namespace orsaSolarSystem {
 	result.resize(data->size());
       
 	// orsa::Vector refBodyPosition, refBodyVelocity;
-	// orsa::Double mass;
+	// double mass;
 	orsa::Vector bodyPosition, bodyVelocity;
       
 	osg::ref_ptr<orsa::IntegratorRadau> radau = new orsa::IntegratorRadau;
@@ -383,19 +383,19 @@ namespace orsaSolarSystem {
 	
 	  // orsa::Vector dr =  refBodyPosition+relativePosition-obsPosition;
 	  orsa::Vector dr = bodyPosition-obsPosition;
-	  const orsa::Double lightTimeDelay = dr.length()/orsa::Unit::instance()->getC();
+	  const double lightTimeDelay = dr.length()/orsa::Unit::instance()->getC();
 	  dr -= lightTimeDelay*(bodyVelocity);
 	  //
 	  dr = orsaSolarSystem::eclipticToEquatorial()*dr;
 	  //
-	  // ORSA_DEBUG("dr.length(): %Ff [AU]",orsa::FromUnits(dr.length(),orsa::Unit::AU,-1).get_mpf_t());
+	  // ORSA_DEBUG("dr.length(): %f [AU]",orsa::FromUnits(dr.length(),orsa::Unit::AU,-1)());
 	  //
-	  const orsa::Double ra_orbit  = orsa::fmod(orsa::atan2(dr.getY(),dr.getX())+orsa::twopi(),orsa::twopi());
-	  const orsa::Double dec_orbit = orsa::halfpi() - orsa::acos(dr.getZ()/dr.length());
+	  const double ra_orbit  = fmod(atan2(dr.getY(),dr.getX())+orsa::twopi(),orsa::twopi());
+	  const double dec_orbit = asin(dr.getZ()/dr.length());
 	  
 	  // (done) #warning "remember: cos_dec factor, and check for 360 deg periodicity"
 	  
-	  // const orsa::Double radToArcsec = 3600*orsa::radToDeg();
+	  // const double radToArcsec = 3600*orsa::radToDeg();
 	
 	  // add both rows...
 	
@@ -451,7 +451,7 @@ namespace orsaSolarSystem {
 	result.resize(data->size());
       
 	orsa::Vector refBodyPosition, refBodyVelocity;
-	orsa::Double mass;
+	double mass;
 	orsa::Vector relativePosition, relativeVelocity;
       
 	unsigned int row=0;
@@ -476,16 +476,16 @@ namespace orsaSolarSystem {
 	
 	  {
 	    orsa::Orbit localOrbit = orbit;
-	    localOrbit.M = orsa::fmod(orbit.M + orsa::twopi()*(obsTime-orbit.epoch.getRef()).asDouble()/orbit.period(),orsa::twopi()); 
+	    localOrbit.M = fmod(orbit.M + orsa::twopi()*(obsTime-orbit.epoch.getRef()).get_d()/orbit.period(),orsa::twopi()); 
 	    if (!localOrbit.relativePosVel(relativePosition,relativeVelocity)) { ORSA_DEBUG("problems"); }
 	  }
 	
 	  /* 
 	     ORSA_DEBUG("[r orbit]");
-	     ORSA_DEBUG("orbit: %Ff %Ff %Ff",
-	     orbit.a.get_mpf_t(),
-	     orbit.e.get_mpf_t(),
-	     orbit.i.get_mpf_t());
+	     ORSA_DEBUG("orbit: %f %f %f",
+	     orbit.a(),
+	     orbit.e(),
+	     orbit.i());
 	     print(relativePosition/orsa::FromUnits(1,orsa::Unit::KM));
 	  */
 	
@@ -501,19 +501,19 @@ namespace orsaSolarSystem {
 	  // ORSA_DEBUG("[dr]");
 	  // print(dr/orsa::FromUnits(1,orsa::Unit::KM));
 	
-	  const orsa::Double lightTimeDelay = dr.length()/orsa::Unit::instance()->getC();
+	  const double lightTimeDelay = dr.length()/orsa::Unit::instance()->getC();
 	  dr -= lightTimeDelay*(refBodyVelocity+relativeVelocity);
 	  //
 	  dr = orsaSolarSystem::eclipticToEquatorial()*dr;
 	  //
-	  // ORSA_DEBUG("dr.length(): %Ff [AU]",orsa::FromUnits(dr.length(),orsa::Unit::AU,-1).get_mpf_t());
+	  // ORSA_DEBUG("dr.length(): %f [AU]",orsa::FromUnits(dr.length(),orsa::Unit::AU,-1)());
 	  //
-	  orsa::Double  ra_orbit = orsa::fmod(orsa::atan2(dr.getY(),dr.getX())+orsa::twopi(),orsa::twopi());
-	  orsa::Double dec_orbit = orsa::halfpi() - orsa::acos(dr.getZ()/dr.length());
+	  double  ra_orbit = fmod(atan2(dr.getY(),dr.getX())+orsa::twopi(),orsa::twopi());
+	  double dec_orbit = asin(dr.getZ()/dr.length());
 	  
 	  // (done) #warning "remember: cos_dec factor, and check for 360 deg periodicity"
 	  
-	  // const orsa::Double radToArcsec = 3600*orsa::radToDeg();
+	  // const double radToArcsec = 3600*orsa::radToDeg();
 	
 	  // add both rows...
 	
@@ -547,19 +547,19 @@ namespace orsaSolarSystem {
 					  dataPoints, 
 					  f);
       const orsa::MultifitData * data = (orsa::MultifitData *) dataPoints;
-      const double twopi = orsa::twopi().get_d();
+      const double twopi = orsa::twopi();
       for (unsigned int j=0; j<data->size(); ++j) {
 	if (j%2==0) {
 	  // R.A.
 	  // work with fj*sigma, and divide again by sigma at the end
-	  const double sj = data->getSigma(j).get_d();
+	  const double sj = data->getSigma(j);
 	  double fj = gsl_vector_get(f,j)*sj;
 	  if (fabs(fj+twopi) < fabs(fj)) fj += twopi;
 	  if (fabs(fj-twopi) < fabs(fj)) fj -= twopi;
 	  fj /= sj;
 	  // multiply by cos(dec)
 	  gsl_vector_set(f,j, 
-			 orsa::cos(data->getF(j+1)).get_d()*fj);
+			 orsa::cos(data->getF(j+1))*fj);
 	} 
 	ORSA_DEBUG("f[%02i] = %10.3f", j, gsl_vector_get(f,j));
       }
@@ -582,7 +582,7 @@ namespace orsaSolarSystem {
 	    // need to check for twopi periodicity? (see f_gsl)
 	    // multiply by cos(dec)
 	    gsl_matrix_set(J,j,k,
-			   orsa::cos(data->getF(j+1)).get_d()*gsl_matrix_get(J,j,k));  
+			   orsa::cos(data->getF(j+1))*gsl_matrix_get(J,j,k));  
 	  }
 	}
       }

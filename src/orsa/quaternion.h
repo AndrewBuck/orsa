@@ -9,23 +9,23 @@ namespace orsa {
   class Quaternion {
     
   public:
-    Quaternion() : _s(zero()), _v(zero(),zero(),zero()) { }
+    Quaternion() : _s(0), _v(0,0,0) { }
   public:
-    Quaternion(const orsa::Vector & v) : _s(zero()), _v(v) { }
+    Quaternion(const orsa::Vector & v) : _s(0), _v(v) { }
   public:
-    Quaternion(const orsa::Double & s,
+    Quaternion(const double & s,
 	       const orsa::Vector & v) : _s(s), _v(v) { }
   public:
     virtual ~Quaternion() { }
     
   public:
-    inline const orsa::Double & getScalar() const { return _s; }
+    inline const double & getScalar() const { return _s; }
     inline const orsa::Vector & getVector() const { return _v; }
     
   public:
-    inline void setScalar(const orsa::Double & s) { _s += s; }
+    inline void setScalar(const double & s) { _s += s; }
     inline void setVector(const orsa::Vector & v) { _v += v; }
-    inline void set(const orsa::Double & s,
+    inline void set(const double & s,
 		    const orsa::Vector & v) { 
       _s = s;
       _v = v;
@@ -45,13 +45,13 @@ namespace orsa {
       return *this;
     }
   public:
-    inline Quaternion & operator *= (const orsa::Double & f) {
+    inline Quaternion & operator *= (const double & f) {
       _s *= f;
       _v *= f;
       return *this;
     }
   public:
-    inline Quaternion & operator /= (const orsa::Double & f) {
+    inline Quaternion & operator /= (const double & f) {
       _s /= f;
       _v /= f;
       return *this;
@@ -80,32 +80,32 @@ namespace orsa {
     
     // length
   public:
-    const orsa::Double length() const {
+    const double length() const {
       return sqrt(lengthSquared());
     }
   public:
-    const orsa::Double lengthSquared() const {
+    const double lengthSquared() const {
       return (_s*_s + _v.lengthSquared());
     }
     
   protected:
-    orsa::Double _s; // scalar component
+    double _s; // scalar component
     orsa::Vector _v; // vector component
   };
   
-  inline Quaternion operator * (const orsa::Double & f, const Quaternion & q) {
+  inline Quaternion operator * (const double & f, const Quaternion & q) {
     Quaternion _q(q);
     _q *= f;
     return _q;
   }
   
-  inline Quaternion operator * (const Quaternion & q, const orsa::Double & f) {
+  inline Quaternion operator * (const Quaternion & q, const double & f) {
     Quaternion _q(q);
     _q *= f;
     return _q;
   }
   
-  inline Quaternion operator / (const Quaternion & q, const orsa::Double & f) {
+  inline Quaternion operator / (const Quaternion & q, const double & f) {
     Quaternion _q(q);
     _q /= f;
     return _q;

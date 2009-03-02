@@ -18,18 +18,18 @@ namespace orsa {
   
   class Orbit {
   public:   
-    Double a,e,i,omega_node,omega_pericenter,M;
+    double a,e,i,omega_node,omega_pericenter,M;
   public:
-    Double mu;
+    double mu;
   public:
-    Double period() const {
-      // ORSA_DEBUG("a: %Fg   mu: %Fg",a.get_mpf_t(),mu.get_mpf_t());
-      return (sqrt(Double("4")*pi()*pi()*fabs(a*a*a)/mu));
+    double period() const {
+      // ORSA_DEBUG("a: %Fg   mu: %Fg",a(),mu());
+      return (sqrt(4*pi()*pi()*fabs(a*a*a)/mu));
     }
   public:
-    static Double eccentricAnomaly(const Double & e, const Double & M);
+    static double eccentricAnomaly(const double & e, const double & M);
   public:
-    Double eccentricAnomaly() const;
+    double eccentricAnomaly() const;
   public:
     bool compute(const orsa::Body * b, 
 		 const orsa::Body * ref_b, 
@@ -38,7 +38,7 @@ namespace orsa {
   public:
     bool compute(const orsa::Vector & relative_position,
 		 const orsa::Vector & relative_velocity,
-		 const orsa::Double & mu);
+		 const double & mu);
   public:
     bool relativePosVel(Vector & relativePosition, Vector & relativeVelocity) const;
     
@@ -70,40 +70,40 @@ namespace orsa {
        _sp                      = o._sp;
        _cp                      = o._cp;
        
-       ORSA_DEBUG("copy-op... _cached_omega_pericenter = %Ff   o._cached_omega_pericenter = %Ff",
-       _cached_omega_pericenter.getRef().get_mpf_t(),
-       o._cached_omega_pericenter.getRef().get_mpf_t());
+       ORSA_DEBUG("copy-op... _cached_omega_pericenter = %f   o._cached_omega_pericenter = %f",
+       _cached_omega_pericenter.getRef(),
+       o._cached_omega_pericenter.getRef());
        }
     */
   protected:
-    mutable orsa::Cache<orsa::Double> _cached_omega_pericenter;
-    mutable orsa::Double              _sp, _cp;
+    mutable orsa::Cache<double> _cached_omega_pericenter;
+    mutable double              _sp, _cp;
   protected:
-    mutable orsa::Cache<orsa::Double> _cached_omega_node;
-    mutable orsa::Double              _so, _co;
+    mutable orsa::Cache<double> _cached_omega_node;
+    mutable double              _so, _co;
   protected:
-    mutable orsa::Cache<orsa::Double> _cached_i;
-    mutable orsa::Double              _si, _ci;
+    mutable orsa::Cache<double> _cached_i;
+    mutable double              _si, _ci;
   protected:    
-    mutable orsa::Cache<orsa::Double> _cached_e;
-    mutable orsa::Double              _sqe;
+    mutable orsa::Cache<double> _cached_e;
+    mutable double              _sqe;
   protected:    
-    mutable orsa::Cache<orsa::Double> _cached_mu;
-    mutable orsa::Cache<orsa::Double> _cached_a;
-    mutable orsa::Double              _sqgma;
+    mutable orsa::Cache<double> _cached_mu;
+    mutable orsa::Cache<double> _cached_a;
+    mutable double              _sqgma;
 #endif // _ORBIT_RPV_SPEEDUP_
   };
   
-  bool MOID(orsa::Double       & moid,
-	    orsa::Double       & M1,
-	    orsa::Double       & M2,
+  bool MOID(double             & moid,
+	    double             & M1,
+	    double             & M2,
 	    const orsa::Orbit  & o1,
 	    const orsa::Orbit  & o2,
-	    const orsa::Double & epsAbs = 1e-6);
+	    const double       & epsAbs = 1e-6);
   
-  Double HillRadius(const Double & a,
-		    const Double & m,
-		    const Double & M);
+  double HillRadius(const double & a,
+		    const double & m,
+		    const double & M);
   
   //! Hill-radius-based parent body determination
   const Body * HillParentBody(const Body * b,
@@ -120,7 +120,7 @@ namespace orsa {
   public:
     OrbitProxy(const orsa::Body   * b, 
 	       orsa::BodyGroup    * bg,
-	       const orsa::Double & accuracy = orsa::Double("0.01"),
+	       const double       & accuracy = 0.01,
 	       const orsa::Time   & maxPeriod = orsa::Time(1,0,0,0,0));
     
   protected:
@@ -175,14 +175,14 @@ namespace orsa {
 				 const orsa::Time & t) const;
     
   protected:
-    orsa::Double delta(const BOT & bot1,
+    double delta(const BOT & bot1,
 		       const BOT & bot2);
     
   protected:   
     osg::ref_ptr<const orsa::Body> _b;
     osg::ref_ptr<orsa::BodyGroup>  _bg;
   protected:
-    const orsa::Double             _accuracy;
+    const double             _accuracy;
     const orsa::Time               _maxPeriod;
   };
   

@@ -40,8 +40,8 @@ namespace orsa {
     virtual ~MultifitParameters();
   public:
     bool insert(const  std::string & name,
-		const orsa::Double & initialValue,
-		const orsa::Double & delta);
+		const double & initialValue,
+		const double & delta);
   public:
     void clear();
   public:
@@ -49,20 +49,20 @@ namespace orsa {
     std::string   name(const unsigned int  index) const;
   public:
     bool set(const std::string  & name,
-	     const orsa::Double & value);
+	     const double & value);
     bool set(const unsigned int   index,
-	     const orsa::Double & value);
+	     const double & value);
   public:
     bool setDelta(const std::string  & name,
-		  const orsa::Double & value);
+		  const double & value);
     bool setDelta(const unsigned int   index,
-		  const orsa::Double & value);
+		  const double & value);
   public:
-    Double get(const std::string & name) const;
-    Double get(const unsigned int index) const;
+    double get(const std::string & name) const;
+    double get(const unsigned int index) const;
   public:
-    Double getDelta(const std::string & name) const;
-    Double getDelta(const unsigned int index) const;
+    double getDelta(const std::string & name) const;
+    double getDelta(const unsigned int index) const;
   public:
     unsigned int size() const {
       return _data.size();
@@ -71,8 +71,8 @@ namespace orsa {
     class NVD {
     public:
       std::string  name;
-      orsa::Double value;
-      orsa::Double delta;
+      double value;
+      double delta;
     };
   private: 
     typedef std::vector<NVD> dataType;
@@ -85,10 +85,10 @@ namespace orsa {
     
     /* 
        public:
-       orsa::Double covariance(const std::string & name1,
+       double covariance(const std::string & name1,
        const std::string & name2) const;
        public:
-       orsa::Double covariance(const unsigned int index1,
+       double covariance(const unsigned int index1,
        const unsigned int index2) const;
     */
   };
@@ -116,10 +116,10 @@ namespace orsa {
   public:
     bool insertD(const std::string  & name,
 		 const unsigned int   row,
-		 const orsa::Double & value);
+		 const double & value);
     bool insertD(const unsigned int   index,
 		 const unsigned int   row,
-		 const orsa::Double & value);
+		 const double & value);
   public:
     bool insertV(const std::string  & name,
 		 const unsigned int   row,
@@ -129,10 +129,10 @@ namespace orsa {
 		 const orsa::Vector & value);
   public:
     bool insertF(const unsigned int   row,
-		 const orsa::Double & value);
+		 const double & value);
   public:
     bool insertSigma(const unsigned int   row,
-		     const orsa::Double & value);
+		     const double & value);
   public:
     unsigned int index(const std::string & name) const;
     std::string   name(const unsigned int  index) const;
@@ -142,9 +142,9 @@ namespace orsa {
     mpz_class getZ(const unsigned int  index,
 		   const unsigned int  row) const;
   public:
-    Double getD(const std::string & name,
+    double getD(const std::string & name,
 		const unsigned int  row) const;
-    Double getD(const unsigned int  index,
+    double getD(const unsigned int  index,
 		const unsigned int  row) const;
   public:
     Vector getV(const std::string & name,
@@ -152,9 +152,9 @@ namespace orsa {
     Vector getV(const unsigned int  index,
 		const unsigned int  row) const;
   public:
-    Double getF(const unsigned int row) const;
+    double getF(const unsigned int row) const;
   public:
-    Double getSigma(const unsigned int row) const;
+    double getSigma(const unsigned int row) const;
   public:
     unsigned int size() const;
     unsigned int vars() const;
@@ -163,7 +163,7 @@ namespace orsa {
        class NV {
        public:
        orsa::Cache<std::string>                name;
-       std::vector<orsa::Cache<orsa::Double> > value;
+       std::vector<orsa::Cache<double> > value;
        };
     */
   private:
@@ -171,7 +171,7 @@ namespace orsa {
        public:
        orsa::Cache<std::string>                name;
        std::vector<orsa::Cache<mpz_class> >    z;
-       std::vector<orsa::Cache<orsa::Double> > d;
+       std::vector<orsa::Cache<double> > d;
        };
     */
   private:
@@ -179,15 +179,15 @@ namespace orsa {
     public:
       orsa::Cache<std::string>                name;
       std::vector<orsa::Cache<mpz_class> >    z;
-      std::vector<orsa::Cache<orsa::Double> > d;
+      std::vector<orsa::Cache<double> > d;
       std::vector<orsa::Cache<orsa::Vector> > v;
     };
   private:
     class VFS {
     public:
       std::vector<MultifitData::NZDV>         var;
-      std::vector<orsa::Cache<orsa::Double> > f;
-      std::vector<orsa::Cache<orsa::Double> > sigma;
+      std::vector<orsa::Cache<double> > f;
+      std::vector<orsa::Cache<double> > sigma;
     };
   private: 
     MultifitData::VFS _data;
@@ -219,13 +219,13 @@ namespace orsa {
     virtual ~Multifit();
     
     /* protected:
-       virtual orsa::Double fun(const orsa::MultifitParameters *, 
+       virtual double fun(const orsa::MultifitParameters *, 
        const orsa::MultifitData *,
        const unsigned int row) const = 0;
     */
     //
   protected:
-    virtual orsa::Double fun(const orsa::MultifitParameters *, 
+    virtual double fun(const orsa::MultifitParameters *, 
 			     const orsa::MultifitData *,
 			     const unsigned int p, // par index
 			     const int          d, // delta
@@ -249,14 +249,14 @@ namespace orsa {
 		       gsl_vector * f);
     
   public:
-    static Double _diff_two_points_(const Double & y_m,
-				    const Double & y_p);
+    static double _diff_two_points_(const double & y_m,
+				    const double & y_p);
     
   public:
-    static Double _diff_five_points_(const Double & y_mm,
-				     const Double & y_m,
-				     const Double & y_p,
-				     const Double & y_pp);
+    static double _diff_five_points_(const double & y_mm,
+				     const double & y_m,
+				     const double & y_p,
+				     const double & y_pp);
     
   public:
     virtual int df_gsl (const gsl_vector * v, 

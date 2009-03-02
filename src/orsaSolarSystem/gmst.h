@@ -6,7 +6,7 @@
 
 namespace orsaSolarSystem {
   
-  orsa::Double gmst(const orsa::Time &);
+  double gmst(const orsa::Time &);
   
 }; // namespace orsaSolarSystem
 

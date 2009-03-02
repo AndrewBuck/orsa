@@ -47,8 +47,8 @@ MultiminParameters::MultiminParameters() : Referenced() { }
 
 MultiminParameters::~MultiminParameters() { }
 
-unsigned int MultiminParameters::insert(const orsa::Double & initialValue,
-					const orsa::Double & step) {
+unsigned int MultiminParameters::insert(const double & initialValue,
+					const double & step) {
   {
     NVS tmp;
     //
@@ -62,8 +62,8 @@ unsigned int MultiminParameters::insert(const orsa::Double & initialValue,
 }
 
 unsigned int MultiminParameters::insert(const  std::string & name,
-					const orsa::Double & initialValue,
-					const orsa::Double & step) {
+					const double & initialValue,
+					const double & step) {
   dataType::const_iterator it = _data.begin();
   while (it != _data.end()) {
     if ((*it).name == name) {
@@ -109,29 +109,29 @@ std::string MultiminParameters::name(const unsigned int index) const {
 }
 
 bool MultiminParameters::set(const std::string  & name,
-			     const orsa::Double & value) {
+			     const double & value) {
   return set(MultiminParameters::index(name),
 	     value);
 }
 
 bool MultiminParameters::set(const unsigned int   index,
-			     const orsa::Double & value) {
+			     const double & value) {
   _data[index].value = value;
   setInRange(index);
   return true;
 }
 
 bool MultiminParameters::setRange(const std::string  & name,
-				  const orsa::Double & min,
-				  const orsa::Double & max) {
+				  const double & min,
+				  const double & max) {
   return setRange(MultiminParameters::index(name),
 		  min,
 		  max); 
 }
 
 bool MultiminParameters::setRange(const unsigned int   index,
-				  const orsa::Double & min,
-				  const orsa::Double & max) {
+				  const double & min,
+				  const double & max) {
   _data[index].min = min;
   _data[index].max = max;
   setInRange(index);
@@ -144,15 +144,15 @@ void MultiminParameters::setInRange(const std::string & name) {
 
 void MultiminParameters::setInRange(const unsigned int index) {
   if (haveRange(index)) {
-    // const orsa::Double outsideRangeFactor = 1.1;
+    // const double outsideRangeFactor = 1.1;
     //
     if (_data[index].value < _data[index].min.getRef()) {
       /* 
 	 ORSA_DEBUG("parameter[%02i] = [%20s] = %Fg is below minimum range value %Fg",
 	 index,
 	 name(index).c_str(),
-	 get(index).get_mpf_t(),
-	 _data[index].min.getRef().get_mpf_t());
+	 get(index),
+	 _data[index].min.getRef());
       */
       //
       // _data[index].value = _data[index].min.getRef();
@@ -165,8 +165,8 @@ void MultiminParameters::setInRange(const unsigned int index) {
 	 ORSA_DEBUG("parameter[%02i] = [%20s] = %Fg is above maximum range value %Fg",
 	 index,
 	 name(index).c_str(),
-	 get(index).get_mpf_t(),
-	 _data[index].max.getRef().get_mpf_t());
+	 get(index),
+	 _data[index].max.getRef());
       */
       //
       // _data[index].value = _data[index].max.getRef();
@@ -178,11 +178,11 @@ void MultiminParameters::setInRange(const unsigned int index) {
   }
 }
 
-const Double & MultiminParameters::get(const std::string & name) const {
+const double & MultiminParameters::get(const std::string & name) const {
   return get(MultiminParameters::index(name));
 }
 
-const Double & MultiminParameters::get(const unsigned int index) const {
+const double & MultiminParameters::get(const unsigned int index) const {
   return _data[index].value;
 }
 
@@ -194,27 +194,27 @@ bool MultiminParameters::haveRange(const unsigned int index) const {
   return (_data[index].min.isSet() && _data[index].max.isSet());
 }
 
-const Double & MultiminParameters::getRangeMin(const std::string & name) const {
+const double & MultiminParameters::getRangeMin(const std::string & name) const {
   return getRangeMin(MultiminParameters::index(name));
 }
 
-const Double & MultiminParameters::getRangeMax(const std::string & name) const {
+const double & MultiminParameters::getRangeMax(const std::string & name) const {
   return getRangeMax(MultiminParameters::index(name));
 }
 
-const Double & MultiminParameters::getRangeMin(const unsigned int index) const {
+const double & MultiminParameters::getRangeMin(const unsigned int index) const {
   return (_data[index].min.getRef());
 }
 
-const Double & MultiminParameters::getRangeMax(const unsigned int index) const {
+const double & MultiminParameters::getRangeMax(const unsigned int index) const {
   return (_data[index].max.getRef());
 }
 
-const Double & MultiminParameters::getStep(const std::string & name) const {
+const double & MultiminParameters::getStep(const std::string & name) const {
   return getStep(MultiminParameters::index(name));
 }
 
-const Double & MultiminParameters::getStep(const unsigned int index) const {
+const double & MultiminParameters::getStep(const unsigned int index) const {
   return _data[index].step;
 }
 
@@ -227,8 +227,8 @@ bool MultiminParameters::writeToFile(const std::string & fileName) const {
   for (unsigned int k=0; k<size(); ++k) {
     gmp_fprintf(fp,"%16s %F+22.16e %F+22.16e\n",
 		name(k).c_str(),
-		get(k).get_mpf_t(),
-		getStep(k).get_mpf_t());
+		get(k),
+		getStep(k));
   } 
   fclose(fp);
   return true;
@@ -242,9 +242,9 @@ bool MultiminParameters::readFromFile(const std::string & fileName) {
     return false;
   }
   char name[1024];
-  Double value;
-  Double step;
-  while (gmp_fscanf(fp,"%s %Ff %Ff\n",
+  double value;
+  double step;
+  while (gmp_fscanf(fp,"%s %f %f\n",
 		    name,
 		    &value,
 		    &step) == 3) {
@@ -263,13 +263,13 @@ bool orsa::operator == (const MultiminParameters & p1,
       ORSA_DEBUG("p1[%02i] = [%20s] = %18.8Fg",
 		 k,
 		 p1.name(k).c_str(),
-		 p1.get(k).get_mpf_t());
+		 p1.get(k));
     }
     for (unsigned int k=0; k<p2.size(); ++k) {
       ORSA_DEBUG("p2[%02i] = [%20s] = %18.8Fg",
 		 k,
 		 p2.name(k).c_str(),
-		 p2.get(k).get_mpf_t());
+		 p2.get(k));
     }
   }
   
@@ -296,9 +296,9 @@ bool orsa::operator == (const MultiminParameters & p1,
       return false;
     } else {
       /* 
-	 ORSA_DEBUG("EQUAL: %Ff == %Ff",
-	 p1.get(k).get_mpf_t(),
-	 p2.get(k).get_mpf_t());
+	 ORSA_DEBUG("EQUAL: %f == %f",
+	 p1.get(k),
+	 p2.get(k));
       */
     }
   }
@@ -317,15 +317,15 @@ Multimin::Multimin() : Referenced() { }
 
 Multimin::~Multimin() { }
 
-orsa::Double Multimin::__fun__(const gsl_vector * parameters,
+double Multimin::__fun__(const gsl_vector * parameters,
 			       const orsa::MultiminParameters * par,
 			       const bool verbose) const {
-  orsa::Double effectiveFun = fun(par);
+  double effectiveFun = fun(par);
   if (parametersOutsideRange(parameters, par)) {
     effectiveFun += 1.0e3 * (1.0 + fabs(effectiveFun));
   }
   if (verbose) {
-    ORSA_DEBUG("effectiveFun: %Fg",effectiveFun.get_mpf_t());
+    ORSA_DEBUG("effectiveFun: %Fg",effectiveFun);
   }
   //
   return effectiveFun;
@@ -347,7 +347,7 @@ double Multimin::f_gsl(const gsl_vector * parameters,
      if (1) {   
      for (unsigned int k=0; k<_par->size(); ++k) {
      if (_par->haveRange(k)) {
-     const Double xVal = gsl_vector_get(parameters,k);
+     const double xVal = gsl_vector_get(parameters,k);
      if (xVal < _par->getRangeMin(k)) {
      outsideRange = true;
      }
@@ -371,7 +371,7 @@ double Multimin::f_gsl(const gsl_vector * parameters,
      return effectiveFun;
   */
 
-  return __fun__(parameters,_par.get(),false).get_d();
+  return __fun__(parameters,_par.get(),false);
 }
 
 void Multimin::df_gsl(const gsl_vector * parameters, 
@@ -401,13 +401,13 @@ void Multimin::df_gsl(const gsl_vector * parameters,
     (*(par_p.get()))  = (*(_par.get()));
     (*(par_pp.get())) = (*(_par.get()));
     
-    par_mm->set(k, _par->get(k) - two()*_par->getStep(k));
-    par_m-> set(k, _par->get(k) -       _par->getStep(k));
-    par_p-> set(k, _par->get(k) +       _par->getStep(k));
-    par_pp->set(k, _par->get(k) + two()*_par->getStep(k));
+    par_mm->set(k, _par->get(k) - 2*_par->getStep(k));
+    par_m-> set(k, _par->get(k) -   _par->getStep(k));
+    par_p-> set(k, _par->get(k) +   _par->getStep(k));
+    par_pp->set(k, _par->get(k) + 2*_par->getStep(k));
     
     /* 
-       gsl_vector_set (df, k, Double(_diff_five_points_(__fun__(parameters,par_mm.get()),
+       gsl_vector_set (df, k, double(_diff_five_points_(__fun__(parameters,par_mm.get()),
        __fun__(parameters,par_m.get()),
        __fun__(parameters,par_p.get()),
        __fun__(parameters,par_pp.get())) / 
@@ -415,21 +415,21 @@ void Multimin::df_gsl(const gsl_vector * parameters,
        ).get_d());  
     */
     //
-    gsl_vector_set (df, k, Double(_diff_two_points_(__fun__(parameters,par_m.get()),
-						    __fun__(parameters,par_p.get())) / 
-				  _par->getStep(k)).get_d());  
+    gsl_vector_set (df, k, _diff_two_points_(__fun__(parameters,par_m.get()),
+					     __fun__(parameters,par_p.get())) / 
+		    _par->getStep(k));  
     //
     /* 
-       const orsa::Double df2 = _diff_two_points_(__fun__(parameters,par_m.get()),
+       const double df2 = _diff_two_points_(__fun__(parameters,par_m.get()),
        __fun__(parameters,par_p.get()))/_par->getStep(k);
     */
     //
     // ORSA_DEBUG("df[%02i] = %+20.14f",k,gsl_vector_get(df,k));
     /*     
-	   ORSA_DEBUG("par[%02i] = %+020.14Ff   df5[%02i] = %+020.14f   df2[%02i] = %+020.14Ff",
-	   k,_par->get(k).get_mpf_t(),
+	   ORSA_DEBUG("par[%02i] = %+020.14f   df5[%02i] = %+020.14f   df2[%02i] = %+020.14f",
+	   k,_par->get(k),
 	   k,gsl_vector_get(df,k),
-	   k,df2.get_mpf_t());
+	   k,df2());
     */
   }
 }
@@ -448,30 +448,30 @@ void Multimin::fdf_gsl(const gsl_vector * parameters,
   df_gsl(parameters,0,df);
 }
 
-Double Multimin::_diff_two_points_ (const Double & y_m,
-				    const Double & y_p) {
+double Multimin::_diff_two_points_ (const double & y_m,
+				    const double & y_p) {
   /* 
-     ORSA_DEBUG("d2p: y_m=%Ff   y_p=%Ff   retVal: %Ff",
-     y_m.get_mpf_t(),
-     y_p.get_mpf_t(),
-     orsa::Double(0.5*(y_p-y_m)).get_mpf_t());
+     ORSA_DEBUG("d2p: y_m=%f   y_p=%f   retVal: %f",
+     y_m(),
+     y_p(),
+     double(0.5*(y_p-y_m)));
   */
   
-  return orsa::Double("0.5")*(y_p-y_m);
+  return 0.5*(y_p-y_m);
 }
 
-Double Multimin::_diff_five_points_ (const Double & y_mm,
-				     const Double & y_m,
-				     const Double & y_p,
-				     const Double & y_pp) {
+double Multimin::_diff_five_points_ (const double & y_mm,
+				     const double & y_m,
+				     const double & y_p,
+				     const double & y_pp) {
   
   // static const double coeff = 1.0/24.0;
   // five points rule
   // diff_ra  = coeff*(2.0*d_ra_mm -16.0*d_ra_m +16.0*d_ra_p -2.0*d_ra_pp);
   
-  static const Double coeff = one()/Double("24.0");
-  return (coeff*(two()*(y_mm-y_pp) +
-		 Double("16.0")*(y_p-y_m)));
+  static const double coeff = 1.0/24.0;
+  return (coeff*(2*(y_mm-y_pp) +
+		 16*(y_p-y_m)));
 }
 
 bool Multimin::run_nmsimplex(const unsigned int maxIter,
@@ -497,13 +497,13 @@ bool Multimin::run_nmsimplex(const unsigned int maxIter,
   gsl_vector * x = gsl_vector_alloc(_par->size());
   //
   for (unsigned int k=0; k<_par->size(); ++k) {
-    gsl_vector_set(x, k, _par->get(k).get_d());
+    gsl_vector_set(x, k, _par->get(k));
   }
   
   gsl_vector * step = gsl_vector_alloc (_par->size());
   //
   for (unsigned int k=0; k<_par->size(); ++k) {
-    gsl_vector_set(step, k, _par->getStep(k).get_d());
+    gsl_vector_set(step, k, _par->getStep(k));
   }
   
   gsl_multimin_fminimizer_set(s,&mf,x,step);
@@ -540,10 +540,10 @@ bool Multimin::run_nmsimplex(const unsigned int maxIter,
       // debug only
       ORSA_DEBUG("iter: %i",iter);
       for (unsigned int k=0; k<_par->size(); ++k) {
-	ORSA_DEBUG("par[%03i] = \"%s\" = %+18.8Ff",
+	ORSA_DEBUG("par[%03i] = \"%s\" = %+18.8f",
 		   k,
 		   _par->name(k).c_str(),
-		   _par->get(k).get_mpf_t());
+		   _par->get(k));
       }
     }
     
@@ -625,7 +625,7 @@ bool Multimin::run_conjugate_fr(const unsigned int maxIter,
   gsl_vector * x = gsl_vector_alloc(_par->size());
   //
   for (unsigned int k=0; k<_par->size(); ++k) {
-    gsl_vector_set(x, k, _par->get(k).get_d());
+    gsl_vector_set(x, k, _par->get(k));
   }
   
   gsl_multimin_fdfminimizer_set(s,&mf,x,initialStepSize,tollerance);
@@ -653,10 +653,10 @@ bool Multimin::run_conjugate_fr(const unsigned int maxIter,
       // debug only
       ORSA_DEBUG("iter: %i",iter);
       for (unsigned int k=0; k<_par->size(); ++k) {
-	ORSA_DEBUG("par[%03i] = \"%s\" = %+18.8Ff",
+	ORSA_DEBUG("par[%03i] = \"%s\" = %+18.8f",
 		   k,
 		   _par->name(k).c_str(),
-		   _par->get(k).get_mpf_t());
+		   _par->get(k));
       }
     }
     

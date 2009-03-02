@@ -217,7 +217,7 @@ namespace orsa {
 			       const Time & t) const;
 
   public:
-    bool getInterpolatedMass(Double     & mass,
+    bool getInterpolatedMass(double     & mass,
 			     const Body * b,
 			     const Time & t) const;
     
@@ -243,7 +243,7 @@ namespace orsa {
   
   public:
     //! total energy with respect to the barycenter
-    orsa::Double totalEnergy(const orsa::Time & t) const;
+    double totalEnergy(const orsa::Time & t) const;
   
   public:
     //! total angular momentum with respect to the barycenter

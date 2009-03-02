@@ -26,18 +26,18 @@ namespace orsaOSG {
       osg::Referenced(),
       _bg(bg) { 
       
-      _timeMultiplier = orsa::one();
+      _timeMultiplier = 1;
       _realTime       = false;
     }
   protected:
     ~AnimationTime() { }
     
   public:
-    void setTimeMultiplier(const orsa::Double & m) { _timeMultiplier = m; }
+    void setTimeMultiplier(const double & m) { _timeMultiplier = m; }
   public:
-    const orsa::Double & getTimeMultiplier() const { return _timeMultiplier; }
+    const double & getTimeMultiplier() const { return _timeMultiplier; }
   protected:
-    orsa::Double _timeMultiplier;
+    double _timeMultiplier;
     
   public:
     void setRealTime(const bool b) { _realTime = b; }

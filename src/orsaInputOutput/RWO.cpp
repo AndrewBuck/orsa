@@ -55,38 +55,38 @@ bool RWOFile::processLine(const char * line) {
   workObs->obsCode     = s_obsCode;
   
   if (strlen(s_mag.c_str()) > 0) {
-    workObs->mag     = Double(s_mag);
+    workObs->mag     = atof(s_mag.c_str());
     workObs->magCode = s_magCode;
   }
   
   {
     int y, m; 
-    Double d;
-    gmp_sscanf(s_epoch.c_str(),"%d %d %Ff",&y,&m,&d);
-    // ORSA_DEBUG("d: %Ff",d.get_mpf_t());
+    double d;
+    gmp_sscanf(s_epoch.c_str(),"%d %d %f",&y,&m,&d);
+    // ORSA_DEBUG("d: %f",d());
     // ORSA_DEBUG("remember: UTC!!");
     workObs->epoch = 
       orsaSolarSystem::FromTimeScale(orsaSolarSystem::gregorTime(y,m,d),
 				     orsaSolarSystem::TS_UTC);
     // ORSA_DEBUG("%s",s_epoch.c_str());
-    // ORSA_DEBUG("y: %i   m: %i   d: %Ff",y,m,d.get_mpf_t());
+    // ORSA_DEBUG("y: %i   m: %i   d: %f",y,m,d());
     // orsa::print(workObs->epoch.getRef());
   }
   
   {
     int h, m;
-    Double s;
-    gmp_sscanf(s_ra.c_str(),"%d %d %Ff",&h,&m,&s);
+    double s;
+    gmp_sscanf(s_ra.c_str(),"%d %d %f",&h,&m,&s);
     Angle tmp; tmp.setHMS(h,m,s);
     workObs->ra = tmp;
-    // ORSA_DEBUG("h: %i   m: %i   s: %Ff",h,m,s.get_mpf_t());
+    // ORSA_DEBUG("h: %i   m: %i   s: %f",h,m,s());
   }
   
   {
     const int sign = s_decSign == "-" ? -1 : +1;
     int d, p;
-    Double s;
-    gmp_sscanf(s_dec.c_str(),"%d %d %Ff",&d,&p,&s);
+    double s;
+    gmp_sscanf(s_dec.c_str(),"%d %d %f",&d,&p,&s);
     Angle tmp; tmp.setDPS(d,p,s,sign);
     workObs->dec = tmp;
   }

@@ -13,23 +13,23 @@ namespace orsa {
   public:
     Box();
   public:
-    Box(const orsa::Double & xMin,
-	const orsa::Double & xMax,
-	const orsa::Double & yMin,
-	const orsa::Double & yMax,
-	const orsa::Double & zMin,
-	const orsa::Double & zMax);
+    Box(const double & xMin,
+	const double & xMax,
+	const double & yMin,
+	const double & yMax,
+	const double & zMin,
+	const double & zMax);
   public:	    
     Box(const orsa::Vector & v1,
 	const orsa::Vector & v2);
     
   public:
-    void set(const orsa::Double & xMin,
-	     const orsa::Double & xMax,
-	     const orsa::Double & yMin,
-	     const orsa::Double & yMax,
-	     const orsa::Double & zMin,
-	     const orsa::Double & zMax);
+    void set(const double & xMin,
+	     const double & xMax,
+	     const double & yMin,
+	     const double & yMax,
+	     const double & zMin,
+	     const double & zMax);
   public:
     void set(const orsa::Vector & v1,
 	     const orsa::Vector & v2);
@@ -39,31 +39,31 @@ namespace orsa {
     void reset();
     
   public:
-    const orsa::Double & getXMin() const { return _xMin.getRef(); }
-    const orsa::Double & getXMax() const { return _xMax.getRef(); }
-    const orsa::Double & getYMin() const { return _yMin.getRef(); }
-    const orsa::Double & getYMax() const { return _yMax.getRef(); }
-    const orsa::Double & getZMin() const { return _zMin.getRef(); }
-    const orsa::Double & getZMax() const { return _zMax.getRef(); }
+    const double & getXMin() const { return _xMin.getRef(); }
+    const double & getXMax() const { return _xMax.getRef(); }
+    const double & getYMin() const { return _yMin.getRef(); }
+    const double & getYMax() const { return _yMax.getRef(); }
+    const double & getZMin() const { return _zMin.getRef(); }
+    const double & getZMax() const { return _zMax.getRef(); }
 
   public:
     osg::BoundingBox getOSGBoundingBox() const {
-      return osg::BoundingBox(_xMin.getRef().get_d(),
-			      _yMin.getRef().get_d(),
-			      _zMin.getRef().get_d(),
-			      _xMax.getRef().get_d(),
-			      _yMax.getRef().get_d(),
-			      _zMax.getRef().get_d());
+      return osg::BoundingBox(_xMin.getRef(),
+			      _yMin.getRef(),
+			      _zMin.getRef(),
+			      _xMax.getRef(),
+			      _yMax.getRef(),
+			      _zMax.getRef());
     }
     
   public:
-    Double volume() const;
+    double volume() const;
     
   public:
     bool isInside(const orsa::Vector &) const;
     
   protected:
-    orsa::Cache<orsa::Double> _xMin, _xMax, _yMin, _yMax, _zMin, _zMax;
+    orsa::Cache<double> _xMin, _xMax, _yMin, _yMax, _zMin, _zMax;
   };
   
 } // namespace orsa

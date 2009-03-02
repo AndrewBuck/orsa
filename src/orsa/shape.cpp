@@ -44,7 +44,7 @@ const Vector & TriShape::_getVertexNormal(const unsigned int vertex_index) const
     _vertex_normal.resize(_vertex.size());
     Vector _n;
     for (unsigned int _v=0; _v<_vertex.size(); ++_v) {
-      _n.set(zero(),zero(),zero());
+      _n.set(0,0,0);
       for (unsigned int _f=0; _f<_face.size(); ++_f) {
 	if ( (_face[_f].i() == _v) ||
 	     (_face[_f].j() == _v) ||
@@ -70,10 +70,10 @@ const Vector & TriShape::_getFaceNormal(const unsigned int face_index) const {
   return _face_normal[face_index];
 }
 
-Double TriShape::_getFaceArea(const unsigned int face_index) const {
+double TriShape::_getFaceArea(const unsigned int face_index) const {
   if (_face_area.size() != _face.size()) {
     _face_area.resize(_face.size());
-    const orsa::Double half = orsa::Double("0.5");
+    const double half = 0.5;
     for (unsigned int _f=0; _f<_face.size(); ++_f) {
       const TriIndex & _t = _face[_f];
       _face_area[_f] = half * externalProduct(_vertex[_t.k()]-_vertex[_t.j()],
@@ -86,7 +86,7 @@ Double TriShape::_getFaceArea(const unsigned int face_index) const {
 bool TriShape::_updateCache() const {
   if ((!_r_min.isSet()) || (!_r_max.isSet())) {
     VertexVector::const_iterator _it = _vertex.begin();
-    Double _d2, _d2_min, _d2_max;
+    double _d2, _d2_min, _d2_max;
     // init
     _d2_min = _d2_max = (*_it).lengthSquared();
     while (_it != _vertex.end()) {
@@ -106,7 +106,7 @@ bool TriShape::_updateCache() const {
   }
   //
   if (!_boundingBox.isSet()) {
-    Double xMin, xMax, yMin, yMax, zMin, zMax;
+    double xMin, xMax, yMin, yMax, zMin, zMax;
     xMin = yMin = zMin =  _r_max.get();
     xMax = yMax = zMax = -_r_max.get();
     VertexVector::const_iterator _it = _vertex.begin();
@@ -124,21 +124,21 @@ bool TriShape::_updateCache() const {
   }
   //
   if (!_symmetricBoundingBox.isSet()) {
-    const orsa::Double xL = std::max(fabs(_boundingBox.getXMin()),
+    const double xL = std::max(fabs(_boundingBox.getXMin()),
 				     fabs(_boundingBox.getXMax()));
-    const orsa::Double yL = std::max(fabs(_boundingBox.getYMin()),
+    const double yL = std::max(fabs(_boundingBox.getYMin()),
 				     fabs(_boundingBox.getYMax()));
-    const orsa::Double zL = std::max(fabs(_boundingBox.getZMin()),
+    const double zL = std::max(fabs(_boundingBox.getZMin()),
 				     fabs(_boundingBox.getZMax()));
     _symmetricBoundingBox.set(-xL,xL,-yL,yL,-zL,zL);
   }
   //
   if ((!_delta_min.isSet()) || (!_delta_max.isSet())) {
     FaceVector::const_iterator _it = _face.begin();
-    Double _d2_ij, _d2_ik, _d2_jk, _d2_tmp;
+    double _d2_ij, _d2_ik, _d2_jk, _d2_tmp;
     // init
-    Double _d2_min = _r_max.getRef()*_r_max.getRef();
-    Double _d2_max = 0;
+    double _d2_min = _r_max.getRef()*_r_max.getRef();
+    double _d2_max = 0;
     while (_it != _face.end()) {
       _d2_ij = (_vertex[(*_it).i()]-_vertex[(*_it).j()]).lengthSquared();
       _d2_ik = (_vertex[(*_it).i()]-_vertex[(*_it).k()]).lengthSquared();
@@ -190,9 +190,9 @@ bool TriShape::_isInside_useLineMethod(const Vector & v) const {
     ORSA_ERROR("no reference points available");
     return false; 
   }
-  Double _min_d2 = (v-_ref[0]).lengthSquared();
+  double _min_d2 = (v-_ref[0]).lengthSquared();
   Vector _min_ref;
-  Double _tmp_dx, _tmp_d2;
+  double _tmp_dx, _tmp_d2;
   for (unsigned int _k=0; _k<_ref.size(); ++_k) {
     _tmp_dx = v.getX()-_ref[_k].getX();
     if ((_tmp_dx*_tmp_dx) > _min_d2) {
@@ -209,8 +209,8 @@ bool TriShape::_isInside_useLineMethod(const Vector & v) const {
   
   // search for vertex point close to the line
   // passing through ref. point and v
-  const Double _max_d_from_line  = _delta_max.getRef();
-  const Double _max_d2_from_line = _max_d_from_line*_max_d_from_line;
+  const double _max_d_from_line  = _delta_max.getRef();
+  const double _max_d2_from_line = _max_d_from_line*_max_d_from_line;
   const Vector _unit_v = (v - _min_ref).normalized();
   // index of vertex close to the line
   std::vector<unsigned int> _index;
@@ -219,7 +219,7 @@ bool TriShape::_isInside_useLineMethod(const Vector & v) const {
     if ((_p-_min_ref)*_unit_v < 0) continue;
     {
       // fast skip test
-      if (_unit_v.getX() > zero()) {
+      if (_unit_v.getX() > 0) {
 	if ((_p.getX() - _min_ref.getX()) < -_max_d_from_line) continue;
 	if ((_p.getX() - v.getX())        >  _max_d_from_line) continue;
       } else {
@@ -227,7 +227,7 @@ bool TriShape::_isInside_useLineMethod(const Vector & v) const {
 	if ((_p.getX() - v.getX())        < -_max_d_from_line) continue;
       }
       
-      if (_unit_v.getY() > zero()) {
+      if (_unit_v.getY() > 0) {
 	if ((_p.getY() - _min_ref.getY()) < -_max_d_from_line) continue;
 	if ((_p.getY() - v.getY())        >  _max_d_from_line) continue;
       } else {
@@ -235,7 +235,7 @@ bool TriShape::_isInside_useLineMethod(const Vector & v) const {
 	if ((_p.getY() - v.getY())        < -_max_d_from_line) continue;
       }
       
-      if (_unit_v.getZ() > zero()) {
+      if (_unit_v.getZ() > 0) {
 	if ((_p.getZ() - _min_ref.getZ()) < -_max_d_from_line) continue;
 	if ((_p.getZ() - v.getZ())        >  _max_d_from_line) continue;
       } else {
@@ -252,7 +252,7 @@ bool TriShape::_isInside_useLineMethod(const Vector & v) const {
   }
   // check if the line is passing too close to the edge of the shape
   if (_index.size() > 0) {
-    const Double _line_step = 0.5*_delta_min.getRef();
+    const double _line_step = 0.5*_delta_min.getRef();
     Vector _p = _min_ref;
     while ((_p-_min_ref).lengthSquared() < (_min_d2+(_line_step*_line_step))) {
       if ((_p-_min_ref).lengthSquared() > _min_d2) {
@@ -262,8 +262,8 @@ bool TriShape::_isInside_useLineMethod(const Vector & v) const {
       for (unsigned int _j=0; _j<_index.size(); ++_j) {
 	const unsigned int _vertex_index = _index[_j];
 	const Vector _vi = _vertex[_vertex_index];
-	const Double _ref_scalar_product = _getVertexNormal(_vertex_index)*(_min_ref - _vi);
-	const Double _test_point_scalar_product = _getVertexNormal(_vertex_index)*(_p - _vi);
+	const double _ref_scalar_product = _getVertexNormal(_vertex_index)*(_min_ref - _vi);
+	const double _test_point_scalar_product = _getVertexNormal(_vertex_index)*(_p - _vi);
 	
 	if (_ref_scalar_product*_test_point_scalar_product < 0) {
 	  // different sign!
@@ -284,9 +284,9 @@ bool TriShape::_isInside_useNormalMethod(const Vector & v) const {
   _updateCache();
   if (v.lengthSquared() > (_r_max.getRef()*_r_max.getRef())) {
     /* 
-       ORSA_DEBUG("fast out: v.length()=%Ff > _r_max.getRef()=%Ff",
-       v.length().get_mpf_t(),
-       _r_max.getRef().get_mpf_t());
+       ORSA_DEBUG("fast out: v.length()=%f > _r_max.getRef()=%f",
+       v.length(),
+       _r_max.getRef());
     */
     return false;
   } else if (v.lengthSquared() < (_r_min.getRef()*_r_min.getRef())) {
@@ -296,9 +296,9 @@ bool TriShape::_isInside_useNormalMethod(const Vector & v) const {
   
   // search closest vertex
   // should check for _vertex.size() > 0...
-  Double _vertex_d2 = (v-_vertex[0]).lengthSquared();
+  double _vertex_d2 = (v-_vertex[0]).lengthSquared();
   unsigned int _vertex_index = 0;
-  Double _tmp_dx, _tmp_d2;
+  double _tmp_dx, _tmp_d2;
   for (unsigned int _k=0; _k<_vertex.size(); ++_k) {
     _tmp_dx = v.getX()-_vertex[_k].getX();
     if ((_tmp_dx*_tmp_dx) > _vertex_d2) {
@@ -335,10 +335,10 @@ const Vector & TriShape::closestVertex(const Vector & v) const {
   */
   //
   unsigned int _vertex_index = _old_closest_vertex_index;
-  Double _vertex_d2 = (v-_vertex[_vertex_index]).lengthSquared();
+  double _vertex_d2 = (v-_vertex[_vertex_index]).lengthSquared();
   //
-  // Double _tmp_dx, _tmp_dy, _tmp_dz, _tmp_d2;
-  Double _tmp_dx, _tmp_d2;
+  // double _tmp_dx, _tmp_dy, _tmp_dz, _tmp_d2;
+  double _tmp_dx, _tmp_d2;
   for (unsigned int _k=0; _k<_vertex.size(); ++_k) {
     const Vector _tmp_v = v - _vertex[_k];
     // _tmp_dx = v.getX()-_vertex[_k].getX();
@@ -394,7 +394,7 @@ bool TriShape::rayIntersection(orsa::Vector & intersectionPoint,
 			      fullLine)) {
       
       const orsa::Vector & faceNormal = _getFaceNormal(j);
-      if ((faceNormal*u) < orsa::zero()) {
+      if ((faceNormal*u) < 0) {
 	return true;
       }
     }
@@ -405,11 +405,11 @@ bool TriShape::rayIntersection(orsa::Vector & intersectionPoint,
 // each vertex with delta > deltaMax is not computed
 bool TriShape::vertexIlluminationAngles(const orsa::Vector & lightSource,
 					const orsa::Vector & observerPosition,
-					orsa::Double       & phase,
+					double       & phase,
 					AngleVector        & i, 
 					AngleVector        & e,
 					AngleVector        & delta,
-					const orsa::Double & deltaMax,
+					const double & deltaMax,
 					const bool includeShadows) const {
   
   phase = acos((lightSource.normalized())*(observerPosition.normalized()));
@@ -478,11 +478,11 @@ bool TriShape::vertexIlluminationAngles(const orsa::Vector & lightSource,
 /* 
    bool TriShape::faceIlluminationAngles(const orsa::Vector & lightSource,
    const orsa::Vector & observerPosition,
-   orsa::Double       & phase,
+   double       & phase,
    AngleVector        & i, 
    AngleVector        & e,
    AngleVector        & delta,
-   const orsa::Double & deltaMax,
+   const double & deltaMax,
    const bool includeShadows) const {
    
    phase = acos((lightSource.normalized())*(observerPosition.normalized()));
@@ -570,12 +570,12 @@ bool orsa::rayIntersectsTriangle(orsa::Vector & intersectionPoint,
   //
   const Vector planeNormal = externalProduct(t21,t31).normalized();
   //
-  const Double pDistance   = (t1-P)*planeNormal*((planeNormal*u > zero()) ? 1 : -1);
+  const double pDistance   = (t1-P)*planeNormal*((planeNormal*u > 0) ? 1 : -1);
   //
-  // ORSA_DEBUG("pDistance: %Ff",pDistance.get_mpf_t());
+  // ORSA_DEBUG("pDistance: %f",pDistance());
   //
   
-  if ((!fullLine) && (pDistance <= zero())) {
+  if ((!fullLine) && (pDistance <= 0)) {
     // ORSA_DEBUG("negative distance without fullLine...");
     return false;
   }  
@@ -590,17 +590,17 @@ bool orsa::rayIntersectsTriangle(orsa::Vector & intersectionPoint,
   /* 
      {
      // debug
-     ORSA_DEBUG("original normal: %Ff %Ff %Ff",
-     planeNormal.getX().get_mpf_t(),
-     planeNormal.getY().get_mpf_t(),
-     planeNormal.getZ().get_mpf_t());
+     ORSA_DEBUG("original normal: %f %f %f",
+     planeNormal.getX(),
+     planeNormal.getY(),
+     planeNormal.getZ());
      
      const Vector newNormal = externalProduct(t2-Q,t3-Q).normalized();
      
-     ORSA_DEBUG("new normal.....: %Ff %Ff %Ff",
-     planeNormal.getX().get_mpf_t(),
-     planeNormal.getY().get_mpf_t(),
-     planeNormal.getZ().get_mpf_t());
+     ORSA_DEBUG("new normal.....: %f %f %f",
+     planeNormal.getX(),
+     planeNormal.getY(),
+     planeNormal.getZ());
      }
   */
   
@@ -613,29 +613,29 @@ bool orsa::rayIntersectsTriangle(orsa::Vector & intersectionPoint,
     
   } else {
     
-    // ORSA_DEBUG("off_plane component: %Ff",Double(Qt1*planeNormal).get_mpf_t());
+    // ORSA_DEBUG("off_plane component: %f",double(Qt1*planeNormal)());
     
     const Vector a = t21;
     const Vector b = t31;
     const Vector c = Qt1;
     //
-    const Double ab = a*b;
-    const Double ac = a*c;
-    const Double bc = b*c;
+    const double ab = a*b;
+    const double ac = a*c;
+    const double bc = b*c;
     //
-    const Double a2 = a*a;
-    const Double b2 = b*b;
-    const Double c2 = c*c;
+    const double a2 = a*a;
+    const double b2 = b*b;
+    const double c2 = c*c;
     //
-    // const Double beta  = (ab*ac-bc*a2)/(ab*ab-a2*b2);
+    // const double beta  = (ab*ac-bc*a2)/(ab*ab-a2*b2);
     //
-    Double beta_tmp;
+    double beta_tmp;
     //
     {
-      const orsa::Double denom_ab = (ab*ab-a2*b2);
-      const orsa::Double denom_ac = (ac*ac-a2*c2);
+      const double denom_ab = (ab*ab-a2*b2);
+      const double denom_ac = (ac*ac-a2*c2);
       //
-      if (denom_ab != zero()) {
+      if (denom_ab != 0) {
 	beta_tmp = (ab*ac-bc*a2)/denom_ab;
       } else if (denom_ac != 0) {
 	beta_tmp = (ab*ac-bc*a2)/denom_ac;
@@ -645,52 +645,52 @@ bool orsa::rayIntersectsTriangle(orsa::Vector & intersectionPoint,
       }
     }
     //
-    const Double beta = beta_tmp;
+    const double beta = beta_tmp;
     //
-    // const Double alpha = (bc-beta*b2)/ab;
+    // const double alpha = (bc-beta*b2)/ab;
     //
-    Double alpha_tmp;
+    double alpha_tmp;
     //
-    if (ab != zero()) {
+    if (ab != 0) {
       alpha_tmp = (bc-beta*b2)/ab;
-    } else if (ac != zero()) {
+    } else if (ac != 0) {
       alpha_tmp = (c2-beta*bc)/ac;
     } else {
       ORSA_ERROR("alpha: singular case...");
       return false;
     }
     //
-    const Double alpha = alpha_tmp;
+    const double alpha = alpha_tmp;
     
     /* 
        {
        // debug
        
-       ORSA_DEBUG("original Qt1: %Ff %Ff %Ff    l: %Ff",
-       Qt1.getX().get_mpf_t(),
-       Qt1.getY().get_mpf_t(),
-       Qt1.getZ().get_mpf_t(),
-       Qt1.length().get_mpf_t());
+       ORSA_DEBUG("original Qt1: %f %f %f    l: %f",
+       Qt1.getX(),
+       Qt1.getY(),
+       Qt1.getZ(),
+       Qt1.length());
        
        orsa::Vector newQt1 = alpha * a + beta * b;
        
-       ORSA_DEBUG("new Qt1.....: %Ff %Ff %Ff    l: %Ff",
-       newQt1.getX().get_mpf_t(),
-       newQt1.getY().get_mpf_t(),
-       newQt1.getZ().get_mpf_t(),
-       newQt1.length().get_mpf_t());
+       ORSA_DEBUG("new Qt1.....: %f %f %f    l: %f",
+       newQt1.getX(),
+       newQt1.getY(),
+       newQt1.getZ(),
+       newQt1.length());
        }
     */
     
-    if ( (alpha >= zero()) &&
-	 (beta >= zero())  && 
-	 (alpha+beta <= one()) ) {
+    if ( (alpha >= 0) &&
+	 (beta >= 0)  && 
+	 (alpha+beta <= 1) ) {
       
       /* 
-	 ORSA_DEBUG("alpha: %Ff   beta: %Ff   alpha+beta: %Ff",
-	 alpha.get_mpf_t(),
-	 beta.get_mpf_t(),
-	 Double(alpha+beta).get_mpf_t());
+	 ORSA_DEBUG("alpha: %f   beta: %f   alpha+beta: %f",
+	 alpha(),
+	 beta(),
+	 double(alpha+beta)());
       */
       
       return true;
@@ -706,7 +706,7 @@ bool LatLonShape::_updateCache() const {
   if ((!_r_min.isSet()) || (!_r_max.isSet())) {  
     if (_rt.size() > 0) {
       if (_rt[0].size() > 0) {
-	Double _d, _d_min, _d_max;
+	double _d, _d_min, _d_max;
 	// init
 	_d_min = _d_max = _rt[0][0];
 	//
@@ -753,12 +753,12 @@ bool EllipsoidShape::isInside(const Vector & v) const {
   /* 
      return (((v.getX()*v.getX())/_a2 +
      (v.getY()*v.getY())/_b2 +
-     (v.getZ()*v.getZ())/_c2 ) <= one());
+     (v.getZ()*v.getZ())/_c2 ) <= 1);
   */
   //
   return (((v.getX()*v.getX())*_am2 +
 	   (v.getY()*v.getY())*_bm2 +
-	   (v.getZ()*v.getZ())*_cm2 ) <= one());
+	   (v.getZ()*v.getZ())*_cm2 ) <= 1);
 }
 
 bool EllipsoidShape::_updateCache() const {
@@ -780,32 +780,32 @@ bool EllipsoidShape::rayIntersection(orsa::Vector & intersectionPoint,
 				     const orsa::Vector & u,
 				     const bool fullLine) const {
   
-  const orsa::Double polyA = 
+  const double polyA = 
     u.getX()*u.getX()*_am2 +
     u.getY()*u.getY()*_bm2 +
     u.getZ()*u.getZ()*_cm2 ;
   
-  const orsa::Double polyB = orsa::two() * ( P.getX()*u.getX()*_am2 +
-					     P.getY()*u.getY()*_bm2 +
-					     P.getZ()*u.getZ()*_cm2 );
+  const double polyB = 2*( P.getX()*u.getX()*_am2 +
+			   P.getY()*u.getY()*_bm2 +
+			   P.getZ()*u.getZ()*_cm2 );
   
-  const orsa::Double polyC = 
+  const double polyC = 
     P.getX()*P.getX()*_am2 +
     P.getY()*P.getY()*_bm2 +
-    P.getZ()*P.getZ()*_cm2 - one();
+    P.getZ()*P.getZ()*_cm2 - 1;
   
-  const orsa::Double delta = polyB*polyB - 4*polyA*polyC;
+  const double delta = polyB*polyB - 4*polyA*polyC;
   
-  if (delta < orsa::zero()) {
+  if (delta < 0) {
     return false;
   }
   
   // smallest gamma: Ellipsoid point closest to 'P' along ray 'u'
   //
-  // const orsa::Double gamma = (-polyB-sqrt(delta))/(2.0*polyA);
+  // const double gamma = (-polyB-sqrt(delta))/(2.0*polyA);
   //
-  const orsa::Double s1 = (-polyB+sqrt(delta))/(2*polyA);
-  const orsa::Double s2 = (-polyB-sqrt(delta))/(2*polyA);
+  const double s1 = (-polyB+sqrt(delta))/(2*polyA);
+  const double s2 = (-polyB-sqrt(delta))/(2*polyA);
   
   // intersectionPoint = P + gamma*u;
   //
@@ -816,11 +816,11 @@ bool EllipsoidShape::rayIntersection(orsa::Vector & intersectionPoint,
       intersectionPoint = P + s2*u;
     }
   } else {
-    const orsa::Double sMin = std::min(s1,s2);
-    const orsa::Double sMax = std::max(s1,s2);
-    if (sMin >= orsa::zero()) {
+    const double sMin = std::min(s1,s2);
+    const double sMax = std::max(s1,s2);
+    if (sMin >= 0) {
       intersectionPoint = P + sMin*u;
-    } else if (sMax >= orsa::zero()) {
+    } else if (sMax >= 0) {
       // inside the shape, going out... 
       intersectionPoint = P + sMax*u;
     } else {

@@ -24,10 +24,10 @@ bool IntegratorLeapFrog::step(orsa::BodyGroup  * bg,
 			      orsa::Time       & next_timestep) {
   
   /* 
-     ORSA_DEBUG("start:     %12.6Ff [day]",
-     FromUnits(FromUnits(start.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t());
-     ORSA_DEBUG("timestep:  %12.6Ff [day]",
-     FromUnits(FromUnits(timestep.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t());
+     ORSA_DEBUG("start:     %12.6f [day]",
+     FromUnits(FromUnits(start.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)());
+     ORSA_DEBUG("timestep:  %12.6f [day]",
+     FromUnits(FromUnits(timestep.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)());
   */
   
   const Time _h  = timestep;
@@ -58,7 +58,7 @@ bool IntegratorLeapFrog::step(orsa::BodyGroup  * bg,
 	if ((*_b_it)->getInitialConditions().translational.get()) {
 	  if ((*_b_it)->getInitialConditions().translational->dynamic()) {
 	    ibps.translational->setPosition(ibps.translational->position() +
-					    ibps.translational->velocity() * _h2.asDouble());
+					    ibps.translational->velocity() * _h2.get_d());
 	  }
 	}
 	
@@ -140,7 +140,7 @@ bool IntegratorLeapFrog::step(orsa::BodyGroup  * bg,
       if (b->getInitialConditions().translational.get()) {
 	if (b->getInitialConditions().translational->dynamic()) {
 	  ibps.translational->setVelocity(ibps.translational->velocity() +
-					  a[j] * _h.asDouble());
+					  a[j] * _h.get_d());
 	}
       }
       
@@ -151,7 +151,7 @@ bool IntegratorLeapFrog::step(orsa::BodyGroup  * bg,
 	  
 	  if (b->getPaulMoment()) {
 	    
-	    orsa::Double mass;
+	    double mass;
 	    if (!bg->getInterpolatedMass(mass,b,start+_h2)) {
 	      ORSA_DEBUG("problems...");
 	    }	
@@ -227,18 +227,18 @@ bool IntegratorLeapFrog::step(orsa::BodyGroup  * bg,
 		  const orsa::Vector omegaIter_p = g2p * omegaIter; 
 		  
 		  // Eq.(5)
-		  const orsa::Double omegaYZn_p = (oldOmega_p.getY()*oldOmega_p.getZ() + omegaIter_p.getY()*omegaIter_p.getZ()) / 2;
-		  const orsa::Double omegaZXn_p = (oldOmega_p.getZ()*oldOmega_p.getX() + omegaIter_p.getZ()*omegaIter_p.getX()) / 2;
-		  const orsa::Double omegaXYn_p = (oldOmega_p.getX()*oldOmega_p.getY() + omegaIter_p.getX()*omegaIter_p.getY()) / 2;
+		  const double omegaYZn_p = (oldOmega_p.getY()*oldOmega_p.getZ() + omegaIter_p.getY()*omegaIter_p.getZ()) / 2;
+		  const double omegaZXn_p = (oldOmega_p.getZ()*oldOmega_p.getX() + omegaIter_p.getZ()*omegaIter_p.getX()) / 2;
+		  const double omegaXYn_p = (oldOmega_p.getX()*oldOmega_p.getY() + omegaIter_p.getX()*omegaIter_p.getY()) / 2;
 		  
-		  const orsa::Double Jx = Ip.getM11();
-		  const orsa::Double Jy = Ip.getM22();
-		  const orsa::Double Jz = Ip.getM33();
+		  const double Jx = Ip.getM11();
+		  const double Jy = Ip.getM22();
+		  const double Jz = Ip.getM33();
 		  
 		  // Eq.(4)
-		  omegaIter.setX(oldOmega_p.getX() - (_h.asDouble()/Jx) * (T_p.getX() + (Jy-Jz)*omegaYZn_p));
-		  omegaIter.setY(oldOmega_p.getY() - (_h.asDouble()/Jy) * (T_p.getY() + (Jz-Jx)*omegaZXn_p));
-		  omegaIter.setZ(oldOmega_p.getZ() - (_h.asDouble()/Jz) * (T_p.getZ() + (Jx-Jy)*omegaXYn_p));
+		  omegaIter.setX(oldOmega_p.getX() - (_h.get_d()/Jx) * (T_p.getX() + (Jy-Jz)*omegaYZn_p));
+		  omegaIter.setY(oldOmega_p.getY() - (_h.get_d()/Jy) * (T_p.getY() + (Jz-Jx)*omegaZXn_p));
+		  omegaIter.setZ(oldOmega_p.getZ() - (_h.get_d()/Jz) * (T_p.getZ() + (Jx-Jy)*omegaXYn_p));
 		  //
 		  omegaIter = p2g * omegaIter;
 		}
@@ -303,7 +303,7 @@ bool IntegratorLeapFrog::step(orsa::BodyGroup  * bg,
 	if ((*_b_it)->getInitialConditions().translational.get()) {
 	  if ((*_b_it)->getInitialConditions().translational->dynamic()) {
 	    ibps.translational->setPosition(ibps.translational->position() + 
-					    ibps.translational->velocity() * _h2.asDouble());
+					    ibps.translational->velocity() * _h2.get_d());
 	  }
 	}
 	
@@ -320,15 +320,15 @@ bool IntegratorLeapFrog::step(orsa::BodyGroup  * bg,
 	    
 	    // new code
 	    {
-	      const orsa::Double omegaSq = ibps.rotational->getOmega().lengthSquared();
-	      const orsa::Double     hSq = _h.asDouble()*_h.asDouble();
+	      const double omegaSq = ibps.rotational->getOmega().lengthSquared();
+	      const double     hSq = _h.get_d()*_h.get_d();
 	      
 	      const orsa::Quaternion qDot = RotationalBodyProperty::qDot(ibps.rotational->getQ(),
 									 ibps.rotational->getOmega());
 	      
-	      const orsa::Quaternion q = ( (orsa::one() - hSq*omegaSq/orsa::Double("16")) * ibps.rotational->getQ() + 
-					   _h.asDouble() * qDot ) / 
-		(orsa::one() + hSq*omegaSq/orsa::Double("16"));
+	      const orsa::Quaternion q = ( (1 - hSq*omegaSq/16) * ibps.rotational->getQ() + 
+					   _h.get_d() * qDot ) / 
+		(1 + hSq*omegaSq/16);
 	      
 	      ibps.rotational->set(unitQuaternion(q),
 				   ibps.rotational->getOmega());    

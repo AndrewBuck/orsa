@@ -13,7 +13,7 @@ namespace orsa {
   class Paul {
   public:
     // Eq. (1')
-    static orsa::Double gravitationalPotential(const orsa::PaulMoment * M1,
+    static double gravitationalPotential(const orsa::PaulMoment * M1,
 					       const orsa::Matrix     & A1_g2l,
 					       const orsa::PaulMoment * M2,
 					       const orsa::Matrix     & A2_g2l,
@@ -35,7 +35,7 @@ namespace orsa {
     
   public:
     // Eq. (21b)
-    static orsa::Double C_lmn(const int l,
+    static double C_lmn(const int l,
 			      const int m,
 			      const int n);
     
@@ -54,14 +54,14 @@ namespace orsa {
       virtual ~t_lmnLMN();
       
     public:
-      orsa::Double get(const int l,
+      double get(const int l,
 		       const int m,
 		       const int n,
 		       const int L,
 		       const int M,
 		       const int N) const;
     private:
-      orsa::Double trueGet(const int l,
+      double trueGet(const int l,
 			   const int m,
 			   const int n,
 			   const int L,
@@ -85,7 +85,7 @@ namespace orsa {
 	std::vector<
 	std::vector<
 	std::vector<
-	orsa::Cache<orsa::Double> 
+	orsa::Cache<double> 
 	> 
 	> 
 	> 

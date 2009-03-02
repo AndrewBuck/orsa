@@ -44,8 +44,8 @@ namespace orsaOSG {
        	  const orsa::Time simulationTime = _at->getSimulationTime(nv->getFrameStamp()->getFrameNumber());
 	  
 	  /* 
-	     ORSA_DEBUG("simTime: %Ff  body [%s]",
-	     simulationTime.asDouble().get_mpf_t(),
+	     ORSA_DEBUG("simTime: %f  body [%s]",
+	     simulationTime.get_d(),
 	     _b->getName().c_str());
 	  */
 	  
@@ -145,20 +145,20 @@ namespace orsaOSG {
 		   const orsa::Vector uL = L.normalized();
 		   const orsa::Vector uO = ibps.rotational->getOmega().normalized();
 		   
-		   ORSA_DEBUG("[%x|t:%12.3Ff][%s] L: %12.9Fe x [%+6.3Ff,%+6.3Ff,%+6.3Ff]   omega: %12.9Fe x [%+6.3Ff,%+6.3Ff,%+6.3Ff]   sp: %12.9Ff",
+		   ORSA_DEBUG("[%x|t:%12.3f][%s] L: %12.9Fe x [%+6.3f,%+6.3f,%+6.3f]   omega: %12.9Fe x [%+6.3f,%+6.3f,%+6.3f]   sp: %12.9f",
 		   &ibps,
-		   simulationTime.asDouble().get_mpf_t(),
+		   simulationTime.get_d(),
 		   _b->getName().c_str(),
-		   L.length().get_mpf_t(),
-		   uL.getX().get_mpf_t(), uL.getY().get_mpf_t(), uL.getZ().get_mpf_t(),
-		   ibps.rotational->getOmega().length().get_mpf_t(),
-		   uO.getX().get_mpf_t(), uO.getY().get_mpf_t(), uO.getZ().get_mpf_t(),
-		   (uL*uO).get_mpf_t());
+		   L.length(),
+		   uL.getX(), uL.getY(), uL.getZ(),
+		   ibps.rotational->getOmega().length(),
+		   uO.getX(), uO.getY(), uO.getZ(),
+		   (uL*uO));
 		*/
 		
 		/* 
 		   ORSA_DEBUG("g2l: m11 = %Fg",
-		   g2l.getM11().get_mpf_t());
+		   g2l.getM11());
 		*/
 	      }
 	      
@@ -169,19 +169,19 @@ namespace orsaOSG {
 	      // pat->setPivotPoint(osg::Vec3d(0,0,0));
 	      
 	      if (0) {
-		ORSA_DEBUG("simTime: %Ff  body [%s] position: %Ff %Ff %Ff",
-			   orsa::FromUnits(FromUnits(simulationTime.getMuSec(), orsa::Unit::MICROSECOND), orsa::Unit::DAY,-1).get_mpf_t(),
+		ORSA_DEBUG("simTime: %f  body [%s] position: %f %f %f",
+			   orsa::FromUnits(FromUnits(simulationTime.getMuSec().get_d(), orsa::Unit::MICROSECOND), orsa::Unit::DAY,-1),
 			   _b->getName().c_str(),
-			   orsa::FromUnits(position.getX(), orsa::Unit::AU,-1).get_mpf_t(),
-			   orsa::FromUnits(position.getY(), orsa::Unit::AU,-1).get_mpf_t(),
-			   orsa::FromUnits(position.getZ(), orsa::Unit::AU,-1).get_mpf_t());
+			   orsa::FromUnits(position.getX(), orsa::Unit::AU,-1),
+			   orsa::FromUnits(position.getY(), orsa::Unit::AU,-1),
+			   orsa::FromUnits(position.getZ(), orsa::Unit::AU,-1));
 	      }
 	      
 	      /* 
 		 } else {
 		 
-		 ORSA_DEBUG("problems... simTime: %Ff   body [%s]",
-		 orsa::FromUnits(FromUnits(simulationTime.getMuSec(), orsa::Unit::MICROSECOND), orsa::Unit::DAY,-1).get_mpf_t(),
+		 ORSA_DEBUG("problems... simTime: %f   body [%s]",
+		 orsa::FromUnits(FromUnits(simulationTime.getMuSec(), orsa::Unit::MICROSECOND), orsa::Unit::DAY,-1),
 		 _b->getName().c_str());
 		 
 		 }
@@ -197,9 +197,9 @@ namespace orsaOSG {
 	  } else {
 	    
 	    /* 
-	       ORSA_DEBUG("body [%s] not alive at time %Ff",
+	       ORSA_DEBUG("body [%s] not alive at time %f",
 	       _b->getName().c_str(),
-	       simulationTime.asDouble().get_mpf_t());
+	       simulationTime.get_d());
 	    */
 	  }
 	  

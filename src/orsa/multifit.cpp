@@ -49,8 +49,8 @@ MultifitParameters::MultifitParameters() : Referenced() { }
 MultifitParameters::~MultifitParameters() { }
 
 bool MultifitParameters::insert(const  std::string & name,
-				const orsa::Double & initialValue,
-				const orsa::Double & delta) {
+				const double & initialValue,
+				const double & delta) {
   dataType::const_iterator it = _data.begin();
   while (it != _data.end()) {
     if ((*it).name == name) {
@@ -94,42 +94,42 @@ std::string MultifitParameters::name(const unsigned int index) const {
 }
 
 bool MultifitParameters::set(const std::string  & name,
-			     const orsa::Double & value) {
+			     const double & value) {
   _data[MultifitParameters::index(name)].value = value;
   return true;
 }
 
 bool MultifitParameters::set(const unsigned int   index,
-			     const orsa::Double & value) {
+			     const double & value) {
   _data[index].value = value;
   return true;
 }
 
-Double MultifitParameters::get(const std::string & name) const {
+double MultifitParameters::get(const std::string & name) const {
   return get(MultifitParameters::index(name));
 }
 
-Double MultifitParameters::get(const unsigned int index) const {
+double MultifitParameters::get(const unsigned int index) const {
   return _data[index].value;
 }
 
 bool MultifitParameters::setDelta(const std::string  & name,
-				  const orsa::Double & delta) {
+				  const double & delta) {
   _data[MultifitParameters::index(name)].delta = delta;
   return true;
 }
 
 bool MultifitParameters::setDelta(const unsigned int   index,
-				  const orsa::Double & delta) {
+				  const double & delta) {
   _data[index].delta = delta;
   return true;
 }
 
-Double MultifitParameters::getDelta(const std::string & name) const {
+double MultifitParameters::getDelta(const std::string & name) const {
   return _data[MultifitParameters::index(name)].delta;
 }
 
-Double MultifitParameters::getDelta(const unsigned int index) const {
+double MultifitParameters::getDelta(const unsigned int index) const {
   return _data[index].delta;
 }
 
@@ -142,8 +142,8 @@ bool MultifitParameters::writeToFile(const std::string & fileName) const {
   for (unsigned int k=0; k<size(); ++k) {
     gmp_fprintf(fp,"%16s %F+22.16e %F+22.16e\n",
 		name(k).c_str(),
-		get(k).get_mpf_t(),
-		getDelta(k).get_mpf_t());
+		get(k),
+		getDelta(k));
   } 
   fclose(fp);
   return true;
@@ -157,8 +157,8 @@ bool MultifitParameters::readFromFile(const std::string & fileName) {
     return false;
   }
   char name[1024];
-  Double value, delta;
-  while (gmp_fscanf(fp,"%s %Ff %Ff\n",
+  double value, delta;
+  while (gmp_fscanf(fp,"%s %f %f\n",
 		    name,
 		    &value,
 		    &delta) == 3) {
@@ -177,13 +177,13 @@ bool orsa::operator == (const MultifitParameters & p1,
       ORSA_DEBUG("p1[%02i] = [%20s] = %18.8Fg",
 		 k,
 		 p1.name(k).c_str(),
-		 p1.get(k).get_mpf_t());
+		 p1.get(k));
     }
     for (unsigned int k=0; k<p2.size(); ++k) {
       ORSA_DEBUG("p2[%02i] = [%20s] = %18.8Fg",
 		 k,
 		 p2.name(k).c_str(),
-		 p2.get(k).get_mpf_t());
+		 p2.get(k));
     }
   }
   
@@ -210,9 +210,9 @@ bool orsa::operator == (const MultifitParameters & p1,
       return false;
     } else {
       /* 
-	 ORSA_DEBUG("EQUAL: %Ff == %Ff",
-	 p1.get(k).get_mpf_t(),
-	 p2.get(k).get_mpf_t());
+	 ORSA_DEBUG("EQUAL: %f == %f",
+	 p1.get(k),
+	 p2.get(k));
       */
     }
   }
@@ -272,13 +272,13 @@ bool MultifitData::insertZ(const unsigned int   index,
 
 bool MultifitData::insertD(const std::string  & name,
 			   const unsigned int   row,
-			   const orsa::Double & value) {
+			   const double & value) {
   return insertD(MultifitData::index(name),row,value);
 }
 
 bool MultifitData::insertD(const unsigned int   index,
 			   const unsigned int   row,
-			   const orsa::Double & value) {
+			   const double & value) {
   if (_data.var.size() <= index) {
     ORSA_ERROR("index bigger than container size");
     return false;
@@ -311,7 +311,7 @@ bool MultifitData::insertV(const unsigned int   index,
 }
 
 bool MultifitData::insertF(const unsigned int   row,
-			   const orsa::Double & value) {
+			   const double & value) {
   if (_data.f.size() <= row) {
     _data.f.resize(row+1);
   }
@@ -320,7 +320,7 @@ bool MultifitData::insertF(const unsigned int   row,
 }
 
 bool MultifitData::insertSigma(const unsigned int   row,
-			       const orsa::Double & value) {
+			       const double & value) {
   if (_data.sigma.size() <= row) {
     _data.sigma.resize(row+1);
   }
@@ -363,16 +363,16 @@ mpz_class MultifitData::getZ(const unsigned int index,
   return _data.var[index].z[row].getRef();
 }
 
-Double MultifitData::getD(const std::string & name,
+double MultifitData::getD(const std::string & name,
 			  const unsigned int  row) const {
   return getD(MultifitData::index(name),row);
 }
 
-Double MultifitData::getD(const unsigned int index,
+double MultifitData::getD(const unsigned int index,
 			  const unsigned int row) const {
   if (_data.var[index].d.size() <= row) {
     ORSA_ERROR("row too big");
-    return zero();
+    return 0;
   }
   return _data.var[index].d[row].getRef();
 }
@@ -391,21 +391,21 @@ Vector MultifitData::getV(const unsigned int index,
   return _data.var[index].v[row].getRef();
 }
 
-Double MultifitData::getF(const unsigned int row) const {
+double MultifitData::getF(const unsigned int row) const {
   // ORSA_DEBUG("v: %i",_data.var.size());
   // ORSA_DEBUG("f: %i",_data.f.size());
   // ORSA_DEBUG("s: %i",_data.sigma.size());
   if (_data.f.size() <= row) {
     ORSA_ERROR("row too big");
-    return zero();
+    return 0;
   }
   return _data.f[row].getRef();
 }
 
-Double MultifitData::getSigma(const unsigned int row) const {
+double MultifitData::getSigma(const unsigned int row) const {
   if (_data.sigma.size() <= row) {
     ORSA_ERROR("row too big");
-    return zero();
+    return 0;
   }
   return _data.sigma[row].getRef();
 }
@@ -442,38 +442,37 @@ int Multifit::f_gsl (const gsl_vector * parameters,
   computeAllFunctionCalls(_par.get(), data, MODE_F);
   
   for (unsigned int j=0; j<data->size(); ++j) {
-    // gsl_vector_set (f, j, Double((fun(_par.get(),data,j) - data->getF(j))/(data->getSigma(j))).get_d());
-    // const Double fj = (fun(_par.get(),data,j) - data->getF(j))/(data->getSigma(j));
-    /* ORSA_DEBUG("orbit: %Ff   obs: %Ff",
-       orsa::Double(orsa::radToDeg()*fun(_par.get(),data,0,0,j)).get_mpf_t(),
-       orsa::Double(orsa::radToDeg()*data->getF(j)).get_mpf_t());
+    // gsl_vector_set (f, j, double((fun(_par.get(),data,j) - data->getF(j))/(data->getSigma(j))).get_d());
+    // const double fj = (fun(_par.get(),data,j) - data->getF(j))/(data->getSigma(j));
+    /* ORSA_DEBUG("orbit: %f   obs: %f",
+       double(orsa::radToDeg()*fun(_par.get(),data,0,0,j))(),
+       double(orsa::radToDeg()*data->getF(j)));
     */
     //
-    const Double fj = (fun(_par.get(),data,0,0,j) - data->getF(j))/(data->getSigma(j));
-    // ORSA_DEBUG("f[%02i] = %10.3Ff", j, fj.get_mpf_t());
-    gsl_vector_set (f, j, fj.get_d());
+    const double fj = (fun(_par.get(),data,0,0,j) - data->getF(j))/(data->getSigma(j));
+    // ORSA_DEBUG("f[%02i] = %10.3f", j, fj());
+    gsl_vector_set (f, j, fj);
   }
   
   return GSL_SUCCESS;
 }
 
-Double Multifit::_diff_two_points_ (const Double & y_m,
-				    const Double & y_p) {
-  return orsa::Double("0.5")*(y_p-y_m);
+double Multifit::_diff_two_points_ (const double & y_m,
+				    const double & y_p) {
+  return 0.5*(y_p-y_m);
 }
 
-Double Multifit::_diff_five_points_ (const Double & y_mm,
-				     const Double & y_m,
-				     const Double & y_p,
-				     const Double & y_pp) {
+double Multifit::_diff_five_points_ (const double & y_mm,
+				     const double & y_m,
+				     const double & y_p,
+				     const double & y_pp) {
   
   // static const double coeff = 1.0/24.0;
   // five points rule
   // diff_ra  = coeff*(2.0*d_ra_mm -16.0*d_ra_m +16.0*d_ra_p -2.0*d_ra_pp);
   
-  static const Double coeff = one()/Double("24.0");
-  return (coeff*(two()*(y_mm-y_pp) +
-		 Double("16.0")*(y_p-y_m)));
+  static const double coeff = 1.0/24.0;
+  return (coeff*(2*(y_mm-y_pp) + 16.0*(y_p-y_m)));
 }
 
 int Multifit::df_gsl (const gsl_vector * v, 
@@ -513,7 +512,7 @@ int Multifit::df_gsl (const gsl_vector * v,
     for (unsigned int j=0; j<data->size(); ++j) {
       
       /* 
-	 gsl_matrix_set (J, j, k, Double(_diff_five_points_(fun(par_mm.get(), data, j),
+	 gsl_matrix_set (J, j, k, double(_diff_five_points_(fun(par_mm.get(), data, j),
 	 fun(par_m.get() , data, j),
 	 fun(par_p.get() , data, j),
 	 fun(par_pp.get(), data, j)) / 
@@ -521,16 +520,15 @@ int Multifit::df_gsl (const gsl_vector * v,
 	 ).get_d());  
       */
       //
-      /* gsl_matrix_set (J, j, k, Double(_diff_two_points_(fun(par_m.get() , data, j),
+      /* gsl_matrix_set (J, j, k, double(_diff_two_points_(fun(par_m.get() , data, j),
 	 fun(par_p.get() , data, j)) / 
 	 (data->getSigma(j) * _par->getDelta(k)) 
 	 ).get_d());  
       */
       //
-      gsl_matrix_set (J, j, k, Double(_diff_two_points_(fun(_par.get(),data,k,-1,j),
-							fun(_par.get(),data,k,+1,j)) / 
-				      (data->getSigma(j) * _par->getDelta(k)) 
-				      ).get_d());  
+      gsl_matrix_set (J, j, k, _diff_two_points_(fun(_par.get(),data,k,-1,j),
+						 fun(_par.get(),data,k,+1,j)) / 
+		      (data->getSigma(j) * _par->getDelta(k)));  
     }
   }
   
@@ -603,7 +601,7 @@ bool Multifit::run() {
   gsl_vector * x = gsl_vector_alloc(_par->size());
   //
   for (unsigned int k=0; k<_par->size(); ++k) {
-    gsl_vector_set(x, k, _par->get(k).get_d());
+    gsl_vector_set(x, k, _par->get(k));
   }
   
   gsl_multifit_fdfsolver_set(s,&mf,x);
@@ -747,10 +745,10 @@ bool Multifit::run() {
       // debug only
       ORSA_DEBUG("iter: %i",iter);
       for (unsigned int k=0; k<_par->size(); ++k) {
-	ORSA_DEBUG("par[%i] = \"%s\" = %+18.8Ff",
+	ORSA_DEBUG("par[%i] = \"%s\" = %+18.8f",
 		   k,
 		   _par->name(k).c_str(),
-		   _par->get(k).get_mpf_t());
+		   _par->get(k));
       }
     }
     
@@ -849,7 +847,7 @@ bool Multifit::run() {
        gsl_multifit_covar(s->J, 0.0, covar);
        #define FIT(i) gsl_vector_get(s->x, i)
        #define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
-       const orsa::Double deltaFactor = 0.001;
+       const double deltaFactor = 0.001;
        for (unsigned int k=0; k<_par->size(); ++k) {
        _par->setDelta(k, deltaFactor*c*ERR(k));
        }

@@ -7,15 +7,15 @@
 using namespace orsa;
 
 osg::Vec3d Vector::getVec3d() const {
-  return osg::Vec3d(getX().get_d(),
-		    getY().get_d(),
-		    getZ().get_d());
+  return osg::Vec3d(getX(),
+		    getY(),
+		    getZ());
 }
 
 osg::Vec3f Vector::getVec3f() const {
-  return osg::Vec3f(getX().get_d(),
-		    getY().get_d(),
-		    getZ().get_d());
+  return osg::Vec3f(getX(),
+		    getY(),
+		    getZ());
 }
 
 void Vector::_update_l() const {
@@ -31,7 +31,7 @@ void Vector::_update_l2() const {
 	  (_z*_z) );
 }
 
-const Double & Vector::length() const {
+const double & Vector::length() const {
   if (_l.isSet()) {
     return _l.getRef();
   }
@@ -39,7 +39,7 @@ const Double & Vector::length() const {
   return _l.getRef();
 }
 
-const Double & Vector::lengthSquared() const {
+const double & Vector::lengthSquared() const {
   if (_l2.isSet()) {
     return _l2.getRef();
   }
@@ -54,9 +54,9 @@ bool Vector::isZero() const {
 // normalization
 Vector Vector::normalized() const {
   if (isZero()) {
-    return Vector(zero(),zero(),zero());
+    return Vector(0,0,0);
   } else {
-    const Double _one_over_l = one()/length();
+    const double _one_over_l = 1/length();
     return Vector(_x*_one_over_l,
 		  _y*_one_over_l,
 		  _z*_one_over_l);
@@ -65,8 +65,8 @@ Vector Vector::normalized() const {
 
 /* 
    Vector & Vector::normalize() {
-   ORSA_DEBUG("rewrite Vector::normalize() for orsa::Double!!");
-   Double l = length();
+   ORSA_DEBUG("rewrite Vector::normalize() for double!!");
+   double l = length();
    if (l > (std::numeric_limits<double>::min() * 1.0e3)) {
    _x /= l;
    _y /= l;
@@ -83,9 +83,9 @@ Vector Vector::normalized() const {
 
 Vector & Vector::normalize() {
   if (isZero()) {
-    _x = _y = _z = zero();
+    _x = _y = _z = 0;
   } else {
-    const Double _one_over_l = one()/length();
+    const double _one_over_l = 1/length();
     _x *= _one_over_l;
     _y *= _one_over_l;
     _z *= _one_over_l;
@@ -119,7 +119,7 @@ Vector & Vector::normalize() {
 */
 
 /* 
-   Double operator * (const Vector & u, const Vector & v) {
+   double operator * (const Vector & u, const Vector & v) {
    return (u.getX()*v.getX()+
    u.getY()*v.getY()+
    u.getZ()*v.getZ());

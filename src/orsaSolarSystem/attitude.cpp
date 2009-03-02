@@ -11,10 +11,10 @@ using namespace orsaSolarSystem;
 // ConstantZRotationEcliptic_RotationalBodyProperty
 
 ConstantZRotationEcliptic_RotationalBodyProperty::ConstantZRotationEcliptic_RotationalBodyProperty (const Time   & t0,
-												    const Double & phi0,
-												    const Double & omega,
-												    const Double & lambda,
-												    const Double & beta) : 
+												    const double & phi0,
+												    const double & omega,
+												    const double & lambda,
+												    const double & beta) : 
   orsa::PrecomputedRotationalBodyProperty(), 
   _t0(t0), 
   _phi0(phi0),
@@ -63,9 +63,9 @@ bool ConstantZRotationEcliptic_RotationalBodyProperty::update(const orsa::Time &
   
   _previousTime = t;
   
-  // const Double _phi = _phi0 + _omega*(t-_t0).asDouble();
+  // const double _phi = _phi0 + _omega*(t-_t0).get_d();
   // 
-  const Double _phi = fmod(_phi0 + _omega*(t-_t0).asDouble(), orsa::twopi());
+  const double _phi = fmod(_phi0 + _omega*(t-_t0).get_d(), orsa::twopi());
   
   Matrix _m = Matrix::identity();
   
@@ -88,7 +88,7 @@ bool ConstantZRotationEcliptic_RotationalBodyProperty::update(const orsa::Time &
   
   /* 
      ORSA_DEBUG("phi: %Fg   t: %Zi   prev.t: %Zi",
-     _phi.get_mpf_t(),
+     _phi(),
      t.getMuSec().get_mpz_t(),
      _previousTime.getRef().getMuSec().get_mpz_t());
   */
@@ -99,10 +99,10 @@ bool ConstantZRotationEcliptic_RotationalBodyProperty::update(const orsa::Time &
 // ConstantZRotationEquatorial_RotationalBodyProperty
 
 ConstantZRotationEquatorial_RotationalBodyProperty::ConstantZRotationEquatorial_RotationalBodyProperty (const Time   & t0,
-													const Double & phi0,
-													const Double & omega,
-													const Double & alpha,
-													const Double & delta) : 
+													const double & phi0,
+													const double & omega,
+													const double & alpha,
+													const double & delta) : 
   orsa::PrecomputedRotationalBodyProperty(), 
   _t0(t0), 
   _phi0(phi0),
@@ -123,7 +123,7 @@ bool ConstantZRotationEquatorial_RotationalBodyProperty::update(const orsa::Time
   
   _previousTime = t;
   
-  const Double _phi = _phi0 + _omega*(t-_t0).asDouble();
+  const double _phi = _phi0 + _omega*(t-_t0).get_d();
   
   Matrix _m = Matrix::identity();
   

@@ -36,28 +36,28 @@ bool MPCAsteroidFile::processLine(const char * line) {
   s_e.assign(line,70,9);
   s_a.assign(line,92,11);
   
-  const Time epoch = MPC_packedToTime(s_epoch);
+  const Time epoch = MPC_packedToTime(s_epoch.c_str());
   
   Orbit orbit;
-  orbit.mu = orsa::Unit::instance()->getG()*orsa::FromUnits(orsa::one(),orsa::Unit::MSUN); 
-  orbit.e  = Double(s_e);
+  orbit.mu = orsa::Unit::instance()->getG()*orsa::FromUnits(1,orsa::Unit::MSUN); 
+  orbit.e  = atof(s_e.c_str());
   //
   if (orbit.e > 0.99) {
     // non-periodic orbit, not included for the moment
     return false;
   }
   //
-  orbit.a                = FromUnits(Double(s_a),orsa::Unit::AU);
-  orbit.i                = degToRad() * Double(s_i);
-  orbit.omega_node       = degToRad() * Double(s_node);
-  orbit.omega_pericenter = degToRad() * Double(s_peri);
-  orbit.M                = degToRad() * Double(s_M);
+  orbit.a                = FromUnits(atof(s_a.c_str()),orsa::Unit::AU);
+  orbit.i                = degToRad() * atof(s_i.c_str());
+  orbit.omega_node       = degToRad() * atof(s_node.c_str());
+  orbit.omega_pericenter = degToRad() * atof(s_peri.c_str());
+  orbit.M                = degToRad() * atof(s_M.c_str());
   
   MPCAsteroidDataElement element;
   //
   element.orbit       = orbit;
   element.epoch       = epoch;
-  element.H           = Double(s_H);
+  element.H           = atof(s_H.c_str());
   element.designation = s_designation;
   
   _data.push_back(element);

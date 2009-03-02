@@ -14,66 +14,67 @@ namespace orsa {
   
   // standard double 
   
-  // typedef double Double;
+  // typedef double double;
   
   // GMP mpf_class
   
-  typedef mpf_class Double;
-  // the Double constructor should call mpf_set_default_prec()
+  // typedef mpf_class double;
+  // the double constructor should call mpf_set_default_prec()
   // to set the default number of bits (GMP default: 64)
   
   // complex type
-  typedef std::complex<orsa::Double> Complex;
+  // typedef std::complex<double> Complex;
   
   /* 
-     inline const Double & zero() {
-     static Double _zero;
+     inline const double & 0 {
+     static double _zero;
      static unsigned int old_prec = 0;
      if (old_prec != mpf_get_default_prec()) {
-     _zero = Double("0");
+     _zero = double("0");
      old_prec = mpf_get_default_prec();
      }	
      return _zero;
      }
   */
   //
-  const Double & zero();
+  // const double & 0;
   
   /* 
-     inline const Double & one() {
-     static Double _one;
+     inline const double & 1 {
+     static double _one;
      static unsigned int old_prec = 0;
      if (old_prec != mpf_get_default_prec()) {
-     _one = Double("1");
+     _one = double("1");
      old_prec = mpf_get_default_prec();
      }	
      return _one;
      }
   */
   //
-  const Double & one();
+  // const double & 1;
   
   /* 
-     inline const Double & two() {
-     static Double _two;
+     inline const double & two() {
+     static double _two;
      static unsigned int old_prec = 0;
      if (old_prec != mpf_get_default_prec()) {
-     _two = Double("2");
+     _two = double("2");
      old_prec = mpf_get_default_prec();
      }	
      return _two;
      }
   */
   //
-  const Double & two();
+  // const double & two();
   
-  const Double & three();
+  // const double & three();
   
-  const Double & six();
+  // const double & six();
   
-  inline Double fabs(const Double & x) {
-    return abs(x);
-  }
+  /* inline double fabs(const double & x) {
+     return abs(x);
+     }
+  */
   
   // computes i! (factorial)
   /* 
@@ -112,70 +113,71 @@ namespace orsa {
      }
   */
   //
-  mpz_class power_sign(const mpz_class & l);
+  int power_sign(const mpz_class & l);
   
   /* 
-     inline Double int_pow(const Double & x, const mpz_class & p) {
-     if (p == 0) return one();
-     Double _pow = x;
+     inline double int_pow(const double & x, const mpz_class & p) {
+     if (p == 0) return 1;
+     double _pow = x;
      const mpz_class max_k = abs(p);
      for (mpz_class k=1; k < max_k; ++k) {
      _pow *= x;
      }
-     if (p < 0) _pow = one()/_pow;
+     if (p < 0) _pow = 1/_pow;
      return _pow;
      }
   */
   //
-  Double int_pow(const Double & x, const mpz_class & p);
-  // Double int_pow(const Double & x, const mpz_class & p, const bool can_call_epsilon=true);
+  // double int_pow(const double & x, const mpz_class & p);
+  // double int_pow(const double & x, const mpz_class & p, const bool can_call_epsilon=true);
+  double int_pow(const double & x, const mpz_class & p);
   
   //! x^y
-  Double pow(const Double & x, const Double & y);
+  // double pow(const double & x, const double & y);
   
-  Double copysign(const Double & x, const Double & y);
+  // double copysign(const double & x, const double & y);
   
   /* 
-     inline const Double & epsilon() {
+     inline const double & epsilon() {
      // approx 15 digits (base 10) every 64 bits... is this correct?
-     // return int_pow(Double("10.0"),mpz_class(-15.0*(mpf_get_default_prec()/64.0))); 
+     // return int_pow(double("10.0"),mpz_class(-15.0*(mpf_get_default_prec()/64.0))); 
      // ...or a bit better: 16 digits for 64 bits:
-     // return int_pow(Double("10.0"),mpz_class(-(int)mpf_get_default_prec()/4)); 
+     // return int_pow(double("10.0"),mpz_class(-(int)mpf_get_default_prec()/4)); 
      // ...or more... (0.3125 = 1/3.2 -> 20 digits per 64 bits)
-     // return int_pow(Double("10.0"),mpz_class(-0.3125*mpf_get_default_prec())); 
+     // return int_pow(double("10.0"),mpz_class(-0.3125*mpf_get_default_prec())); 
      // ...or simply 0.3, which seems to be the one working better...
      // return 
-     // int_pow(Double("10.0"),mpz_class(-0.3*mpf_get_default_prec())); 
+     // int_pow(double("10.0"),mpz_class(-0.3*mpf_get_default_prec())); 
      // ... OK, 0.28125 = 18/64 works great.
-     static Double _eps;
+     static double _eps;
      static unsigned int old_prec = 0;
      if (old_prec != mpf_get_default_prec()) {
-     _eps = int_pow(Double("10.0"),mpz_class(-0.28125*mpf_get_default_prec())); 
+     _eps = int_pow(double("10.0"),mpz_class(-0.28125*mpf_get_default_prec())); 
      old_prec = mpf_get_default_prec();
      } 
      return _eps;
      }
   */
   //
-  const Double & epsilon();
+  const double & epsilon();
   
   /* 
-     inline const Double & pi() {
-     static Double _pi;
+     inline const double & pi() {
+     static double _pi;
      static unsigned int old_prec = 0;
      if (old_prec != mpf_get_default_prec()) {
-     const Double _eps = epsilon();
-     _pi = Double("0");
-     Double _add;
+     const double _eps = epsilon();
+     _pi = double("0");
+     double _add;
      mpz_class k("0");
      mpz_class eight_k;
      do {
      eight_k = 8*k;
-     _add = Double("1")/int_pow(mpz_class("16"),k)*
-     ( (Double("4")/Double(eight_k+1)) -
-     (Double("2")/Double(eight_k+4)) -
-     (Double("1")/Double(eight_k+5)) -
-     (Double("1")/Double(eight_k+6)) );
+     _add = double("1")/int_pow(mpz_class("16"),k)*
+     ( (double("4")/double(eight_k+1)) -
+     (double("2")/double(eight_k+4)) -
+     (double("1")/double(eight_k+5)) -
+     (double("1")/double(eight_k+6)) );
      _pi += _add;
      ++k;
      } while (fabs(_add/_pi) > _eps);
@@ -185,48 +187,48 @@ namespace orsa {
       }
   */
   //
-  const Double & pi();
+  const double & pi();
   
   /* 
-     inline const Double & halfpi() {
-     static Double _halfpi;
+     inline const double & halfpi() {
+     static double _halfpi;
      static unsigned int old_prec = 0;
      if (old_prec != mpf_get_default_prec()) {
-     _halfpi = Double("0.5")*pi();
+     _halfpi = double("0.5")*pi();
      old_prec = mpf_get_default_prec();
      }	
      return _halfpi;
      }
   */
-  const Double & halfpi();
+  const double & halfpi();
   
   /* 
-     inline const Double & twopi() {
-     static Double _twopi;
+     inline const double & twopi() {
+     static double _twopi;
      static unsigned int old_prec = 0;
      if (old_prec != mpf_get_default_prec()) {
-     _twopi = Double("2")*pi();
+     _twopi = double("2")*pi();
      old_prec = mpf_get_default_prec();
      }	
      return _twopi;
      }
   */
   //
-  const Double & twopi();
+  const double & twopi();
   
-  const Double & pisquared();
+  const double & pisquared();
   
-  const Double & radToDeg();
+  const double & radToDeg();
   
-  const Double & degToRad();
+  const double & degToRad();
   
-  const Double & radToArcmin();
+  const double & radToArcmin();
   
-  const Double & arcminToRad();
+  const double & arcminToRad();
   
-  const Double & radToArcsec();
+  const double & radToArcsec();
   
-  const Double & arcsecToRad();
+  const double & arcsecToRad();
   
   /* 
      inline mpz_class kronecker(const mpz_class & i,
@@ -239,52 +241,53 @@ namespace orsa {
      }
   */
   //
-  mpz_class kronecker(const mpz_class & i,
-		      const mpz_class & j);
+  int kronecker(const mpz_class & i,
+		const mpz_class & j);
   
   /* 
-     inline Double fmod(const Double & x,
-     const Double & y) {
-     Double _ratio = x/y;
+     inline double fmod(const double & x,
+     const double & y) {
+     double _ratio = x/y;
      mpz_class _n(_ratio);
      if (_ratio < 0) --_n;
      return (x-_n*y);
      }
   */
   //
-  Double fmod(const Double & x,
-	      const Double & y);
+  /* double fmod(const double & x,
+     const double & y);
+  */
   
   // cubic root
   /* 
-     inline Double cbrt(const Double & x) {
-     Double _c = x;
-     Double _old_c;
+     inline double cbrt(const double & x) {
+     double _c = x;
+     double _old_c;
      do {
      _old_c = _c;
-     _c = (Double("2")*_c+x/(_c*_c))/Double("3");
+     _c = (double("2")*_c+x/(_c*_c))/double("3");
      } while (fabs(_c-_old_c)/fabs(_c) > epsilon());
      return _c;
      }
   */
   //
-  Double cbrt(const Double & x);
+  // double cbrt(const double & x);
   
   /* 
-     inline Double pow(const Double & x,
-     const Double & y) {
+     inline double pow(const double & x,
+     const double & y) {
      ORSA_DEBUG("code needed here!");
-     return zero();
+     return 0;
      }
   */
   
   // (a)_n = Product[a+k,{k,0,n-1}] with n in N+
   /* 
-     inline Double pochhammer(const Double & a, const mpz_class & n) {
+     inline double pochhammer(const double & a, const mpz_class & n) {
      if (n == 0) {
-     return one();
+     return 1;
      }
-     Double _result = one();
+     double _result = 1;
      mpz_class _k = 0;
      if (n > 0) {
      do { 
@@ -303,18 +306,18 @@ namespace orsa {
      }
   */
   //
-  Double pochhammer(const Double & a, 
+  double pochhammer(const double    & a, 
 		    const mpz_class & n);
   
   /* 
-     inline Double sin(const Double & x) {
-     const Double _local_x = fmod(x,twopi());
+     inline double sin(const double & x) {
+     const double _local_x = fmod(x,twopi());
      if (fabs(_local_x) < epsilon()) {
-     return zero();
+     return 0;
      }
-     const Double _eps = epsilon();
-     Double _s("0");
-     Double _add;
+     const double _eps = epsilon();
+     double _s("0");
+     double _add;
      mpz_class k("0");
      mpz_class twice_k_plus_one;
      do {
@@ -327,17 +330,17 @@ namespace orsa {
      }
   */
   //
-  Double sin(const Double & x);
+  // double sin(const double & x);
   
   /* 
-     inline Double cos(const Double & x) {
-     const Double _local_x = fmod(x,twopi());
+     inline double cos(const double & x) {
+     const double _local_x = fmod(x,twopi());
      if (fabs(_local_x) < epsilon()) {
-     return one();
+     return 1;
      }
-     const Double _eps = epsilon();
-     Double _c("0");
-     Double _add;
+     const double _eps = epsilon();
+     double _c("0");
+     double _add;
      mpz_class k("0");
      mpz_class twice_k;
      do {
@@ -350,37 +353,38 @@ namespace orsa {
      }
   */
   //
-  Double cos(const Double & x);
+  // double cos(const double & x);
   
-  Double tan(const Double & x);
+  // double tan(const double & x);
   
   /* 
-     inline void sincos(const Double & x, Double & s, Double & c) {
+     inline void sincos(const double & x, double & s, double & c) {
      s = sin(x);
      // c = sqrt(1.0-s*s); // Warning: sign problem, need value of pi...
      c = cos(x);
      }
   */
   //
-  void sincos(const Double & x, 
-	      Double & s, 
-	      Double & c);
+  /* void sincos(const double & x, 
+     double & s, 
+     double & c);
+  */
   
   /* 
-     inline Double asin(const Double & x) {
+     inline double asin(const double & x) {
      ORSA_DEBUG("write 3 different cases!!");
-     // ORSA_DEBUG("asin(%20.12Fg) called...",x.get_mpf_t());
+     // ORSA_DEBUG("asin(%20.12Fg) called...",x());
      if (fabs(x) < epsilon()) {
-     return zero();
+     return 0;
      }
-     if (fabs(x) > (one()+epsilon())) {
-     ORSA_ERROR("out-of-domain error: x = %Fg",x.get_mpf_t());
-     return zero();
+     if (fabs(x) > (1+epsilon())) {
+     ORSA_ERROR("out-of-domain error: x = %Fg",x());
+     return 0;
      }
-     const Double _eps = epsilon();
-     Double _as("0");
-     Double _add;
-     const Double _one_over_two("0.5");
+     const double _eps = epsilon();
+     double _as("0");
+     double _add;
+     const double _one_over_two("0.5");
      mpz_class k("0");
      mpz_class twice_k_plus_one;
      do {
@@ -390,7 +394,7 @@ namespace orsa {
      _as += _add;
      ++k;
      if (k > 10*mpf_get_default_prec()) {
-     ORSA_WARNING("max number of iterations hit while computing asin(%20.12Fg)",x.get_mpf_t());
+     ORSA_WARNING("max number of iterations hit while computing asin(%20.12Fg)",x());
      break;
      }
      } while (fabs(_add/_as) > _eps);
@@ -398,39 +402,39 @@ namespace orsa {
      }
   */
   //
-  Double asin(const Double & x);
+  // double asin(const double & x);
   
   /* 
-     inline Double acos(const Double & x) {
+     inline double acos(const double & x) {
      return (halfpi()-asin(x));
      }
   */
   //
-  Double acos(const Double & x);
+  // double acos(const double & x);
   
   /* 
-     inline Double atan2(const Double & y, const Double & x) {
+     inline double atan2(const double & y, const double & x) {
      if (fabs(y) < epsilon()) {
-     return zero();
+     return 0;
      }
      if (fabs(x) < epsilon()) {
      return halfpi();
      }
      
-     const Double _l = sqrt(x*x+y*y);
+     const double _l = sqrt(x*x+y*y);
      //
      if (fabs(y) < fabs(x)) {
-     const Double _phi = asin(y/_l);
+     const double _phi = asin(y/_l);
      //
-     if (x > zero()) {
+     if (x > 0) {
      return (_phi);
      } else {
      return (pi()-_phi);
      }
      } else {
-     const Double _phi = acos(x/_l);
+     const double _phi = acos(x/_l);
      //
-     if (y > zero()) {
+     if (y > 0) {
      return (_phi);
      } else { 
      return (-_phi);
@@ -439,22 +443,24 @@ namespace orsa {
      }
   */
   //
-  Double atan2(const Double & y, 
-	       const Double & x);
+  /* 
+     double atan2(const double & y, 
+     const double & x);
+     
+     double atan(const double & x);
+     
+     double log(const double & x);
   
-  Double atan(const Double & x);
-  
-  Double log(const Double & x);
-  
-  Double log(const Double & base,
-	     const Double & x);
-  
-  Double log10(const Double & x);
-  
-  Double exp(const Double & x);
-  
-  Double cosh(const Double & x);
-  Double sinh(const Double & x);
+     double log(const double & base,
+     const double & x);
+     
+     double log10(const double & x);
+     
+     double exp(const double & x);
+     
+     double cosh(const double & x);
+     double sinh(const double & x);
+  */
   
 } // namespace orsa
 

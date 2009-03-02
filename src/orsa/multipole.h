@@ -20,7 +20,7 @@ namespace orsa {
   protected:
     virtual ~MassDistribution() { }
   public:
-    virtual orsa::Double density(const Vector &) const = 0;
+    virtual double density(const Vector &) const = 0;
   };
   
   class UniformMassDistribution : public MassDistribution {
@@ -29,16 +29,16 @@ namespace orsa {
   protected:
     ~UniformMassDistribution() { }
   public:
-    orsa::Double density(const Vector &) const {
-      return orsa::one();
+    double density(const Vector &) const {
+      return 1;
     }
   };
   
   class SphericalCorePlusMantleMassDistribution : public MassDistribution {
   public:
-    SphericalCorePlusMantleMassDistribution(const orsa::Double & coreRadius,
-					    const orsa::Double & coreDensity,
-					    const orsa::Double & mantleDensity) :
+    SphericalCorePlusMantleMassDistribution(const double & coreRadius,
+					    const double & coreDensity,
+					    const double & mantleDensity) :
       MassDistribution(),
       R2(coreRadius*coreRadius),
       dC(coreDensity),
@@ -46,7 +46,7 @@ namespace orsa {
   protected:
     ~SphericalCorePlusMantleMassDistribution() { }
   public:
-    orsa::Double density(const Vector & v) const {
+    double density(const Vector & v) const {
       if (v.lengthSquared() > R2) {
 	return dM;
       } else {
@@ -54,7 +54,7 @@ namespace orsa {
       }
     }
   protected:
-    const orsa::Double R2, dC, dM;
+    const double R2, dC, dM;
   };
   
   class Multipole : public osg::Referenced {
@@ -115,17 +115,17 @@ namespace orsa {
   public:
     bool computeUsingShape(const unsigned int sample_points,
 			   const int random_seed,
-			   const orsa::Double & R0);
+			   const double & R0);
   public:
-    void setR0(const orsa::Double & R0) {
+    void setR0(const double & R0) {
       _R0.set(R0);
     }
   public:
-    const orsa::Double & getR0() const {
+    const double & getR0() const {
       return _R0.getRef();
     }
   protected:
-    orsa::Cache<orsa::Double> _R0;
+    orsa::Cache<double> _R0;
     
   private:
     void _randomVectorInside(std::vector<bool> &,
@@ -146,10 +146,10 @@ namespace orsa {
 			const unsigned int sample_points,
 			const int random_seed);
   private:
-    void _multipole(std::vector<std::vector<Double> > & C,
-		    std::vector<std::vector<Double> > & C_uncertainty,
-		    std::vector<std::vector<Double> > & S, 
-		    std::vector<std::vector<Double> > & S_uncertainty, 
+    void _multipole(std::vector<std::vector<double> > & C,
+		    std::vector<std::vector<double> > & C_uncertainty,
+		    std::vector<std::vector<double> > & S, 
+		    std::vector<std::vector<double> > & S_uncertainty, 
 		    const Vector & center_of_mass,
 		    const Vector & center_of_mass_uncertainty,
 		    const std::vector<bool> & in,
@@ -173,28 +173,28 @@ namespace orsa {
 				   const std::string & filename);
     
   public:
-    const Double & C (const unsigned int l, const unsigned int m) const {
+    const double & C (const unsigned int l, const unsigned int m) const {
       // should check for l and m range
       return _C[l][m];
     }
   public:
-    const Double & S (const unsigned int l, const unsigned int m) const {
+    const double & S (const unsigned int l, const unsigned int m) const {
       // should check for l and m range
       return _S[l][m];
     }
   public:
-    void setC (const Double & val,
+    void setC (const double & val,
 	       const unsigned int l, const unsigned int m) {
       _C[l][m] = val;
     }
   public:
-    void setS (const Double & val,
+    void setS (const double & val,
 	       const unsigned int l, const unsigned int m) {
       _S[l][m] = val;
     }
   protected:
-    std::vector<std::vector<orsa::Double> > _C, _C_uncertainty;
-    std::vector<std::vector<orsa::Double> > _S, _S_uncertainty;  
+    std::vector<std::vector<double> > _C, _C_uncertainty;
+    std::vector<std::vector<double> > _S, _S_uncertainty;  
 
   protected:
     orsa::Cache<unsigned int> _sample_points;

@@ -8,55 +8,55 @@ namespace orsa {
   
   class Angle {
   public:
-    Angle() : _rad(zero()) { }
+    Angle() : _rad(0) { }
   public:
-    Angle(const orsa::Double & x) : _rad(x) { }
+    Angle(const double & x) : _rad(x) { }
       
   public:
-    void  setRad(const orsa::Double &);
-    const orsa::Double & getRad(orsa::Double &) const;
-    const orsa::Double & getRad() const;
+    void  setRad(const double &);
+    const double & getRad(double &) const;
+    const double & getRad() const;
     //
-    void setDPS(const orsa::Double & d, 
-		const orsa::Double & p, 
-		const orsa::Double & s, 
+    void setDPS(const double & d, 
+		const double & p, 
+		const double & s, 
 		const int sign = 1);
     
-    void getDPS(orsa::Double & d, 
-		orsa::Double & p, 
-		orsa::Double & s, 
+    void getDPS(double & d, 
+		double & p, 
+		double & s, 
 		int & sign) const;
     //
-    void setHMS(const orsa::Double & h, 
-		const orsa::Double & m, 
-		const orsa::Double & s, 
+    void setHMS(const double & h, 
+		const double & m, 
+		const double & s, 
 		const int sign = 1);
    
-    void getHMS(orsa::Double & h, 
-		orsa::Double & m, 
-		orsa::Double & s,
+    void getHMS(double & h, 
+		double & m, 
+		double & s,
 		int & sign) const;
     
   private:
     int check_sign(int sign);
     
   private:
-    orsa::Double _rad;
+    double _rad;
   };
   
-  inline orsa::Double sin(const Angle & alpha) {
+  inline double sin(const Angle & alpha) {
     return orsa::sin(alpha.getRad());
   }
   
-  inline orsa::Double cos(const Angle & alpha) {
+  inline double cos(const Angle & alpha) {
     return orsa::cos(alpha.getRad());
   }
   
-  inline orsa::Double tan(const Angle & alpha) {
+  inline double tan(const Angle & alpha) {
     return orsa::tan(alpha.getRad());
   }
   
-  inline void sincos(const Angle & alpha, orsa::Double & s, orsa::Double & c) {
+  inline void sincos(const Angle & alpha, double & s, double & c) {
     orsa::sincos(alpha.getRad(),s,c); 
   }
   

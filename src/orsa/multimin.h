@@ -39,13 +39,13 @@ namespace orsa {
     
   public:
     //! returns the index
-    unsigned int insert(const orsa::Double & initialValue,
-			const orsa::Double & step);
+    unsigned int insert(const double & initialValue,
+			const double & step);
   public:
     //! returns the index
     unsigned int insert(const  std::string & name,
-			const orsa::Double & initialValue,
-			const orsa::Double & step);
+			const double & initialValue,
+			const double & step);
   public:
     void clear();
   public:
@@ -53,33 +53,33 @@ namespace orsa {
     std::string   name(const unsigned int  index) const;
   public:
     bool set(const std::string  & name,
-	     const orsa::Double & value);
+	     const double & value);
     bool set(const unsigned int   index,
-	     const orsa::Double & value);
+	     const double & value);
   public:
     bool setRange(const std::string  & name,
-		  const orsa::Double & min,
-		  const orsa::Double & max);
+		  const double & min,
+		  const double & max);
     bool setRange(const unsigned int index,
-		  const orsa::Double & min,
-		  const orsa::Double & max);
+		  const double & min,
+		  const double & max);
   protected:
     void setInRange(const std::string & name);
     void setInRange(const unsigned int index);
   public:
-    const Double & get(const std::string & name) const;
-    const Double & get(const unsigned int index) const;
+    const double & get(const std::string & name) const;
+    const double & get(const unsigned int index) const;
   public:
     bool haveRange(const std::string & name) const;
     bool haveRange(const unsigned int index) const;
   public:
-    const Double & getRangeMin(const std::string & name) const;
-    const Double & getRangeMax(const std::string & name) const;
-    const Double & getRangeMin(const unsigned int index) const;
-    const Double & getRangeMax(const unsigned int index) const;
+    const double & getRangeMin(const std::string & name) const;
+    const double & getRangeMax(const std::string & name) const;
+    const double & getRangeMin(const unsigned int index) const;
+    const double & getRangeMax(const unsigned int index) const;
   public:
-    const Double & getStep(const std::string & name) const;
-    const Double & getStep(const unsigned int index) const;
+    const double & getStep(const std::string & name) const;
+    const double & getStep(const unsigned int index) const;
   public:
     unsigned int size() const {
       return _data.size();
@@ -88,10 +88,10 @@ namespace orsa {
     class NVS {
     public:
       std::string  name;
-      orsa::Double value;
-      orsa::Double step;
+      double value;
+      double step;
       //
-      orsa::Cache<orsa::Double> min, max;
+      orsa::Cache<double> min, max;
     };
   private: 
     typedef std::vector<NVS> dataType;
@@ -112,7 +112,7 @@ namespace orsa {
   /* 
      class MultiminVariable : public osg::Referenced {
      public:	
-     MultiminVariable(const orsa::Double * variable,
+     MultiminVariable(const double * variable,
      const unsigned int parameters_index) : 
      osg::Referenced(),
      parametersIndex(parameters_index),
@@ -121,7 +121,7 @@ namespace orsa {
      ~MultiminVariable() { }
      protected:
      const unsigned int parametersIndex;
-     const orsa::Double * var;
+     const double * var;
      };
   */
   
@@ -146,10 +146,10 @@ namespace orsa {
     virtual ~Multimin();
     
   public:
-    virtual orsa::Double fun(const orsa::MultiminParameters *) const = 0;
+    virtual double fun(const orsa::MultiminParameters *) const = 0;
     
   protected:
-    orsa::Double __fun__(const gsl_vector *,
+    double __fun__(const gsl_vector *,
 			 const orsa::MultiminParameters *,
 			 const bool verbose = false) const;
     
@@ -182,7 +182,7 @@ namespace orsa {
 				       const orsa::MultiminParameters * par) {
       for (unsigned int k=0; k<par->size(); ++k) {
 	if (par->haveRange(k)) {
-	  const Double xVal = gsl_vector_get(parameters,k);
+	  const double xVal = gsl_vector_get(parameters,k);
 	  if (xVal < par->getRangeMin(k)) {
 	    return true;
 	  }
@@ -195,14 +195,14 @@ namespace orsa {
     }
     
   public:
-    static Double _diff_two_points_(const Double & y_m,
-				    const Double & y_p);
+    static double _diff_two_points_(const double & y_m,
+				    const double & y_p);
     
   public:
-    static Double _diff_five_points_(const Double & y_mm,
-				     const Double & y_m,
-				     const Double & y_p,
-				     const Double & y_pp);
+    static double _diff_five_points_(const double & y_mm,
+				     const double & y_m,
+				     const double & y_p,
+				     const double & y_pp);
     
   public:
     bool run_nmsimplex(const unsigned int maxIter = 4096,

@@ -36,7 +36,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
     _body_mass_or_number_changed(bg,start);
     niter = 6;
   } else {
-    orsa::Double m;
+    double m;
     BodyGroup::BodyList::const_iterator bl_it = bl.begin();
     while (bl_it != bl.end()) {
       if (!bg->getInterpolatedMass(m,(*bl_it).get(),start)) {
@@ -172,7 +172,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	  
 	  if (b->getPaulMoment()) {
 	  
-	    orsa::Double m;
+	    double m;
 	    if (!bg->getInterpolatedMass(m,b,start)) {
 	      ORSA_DEBUG("problems...");
 	    }	
@@ -331,18 +331,18 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
   // ORSA_DEBUG("--MARK--");
   
   // orsa::Vector tmp,gk;
-  // Double q1,q2,q3,q4,q5,q6,q7;
+  // double q1,q2,q3,q4,q5,q6,q7;
   
   // unsigned int main_loop_counter;
   
   for (unsigned int main_loop_counter=0; main_loop_counter<niter; ++main_loop_counter) {
     
-    orsa::Double s[9];
+    double s[9];
     
     for(unsigned int j=1; j<8; ++j) {
       
       // s[0] = timestep * h[j];
-      s[0] = timestep.asDouble() * h[j];
+      s[0] = timestep.get_d() * h[j];
       s[1] = s[0] * s[0] * 0.5;
       s[2] = s[1] * h[j] * 0.3333333333333333;
       s[3] = s[2] * h[j] * 0.5;
@@ -494,7 +494,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
       /* 
 	 if (interaction->depends_on_velocity()) {	
 	 // s[0] = timestep * h[j];
-	 s[0] = timestep.GetDouble() * h[j];
+	 s[0] = timestep.Getdouble() * h[j];
 	 s[1] = s[0] * h[j] * 0.5;
 	 s[2] = s[1] * h[j] * 0.6666666666666667;
 	 s[3] = s[2] * h[j] * 0.75;
@@ -522,7 +522,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
       {
 	// if (bg->getInteraction()->dependsOnVelocity()) {	
 	
-	s[0] = timestep.asDouble() * h[j];
+	s[0] = timestep.get_d() * h[j];
 	s[1] = s[0] * h[j] * 0.5;
 	s[2] = s[1] * h[j] * 0.6666666666666667;
 	s[3] = s[2] * h[j] * 0.75;
@@ -606,7 +606,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 		  Q1Dot[k];
 		
 		// important constraint on qDot!
-		const orsa::Double delta = 
+		const double delta = 
 		  local_Q.getScalar()*tmp_QDot.getScalar() +
 		  local_Q.getVector()*tmp_QDot.getVector();
 		
@@ -635,7 +635,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 						       newOmega);
 		
 		// important constraint on qDot!
-		const orsa::Double finalDelta = 
+		const double finalDelta = 
 		  Q[k].getScalar()*QDot[k].getScalar() +
 		  Q[k].getVector()*QDot[k].getVector();	
 		// 
@@ -691,7 +691,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	    continue;
 	  }
 	  
-	  ibps.time = start + orsa::Time(FromUnits(h[j]*timestep.asDouble(),Unit::MICROSECOND,-1));
+	  ibps.time = start + orsa::Time(FromUnits(h[j]*timestep.get_d(),Unit::MICROSECOND,-1));
 	  
 	  if (!k->alive(ibps.time.getRef())) {
 	    ++bl_it;
@@ -725,7 +725,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	      Q[k] = unitQuaternion(Q[k]);
 	      
 	      // important constraint on qDot!
-	      const orsa::Double delta = 
+	      const double delta = 
 		Q[k].getScalar()*QDot[k].getScalar() +
 		Q[k].getVector()*QDot[k].getVector();
 	      //
@@ -772,7 +772,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	 bg->getInteraction()->acceleration(acc[(*bl_it).get()],  
 	 (*bl_it).get(),
 	 bg,
-	 start+orsa::Time(FromUnits(h[j]*timestep.asDouble(),Unit::MICROSECOND,-1)));
+	 start+orsa::Time(FromUnits(h[j]*timestep.get_d(),Unit::MICROSECOND,-1)));
 	 ++bl_it;
 	 }
 	 }
@@ -780,14 +780,14 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
       //
       if (!bg->getInteraction()->acceleration(acc,  
 					      bg,
-					      start+orsa::Time(FromUnits(h[j]*timestep.asDouble(),Unit::MICROSECOND,-1)))) {
+					      start+orsa::Time(FromUnits(h[j]*timestep.get_d(),Unit::MICROSECOND,-1)))) {
 	ORSA_DEBUG("problems...");
 	return false;
       }
       //
       if (!bg->getInteraction()->torque(torque,  
 					bg,
-					start+orsa::Time(FromUnits(h[j]*timestep.asDouble(),Unit::MICROSECOND,-1)))) {
+					start+orsa::Time(FromUnits(h[j]*timestep.get_d(),Unit::MICROSECOND,-1)))) {
 	ORSA_DEBUG("problems...");
 	return false;
       }
@@ -837,8 +837,8 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	      
 	      if (b->getPaulMoment()) {
 		
-		orsa::Double m;
-		if (!bg->getInterpolatedMass(m,b,start+orsa::Time(FromUnits(h[j]*timestep.asDouble(),Unit::MICROSECOND,-1)))) {
+		double m;
+		if (!bg->getInterpolatedMass(m,b,start+orsa::Time(FromUnits(h[j]*timestep.get_d(),Unit::MICROSECOND,-1)))) {
 		  ORSA_DEBUG("problems...");
 		}		
 		
@@ -849,7 +849,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 		// ORSA_DEBUG("CODE NEEDED HERE!!");
 		//
 		/* 
-		   orsa::Double localPhiDotDot, localThetaDotDot, localPsiDotDot;
+		   double localPhiDotDot, localThetaDotDot, localPsiDotDot;
 		   
 		   orsa::Euler(localPhiDotDot,
 		   localThetaDotDot,
@@ -874,16 +874,16 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 		//
 		{
 		  
-		  // const orsa::Matrix g2l = BodyAttitude((*bl_it).get(),bg).globalToLocal(start+orsa::Time(FromUnits(h[j]*timestep.asDouble(),Unit::MICROSECOND,-1)));
-		  // const orsa::Matrix l2g = BodyAttitude((*bl_it).get(),bg).localToGlobal(start+orsa::Time(FromUnits(h[j]*timestep.asDouble(),Unit::MICROSECOND,-1)));
+		  // const orsa::Matrix g2l = BodyAttitude((*bl_it).get(),bg).globalToLocal(start+orsa::Time(FromUnits(h[j]*timestep.get_d(),Unit::MICROSECOND,-1)));
+		  // const orsa::Matrix l2g = BodyAttitude((*bl_it).get(),bg).localToGlobal(start+orsa::Time(FromUnits(h[j]*timestep.get_d(),Unit::MICROSECOND,-1)));
 		  
 		  // osg::ref_ptr<orsa::Attitude> attitude = new orsa::BodyAttitude((*bl_it).get(),bg);
 		  
-		  // const orsa::Matrix g2l = attitude->globalToLocal(start+orsa::Time(FromUnits(h[j]*timestep.asDouble(),Unit::MICROSECOND,-1)));
-		  // const orsa::Matrix l2g = attitude->localToGlobal(start+orsa::Time(FromUnits(h[j]*timestep.asDouble(),Unit::MICROSECOND,-1)));
+		  // const orsa::Matrix g2l = attitude->globalToLocal(start+orsa::Time(FromUnits(h[j]*timestep.get_d(),Unit::MICROSECOND,-1)));
+		  // const orsa::Matrix l2g = attitude->localToGlobal(start+orsa::Time(FromUnits(h[j]*timestep.get_d(),Unit::MICROSECOND,-1)));
 		  
-		  const orsa::Matrix g2l = orsa::globalToLocal(b,bg,start+orsa::Time(FromUnits(h[j]*timestep.asDouble(),Unit::MICROSECOND,-1)));
-		  const orsa::Matrix l2g = orsa::localToGlobal(b,bg,start+orsa::Time(FromUnits(h[j]*timestep.asDouble(),Unit::MICROSECOND,-1)));
+		  const orsa::Matrix g2l = orsa::globalToLocal(b,bg,start+orsa::Time(FromUnits(h[j]*timestep.get_d(),Unit::MICROSECOND,-1)));
+		  const orsa::Matrix l2g = orsa::localToGlobal(b,bg,start+orsa::Time(FromUnits(h[j]*timestep.get_d(),Unit::MICROSECOND,-1)));
 		  
 		  const orsa::Vector omega = RotationalBodyProperty::omega(Q[k],QDot[k]);
 		  const orsa::Matrix I     = inertiaMoment;
@@ -915,7 +915,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
       
       orsa::Quaternion tmpQ, gkQ;
       orsa::Vector     tmpV, gkV;
-      orsa::Double     tmpD, gkD;
+      double     tmpD, gkD;
       
       switch (j) {
       case 1: 
@@ -1448,7 +1448,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
   // const orsa::Time timestep_done = timestep;
   
   // Estimate suitable sequence size for the next call
-  orsa::Double tmp = zero();
+  double tmp = 0;
   /* 
      for(k=0;k<nv;++k) {
      if (interaction->IsSkippingJPLPlanets() && frame_in[k/3].JPLPlanet() != NONE) continue;
@@ -1501,54 +1501,54 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
     }
   }
   
-  // ORSA_DEBUG("1: tmp: %Fg",tmp.get_mpf_t());
+  // ORSA_DEBUG("1: tmp: %Fg",tmp());
   
   // if (tmp!=0.0) tmp /= (72.0 * secure_pow(fabs(timestep),7));
-  // if (tmp!=0.0) tmp /= (72.0 * secure_pow(fabs(timestep.GetDouble()),7));
+  // if (tmp!=0.0) tmp /= (72.0 * secure_pow(fabs(timestep.Getdouble()),7));
   //
-  // if (tmp!=0.0) tmp /= (72.0 * pow(fabs(timestep.GetDouble()),7));
+  // if (tmp!=0.0) tmp /= (72.0 * pow(fabs(timestep.Getdouble()),7));
   //
-  if (tmp != zero()) tmp /= (Double("72.0") * int_pow(fabs(timestep.asDouble()),7));
+  if (tmp != 0) tmp /= (72*int_pow(fabs(timestep.get_d()),7));
   
-  // ORSA_DEBUG("2: tmp: %Fg",tmp.get_mpf_t());
+  // ORSA_DEBUG("2: tmp: %Fg",tmp());
   
   // if (tmp < 1.0e-50) { // is equal to zero?
   // if (tmp < epsilon()) { // is equal to zero?
-  if (tmp == zero()) {
+  if (tmp == 0) {
     // ORSA_DEBUG("zero test...");
     // timestep = timestep_done * 1.4;
-    next_timestep = orsa::Time(FromUnits(timestep.asDouble()*1.4,Unit::MICROSECOND,-1));
+    next_timestep = orsa::Time(FromUnits(timestep.get_d()*1.4,Unit::MICROSECOND,-1));
   } else {
     // old rule...
     // timestep = copysign(secure_pow(accuracy/tmp,0.1111111111111111),timestep_done); // 1/9=0.111...
-    // timestep = copysign(secure_pow(accuracy/tmp,0.1111111111111111),timestep_done.GetDouble()); // 1/9=0.111...
+    // timestep = copysign(secure_pow(accuracy/tmp,0.1111111111111111),timestep_done.Getdouble()); // 1/9=0.111...
     //
-    // timestep = copysign(pow(accuracy/tmp,0.1111111111111111),timestep_done.GetDouble()); // 1/9=0.111...
+    // timestep = copysign(pow(accuracy/tmp,0.1111111111111111),timestep_done.Getdouble()); // 1/9=0.111...
     //
     
-    next_timestep = orsa::Time(FromUnits(copysign(pow(_accuracy.getRef()/tmp, one()/Double("9.0")), timestep.asDouble()),Unit::MICROSECOND,-1)); // 1/9=0.111...
+    next_timestep = orsa::Time(FromUnits(copysign(pow(_accuracy.getRef()/tmp, 1.0/9.0), timestep.get_d()),Unit::MICROSECOND,-1)); // 1/9=0.111...
     
-    // next_timestep = orsa::Time(copysign(pow(_accuracy.getRef()/tmp, one()/Double("9.0")), FromUnits(timestep.asDouble(),Unit::MICROSECOND,-1))); // 1/9=0.111...
+    // next_timestep = orsa::Time(copysign(pow(_accuracy.getRef()/tmp, 1/double("9.0")), FromUnits(timestep.get_d(),Unit::MICROSECOND,-1))); // 1/9=0.111...
   }
   
   /* 
-     ORSA_DEBUG("proposed next_timestep: %Ff [day]     old timestep:  %Ff [day]",
-     FromUnits(FromUnits(next_timestep.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t(),
-     FromUnits(FromUnits(timestep.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t());
+     ORSA_DEBUG("proposed next_timestep: %f [day]     old timestep:  %f [day]",
+     FromUnits(FromUnits(next_timestep.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)(),
+     FromUnits(FromUnits(timestep.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)());
   */
   
   // check this only on "initialization" steps, i.e. when niter > 2
-  if ((niter > 2) && (fabs(next_timestep.asDouble()/timestep.asDouble()) < 1.0)) {
-    next_timestep = orsa::Time(FromUnits(timestep.asDouble()*0.8,Unit::MICROSECOND,-1));
-    // std::cerr << "Radau: step rejected! New proposed timestep: " << timestep.GetDouble() << std::endl;
+  if ((niter > 2) && (fabs(next_timestep.get_d()/timestep.get_d()) < 1.0)) {
+    next_timestep = orsa::Time(FromUnits(timestep.get_d()*0.8,Unit::MICROSECOND,-1));
+    // std::cerr << "Radau: step rejected! New proposed timestep: " << timestep.Getdouble() << std::endl;
     // frame_out = frame_in;
     _lastCallRejected = true;
     // niter = 6;
     // std::cerr << "[rej]" << std::endl;
     
     /* 
-       ORSA_DEBUG("REJECTED, next_timestep: %20.12Ff [day]",
-       FromUnits(FromUnits(next_timestep.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1).get_mpf_t());
+       ORSA_DEBUG("REJECTED, next_timestep: %20.12f [day]",
+       FromUnits(FromUnits(next_timestep.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)());
     */
     
     // ORSA_DEBUG("done.");
@@ -1560,15 +1560,15 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
     _lastCallRejected = false;
   }
   
-  if (fabs(timestep.asDouble()/timestep.asDouble()) > 1.4) {
+  if (fabs(timestep.get_d()/timestep.get_d()) > 1.4) {
     // timestep = timestep_done * 1.4;
-    next_timestep = orsa::Time(FromUnits(timestep.asDouble()*1.4,Unit::MICROSECOND,-1));
+    next_timestep = orsa::Time(FromUnits(timestep.get_d()*1.4,Unit::MICROSECOND,-1));
   }
   
-  // std::cerr << "RA15: new timestep: " << timestep.GetDouble() << std::endl;
+  // std::cerr << "RA15: new timestep: " << timestep.Getdouble() << std::endl;
   
   // Find new position and velocity values at end of the sequence
-  tmp = timestep.asDouble() * timestep.asDouble();
+  tmp = timestep.get_d() * timestep.get_d();
   //
   /* 
      for(k=0;k<nv;++k) {
@@ -1581,7 +1581,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
      xc[3]*b[2][k] + 
      xc[2]*b[1][k] + 
      xc[1]*b[0][k] + 
-     xc[0]*a1[k]   ) * tmp + v1[k]*timestep_done.GetDouble() + x1[k];
+     xc[0]*a1[k]   ) * tmp + v1[k]*timestep_done.Getdouble() + x1[k];
      
      v1[k] = ( vc[6]*b[6][k] + 
      vc[5]*b[5][k] + 
@@ -1590,7 +1590,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
      vc[2]*b[2][k] + 
      vc[1]*b[1][k] +
      vc[0]*b[0][k] + 
-     a1[k])        * timestep_done.GetDouble() + v1[k];
+     a1[k])        * timestep_done.Getdouble() + v1[k];
      }
   */
   //
@@ -1618,7 +1618,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 		    xc[3]*b[2][k] + 
 		    xc[2]*b[1][k] + 
 		    xc[1]*b[0][k] + 
-		    xc[0]*a1[k]) * tmp + v1[k]*timestep.asDouble() + x1[k];
+		    xc[0]*a1[k]) * tmp + v1[k]*timestep.get_d() + x1[k];
 	  
 	  v1[k] = ( vc[6]*b[6][k] + 
 		    vc[5]*b[5][k] + 
@@ -1627,7 +1627,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 		    vc[2]*b[2][k] + 
 		    vc[1]*b[1][k] +
 		    vc[0]*b[0][k] + 
-		    a1[k]) * timestep.asDouble() + v1[k];
+		    a1[k]) * timestep.get_d() + v1[k];
 	}
       }
       
@@ -1642,7 +1642,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	     xc[3]*bPhi[2][k] + 
 	     xc[2]*bPhi[1][k] + 
 	     xc[1]*bPhi[0][k] + 
-	     xc[0]*phi1DotDot[k]) * tmp + phi1Dot[k]*timestep.asDouble() + phi1[k];
+	     xc[0]*phi1DotDot[k]) * tmp + phi1Dot[k]*timestep.get_d() + phi1[k];
 	  */
 	  //
 	  /* 
@@ -1653,7 +1653,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	     xc[3]*bQ[2][k] + 
 	     xc[2]*bQ[1][k] + 
 	     xc[1]*bQ[0][k] + 
-	     xc[0]*Q1DotDot[k]) * tmp + Q1Dot[k]*timestep.asDouble() + Q1[k];
+	     xc[0]*Q1DotDot[k]) * tmp + Q1Dot[k]*timestep.get_d() + Q1[k];
 	  */
 	  
 	  // dot
@@ -1666,7 +1666,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	     vc[2]*bPhi[2][k] + 
 	     vc[1]*bPhi[1][k] +
 	     vc[0]*bPhi[0][k] + 
-	     phi1DotDot[k]) * timestep.asDouble() + phi1Dot[k];
+	     phi1DotDot[k]) * timestep.get_d() + phi1Dot[k];
 	  */
 	  //
 	  /* 
@@ -1677,7 +1677,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	     vc[2]*bQ[2][k] + 
 	     vc[1]*bQ[1][k] +
 	     vc[0]*bQ[0][k] + 
-	     Q1DotDot[k]) * timestep.asDouble() + Q1Dot[k];
+	     Q1DotDot[k]) * timestep.get_d() + Q1Dot[k];
 	  */
 	  //
 	  {
@@ -1690,7 +1690,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 		      xc[2]*bQ[1][k] + 
 		      xc[1]*bQ[0][k] + 
 		      xc[0]*Q1DotDot[k]) * tmp + 
-	      // Q1Dot[k]*timestep.asDouble() +
+	      // Q1Dot[k]*timestep.get_d() +
 	      Q1[k];
 	    
 	    const orsa::Quaternion local_Q1       = unitQuaternion(Q1[k]);
@@ -1698,7 +1698,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	    const orsa::Quaternion tmp_Q1Dot      = Q1Dot[k];
 	
 	    // important constraint on qDot!
-	    const orsa::Double delta = 
+	    const double delta = 
 	      local_Q1.getScalar()*tmp_Q1Dot.getScalar() +
 	      local_Q1.getVector()*tmp_Q1Dot.getVector();
 	    
@@ -1736,7 +1736,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 						    newOmega);
 	    
 	    // important constraint on qDot!
-	    const orsa::Double finalDelta = 
+	    const double finalDelta = 
 	      Q1[k].getScalar()*Q1Dot[k].getScalar() +
 	      Q1[k].getVector()*Q1Dot[k].getVector();	
 	    // 
@@ -1825,7 +1825,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	  Q1[k] = unitQuaternion(Q1[k]);
 	  
 	  // important constraint on qDot!
-	  const orsa::Double delta = 
+	  const double delta = 
 	    Q1[k].getScalar()*Q1Dot[k].getScalar() +
 	    Q1[k].getVector()*Q1Dot[k].getVector();
 	  //
@@ -1863,9 +1863,9 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
   // values from the last call are saved as E. The correction, BD, between the
   // actual and predicted values of B is applied in advance as a correction.
   //
-  Double q1,q2,q3,q4,q5,q6,q7;
+  double q1,q2,q3,q4,q5,q6,q7;
   //
-  q1 = next_timestep.asDouble() / timestep.asDouble();
+  q1 = next_timestep.get_d() / timestep.get_d();
   q2 = q1 * q1;
   q3 = q1 * q2;
   q4 = q2 * q2;
@@ -2003,9 +2003,9 @@ void IntegratorRadau::_init() {
   
   progressiveCleaningSteps = 32;
   
-  _accuracy.set(orsa::Double("1.0e-8"));
+  _accuracy.set(1.0e-8);
   
-  // for h and xc should use higher accuracy, since the Double class has arbitrary precision!
+  // for h and xc should use higher accuracy, since the double class has arbitrary precision!
   
   h[0] = 0.0;
   h[1] = 0.05626256053692215;
@@ -2156,7 +2156,7 @@ void IntegratorRadau::_body_mass_or_number_changed(orsa::BodyGroup  * bg,
   
   {   
     mass.clear();
-    orsa::Double m;
+    double m;
     const BodyGroup::BodyList & bl = bg->getBodyList();
     BodyGroup::BodyList::const_iterator bl_it = bl.begin();
     while (bl_it != bl.end()) {

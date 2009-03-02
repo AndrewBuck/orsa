@@ -15,7 +15,7 @@ namespace orsaInputOutput {
   public:
     orsa::Orbit orbit;
     orsa::Time  epoch;
-    orsa::Double H;
+    double H;
     std::string designation;
   };
   

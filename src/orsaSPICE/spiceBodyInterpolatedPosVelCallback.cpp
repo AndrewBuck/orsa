@@ -21,7 +21,7 @@ using namespace orsaSPICE;
    trv.tmp = false;
    orsa::Time t = start;
    while (t <= stop) {
-   // ORSA_DEBUG("t: %Ff",t.asDouble().get_mpf_t());
+   // ORSA_DEBUG("t: %f",t.get_d());
    trv.t = t;
    SPICE::instance()->getPosVel(name,
    t,

@@ -53,9 +53,9 @@ bool MPCObsCodeFile::processLine(const char * line) {
   
   Observatory workObs;
   
-  if (s_longitude.size()) workObs.lon = degToRad() * Double(s_longitude);
-  if (s_pos_xy.size())    workObs.pxy = FromUnits(Double(s_pos_xy), Unit::REARTH);
-  if (s_pos_z.size())     workObs.pz  = FromUnits(Double(s_pos_z),  Unit::REARTH);
+  if (s_longitude.size()) workObs.lon = degToRad() * atof(s_longitude.c_str());
+  if (s_pos_xy.size())    workObs.pxy = FromUnits(atof(s_pos_xy.c_str()), Unit::REARTH);
+  if (s_pos_z.size())     workObs.pz  = FromUnits(atof(s_pos_z.c_str()),  Unit::REARTH);
   
   workObs.name = s_name;
   

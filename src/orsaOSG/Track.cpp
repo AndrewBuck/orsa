@@ -216,8 +216,8 @@ void TrackFillThread::run() {
 	 //
 	 trackVector.push_back(tmpTrackElement);
 	 
-	 ORSA_DEBUG("tmpTrackElement.r: %Ff",
-	 tmpTrackElement.r.length().get_mpf_t());
+	 ORSA_DEBUG("tmpTrackElement.r: %f",
+	 tmpTrackElement.r.length());
 	 
 	 } else {
 	 ORSA_DEBUG("problems...");

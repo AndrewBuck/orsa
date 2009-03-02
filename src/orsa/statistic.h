@@ -38,7 +38,7 @@ namespace orsa {
   public:
     T average() const {
       // return (_s/(T)_n);
-      return (_s/_n);
+      return (_s/_n.get_d());
     }
   public:
     T variance() const {
@@ -50,7 +50,7 @@ namespace orsa {
 	// expecially when the inserted values are almost constant,
 	// so that the difference (_s2/_n - _a*_a) can be negative
 	// at the limit of the precision/roundoff errors...
-	return fabs((_n/(_n-1))*(_s2/_n - _a*_a));
+	return fabs(mpz_class(_n/(_n-1)).get_d()*(_s2/_n.get_d() - _a*_a));
       } else {
 	return 0;
       }
@@ -63,7 +63,7 @@ namespace orsa {
     //! Error of the average, i.e. average() +/- averageError()
     T averageError() const {
       // return sqrt(variance()/(T)_n);
-      return sqrt(variance()/_n);
+      return sqrt(variance()/_n.get_d());
     }
   public:
     const mpz_class & entries() const {

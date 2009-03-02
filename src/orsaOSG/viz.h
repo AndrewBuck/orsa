@@ -20,7 +20,7 @@ namespace orsaOSG {
   class Viz : public osg::Referenced {
   public:
     Viz(orsa::BodyGroup *, 
-	const orsa::Double & timeMultiplier = 1.0);
+	const double & timeMultiplier = 1.0);
   protected:
     virtual ~Viz() { }
   public:
@@ -31,7 +31,7 @@ namespace orsaOSG {
     osg::Group * oldCode();
   protected:
     osg::ref_ptr<orsa::BodyGroup> _bg;
-    const orsa::Double _timeMultiplier;
+    const double _timeMultiplier;
     
   public:
     osg::PositionAttitudeTransform * getBodyPositionTransform(const orsa::Body * b) const {

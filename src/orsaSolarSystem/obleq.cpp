@@ -6,31 +6,31 @@
 using namespace orsa;
 using namespace orsaSolarSystem;
 
-orsa::Double orsaSolarSystem::obleq(const orsa::Time & t) {
+double orsaSolarSystem::obleq(const orsa::Time & t) {
   // T in centuries from J2000 
   // const double T = (d.GetJulian() - 2451545.0)/36525.0;
   // DOUBLE-CHECK this "UT"!!!
   // Time J2000; J2000.setJ2000();
-  const Double T = FromUnits((t - J2000()).asDouble(),Unit::YEAR,-1)/36525.0;
-  // Double a;
+  const double T = FromUnits((t - J2000()).get_d(),Unit::YEAR,-1)/36525.0;
+  // double a;
   // updated Feb 2004
   // a.SetDPS(23,26,21.448+((0.001813*T-0.00059)*T-46.8150)*T);
   //
-  const Double oneOverSixty = one()/Double("60.0");
-  const Double obleqDEG = (23+oneOverSixty*(26+oneOverSixty*(21.448+((0.001813*T-0.00059)*T-46.8150)*T)));
+  const double oneOverSixty = 1.0/60.0;
+  const double obleqDEG = (23+oneOverSixty*(26+oneOverSixty*(21.448+((0.001813*T-0.00059)*T-46.8150)*T)));
   //
   /* 
-     ORSA_DEBUG("T: %Ff   obleq: %Ff [deg]",
-     T.get_mpf_t(),
-     obleqDEG.get_mpf_t());
+     ORSA_DEBUG("T: %f   obleq: %f [deg]",
+     T(),
+     obleqDEG());
   */
   //
   // return (degToRad()*(23+oneOverSixty*(26+oneOverSixty*(21.448+((0.001813*T-0.00059)*T-46.8150)*T))));
   return (degToRad()*obleqDEG);
 }
 
-orsa::Double orsaSolarSystem::obleqJ2000() {
-  static Double _obleqJ2000;
+double orsaSolarSystem::obleqJ2000() {
+  static double _obleqJ2000;
   static unsigned int old_prec = 0;
   if (old_prec != mpf_get_default_prec()) {
     // Time J2000; J2000.setJ2000();
