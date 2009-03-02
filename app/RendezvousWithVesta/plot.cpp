@@ -65,7 +65,7 @@ void PlotFillThread::run() {
 	
 	const orsa::Vector dr = rDAWN-rVesta;
 	
-	// xData[k] = FromUnits((t-t_start).asDouble(),orsa::Unit::SECOND,-1).get_d();
+	// xData[k] = FromUnits((t-t_start).get_d(),orsa::Unit::SECOND,-1);
 	// tmpData.t = t-t_start;
 	tmpData.t = t;
 	
@@ -92,12 +92,12 @@ void PlotFillThread::run() {
 	    tmpData.vesta_profile = intersectionPoint.length();
 	  } else {
 	    ORSA_DEBUG("problems...");
-	    tmpData.vesta_profile = orsa::zero();
+	    tmpData.vesta_profile = 0;
 	  }
 	  
 	} else {
-	  tmpData.sphere_radius = orsa::zero();
-	  tmpData.vesta_profile = orsa::zero();
+	  tmpData.sphere_radius = 0;
+	  tmpData.vesta_profile = 0;
 	}
 	
 	// q,a,Q
@@ -107,13 +107,13 @@ void PlotFillThread::run() {
 			    vesta.get(),
 			    _bg.get(),
 			    t)) {
-	    tmpData.q = orbit.a * (orsa::one()-orbit.e);
+	    tmpData.q = orbit.a * (1-orbit.e);
 	    tmpData.a = orbit.a;
-	    tmpData.Q = orbit.a * (orsa::one()+orbit.e);
+	    tmpData.Q = orbit.a * (1+orbit.e);
 	  } else {
-	    tmpData.q = orsa::zero();
-	    tmpData.a = orsa::zero();
-	    tmpData.Q = orsa::zero();
+	    tmpData.q = 0;
+	    tmpData.a = 0;
+	    tmpData.Q = 0;
 	  }	      
 	}
 	
@@ -337,7 +337,7 @@ VestaPlot::VestaPlot(orsa::BodyGroup        * bg,
    
    orsa::Time t_start, t_stop;
    _bg->getGlobalInterval(t_start,t_stop,false);
-   marker->setValue(FromUnits((t-t_start).asDouble(),orsa::Unit::SECOND,-1).get_d(), 
+   marker->setValue(FromUnits((t-t_start).get_d(),orsa::Unit::SECOND,-1), 
    0.0);
    
    _lastSimulationTime = t;
@@ -363,7 +363,7 @@ void VestaPlot::moveAltitudeCurve(const orsa::Time & t) {
   double xData[2];
   double yData[2];
   
-  xData[0] = xData[1] = FromUnits((t-t_start).asDouble(),orsa::Unit::SECOND,-1).get_d();
+  xData[0] = xData[1] = FromUnits((t-t_start).get_d(),orsa::Unit::SECOND,-1);
   
   plotFillThread->dataMutex.lock();
   //
@@ -376,22 +376,22 @@ void VestaPlot::moveAltitudeCurve(const orsa::Time & t) {
       
       /* 
 	 ORSA_DEBUG("t: %Ff   min().t: %Ff   max().t: %Ff   size: %i",
-	 t.asDouble().get_mpf_t(),
-	 plotFillThread->data->min().t.asDouble().get_mpf_t(),
-	 plotFillThread->data->max().t.asDouble().get_mpf_t(),
+	 t.get_d().get_mpf_t(),
+	 plotFillThread->data->min().t.get_d().get_mpf_t(),
+	 plotFillThread->data->max().t.get_d().get_mpf_t(),
 	 plotFillThread->data->size());
       */
       
       if (t < plotFillThread->data->min().t) {
 	yData[0] = FromUnits(plotFillThread->data->min().vesta_profile,
-			     orsa::Unit::KM,-1).get_d();
+			     orsa::Unit::KM,-1);
 	yData[1] = FromUnits(plotFillThread->data->min().distance,
-			     orsa::Unit::KM,-1).get_d();
+			     orsa::Unit::KM,-1);
       } else if (t > plotFillThread->data->max().t) {
        	yData[0] = FromUnits(plotFillThread->data->max().vesta_profile,
-			     orsa::Unit::KM,-1).get_d();
+			     orsa::Unit::KM,-1);
 	yData[1] = FromUnits(plotFillThread->data->max().distance,
-			     orsa::Unit::KM,-1).get_d();
+			     orsa::Unit::KM,-1);
       } else {
 	
       	PlotData pd, pdMin, pdMax;
@@ -407,28 +407,28 @@ void VestaPlot::moveAltitudeCurve(const orsa::Time & t) {
 	  
 	  /* 
 	     ORSA_DEBUG("t: %Ff   pdMin.t: %Ff   pdMax.t: %Ff   size: %i",
-	     t.asDouble().get_mpf_t(),
-	     pdMin.t.asDouble().get_mpf_t(),
-	     pdMax.t.asDouble().get_mpf_t(),
+	     t.get_d().get_mpf_t(),
+	     pdMin.t.get_d().get_mpf_t(),
+	     pdMax.t.get_d().get_mpf_t(),
 	     plotFillThread->data->size());
 	  */
 	  
 	  const double yDistanceLeft  = FromUnits(pdMin.distance,
-						  orsa::Unit::KM,-1).get_d();
+						  orsa::Unit::KM,-1);
 	  const double yDistanceRight = FromUnits(pdMax.distance,
-						  orsa::Unit::KM,-1).get_d();
+						  orsa::Unit::KM,-1);
 	  
 	  const double yProfileLeft   = FromUnits(pdMin.vesta_profile,
-						  orsa::Unit::KM,-1).get_d();
+						  orsa::Unit::KM,-1);
 	  const double yProfileRight  = FromUnits(pdMax.vesta_profile,
-						  orsa::Unit::KM,-1).get_d();
+						  orsa::Unit::KM,-1);
 	  
 	  const double left_t_k = 
-	    FromUnits((pdMin.t-t_start).asDouble(),
-		      orsa::Unit::SECOND,-1).get_d();
+	    FromUnits((pdMin.t-t_start).get_d(),
+		      orsa::Unit::SECOND,-1);
 	  const double right_t_k = 
-	    FromUnits((pdMax.t-t_start).asDouble(),
-		      orsa::Unit::SECOND,-1).get_d();
+	    FromUnits((pdMax.t-t_start).get_d(),
+		      orsa::Unit::SECOND,-1);
 	  
 	  const double beta = (xData[0]-left_t_k)/(right_t_k-left_t_k);
 	  
@@ -444,18 +444,18 @@ void VestaPlot::moveAltitudeCurve(const orsa::Time & t) {
 	  
 	} else {
 	  yData[0] = FromUnits(pdMin.vesta_profile,
-			       orsa::Unit::KM,-1).get_d();
+			       orsa::Unit::KM,-1);
 	  yData[1] = FromUnits(pdMin.distance,
-			       orsa::Unit::KM,-1).get_d();
+			       orsa::Unit::KM,-1);
 	}
 	
       }
       
     } else if (vSize == 1) {
       yData[0] = FromUnits(plotFillThread->data->min().vesta_profile,
-			   orsa::Unit::KM,-1).get_d();
+			   orsa::Unit::KM,-1);
       yData[1] = FromUnits(plotFillThread->data->min().distance,
-			   orsa::Unit::KM,-1).get_d();
+			   orsa::Unit::KM,-1);
     } else {
       // vSize == 0;
       yData[0] = yData[1] = 0.0;
@@ -525,22 +525,22 @@ void VestaPlot::plotFill() {
   
   /* 
      for (unsigned int k=0; k<vSize; ++k) {
-     xData[k]               = FromUnits(((plotFillThread->data->getData())[k].t-t_start).asDouble(),
-     orsa::Unit::SECOND,-1).get_d();
+     xData[k]               = FromUnits(((plotFillThread->data->getData())[k].t-t_start).get_d(),
+     orsa::Unit::SECOND,-1);
      
      yData_distance[k]      = FromUnits((plotFillThread->data->getData())[k].distance,
-     orsa::Unit::KM,-1).get_d();
+     orsa::Unit::KM,-1);
      yData_sphere_radius[k] = FromUnits((plotFillThread->data->getData())[k].sphere_radius,
-     orsa::Unit::KM,-1).get_d();
+     orsa::Unit::KM,-1);
      yData_vesta_profile[k] = FromUnits((plotFillThread->data->getData())[k].vesta_profile,
-     orsa::Unit::KM,-1).get_d();
+     orsa::Unit::KM,-1);
      
      yData_q[k] = FromUnits((plotFillThread->data->getData())[k].q,
-     orsa::Unit::KM,-1).get_d();
+     orsa::Unit::KM,-1);
      yData_a[k] = FromUnits((plotFillThread->data->getData())[k].a,
-     orsa::Unit::KM,-1).get_d();
+     orsa::Unit::KM,-1);
      yData_Q[k] = FromUnits((plotFillThread->data->getData())[k].Q,
-     orsa::Unit::KM,-1).get_d();
+     orsa::Unit::KM,-1);
      }
   */
   
@@ -548,22 +548,22 @@ void VestaPlot::plotFill() {
   while (it != plotFillThread->data->getData().end()) {
     const PlotData & pd = (*it);
      
-    xData.push_back(FromUnits((pd.t-t_start).asDouble(),
-			      orsa::Unit::SECOND,-1).get_d());
+    xData.push_back(FromUnits((pd.t-t_start).get_d(),
+			      orsa::Unit::SECOND,-1));
     
     yData_distance.push_back(FromUnits(pd.distance,
-				       orsa::Unit::KM,-1).get_d());
+				       orsa::Unit::KM,-1));
     yData_sphere_radius.push_back(FromUnits(pd.sphere_radius,
-					    orsa::Unit::KM,-1).get_d());
+					    orsa::Unit::KM,-1));
     yData_vesta_profile.push_back(FromUnits(pd.vesta_profile,
-					    orsa::Unit::KM,-1).get_d());
+					    orsa::Unit::KM,-1));
     
     yData_q.push_back(FromUnits(pd.q,
-				orsa::Unit::KM,-1).get_d());
+				orsa::Unit::KM,-1));
     yData_a.push_back(FromUnits(pd.a,
-				orsa::Unit::KM,-1).get_d());
+				orsa::Unit::KM,-1));
     yData_Q.push_back(FromUnits(pd.Q,
-				orsa::Unit::KM,-1).get_d());
+				orsa::Unit::KM,-1));
     ++it;
   }
   

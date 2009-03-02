@@ -20,8 +20,8 @@
 class PlotData {
  public:
   orsa::Time   t;
-  orsa::Double distance, sphere_radius, vesta_profile;
-  orsa::Double q, a, Q;
+  double distance, sphere_radius, vesta_profile;
+  double q, a, Q;
  public:
   inline bool operator == (const PlotData & rhs) const {
     return (t == rhs.t);

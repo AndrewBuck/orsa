@@ -7,13 +7,13 @@
 
 class MultiminPhase : public orsa::Multimin {
  public:
-  orsa::Double fun(const orsa::MultiminParameters * par) const;
+  double fun(const orsa::MultiminParameters * par) const;
  public:
-  orsa::Double getAlpha(const orsa::Double & phaseAngle,
-			const orsa::Vector & uSun,
-			const orsa::Vector & uInclination);
+  double getAlpha(const double & phaseAngle,
+		  const orsa::Vector & uSun,
+		  const orsa::Vector & uInclination);
  protected:
-  orsa::Cache<orsa::Double> phi;
+  orsa::Cache<double> phi;
   orsa::Cache<orsa::Vector> uS, uI;  
 };
 

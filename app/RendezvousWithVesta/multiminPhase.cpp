@@ -7,23 +7,23 @@
 
 using namespace orsa;
 
-orsa::Double MultiminPhase::fun(const orsa::MultiminParameters * par) const {
+double MultiminPhase::fun(const orsa::MultiminParameters * par) const {
   
   if (0) {
     // debug output 
     for (unsigned int k=0; k<par->size(); ++k) {
-      ORSA_DEBUG("par[%02i] = [%20s] = %18.8Fg   step: %18.8Fg",
+      ORSA_DEBUG("par[%02i] = [%20s] = %18.8g   step: %18.8g",
 		 k,
 		 par->name(k).c_str(),
-		 par->get(k).get_mpf_t(),
-		 par->getStep(k).get_mpf_t());
+		 par->get(k),
+		 par->getStep(k));
     }
   }
   
   Matrix m = Matrix::identity();
   m.rotZ(par->get("alpha"));
   
-  const orsa::Double retVal = fabs(phi.getRef() - 
+  const double retVal = fabs(phi.getRef() - 
 				   fabs(acos((m*uI.getRef()).normalized() * uS.getRef())-halfpi()));
   
   // ORSA_DEBUG("fun: %Fg",retVal.get_mpf_t());
@@ -31,9 +31,9 @@ orsa::Double MultiminPhase::fun(const orsa::MultiminParameters * par) const {
   return retVal;
 }
 
-orsa::Double MultiminPhase::getAlpha(const orsa::Double & phaseAngle,
-				     const orsa::Vector & uSun,
-				     const orsa::Vector & uInclination) {
+double MultiminPhase::getAlpha(const double       & phaseAngle,
+			       const orsa::Vector & uSun,
+			       const orsa::Vector & uInclination) {
   
   phi = std::min(phaseAngle,fabs(twopi()-phaseAngle));
   uS  = uSun.normalized();

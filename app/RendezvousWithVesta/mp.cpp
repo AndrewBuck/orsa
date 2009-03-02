@@ -7,7 +7,7 @@ int main() {
   osg::ref_ptr<Multipole> m = new Multipole(8);
   
   // we must assume a mean density for Vesta if we choose to use a Core/Mantle mass distribution
-  const Double meanDensity = FromUnits(FromUnits(3.8,Unit::GRAM),Unit::CM,-3);
+  const double meanDensity = FromUnits(FromUnits(3.8,Unit::GRAM),Unit::CM,-3);
   
   osg::ref_ptr<VestaShape> vestaShapeThomas = new VestaShape;
   if (!vestaShapeThomas->read("vesta_thomas.dat")) {
@@ -29,7 +29,7 @@ int main() {
   // CHOOSE (uncomment) shape here, and uncomment also the relative volume value
   //
   osg::ref_ptr<Shape> s = vestaShapeThomas.get();
-  const Double   volume = FromUnits(7.87e7,Unit::KM,3); 
+  const double   volume = FromUnits(7.87e7,Unit::KM,3); 
   //
   /* 
      osg::ref_ptr<Shape> s = vestaShapeEllipsoid.get();

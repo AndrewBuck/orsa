@@ -111,8 +111,8 @@ class ViewerQT : public osgViewer::Viewer, public AdapterWidget
 	    
 	    const double FOV = 45.0;
 	    
-	    const double nearClip = orsa::FromUnits(  1,orsa::Unit::METER).get_d();
-	    const double  farClip = orsa::FromUnits(1e3,orsa::Unit::AU).get_d();
+	    const double nearClip = orsa::FromUnits(  1,orsa::Unit::METER);
+	    const double  farClip = orsa::FromUnits(1e3,orsa::Unit::AU);
 	    //
 	    const double subRatio = 1e-3;
 	    
@@ -124,8 +124,8 @@ class ViewerQT : public osgViewer::Viewer, public AdapterWidget
 					osg::CullSettings::SMALL_FEATURE_CULLING);
 	    getCamera()->setProjectionMatrixAsPerspective(FOV, 
 							  static_cast<double>(width())/static_cast<double>(height()), 
-							  orsa::FromUnits(  1,orsa::Unit::METER).get_d(), 
-							  orsa::FromUnits(1e3,orsa::Unit::AU).get_d());
+							  orsa::FromUnits(  1,orsa::Unit::METER), 
+							  orsa::FromUnits(1e3,orsa::Unit::AU));
 	    
 	    setThreadingModel(osgViewer::Viewer::SingleThreaded);
 	    

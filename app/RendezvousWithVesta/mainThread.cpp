@@ -50,9 +50,9 @@ void CustomIntegrator::singleStepDone(orsa::BodyGroup  *,
     // ORSA_DEBUG("p: %i",p);
     emit progress(p);
     
-    ORSA_DEBUG("progress: %.6Ff \%",
-	       Double((100*((t+call_dt)-mainThread->orbitEpoch.getRef()).getMuSec()) /
-		      mainThread->runDuration.getRef().getMuSec()).get_mpf_t());
+    ORSA_DEBUG("progress: %.6f \%",
+	       ((100*((t+call_dt)-mainThread->orbitEpoch.getRef()).getMuSec().get_d()) /
+		mainThread->runDuration.getRef().getMuSec().get_d()));
   }
 }
 
@@ -124,8 +124,8 @@ void MainThread::run() {
   {
     sun->setName("SUN");
     //
-    // sun->setMass(FromUnits(one(),Unit::MSUN));
-    // sun->setMass(zero());
+    // sun->setMass(FromUnits(1,Unit::MSUN));
+    // sun->setMass(0);
     //
     sun->isLightSource = true;
     //
@@ -158,11 +158,11 @@ void MainThread::run() {
        trv.t,
        trv.r,
        trv.v);
-       ORSA_DEBUG("sSs: %Ff %Ff %Ff %Ff",
-       julianTime(t).get_mpf_t(),
-       trv.r.getX().get_mpf_t(),
-       trv.r.getY().get_mpf_t(),
-       trv.r.getZ().get_mpf_t());
+       ORSA_DEBUG("sSs: %f %f %f %f",
+       julianTime(t),
+       trv.r.getX(),
+       trv.r.getY(),
+       trv.r.getZ());
        t += dt;
        }
        }
@@ -172,7 +172,7 @@ void MainThread::run() {
       SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(sun->getName());
       // sbpvc->setBodyName(sun->getName());
       orsa::IBPS ibps;
-      ibps.inertial = new ConstantMassBodyProperty(FromUnits(one(),Unit::MSUN));
+      ibps.inertial = new ConstantMassBodyProperty(FromUnits(1,Unit::MSUN));
       ibps.translational = sbpvc;
       sun->setInitialConditions(ibps);
     } else {
@@ -446,7 +446,7 @@ void MainThread::run() {
     
     // alternative to Multipole: PaulMoment
     {
-      osg::ref_ptr<PaulMoment> pm = new PaulMoment(4);
+      osg::ref_ptr<PaulMoment> pm = new PaulMoment(2);
       
 #warning "code needed here, for mass distribution..."
       // implement this later...
@@ -489,7 +489,7 @@ void MainThread::run() {
   osg::ref_ptr<Body> dawn = new Body;
   {
 
-    Double alpha = zero();
+    double alpha = 0;
     //
     // computations for the phase
     {
@@ -513,8 +513,8 @@ void MainThread::run() {
 	const orsa::Matrix g2l = orsa::globalToLocal(vesta.get(),bg.get(),orbitEpoch.getRef());
 	
 	const Vector uVesta2Sun_local = (g2l*(rSun-rVesta).normalized()).normalized();
-
-	const Double uSun_z = uVesta2Sun_local.getZ();
+	
+	// const double uSun_z = uVesta2Sun_local.getZ();
 	
 	// initial rotation, to align the local X axis with the Sun
 	// alpha = atan2(uVesta2Sun_local.getY(),uVesta2Sun_local.getX());
@@ -522,79 +522,79 @@ void MainThread::run() {
 	// should check globally for 0 <= i <= 180
 	/*
 	   {
-	   const Double si = sin(orbitInclination.getRef());
-	   if (si != zero()) {
-	   const Double dAlpha = asin(uSun_z/si);
+	   const double si = sin(orbitInclination.getRef());
+	   if (si != 0) {
+	   const double dAlpha = asin(uSun_z/si);
 	   alpha += dAlpha;
-	   ORSA_DEBUG("dAlpha: %Ff",
-	   Double(radToDeg()*dAlpha).get_mpf_t());
+	   ORSA_DEBUG("dAlpha: %f",
+	   double(radToDeg()*dAlpha));
 	   }
 	   }
 	*/
 
 	/*
-	   ORSA_DEBUG("initial alpha: %Ff",
-	   Double(radToDeg()*alpha).get_mpf_t());
+	   ORSA_DEBUG("initial alpha: %f",
+	   double(radToDeg()*alpha));
 	*/
 
 	/*
 	// to cross-check...
-	const Double beta   = acos(uSun_z);
-	// const Double phiMin = fabs(beta-orbitInclination.getRef());
-	// const Double phiMax = fabs(beta+orbitInclination.getRef());
-	const Double phiMin = fabs(halfpi()-fabs(beta+orbitInclination.getRef()));
-	const Double phiMax = fabs(halfpi()-fabs(beta-orbitInclination.getRef()));
+	const double beta   = acos(uSun_z);
+	// const double phiMin = fabs(beta-orbitInclination.getRef());
+	// const double phiMax = fabs(beta+orbitInclination.getRef());
+	const double phiMin = fabs(halfpi()-fabs(beta+orbitInclination.getRef()));
+	const double phiMax = fabs(halfpi()-fabs(beta-orbitInclination.getRef()));
 
-	ORSA_DEBUG("beta: %Ff",
-		   Double(radToDeg()*beta).get_mpf_t());
+	ORSA_DEBUG("beta: %f",
+		   double(radToDeg()*beta));
 
-	ORSA_DEBUG("phase range: %Ff to %Ff",
-		   Double(radToDeg()*phiMin).get_mpf_t(),
-		   Double(radToDeg()*phiMax).get_mpf_t());
+	ORSA_DEBUG("phase range: %f to %f",
+		   double(radToDeg()*phiMin),
+		   double(radToDeg()*phiMax));
 	*/
 
-	// const Double i_z = cos(orbitInclination.getRef());
+	// const double i_z = cos(orbitInclination.getRef());
 
 	/*
-	   const Vector uI = orsa::Vector(sqrt(one()-i_z*i_z)*sin(alpha),
-	   -sqrt(one()-i_z*i_z)*cos(alpha),
+	   const Vector uI = orsa::Vector(sqrt(1-i_z*i_z)*sin(alpha),
+	   -sqrt(1-i_z*i_z)*cos(alpha),
 	   i_z).normalized();
 
-	   const Double zProduct = i_z*uSun_z;
+	   const double zProduct = i_z*uSun_z;
 
-	   const Double scalarProduct = uVesta2Sun_local * uI;
+	   const double scalarProduct = uVesta2Sun_local * uI;
 
-	   // ORSA_DEBUG("zProduct: %Ff",zProduct.get_mpf_t());
+	   // ORSA_DEBUG("zProduct: %f",zProduct);
 
-	   Double tmpArg;
-	   if (scalarProduct > zero()) {
+	   double tmpArg;
+	   if (scalarProduct > 0) {
 	   sin(orbitPhase.getRef())-zProduct;
 	   } else {
 	   -sin(orbitPhase.getRef())-zProduct;
 	   }
-	   const Double arg = tmpArg;
+	   const double arg = tmpArg;
 	*/
 
 	/*
 	   if (orbitPhase.getRef() < phiMin) {
-	   ORSA_WARNING("phase angle requested [%Ff] smaller than minimum admissible value [%Ff]",
-	   Double(radToDeg()*orbitPhase.getRef()).get_mpf_t(),
-	   Double(radToDeg()*phiMin).get_mpf_t());
-	   alpha += zero();
+	   ORSA_WARNING("phase angle requested [%f] smaller than minimum admissible value [%f]",
+	   double(radToDeg()*orbitPhase.getRef()),
+	   double(radToDeg()*phiMin));
+	   alpha += 0;
 	   } else if (orbitPhase.getRef() > phiMax) {
-	   ORSA_WARNING("phase angle requested [%Ff] bigger than minimum admissible value [%Ff]",
-	   Double(radToDeg()*orbitPhase.getRef()).get_mpf_t(),
-	   Double(radToDeg()*phiMax).get_mpf_t());
+	   ORSA_WARNING("phase angle requested [%f] bigger than minimum admissible value [%f]",
+	   double(radToDeg()*orbitPhase.getRef()),
+	   double(radToDeg()*phiMax));
 	   alpha += pi();
 	   } else {
 	   osg::ref_ptr<MultiminPhase> mmp = new MultiminPhase;
-	   const Double mmpAlpha = mmp->getAlpha(orbitPhase.getRef(),
+	   const double mmpAlpha = mmp->getAlpha(orbitPhase.getRef(),
 	   uVesta2Sun_local,
-	   orsa::Vector(zero(),
-	   -sqrt(one()-i_z*i_z),
+	   orsa::Vector(0,
+	   -sqrt(1-i_z*i_z),
 	   i_z));
-	   ORSA_DEBUG("mmpAlpha: %Ff",
-	   Double(radToDeg()*mmpAlpha).get_mpf_t());
+	   ORSA_DEBUG("mmpAlpha: %f",
+	   double(radToDeg()*mmpAlpha));
 	   alpha += mmpAlpha;
 	   }
 	*/
@@ -602,42 +602,42 @@ void MainThread::run() {
 	{
 	  // let's just call this in any case...
 
-	  const Double i_z = cos(orbitInclination.getRef());
+	  const double i_z = cos(orbitInclination.getRef());
 	  osg::ref_ptr<MultiminPhase> mmp = new MultiminPhase;
-	  const Double mmpAlpha = mmp->getAlpha(fmod(fmod(orbitPhase.getRef(),twopi())+twopi(),twopi()),
+	  const double mmpAlpha = mmp->getAlpha(fmod(fmod(orbitPhase.getRef(),twopi())+twopi(),twopi()),
 						uVesta2Sun_local,
-						orsa::Vector(zero(),
-							     -sqrt(one()-i_z*i_z),
+						orsa::Vector(0,
+							     -sqrt(1-i_z*i_z),
 							     i_z));
 	  alpha = mmpAlpha;
 	}
 
 	/*
-	   if ((fabs(uSun_z) < one()) &&
-	   (fabs(i_z)    < one())) {
-	   const Double finalArg = arg/(sqrt(one()-i_z*i_z)*sqrt(one()-uSun_z*uSun_z));
-	   ORSA_DEBUG("arg: %Ff   finalArg: %Ff",
-	   arg.get_mpf_t(),
-	   finalArg.get_mpf_t());
-	   if (finalArg > one()) {
-	   ORSA_WARNING("phase angle requested [%Ff] smaller than minimum admissible value [%Ff]",
-	   Double(radToDeg()*orbitPhase.getRef()).get_mpf_t(),
-	   Double(radToDeg()*phiMin).get_mpf_t());
-	   alpha += zero();
-	   } else if (finalArg < (-one())) {
-	   ORSA_WARNING("phase angle requested [%Ff] bigger than minimum admissible value [%Ff]",
-	   Double(radToDeg()*orbitPhase.getRef()).get_mpf_t(),
-	   Double(radToDeg()*phiMax).get_mpf_t());
+	   if ((fabs(uSun_z) < 1) &&
+	   (fabs(i_z)    < 1)) {
+	   const double finalArg = arg/(sqrt(1-i_z*i_z)*sqrt(1-uSun_z*uSun_z));
+	   ORSA_DEBUG("arg: %f   finalArg: %f",
+	   arg,
+	   finalArg);
+	   if (finalArg > 1) {
+	   ORSA_WARNING("phase angle requested [%f] smaller than minimum admissible value [%f]",
+	   double(radToDeg()*orbitPhase.getRef()),
+	   double(radToDeg()*phiMin));
+	   alpha += 0;
+	   } else if (finalArg < (-1)) {
+	   ORSA_WARNING("phase angle requested [%f] bigger than minimum admissible value [%f]",
+	   double(radToDeg()*orbitPhase.getRef()),
+	   double(radToDeg()*phiMax));
 	   alpha += pi();
 	   } else {
 	   osg::ref_ptr<MultiminPhase> mmp = new MultiminPhase;
-	   const Double mmpAlpha = mmp->getAlpha(orbitPhase.getRef(),
+	   const double mmpAlpha = mmp->getAlpha(orbitPhase.getRef(),
 	   uVesta2Sun_local,
-	   orsa::Vector(zero(),
-	   -sqrt(one()-i_z*i_z),
+	   orsa::Vector(0,
+	   -sqrt(1-i_z*i_z),
 	   i_z));
-	   ORSA_DEBUG("mmpAlpha: %Ff",
-	   Double(radToDeg()*mmpAlpha).get_mpf_t());
+	   ORSA_DEBUG("mmpAlpha: %f",
+	   double(radToDeg()*mmpAlpha));
 	   alpha += mmpAlpha;
 	   }
 	   } else {
@@ -645,16 +645,16 @@ void MainThread::run() {
 	   // no matter what we do, the phase is fixed,
 	   // because either uVesta2Sun_local or the orbit pole
 	   // is aligned along the local Z axis.
-	   ORSA_WARNING("phase angle locked at [%Ff]",
-	   Double(radToDeg()*phiMin).get_mpf_t());
-	   alpha += zero();
+	   ORSA_WARNING("phase angle locked at [%f]",
+	   double(radToDeg()*phiMin));
+	   alpha += 0;
 	   }
 	*/
 
 	/*
-	   const Double beta   = acos(uVesta2Sun_local.getZ());
-	   const Double phiMin = fabs(beta-orbitInclination.getRef());
-	   const Double phiMax = fabs(beta+orbitInclination.getRef());
+	   const double beta   = acos(uVesta2Sun_local.getZ());
+	   const double phiMin = fabs(beta-orbitInclination.getRef());
+	   const double phiMax = fabs(beta+orbitInclination.getRef());
 
 	   if (orbitPhase.getRef() < phiMin) {
 	   ORSA_WARNING("");
@@ -669,12 +669,12 @@ void MainThread::run() {
     }
 
     /*
-       ORSA_DEBUG("final alpha: %Ff",
-       Double(radToDeg()*alpha).get_mpf_t());
+       ORSA_DEBUG("final alpha: %f",
+       double(radToDeg()*alpha));
     */
 
     dawn->setName("DAWN");
-    // dawn->setMass(zero());
+    // dawn->setMass(0);
     //
     // osg::ref_ptr<orsa::BodyInitialConditions> dawn_bic = new orsa::BodyInitialConditions;
     IBPS ibps;
@@ -683,16 +683,16 @@ void MainThread::run() {
     //
     orbit.mu = orsa::Unit::instance()->getG() * vestaMass.getRef();
     orbit.a  = orbitRadius.getRef();
-    orbit.e  = zero();
+    orbit.e  = 0;
     orbit.i  = orbitInclination.getRef();
     orbit.omega_node       = alpha;
-    orbit.omega_pericenter = zero();
-    orbit.M                = zero();
+    orbit.omega_pericenter = 0;
+    orbit.M                = 0;
     //
     orsa::Vector rOrbit, vOrbit;
     orbit.relativePosVel(rOrbit,vOrbit);
     
-    ORSA_DEBUG("rOrbit: %.20Fe",rOrbit.length().get_mpf_t());
+    ORSA_DEBUG("rOrbit: %.20e",rOrbit.length());
     
     // ORSA_DEBUG("rotate for attitude! (and phase?)");
     {
@@ -704,12 +704,12 @@ void MainThread::run() {
       
       const orsa::Matrix l2g = orsa::localToGlobal(vesta.get(),bg.get(),orbitEpoch.getRef());
       
-      // ORSA_DEBUG("l2g.getM11(): %Fe",l2g.getM11().get_mpf_t());
+      // ORSA_DEBUG("l2g.getM11(): %e",l2g.getM11());
       
       rOrbit = l2g * rOrbit;
       vOrbit = l2g * vOrbit;
 
-      ORSA_DEBUG("rOrbit: %.20Fe",rOrbit.length().get_mpf_t());
+      ORSA_DEBUG("rOrbit: %.20e",rOrbit.length());
     }
     
     {
@@ -751,7 +751,7 @@ void MainThread::run() {
     {
       osg::ref_ptr<PaulMoment> dummy_pm = new PaulMoment(0);
       //
-      dummy_pm->setM(one(),0,0,0);
+      dummy_pm->setM(1,0,0,0);
       dummy_pm->setCenterOfMass(orsa::Vector(0,0,0));
       dummy_pm->setInertiaMoment(orsa::Matrix::identity());
       //
@@ -759,13 +759,13 @@ void MainThread::run() {
     }
     
     // test
-    ORSA_DEBUG("========= DAWN time: %.6Ff",ibps.time.getRef().asDouble().get_mpf_t());
+    ORSA_DEBUG("========= DAWN time: %.6f",ibps.time.getRef().get_d());
     
     bg->addBody(dawn.get());
     
     // test
-    ORSA_DEBUG("========= DAWN time: %.6Ff",
-	       dawn->getInitialConditions().time.getRef().asDouble().get_mpf_t());
+    ORSA_DEBUG("========= DAWN time: %.6f",
+	       dawn->getInitialConditions().time.getRef().get_d());
     
   }
   
@@ -791,8 +791,8 @@ void MainThread::run() {
   
   
   // test
-  ORSA_DEBUG("========= DAWN time: %.6Ff",
-	     dawn->getInitialConditions().time.getRef().asDouble().get_mpf_t());
+  ORSA_DEBUG("========= DAWN time: %.6f",
+	     dawn->getInitialConditions().time.getRef().get_d());
   
   emit progress(0);
   //
@@ -859,7 +859,7 @@ void MainThread::run() {
 
 	  const Time localTime = t + (k*samplingPeriod)/(n-1);
 
-	  // ORSA_DEBUG("localTime: %Ff",localTime.asDouble().get_mpf_t());
+	  // ORSA_DEBUG("localTime: %f",localTime.get_d());
 
 	  epochs[k] = SPICE::SPICETime(localTime);
 
@@ -881,29 +881,29 @@ void MainThread::run() {
 	    dr  = rDAWN-rVesta;
 	    dv  = vDAWN-vVesta;
 
-	    states[k][0] = FromUnits(dr.getX(),Unit::KM,-1).get_d();
-	    states[k][1] = FromUnits(dr.getY(),Unit::KM,-1).get_d();
-	    states[k][2] = FromUnits(dr.getZ(),Unit::KM,-1).get_d();
+	    states[k][0] = FromUnits(dr.getX(),Unit::KM,-1);
+	    states[k][1] = FromUnits(dr.getY(),Unit::KM,-1);
+	    states[k][2] = FromUnits(dr.getZ(),Unit::KM,-1);
 	    //
-	    states[k][3] = FromUnits(FromUnits(dv.getX(),Unit::KM,-1),Unit::SECOND).get_d();
-	    states[k][4] = FromUnits(FromUnits(dv.getY(),Unit::KM,-1),Unit::SECOND).get_d();
-	    states[k][5] = FromUnits(FromUnits(dv.getZ(),Unit::KM,-1),Unit::SECOND).get_d();
+	    states[k][3] = FromUnits(FromUnits(dv.getX(),Unit::KM,-1),Unit::SECOND);
+	    states[k][4] = FromUnits(FromUnits(dv.getY(),Unit::KM,-1),Unit::SECOND);
+	    states[k][5] = FromUnits(FromUnits(dv.getZ(),Unit::KM,-1),Unit::SECOND);
 
 	  } else {
-	    ORSA_WARNING("problems, t: %Ff",
-			 orsa::FromUnits(FromUnits(localTime.getMuSec(),
+	    ORSA_WARNING("problems, t: %f",
+			 orsa::FromUnits(FromUnits(localTime.getMuSec().get_d(),
 						   orsa::Unit::MICROSECOND),
-					 orsa::Unit::DAY,-1).get_mpf_t());
+					 orsa::Unit::DAY,-1));
 	  }
-
+	  
 	}
-
+	
 	char segmentID[1024];
 	sprintf(segmentID,"segment.%i",count);
-
+	
 	SpiceInt body = -203;
 	SpiceInt center = 2000004;
-
+	
 	SPICE::instance()->lock();
 	spkw13_c(handle,
 		 body,
@@ -936,7 +936,7 @@ void MainThread::run() {
       osg::ref_ptr<Body> dawnSPICE = new Body;
       {
 	dawnSPICE->setName("DAWN");
-	// dawnSPICE->setMass(zero());
+	// dawnSPICE->setMass(0);
 	//
 	if (accurateSPICE) {
 	  SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(dawnSPICE->getName());
@@ -963,8 +963,8 @@ void MainThread::run() {
       const int randomSeed = 3242234;
 
       const unsigned int maxTrials = 32;
-      const orsa::Double minJulian = timeToJulian(orbitEpoch.getRef());
-      const orsa::Double maxJulian = timeToJulian(orbitEpoch.getRef()+runDuration.getRef()).get_d();
+      const double minJulian = timeToJulian(orbitEpoch.getRef());
+      const double maxJulian = timeToJulian(orbitEpoch.getRef()+runDuration.getRef());
 
       // GSL rng init
       gsl_rng * rnd = gsl_rng_alloc(gsl_rng_gfsr4);
@@ -981,8 +981,8 @@ void MainThread::run() {
 	// const Time t = orbitEpoch.getRef();
 
 	/*
-	   ORSA_DEBUG("t: %Ff",
-	   julianTime(t).get_mpf_t());
+	   ORSA_DEBUG("t: %f",
+	   julianTime(t));
 	*/
 
 	if (bg->getInterpolatedPosVel(rDAWN,
@@ -997,10 +997,10 @@ void MainThread::run() {
 	  dv  = vDAWN-vDAWNSPICE;
 
 	  /*
-	     ORSA_DEBUG("dr: %Ff [km]",
-	     FromUnits(dr.length(),Unit::KM,-1).get_mpf_t());
-	     ORSA_DEBUG("dv: %Ff [km/s]",
-	     FromUnits(FromUnits(dr.length(),Unit::KM,-1),Unit::SECOND).get_mpf_t());
+	     ORSA_DEBUG("dr: %f [km]",
+	     FromUnits(dr.length(),Unit::KM,-1));
+	     ORSA_DEBUG("dv: %f [km/s]",
+	     FromUnits(FromUnits(dr.length(),Unit::KM,-1),Unit::SECOND));
 	  */
 
 	}
@@ -1073,8 +1073,8 @@ void MainThread::run() {
 	  // pole, in global coordinates, unitary vector
 	  uPole = externalProduct(dru,dvu).normalized();
 	  //
-	  const Double orbitPhaseAngle = fabs(halfpi() - acos(uPole*(rSun-rVesta).normalized()));
-	  const Double realPhaseAngle  = acos(dru*(rSun-rVesta).normalized());
+	  const double orbitPhaseAngle = fabs(halfpi() - acos(uPole*(rSun-rVesta).normalized()));
+	  const double realPhaseAngle  = acos(dru*(rSun-rVesta).normalized());
 
 
 	  {
@@ -1089,7 +1089,7 @@ void MainThread::run() {
 	    dvu = (g2l * dvu).normalized();
 	  }
 	  
-	  orsa::Double vestaMass_t;
+	  double vestaMass_t;
 	  if (!bg->getInterpolatedMass(vestaMass_t,vesta.get(),t)) {
 	    ORSA_DEBUG("problems...");
 	  } 
@@ -1098,21 +1098,21 @@ void MainThread::run() {
 	  orbit.compute(dr,
 			dv,
 			orsa::Unit::instance()->getG() * vestaMass_t);
-	  const Double latitude  = halfpi() - acos(dru.getZ());
-	  const Double longitude = fmod(twopi() + atan2(dru.getY(),dru.getX()),twopi());
+	  const double latitude  = halfpi() - acos(dru.getZ());
+	  const double longitude = fmod(twopi() + atan2(dru.getY(),dru.getX()),twopi());
 	  // if (realPhaseAngle < halfpi()) {
 	  gmp_fprintf(fp,
-		      "%15.5Ff %14.3Ff %12.3Ff %10.6Ff %10.6Ff %10.6Ff %10.6Ff %+10.6Ff %10.6Ff %12.3Ff\n",
-		      timeToJulian(t).get_mpf_t(),
-		      FromUnits((t-orbitEpoch.getRef()).asDouble(),Unit::SECOND,-1).get_mpf_t(),
-		      FromUnits(orbit.a,Unit::KM,-1).get_mpf_t(),
-		      orbit.e.get_mpf_t(),
-		      Double(radToDeg()*orbit.i).get_mpf_t(),
-		      Double(radToDeg()*orbitPhaseAngle).get_mpf_t(),
-		      Double(radToDeg()*realPhaseAngle).get_mpf_t(),
-		      Double(radToDeg()*latitude).get_mpf_t(),
-		      Double(radToDeg()*longitude).get_mpf_t(),
-		      FromUnits(dr.length(),Unit::KM,-1).get_mpf_t());
+		      "%15.5f %14.3f %12.3f %10.6f %10.6f %10.6f %10.6f %+10.6f %10.6f %12.3f\n",
+		      timeToJulian(t),
+		      FromUnits((t-orbitEpoch.getRef()).get_d(),Unit::SECOND,-1),
+		      FromUnits(orbit.a,Unit::KM,-1),
+		      orbit.e,
+		      radToDeg()*orbit.i,
+		      radToDeg()*orbitPhaseAngle,
+		      radToDeg()*realPhaseAngle,
+		      radToDeg()*latitude,
+		      radToDeg()*longitude,
+		      FromUnits(dr.length(),Unit::KM,-1));
 	  // }
 	}
 	t += samplingPeriod;
@@ -1120,7 +1120,7 @@ void MainThread::run() {
       fclose(fp);
     }
   }
-
+  
   // cannot unload kernels if I'm using OpenGL visualization
   /*
      SPICE::instance()->unloadKernel("de405.bsp");

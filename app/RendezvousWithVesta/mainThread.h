@@ -60,17 +60,17 @@ class MainThread : public QThread {
   void reset();
 
  public:
-  orsa::Cache<orsa::Double> vestaMass;
+  orsa::Cache<double> vestaMass;
   orsa::Cache<ComboMassDistribution::MassDistributionType> vestaMassDistribution;
   orsa::Cache<ComboShapeModel::ShapeModelType>             vestaShapeModel;
-  orsa::Cache<orsa::Double> vestaPeriod;
-  orsa::Cache<orsa::Double> vestaPoleEclipticLatitude;
-  orsa::Cache<orsa::Double> vestaPoleEclipticLongitude;
+  orsa::Cache<double> vestaPeriod;
+  orsa::Cache<double> vestaPoleEclipticLatitude;
+  orsa::Cache<double> vestaPoleEclipticLongitude;
  public:
   orsa::Cache<orsa::Time>   orbitEpoch;
-  orsa::Cache<orsa::Double> orbitRadius;
-  orsa::Cache<orsa::Double> orbitInclination;
-  orsa::Cache<orsa::Double> orbitPhase;
+  orsa::Cache<double> orbitRadius;
+  orsa::Cache<double> orbitInclination;
+  orsa::Cache<double> orbitPhase;
  public:
   orsa::Cache<orsa::Time>   runDuration;
   orsa::Cache<std::string>  outputSPICEFile;
