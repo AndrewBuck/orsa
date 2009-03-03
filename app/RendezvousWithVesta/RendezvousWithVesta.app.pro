@@ -18,7 +18,10 @@ OBJECTS_DIR = .obj/$${PLATFORM_NAME}
 DESTDIR     = ../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
-	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -losg -losgText -losgGA -losgViewer -ltbb -ltbbmalloc
+	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -losg -losgText -losgGA -losgViewer
+	!isEmpty(USE_TBB_BASE) {
+		LIBS += -ltbb -ltbbmalloc
+	}
 }
 
 macx {
