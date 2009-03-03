@@ -23,7 +23,7 @@ namespace orsaOSG {
   public:    
     AnimationTime(orsa::BodyGroup * bg) : 
       QObject(),
-      osg::Referenced(),
+      osg::Referenced(true),
       _bg(bg) { 
       
       _timeMultiplier = 1;

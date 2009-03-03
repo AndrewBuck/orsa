@@ -840,7 +840,7 @@ OrbitProxy::OrbitProxy(const orsa::Body   * b,
 		       orsa::BodyGroup    * bg,
 		       const double       & accuracy,
 		       const orsa::Time   & maxPeriod) :
-  osg::Referenced(),
+  osg::Referenced(true),
   _b(b),
   _bg(bg),
   _accuracy(accuracy),

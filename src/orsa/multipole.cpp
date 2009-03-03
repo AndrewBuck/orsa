@@ -16,11 +16,11 @@
 
 using namespace orsa;
 
-Multipole::Multipole() : osg::Referenced() {
+Multipole::Multipole() : osg::Referenced(true) {
   _shape = 0;
 }
 
-Multipole::Multipole(const unsigned int order) : osg::Referenced() {
+Multipole::Multipole(const unsigned int order) : osg::Referenced(true) {
   _shape = 0;
   _massDistribution = new UniformMassDistribution;
   _order.set(order);

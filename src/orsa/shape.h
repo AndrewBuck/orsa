@@ -16,7 +16,7 @@ namespace orsa {
   class Shape : public osg::Referenced {
     
   public:
-    Shape() : Referenced() { }
+    Shape() : Referenced(true) { }
   protected:
     virtual ~Shape() { }
     

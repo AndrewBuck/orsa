@@ -15,7 +15,7 @@ namespace orsaSolarSystem {
   
   class Observation : public osg::Referenced {
   public:
-    Observation() : Referenced() { }
+    Observation() : Referenced(true) { }
   protected:
     virtual ~Observation() { }
     
@@ -30,7 +30,7 @@ namespace orsaSolarSystem {
   
   class RadarObservation : public osg::Referenced {
   public:
-    RadarObservation() : Referenced() { }
+    RadarObservation() : Referenced(true) { }
   protected:
     virtual ~RadarObservation() { }
     // TO BE CONTINUED...

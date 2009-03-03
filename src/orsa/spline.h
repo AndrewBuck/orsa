@@ -14,7 +14,7 @@ namespace orsa {
   //! p position, v velocity at times t0 and t1
   template <class T> class PhysicalSpline : public osg::Referenced {
   public:
-    PhysicalSpline() : Referenced(), _set(false) { }
+    PhysicalSpline() : Referenced(true), _set(false) { }
   protected:
     ~PhysicalSpline() { }
     

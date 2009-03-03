@@ -76,7 +76,7 @@ protected:
 
 Viz::Viz(orsa::BodyGroup * bg, 
 	 const double & timeMultiplier) :
-  osg::Referenced(),
+  osg::Referenced(true),
   _bg(bg),
   _timeMultiplier(timeMultiplier) { }
 
@@ -804,7 +804,6 @@ osg::Group * Viz::createRoot() {
     osg::PositionAttitudeTransform * positionTransform = new osg::PositionAttitudeTransform;
     
     positionTransform->setUpdateCallback(new orsaOSG::CenterOfMassPositionCallback(_bg.get(),
-										   (*_b_it).get(),
 										   _at.get()));
     positionTransform->addChild(centerOfMassGroup);
     

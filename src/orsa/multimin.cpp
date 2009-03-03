@@ -43,7 +43,7 @@ void orsa::multimin_global_fdf_gsl(const gsl_vector * v,
 
 // MultiminParameters
 
-MultiminParameters::MultiminParameters() : Referenced() { } 
+MultiminParameters::MultiminParameters() : Referenced(true) { } 
 
 MultiminParameters::~MultiminParameters() { }
 
@@ -313,7 +313,7 @@ bool orsa::operator != (const MultiminParameters & p1,
 
 // Multimin
 
-Multimin::Multimin() : Referenced() { }
+Multimin::Multimin() : Referenced(true) { }
 
 Multimin::~Multimin() { }
 

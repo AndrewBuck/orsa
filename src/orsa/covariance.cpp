@@ -2,6 +2,6 @@
 
 using namespace orsa;
 
-Covariance::Covariance() : Referenced() { }
+Covariance::Covariance() : Referenced(true) { }
 
 Covariance::~Covariance() { }

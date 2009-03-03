@@ -26,7 +26,7 @@ namespace orsaInputOutput {
     };
     
   public:
-    File() : Referenced() { }
+    File() : Referenced(true) { }
       
   protected:
     virtual ~File() { }
@@ -308,7 +308,7 @@ namespace orsaInputOutput {
   template <class T, class D> class InputFile : public osg::Referenced {
     
   public:
-    InputFile() : osg::Referenced() {
+    InputFile() : osg::Referenced(true) {
       _lineLength.set(1024);
       _file = new T;
       dataInit();

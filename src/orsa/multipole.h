@@ -16,7 +16,7 @@ namespace orsa {
   
   class MassDistribution : public osg::Referenced {
   public:
-    MassDistribution() : osg::Referenced() { }
+    MassDistribution() : osg::Referenced(true) { }
   protected:
     virtual ~MassDistribution() { }
   public:

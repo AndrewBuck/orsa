@@ -109,22 +109,6 @@ namespace orsa {
   bool operator != (const MultiminParameters &, 
 		    const MultiminParameters &);
   
-  /* 
-     class MultiminVariable : public osg::Referenced {
-     public:	
-     MultiminVariable(const double * variable,
-     const unsigned int parameters_index) : 
-     osg::Referenced(),
-     parametersIndex(parameters_index),
-     var(variable) { }
-     protected:
-     ~MultiminVariable() { }
-     protected:
-     const unsigned int parametersIndex;
-     const double * var;
-     };
-  */
-  
   // trick, using the glue...
   double multimin_global_f_gsl(const gsl_vector * v, 
 			       void *);

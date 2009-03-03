@@ -44,7 +44,7 @@ int orsa::multifit_global_fdf_gsl (const gsl_vector * v,
 
 // MultifitParameters
 
-MultifitParameters::MultifitParameters() : Referenced() { } 
+MultifitParameters::MultifitParameters() : Referenced(true) { } 
 
 MultifitParameters::~MultifitParameters() { }
 
@@ -227,7 +227,7 @@ bool orsa::operator != (const MultifitParameters & p1,
 
 // MultifitData
 
-MultifitData::MultifitData() : Referenced() { } 
+MultifitData::MultifitData() : Referenced(true) { } 
 
 MultifitData::~MultifitData() { }
 
@@ -421,7 +421,7 @@ unsigned int MultifitData::vars() const {
 
 // Multifit
 
-Multifit::Multifit() : Referenced() { }
+Multifit::Multifit() : Referenced(true) { }
 
 Multifit::~Multifit() { }
 

@@ -14,7 +14,7 @@ namespace orsa {
   
   template <class T> class Statistic : public osg::Referenced {
   public:
-    Statistic() : Referenced() {
+    Statistic() : Referenced(true) {
       reset();
     }
   protected:
@@ -76,14 +76,14 @@ namespace orsa {
   
   template <class T> class RunningStatistic : public osg::Referenced {
   public:
-    RunningStatistic() : Referenced() {
+    RunningStatistic() : Referenced(true) {
       _v.resize(0);
       _loop_index = 0;
       _dirty = true;
       _stat = new Statistic<T>;
     }
   public:
-    RunningStatistic(const size_t s) : Referenced() {
+    RunningStatistic(const size_t s) : Referenced(true) {
       _v.resize(s);
       _loop_index = 0;
       _dirty = true;

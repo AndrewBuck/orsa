@@ -15,11 +15,9 @@ namespace orsaOSG {
   class CenterOfMassPositionCallback : public osg::NodeCallback {
   public:
     CenterOfMassPositionCallback(orsa::BodyGroup  * bg,
-				 const orsa::Body * b,
 				 orsaOSG::AnimationTime * at) : 
       osg::NodeCallback(),
       _bg(bg),
-      _b(b),
       _at(at) { }
   protected:
     ~CenterOfMassPositionCallback() { }
@@ -61,7 +59,6 @@ namespace orsaOSG {
     
   protected:    
     osg::ref_ptr<orsa::BodyGroup> _bg;
-    osg::ref_ptr<const orsa::Body> _b;
   protected:
     osg::ref_ptr<AnimationTime> _at;
   protected:

@@ -13,7 +13,7 @@ namespace orsa {
   
   class Slerp : public osg::Referenced {
   public:
-    Slerp() : Referenced(), _set(false) { }
+    Slerp() : Referenced(true), _set(false) { }
   protected:
     ~Slerp() { }
     

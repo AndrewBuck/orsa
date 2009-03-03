@@ -206,13 +206,6 @@ Body::Body() : osg::Referenced(true), _id(bodyID_counter++) {
   // ORSA_DEBUG("created body id: %i",id());
 }
 
-/* 
-   Body::Body(const Body &, const CopyOption) : osg::Referenced() {
-   _init();
-   // more code here...
-   }
-*/
-
 void Body::_init() {
   // _validBodyType = false;
   /* 
