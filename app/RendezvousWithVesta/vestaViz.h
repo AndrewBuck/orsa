@@ -111,10 +111,14 @@ class ViewerQT : public osgViewer::Viewer, public AdapterWidget
 	    
 	    const double FOV = 45.0;
 	    
-	    const double nearClip = orsa::FromUnits(  1,orsa::Unit::METER);
-	    const double  farClip = orsa::FromUnits(1e3,orsa::Unit::AU);
+	    /* const double nearClip = orsa::FromUnits(  1,orsa::Unit::METER);
+	       const double  farClip = orsa::FromUnits(1e3,orsa::Unit::AU);
+	    */
 	    //
-	    const double subRatio = 1e-3;
+	    const double nearClip = orsa::FromUnits(1e3,orsa::Unit::KM);
+	    const double  farClip = orsa::FromUnits(1e2,orsa::Unit::AU);
+	    //
+	    const double subRatio = 1e-5;
 	    
 	    // the main camera (getCamera()) controls the view, but does not render,
 	    // only the slave cameras render
