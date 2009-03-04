@@ -62,7 +62,7 @@ bool RWOFile::processLine(const char * line) {
   {
     int y, m; 
     double d;
-    gmp_sscanf(s_epoch.c_str(),"%d %d %f",&y,&m,&d);
+    gmp_sscanf(s_epoch.c_str(),"%d %d %lf",&y,&m,&d);
     // ORSA_DEBUG("d: %f",d());
     // ORSA_DEBUG("remember: UTC!!");
     workObs->epoch = 
@@ -76,7 +76,7 @@ bool RWOFile::processLine(const char * line) {
   {
     int h, m;
     double s;
-    gmp_sscanf(s_ra.c_str(),"%d %d %f",&h,&m,&s);
+    gmp_sscanf(s_ra.c_str(),"%d %d %lf",&h,&m,&s);
     Angle tmp; tmp.setHMS(h,m,s);
     workObs->ra = tmp;
     // ORSA_DEBUG("h: %i   m: %i   s: %f",h,m,s());
@@ -86,7 +86,7 @@ bool RWOFile::processLine(const char * line) {
     const int sign = s_decSign == "-" ? -1 : +1;
     int d, p;
     double s;
-    gmp_sscanf(s_dec.c_str(),"%d %d %f",&d,&p,&s);
+    gmp_sscanf(s_dec.c_str(),"%d %d %lf",&d,&p,&s);
     Angle tmp; tmp.setDPS(d,p,s,sign);
     workObs->dec = tmp;
   }

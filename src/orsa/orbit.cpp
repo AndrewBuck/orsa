@@ -599,7 +599,7 @@ bool orsa::MOID(double       & moid,
     M2   = multimin->getMultiminParameters()->get("M2");
     found=true;
     
-    ORSA_DEBUG("moid: %.16Ff [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1));
+    ORSA_DEBUG("moid: %.16f [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1));
   }
   
   const unsigned int numTests=5;
@@ -616,7 +616,7 @@ bool orsa::MOID(double       & moid,
 	found=true;
 	
 	ORSA_DEBUG("better value! k: %i *******",k);
-	ORSA_DEBUG("moid: %.16Ff [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1));
+	ORSA_DEBUG("moid: %.16f [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1));
       }
     }
   }
@@ -630,7 +630,7 @@ bool orsa::MOID(double       & moid,
      const double tmp_moid = multimin->fun(par.get());
      if (tmp_moid < moid) {
      ORSA_DEBUG("************ FOUND SMALLER MOID IN STRESS TEST ***********");
-     ORSA_DEBUG("moid: %.16Ff [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1));
+     ORSA_DEBUG("moid: %.16f [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1));
      exit(0);
      }	
      }

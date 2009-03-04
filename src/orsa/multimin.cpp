@@ -244,7 +244,7 @@ bool MultiminParameters::readFromFile(const std::string & fileName) {
   char name[1024];
   double value;
   double step;
-  while (gmp_fscanf(fp,"%s %f %f\n",
+  while (gmp_fscanf(fp,"%s %lf %lf\n",
 		    name,
 		    &value,
 		    &step) == 3) {

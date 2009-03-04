@@ -158,7 +158,7 @@ bool MultifitParameters::readFromFile(const std::string & fileName) {
   }
   char name[1024];
   double value, delta;
-  while (gmp_fscanf(fp,"%s %f %f\n",
+  while (gmp_fscanf(fp,"%s %lf %lf\n",
 		    name,
 		    &value,
 		    &delta) == 3) {

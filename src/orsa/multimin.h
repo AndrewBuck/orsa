@@ -134,8 +134,8 @@ namespace orsa {
     
   protected:
     double __fun__(const gsl_vector *,
-			 const orsa::MultiminParameters *,
-			 const bool verbose = false) const;
+		   const orsa::MultiminParameters *,
+		   const bool verbose = false) const;
     
   protected:
     enum computeAllCallsMode { 
