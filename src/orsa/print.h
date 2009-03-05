@@ -8,11 +8,11 @@
 namespace orsa {
   
   inline void print(const double & d) {
-    ORSA_DEBUG("d: %+20.12Fg",d);
+    ORSA_DEBUG("d: %+20.12g",d);
   }
   
   inline void print(const orsa::Vector & v) {
-    ORSA_DEBUG("v: length: %.12Fe [%+.12Fe,%+.12Fe,%+.12Fe]",
+    ORSA_DEBUG("v: length: %.12e [%+.12e,%+.12e,%+.12e]",
 	       v.length(),
 	       v.getX(),
 	       v.getY(),
@@ -20,10 +20,10 @@ namespace orsa {
   }
   
   inline void print(const orsa::Matrix & m) {
-    ORSA_DEBUG("m: det(m) = %.12Fe\n"
-	       "[%+.12Fe,%+.12Fe,%+.12Fe]\n"
-	       "[%+.12Fe,%+.12Fe,%+.12Fe]\n"
-	       "[%+.12Fe,%+.12Fe,%+.12Fe]",
+    ORSA_DEBUG("m: det(m) = %.12e\n"
+	       "[%+.12e,%+.12e,%+.12e]\n"
+	       "[%+.12e,%+.12e,%+.12e]\n"
+	       "[%+.12e,%+.12e,%+.12e]",
 	       m.determinant(),
 	       m.getM11(),  m.getM12(),  m.getM13(), 
 	       m.getM21(),  m.getM22(),  m.getM23(), 
@@ -31,7 +31,7 @@ namespace orsa {
   }
   
   inline void print(const orsa::Quaternion & q) {
-    ORSA_DEBUG("q: s: %+9.6Fe   v: %9.6Fe x [%6.3f,%6.3f,%6.3f]  l: %9.6Fe",
+    ORSA_DEBUG("q: s: %+9.6e   v: %9.6e x [%6.3f,%6.3f,%6.3f]  l: %9.6e",
 	       q.getScalar(),
 	       q.getVector().length(),
 	       q.getVector().normalized().getX(),

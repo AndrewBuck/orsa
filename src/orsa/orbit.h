@@ -23,7 +23,7 @@ namespace orsa {
     double mu;
   public:
     double period() const {
-      // ORSA_DEBUG("a: %Fg   mu: %Fg",a(),mu());
+      // ORSA_DEBUG("a: %g   mu: %g",a(),mu());
       return (sqrt(4*pi()*pi()*fabs(a*a*a)/mu));
     }
   public:
@@ -53,28 +53,6 @@ namespace orsa {
 #define _ORBIT_RPV_SPEEDUP_
     
 #ifdef _ORBIT_RPV_SPEEDUP_
-    /* 
-       public:
-       Orbit() { }
-       public:
-       Orbit(const Orbit & o) {
-       a                = o.a;
-       e                = o.e;
-       i                = o.i;
-       omega_node       = o.omega_node;
-       omega_pericenter = o.omega_pericenter;
-       M                = o.M;
-       mu               = o.mu;
-       //
-       _cached_omega_pericenter = o._cached_omega_pericenter;
-       _sp                      = o._sp;
-       _cp                      = o._cp;
-       
-       ORSA_DEBUG("copy-op... _cached_omega_pericenter = %f   o._cached_omega_pericenter = %f",
-       _cached_omega_pericenter.getRef(),
-       o._cached_omega_pericenter.getRef());
-       }
-    */
   protected:
     mutable orsa::Cache<double> _cached_omega_pericenter;
     mutable double              _sp, _cp;

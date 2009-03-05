@@ -680,7 +680,7 @@ bool Multipole::readFromFile(const std::string & filename) {
   {
     double R0;
     gmp_fscanf(fp,"%lf",
-	       R0); // '&' not required for GMP vars
+	       &R0); // '&' not required for GMP vars
     _R0.set(FromUnits(R0,Unit::M));
   }
   {
@@ -701,14 +701,21 @@ bool Multipole::readFromFile(const std::string & filename) {
     double x, dx, y, dy, z, dz;
     //
     gmp_fscanf(fp,"%lf %lf",
-	       FromUnits(x,Unit::M),
-	       FromUnits(dx,Unit::M)); // '&' not required for GMP vars
+	       &x,
+	       &dx);
     gmp_fscanf(fp,"%lf %lf",
-	       FromUnits(y,Unit::M),
-	       FromUnits(dy,Unit::M)); // '&' not required for GMP vars
+	       &y,
+	       &dy);
     gmp_fscanf(fp,"%lf %lf",
-	       FromUnits(z,Unit::M),
-	       FromUnits(dz,Unit::M)); // '&' not required for GMP vars
+	       &z,
+	       &dz);
+    //
+    x  = FromUnits(x,Unit::M);
+    dx = FromUnits(x,Unit::M);
+    y  = FromUnits(x,Unit::M);
+    dy = FromUnits(x,Unit::M);
+    z  = FromUnits(x,Unit::M);
+    dz = FromUnits(x,Unit::M);
     //
     _center_of_mass.set(x,y,z);
     _center_of_mass_uncertainty.set(dx,dy,dz);
@@ -736,14 +743,14 @@ bool Multipole::readFromFile(const std::string & filename) {
     for (unsigned int l=0; l<_order_plus_one; ++l) {
       for (unsigned int m=0; m<=l; ++m) {
 	gmp_fscanf(fp,"%lf %lf",
-		   _c,
-		   _dc); // '&' not required for GMP vars
+		   &_c,
+		   &_dc); // '&' not required for GMP vars
 	_C[l][m] = _c;
 	_C_uncertainty[l][m] = _dc;
 	//
 	gmp_fscanf(fp,"%lf %lf",
-		   _s,
-		   _ds); // '&' not required for GMP vars
+		   &_s,
+		   &_ds); // '&' not required for GMP vars
 	_S[l][m] = _s;
 	_S_uncertainty[l][m] = _ds;
 	//
@@ -849,7 +856,7 @@ bool Multipole::readFromAltFile(const std::string & filename) {
   if (fgets(line,1024,fp) != NULL) {
     double R0;
     gmp_sscanf(line,"%*s %lf",
-	       R0); // '&' not required for GMP vars
+	       &R0); // '&' not required for GMP vars
     _R0.set(FromUnits(R0,Unit::KM));
     // ORSA_DEBUG("read R0: %Fg [km]",FromUnits(_R0.getRef(),Unit::KM,-1));
  } else {
@@ -873,7 +880,7 @@ bool Multipole::readFromAltFile(const std::string & filename) {
   for (unsigned int l=0; l<_order_plus_one; ++l) {
     for (unsigned int m=0; m<=l; ++m) {
       // C
-      gmp_fscanf(fp,"%lf",file_entry);
+      gmp_fscanf(fp,"%lf",&file_entry);
       // ORSA_DEBUG("file_entry: %Fg",file_entry());      
       _C[l][m]             = file_entry;
       _C_uncertainty[l][m] = 0;
@@ -885,7 +892,7 @@ bool Multipole::readFromAltFile(const std::string & filename) {
 	_S[l][m]             = 0;
 	_S_uncertainty[l][m] = 0;
       } else {
-	gmp_fscanf(fp,"%lf",file_entry);
+	gmp_fscanf(fp,"%lf",&file_entry);
 	// ORSA_DEBUG("file_entry: %Fg",file_entry());     
 	//
 	_S[l][m]             = file_entry;
@@ -926,7 +933,7 @@ bool Multipole::readFromBisFile(const std::string & filename) {
   if (fgets(line,1024,fp) != NULL) {
     double R0;
     gmp_sscanf(line,"OBR = %lf,",
-	       R0); // '&' not required for GMP vars
+	       &R0); // '&' not required for GMP vars
     _R0.set(FromUnits(R0,Unit::KM));
     //
     ORSA_DEBUG("read R0: %Fg [km]",FromUnits(_R0.getRef(),Unit::KM,-1));
@@ -943,7 +950,7 @@ bool Multipole::readFromBisFile(const std::string & filename) {
     unsigned int file_order;
     gmp_sscanf(line,"OBF(%i) = %d,",&index,&file_order);
     _order.set(file_order);
-    ORSA_DEBUG("read order: %i",file_order);
+    ORSA_DEBUG("read order: %i",&file_order);
   } else {
     ORSA_ERROR("problems while reading file [%s]",filename.c_str());
     return false;
@@ -956,7 +963,7 @@ bool Multipole::readFromBisFile(const std::string & filename) {
   if (fgets(line,1024,fp) != NULL) {
     unsigned int index;
     double GM;
-    gmp_sscanf(line,"GM(%d) =   %lf,",&index,GM);
+    gmp_sscanf(line,"GM(%d) =   %lf,",&index,&GM);
     GM = FromUnits(FromUnits(GM,Unit::KM,3),Unit::SECOND,-2);
     //
     ORSA_DEBUG("M: %e kg",FromUnits(GM/Unit::instance()->getG(),Unit::KG,-1));

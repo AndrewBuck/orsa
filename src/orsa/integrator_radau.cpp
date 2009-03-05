@@ -915,7 +915,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
       
       orsa::Quaternion tmpQ, gkQ;
       orsa::Vector     tmpV, gkV;
-      double     tmpD, gkD;
+      // double     tmpD, gkD;
       
       switch (j) {
       case 1: 

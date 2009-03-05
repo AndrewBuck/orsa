@@ -190,10 +190,10 @@ bool TriShape::_isInside_useLineMethod(const Vector & v) const {
     ORSA_ERROR("no reference points available");
     return false; 
   }
-  double _min_d2 = (v-_ref[0]).lengthSquared();
-  Vector _min_ref;
+  double _min_d2  = (v-_ref[0]).lengthSquared();
+  Vector _min_ref = _ref[0];
   double _tmp_dx, _tmp_d2;
-  for (unsigned int _k=0; _k<_ref.size(); ++_k) {
+  for (unsigned int _k=1; _k<_ref.size(); ++_k) {
     _tmp_dx = v.getX()-_ref[_k].getX();
     if ((_tmp_dx*_tmp_dx) > _min_d2) {
       // fast skip     

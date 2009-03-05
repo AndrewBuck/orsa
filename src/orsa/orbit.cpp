@@ -13,7 +13,7 @@ using namespace orsa;
 double Orbit::eccentricAnomaly(const double & e, const double & M) {
   
   if (e >= 1) {
-    ORSA_WARNING("static orsa::Orbit::eccentricAnomaly(e,M) called with eccentricity = %Fg (greater than 1.0); returning M.",e);
+    ORSA_WARNING("static orsa::Orbit::eccentricAnomaly(e,M) called with eccentricity = %g (greater than 1.0); returning M.",e);
     //
     return M;
   }
@@ -59,7 +59,7 @@ double Orbit::eccentricAnomaly(const double & e, const double & M) {
     
     if (count >= max_count) {
       ORSA_ERROR("Orbit::eccentricAnomaly(...): max count reached");
-      // ORSA_ERROR("Orbit::eccentricAnomaly(): max count reached, e = %Fg    E = %Fg   fabs(E-old_E) = %Fg   10*(fabs(E)+fabs(M))*epsilon() = %g",e,E,fabs(E-old_E),10*(fabs(E)+fabs(M))*std::numeric_limits<double>::epsilon());
+      // ORSA_ERROR("Orbit::eccentricAnomaly(): max count reached, e = %g    E = %g   fabs(E-old_E) = %g   10*(fabs(E)+fabs(M))*epsilon() = %g",e,E,fabs(E-old_E),10*(fabs(E)+fabs(M))*std::numeric_limits<double>::epsilon());
     }
     
   } else {
@@ -193,7 +193,7 @@ bool Orbit::compute(const orsa::Vector & relative_position,
   double h2 = h.lengthSquared();
   double hh = h.length();
   
-  // ORSA_DEBUG("hh: %Fg",hh());
+  // ORSA_DEBUG("hh: %g",hh);
   
   // inclination
   i = acos(h.getZ()/hh);
@@ -201,14 +201,18 @@ bool Orbit::compute(const orsa::Vector & relative_position,
   // i = asin(sqrt(h.getX()*h.getX()+h.getY()*h.getY())/hh);
   
   // Compute longitude of ascending node omega_node and the argument of latitude u
-  // double fac = secure_sqrt(secure_pow(h.x,2)+secure_pow(h.y,2))/h2;
-  double fac = sqrt(h.getX()*h.getX()+h.getY()*h.getY())/h2;
+  // double fac = sqrt(h.getX()*h.getX()+h.getY()*h.getY())/hh;
+  double fac = (h.getX()*h.getX()+h.getY()*h.getY())/h2;
   
-  if (fac < epsilon()) {
+  // ORSA_DEBUG("fac: %e   h2: %e   eps: %e",fac,h2,epsilon());
+  
+  if (fac < (epsilon()*epsilon())) {
+    // ORSA_DEBUG("--MARK--");
     omega_node = 0;
     u = atan2(relative_position.getY(), relative_position.getX());
     if ( fabs(i-pi()) < epsilon()) u = -u;
-  } else {
+  } else {  
+    // ORSA_DEBUG("--MARK--");
     omega_node = atan2(h.getX(),-h.getY());
     u = atan2(relative_position.getZ()/sin(i), relative_position.getX()*cos(omega_node)+relative_position.getY()*sin(omega_node));
   }
@@ -811,7 +815,7 @@ const Body * orsa::simpleParentBody(const Body * b,
 	const double a = - orsa::Unit::instance()->getG() * m_b_it / (2*E);
 	
 	/* 
-	   ORSA_DEBUG("---------------- b: %s  b_it: %s   a: %Fg    dr: %Fg  dv: %Fg  mu: %Fg",
+	   ORSA_DEBUG("---------------- b: %s  b_it: %s   a: %g    dr: %g  dv: %g  mu: %g",
 	   b->getName().c_str(),
 	   (*_b_it)->getName().c_str(),
 	   a(),
@@ -882,7 +886,7 @@ bool OrbitProxy::insertBOT(OrbitProxy::BOT  & bot,
     _interval->insert(bot);
     
     /* 
-       ORSA_DEBUG("inserting, body: [%s] parent: [%s] size: %i   a: %Fg [km]   e: %Fg",
+       ORSA_DEBUG("inserting, body: [%s] parent: [%s] size: %i   a: %g [km]   e: %g",
        _b->getName().c_str(),
        bot.b->getName().c_str(),
        _interval->size(),
