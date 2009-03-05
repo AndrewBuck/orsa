@@ -57,6 +57,9 @@ namespace orsaSolarSystem {
 				 const orsa::MultifitData       * data,
 				 const computeAllCallsMode        m) const { 
       
+      // #warning TEST ONLY...
+      // return;
+      
       // MODE_FDF is ignored, as MODE_F and MODE_DF will be called anyway
       
       if (m==MODE_F) {
@@ -116,7 +119,7 @@ namespace orsaSolarSystem {
     }
     
   protected:	
-    void realFunction(std::vector<double>      & result,
+    void realFunction(std::vector<double>            & result,
 		      const orsa::MultifitParameters * par, 
 		      const orsa::MultifitData       * data) const {
       

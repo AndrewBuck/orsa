@@ -337,7 +337,7 @@ const ET_minus_UT_element ET_minus_UT_table[] = {
 };
 
 static double deltaSeconds(int y, int m, int d, 
-				 const orsaSolarSystem::TimeScale ts) {
+			   const orsaSolarSystem::TimeScale ts) {
   
   double ds=0;
   

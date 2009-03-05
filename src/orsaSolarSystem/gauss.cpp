@@ -263,9 +263,9 @@ void orsaSolarSystem::GaussMethod(std::vector<orsaSolarSystem::OrbitWithEpoch> &
   const double Xl_Ym_Zn = R[1]*u_rho[1];
   
   poly_8_params params;
-  params.coeff_6 = double(R[1].lengthSquared() + A*A + 2*A*Xl_Ym_Zn);
-  params.coeff_3 = double(2*A*B + 2*B*Xl_Ym_Zn);
-  params.coeff_0 = double(B*B);
+  params.coeff_6 = R[1].lengthSquared() + A*A + 2*A*Xl_Ym_Zn;
+  params.coeff_3 = 2*A*B + 2*B*Xl_Ym_Zn;
+  params.coeff_0 = B*B;
   std::vector<poly_8_solution> solutions;
   poly_8_gsl_solve(params,solutions);
   
@@ -382,8 +382,8 @@ void orsaSolarSystem::GaussMethod(std::vector<orsaSolarSystem::OrbitWithEpoch> &
 	 orsa::print(r[0]);
 	 orsa::print(v);
 	 ORSA_DEBUG("r: %f [AU]   v: %f [km/s]",
-	 orsa::FromUnits(r[0].length(),orsa::Unit::AU,-1)(),
-	 orsa::FromUnits(orsa::FromUnits(v.length(),orsa::Unit::KM,-1),orsa::Unit::SECOND)());
+	 orsa::FromUnits(r[0].length(),orsa::Unit::AU,-1),
+	 orsa::FromUnits(orsa::FromUnits(v.length(),orsa::Unit::KM,-1),orsa::Unit::SECOND));
       */
       
       // orbit.ref_body = Body("Sun",GetMSun(),Vector(0,0,0),Vector(0,0,0));
@@ -397,9 +397,9 @@ void orsaSolarSystem::GaussMethod(std::vector<orsaSolarSystem::OrbitWithEpoch> &
       
       /*
 	ORSA_DEBUG("tentative orbit: a=%f [au]   e=%f   i=%f [deg]",
-	orsa::FromUnits(orbit.a,orsa::Unit::AU,-1)(),
+	orsa::FromUnits(orbit.a,orsa::Unit::AU,-1),
 	orbit.e(),
-	double(orbit.i*orsa::radToDeg())());
+	orbit.i*orsa::radToDeg());
       */
       
       // #warning "check limit on dr..."
@@ -417,9 +417,9 @@ void orsaSolarSystem::GaussMethod(std::vector<orsaSolarSystem::OrbitWithEpoch> &
 	   orbit.computeRMS(obs,obsPosCB,refBody,bg);
 	   //
 	   ORSA_DEBUG("a: %f [AU]   e: %f   i: %f [deg]   rms: %f   ***** [TRIPLET ONLY]",
-	   orsa::FromUnits(orbit.a,orsa::Unit::AU,-1)(),
+	   orsa::FromUnits(orbit.a,orsa::Unit::AU,-1),
 	   orbit.e(),
-	   double(orbit.i*orsa::radToDeg())(),
+	   orbit.i*orsa::radToDeg(),
 	   orbit.rms.getRef());
 	   }
 	*/
