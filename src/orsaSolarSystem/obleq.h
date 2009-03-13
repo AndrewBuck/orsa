@@ -1,15 +1,15 @@
 #ifndef _ORSA_SOLAR_SYSTEM_OBLEQ_
 #define _ORSA_SOLAR_SYSTEM_OBLEQ_
 
+#include <orsa/angle.h>
 #include <orsa/datetime.h>
-#include <orsa/double.h>
 #include <orsa/matrix.h>
 
 namespace orsaSolarSystem {
   
-  double obleq(const orsa::Time &);
+  orsa::Angle obleq(const orsa::Time &);
   
-  double obleqJ2000();
+  orsa::Angle obleqJ2000();
   
   orsa::Matrix eclipticToEquatorial();
   orsa::Matrix equatorialToEcliptic();

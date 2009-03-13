@@ -309,9 +309,9 @@ Matrix Matrix::operator - () const {
 }
 
 // from the OpenGL Red Book, third edition, Appendix F, page 672
-Matrix Matrix::axisRotation(const Vector & v, const double & alpha) {
+Matrix Matrix::axisRotation(const Vector & v, const double & angle) {
   
-  // NOTE: check if alpha sign agrees with other rotations...
+  // NOTE: check if angle sign agrees with other rotations...
   
   const Vector u = v.normalized();
   //
@@ -333,15 +333,15 @@ Matrix Matrix::axisRotation(const Vector & v, const double & alpha) {
   P.m23 = P.m32 = u.getY()*u.getZ();
   //
   double s,c;
-  sincos(alpha,&s,&c);
+  sincos(angle,&s,&c);
   //
   const Matrix M = P + c * (Matrix::identity() - P) + s * S;
   return M;
 }
 
-Matrix Matrix::rotX(const double & alpha) {
+Matrix Matrix::rotX(const double & angle) {
   double s,c;
-  sincos(alpha,&s,&c);
+  sincos(angle,&s,&c);
   Matrix rot;
   rot.m12 = rot.m13 = rot.m21 = rot.m31 = 0;
   rot.m11 = 1;
@@ -359,9 +359,9 @@ Matrix Matrix::rotX(const double & alpha) {
   return (*this);
 }
 
-Matrix Matrix::rotY(const double & alpha) {
+Matrix Matrix::rotY(const double & angle) {
   double s,c;
-  sincos(alpha,&s,&c);
+  sincos(angle,&s,&c);
   Matrix rot;
   rot.m12 = rot.m21 = rot.m23 = rot.m32 = 0;
   rot.m22 = 1;
@@ -379,9 +379,9 @@ Matrix Matrix::rotY(const double & alpha) {
   return (*this);
 }
 
-Matrix Matrix::rotZ(const double & alpha) {
+Matrix Matrix::rotZ(const double & angle) {
   double s,c;
-  sincos(alpha,&s,&c);
+  sincos(angle,&s,&c);
   Matrix rot;
   rot.m13 = rot.m23 = rot.m31 = rot.m32 = 0;
   rot.m33 = 1;

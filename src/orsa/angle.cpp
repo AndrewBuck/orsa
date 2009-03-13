@@ -2,29 +2,15 @@
 
 using namespace orsa;
 
-void Angle::setRad(const double & a) {
-  // ORSA_DEBUG("args: a=%f",a());
-  _rad = a;
-}
-
-const double & Angle::getRad(double & a) const {
-  a = _rad;
-  return _rad;
-}
-
-const double & Angle::getRad() const {
-  return _rad;
-}
-
 int Angle::check_sign(int sign) {
   if (sign == 0) {
-    ORSA_ERROR("Hmmm, sign equal to zero...");
+    ORSA_ERROR("sign equal to zero...");
     return 1;
   } else {
     return (sign/abs(sign));
   }
 }
-  
+
 void Angle::setDPS(const double & d, 
 		   const double & p, 
 		   const double & s,
@@ -62,11 +48,11 @@ void Angle::getHMS(double & h,
 		   double & m, 
 		   double & s, 
 		   int & sign) const {
-  if (_rad < 0) {
-    sign = -1;
-  } else {
-    sign = 1;
-  }
+  if (_rad < 0) { 
+    sign = -1; 
+  } else { 
+    sign = 1; 
+  } 
   //
   const double abs_fh = fabs(radToDeg()*_rad/15);
   h = floor(abs_fh);
@@ -74,4 +60,3 @@ void Angle::getHMS(double & h,
   m = floor(frac*60);  
   s = frac*3600 - m*60; 
 }    
-

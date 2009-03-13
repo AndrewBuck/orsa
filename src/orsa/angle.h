@@ -8,14 +8,15 @@ namespace orsa {
   
   class Angle {
   public:
-    Angle() : _rad(0) { }
+    Angle() { }
   public:
-    Angle(const double & x) : _rad(x) { }
-      
+    Angle(const double & angle) : _rad(angle) { }
   public:
-    void  setRad(const double &);
-    const double & getRad(double &) const;
-    const double & getRad() const;
+    Angle operator + () const { return Angle( _rad); }
+    Angle operator - () const { return Angle(-_rad); }
+  public:
+    void   setRad(const double & angle) { _rad = angle; }
+    double getRad() const { return _rad; }
     //
     void setDPS(const double & d, 
 		const double & p, 
@@ -44,20 +45,20 @@ namespace orsa {
     double _rad;
   };
   
-  inline double sin(const Angle & alpha) {
-    return ::sin(alpha.getRad());
+  inline double sin(const Angle & angle) {
+    return ::sin(angle.getRad());
   }
   
-  inline double cos(const Angle & alpha) {
-    return ::cos(alpha.getRad());
+  inline double cos(const Angle & angle) {
+    return ::cos(angle.getRad());
   }
   
-  inline double tan(const Angle & alpha) {
-    return ::tan(alpha.getRad());
+  inline double tan(const Angle & angle) {
+    return ::tan(angle.getRad());
   }
   
-  inline void sincos(const Angle & alpha, double * s, double * c) {
-    ::sincos(alpha.getRad(),s,c); 
+  inline void sincos(const Angle & angle, double * s, double * c) {
+    ::sincos(angle.getRad(),s,c); 
   }
   
 } // namespace orsa

@@ -1,6 +1,7 @@
 #ifndef _ORSA_MATRIX_
 #define _ORSA_MATRIX_
 
+#include <orsa/angle.h>
 #include <orsa/cache.h>
 #include <orsa/debug.h>
 #include <orsa/double.h>
@@ -83,12 +84,16 @@ namespace orsa {
     Matrix operator - () const;
     
   public:
-    Matrix rotX(const double & alpha);
-    Matrix rotY(const double & alpha);
-    Matrix rotZ(const double & alpha);
+    inline Matrix rotX(const orsa::Angle & angle) { return rotX(angle.getRad()); }
+    inline Matrix rotY(const orsa::Angle & angle) { return rotY(angle.getRad()); }
+    inline Matrix rotZ(const orsa::Angle & angle) { return rotZ(angle.getRad()); }
+  public:
+    Matrix rotX(const double & angle);
+    Matrix rotY(const double & angle);
+    Matrix rotZ(const double & angle);
     
   public:
-    static Matrix axisRotation(const Vector & axis, const double & alpha);
+    static Matrix axisRotation(const Vector & axis, const double & angle);
     
   public:
     Matrix operator + (const Matrix &) const;
