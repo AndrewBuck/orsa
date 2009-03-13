@@ -4,12 +4,14 @@
 
 #include <cmath>
 
+#include <QDateTime>
+
 using namespace orsa;
 using namespace orsaSolarSystem;
 
 // TimeScale data
 
-#warning "test TimeScale code, and improve it using Intervals and orsa::Time"
+// TODO: improve TimeScale code using Intervals and orsa::Time
 
 struct TAI_minus_UTC_element {
   int day,month,year;
@@ -563,15 +565,31 @@ orsa::Time orsaSolarSystem::J2000() {
 					orsaSolarSystem::TS_TDT);
 }
 
+/* 
+   orsa::Time orsaSolarSystem::now() {
+   const time_t tt_now = time(0);
+   struct tm * tm_struct = gmtime(&tt_now);
+   return orsaSolarSystem::FromTimeScale(gregorTime(1900+tm_struct->tm_year,
+   1+tm_struct->tm_mon,
+   tm_struct->tm_mday,
+   tm_struct->tm_hour,
+   tm_struct->tm_min,
+   tm_struct->tm_sec,
+   0),
+   orsaSolarSystem::TS_UTC);
+   }
+*/
+
 orsa::Time orsaSolarSystem::now() {
-  const time_t tt_now = time(0);
-  struct tm * tm_struct = gmtime(&tt_now);
-  return orsaSolarSystem::FromTimeScale(gregorTime(1900+tm_struct->tm_year,
-						   1+tm_struct->tm_mon,
-						   tm_struct->tm_mday,
-						   tm_struct->tm_hour,
-						   tm_struct->tm_min,
-						   tm_struct->tm_sec,
-						   0),
+  const QDateTime datetime = QDateTime::currentDateTime().toTimeSpec(Qt::UTC);
+  const QDate         date = datetime.date();
+  const QTime         time = datetime.time();
+  return orsaSolarSystem::FromTimeScale(gregorTime(date.year(),
+						   date.month(),
+						   date.day(),
+						   time.hour(),
+						   time.minute(),
+						   time.second(),
+						   time.msec()),
 					orsaSolarSystem::TS_UTC);
 }
