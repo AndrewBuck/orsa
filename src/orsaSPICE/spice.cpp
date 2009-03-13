@@ -32,7 +32,7 @@ void SPICE::getPosVel(const std::string & target,
   SpiceDouble state[6];
   mutex.lock();
   spkezr_c(target.c_str(),
-	   SPICETime(ephemerisTime), // FromUnits((ephemerisTime-J2000()).get_d(),Unit::SECOND,-1).get_d(),
+	   SPICETime(ephemerisTime), 
 	   _global.getRef().c_str(), // "J2000", //! note: J2000 is the equatorial! eclipj2000 is the ecliptic one!
 	   "NONE",
 	   observer.c_str(),
@@ -64,7 +64,7 @@ orsa::Matrix SPICE::localToGlobal(const std::string & local,
   mutex.lock();
   pxform_c(local.c_str(),
 	   _global.getRef().c_str(),
-	   SPICETime(ephemerisTime), // FromUnits((ephemerisTime-J2000()).get_d(),Unit::SECOND,-1).get_d(), 
+	   SPICETime(ephemerisTime),
 	   rotate);
   mutex.unlock();
   orsa::Matrix m;
@@ -75,8 +75,8 @@ orsa::Matrix SPICE::localToGlobal(const std::string & local,
 }
 
 double SPICE::SPICETime(const orsa::Time & t) {
-  // should be TDB timescale
-  return FromUnits((orsaSolarSystem::ToTimeScale(t,orsaSolarSystem::TS_TDT)-J2000()).get_d(),Unit::SECOND,-1);
+  // Corrected and verified: no TimeScale needed
+  return FromUnits((t-J2000()).get_d(),Unit::SECOND,-1);
 }
 
 orsa::Matrix SPICE::globalToLocal(const std::string & local,
@@ -86,7 +86,7 @@ orsa::Matrix SPICE::globalToLocal(const std::string & local,
   mutex.lock();
   pxform_c(_global.getRef().c_str(),
 	   local.c_str(),
-	   SPICETime(ephemerisTime), // FromUnits((ephemerisTime-J2000()).get_d(),Unit::SECOND,-1).get_d(), 
+	   SPICETime(ephemerisTime),
 	   rotate);
   mutex.unlock();
   orsa::Matrix m;

@@ -70,9 +70,9 @@ namespace orsa {
   private:
     class NVD {
     public:
-      std::string  name;
-      double value;
-      double delta;
+      std::string name;
+      double      value;
+      double      delta;
     };
   private: 
     typedef std::vector<NVD> dataType;
@@ -82,15 +82,6 @@ namespace orsa {
     bool writeToFile(const std::string & fileName) const;
   public:
     bool readFromFile(const std::string & fileName);
-    
-    /* 
-       public:
-       double covariance(const std::string & name1,
-       const std::string & name2) const;
-       public:
-       double covariance(const unsigned int index1,
-       const unsigned int index2) const;
-    */
   };
   
   bool operator == (const MultifitParameters &, 
@@ -158,34 +149,18 @@ namespace orsa {
   public:
     unsigned int size() const;
     unsigned int vars() const;
-    /* 
-       private:
-       class NV {
-       public:
-       orsa::Cache<std::string>                name;
-       std::vector<orsa::Cache<double> > value;
-       };
-    */
-  private:
-    /* class NZD {
-       public:
-       orsa::Cache<std::string>                name;
-       std::vector<orsa::Cache<mpz_class> >    z;
-       std::vector<orsa::Cache<double> > d;
-       };
-    */
   private:
     class NZDV {
     public:
       orsa::Cache<std::string>                name;
       std::vector<orsa::Cache<mpz_class> >    z;
-      std::vector<orsa::Cache<double> > d;
+      std::vector<orsa::Cache<double> >       d;
       std::vector<orsa::Cache<orsa::Vector> > v;
     };
   private:
     class VFS {
     public:
-      std::vector<MultifitData::NZDV>         var;
+      std::vector<MultifitData::NZDV>   var;
       std::vector<orsa::Cache<double> > f;
       std::vector<orsa::Cache<double> > sigma;
     };

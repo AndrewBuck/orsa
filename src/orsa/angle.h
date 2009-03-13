@@ -45,19 +45,19 @@ namespace orsa {
   };
   
   inline double sin(const Angle & alpha) {
-    return orsa::sin(alpha.getRad());
+    return ::sin(alpha.getRad());
   }
   
   inline double cos(const Angle & alpha) {
-    return orsa::cos(alpha.getRad());
+    return ::cos(alpha.getRad());
   }
   
   inline double tan(const Angle & alpha) {
-    return orsa::tan(alpha.getRad());
+    return ::tan(alpha.getRad());
   }
   
-  inline void sincos(const Angle & alpha, double & s, double & c) {
-    orsa::sincos(alpha.getRad(),s,c); 
+  inline void sincos(const Angle & alpha, double * s, double * c) {
+    ::sincos(alpha.getRad(),s,c); 
   }
   
 } // namespace orsa

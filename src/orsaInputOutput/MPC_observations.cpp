@@ -74,13 +74,9 @@ bool MPCObservationsFile::processLine(const char * line) {
     int y, m; 
     double d;
     gmp_sscanf(s_epoch.c_str(),"%d %d %lf",&y,&m,&d);
-    // ORSA_DEBUG("d: %f",d());
-    // ORSA_DEBUG("remember: UTC!!");
     workObs->epoch = 
       orsaSolarSystem::FromTimeScale(orsaSolarSystem::gregorTime(y,m,d),
 				     orsaSolarSystem::TS_UTC);
-    // ORSA_DEBUG("%s",s_epoch.c_str());
-    // ORSA_DEBUG("y: %i   m: %i   d: %f",y,m,d());
     // orsa::print(workObs->epoch.getRef());
   }
   
@@ -90,7 +86,7 @@ bool MPCObservationsFile::processLine(const char * line) {
     gmp_sscanf(s_ra.c_str(),"%d %d %lf",&h,&m,&s);
     Angle tmp; tmp.setHMS(h,m,s);
     workObs->ra = tmp;
-    // ORSA_DEBUG("h: %i   m: %i   s: %f",h,m,s());
+    // orsa::print(workObs->ra.getRef());
   }
   
   {
@@ -100,6 +96,7 @@ bool MPCObservationsFile::processLine(const char * line) {
     gmp_sscanf(s_dec.c_str(),"%d %d %lf",&d,&p,&s);
     Angle tmp; tmp.setDPS(d,p,s,sign);
     workObs->dec = tmp;
+    // orsa::print(workObs->dec.getRef());
   }
   
   if ((s_designation != "") && 

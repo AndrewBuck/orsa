@@ -19,8 +19,32 @@ namespace orsaSolarSystem {
    * 
    * For more info, check out i.e. http://www.dome-igm.com/convers.htm
    */
+
+  /* From JPL's Horizons system:
+   *
+   *  The three time systems are described as follows: 
+   *
+   *   CT ("Coordinate Time"); typically for cartesian and osculating element 
+   *       tables. The uniform time scale and independent variable of the 
+   *       ephemerides.
+   *
+   *   TT  ("Terrestrial (Dynamic) Time"), called TDT prior to 1991, used for
+   *       observer quantity tables. This is proper time as measured by an 
+   *       Earth-bound observer and is directly related to atomic time, TAI.
+   *       TT periodically differs from CT by, at most, 0.002 seconds.
+   *
+   *   UT  is Universal Time. This can mean one of two non-uniform time-scales 
+   *       based on the rotation of the Earth. For this program, prior to 1962, 
+   *       UT means UT1.  After 1962, UT means UTC or "Coordinated Universal 
+   *       Time". Future UTC leap-seconds are not known yet, so the closest 
+   *       known leap-second correction is used over future time-spans.
+   *
+   */
   
-  //! More information can be obtained here: http://www.hartrao.ac.za/nccsdoc/slalib/sun67.htx/node217.html
+  /*
+   * Also read: http://www.cv.nrao.edu/~rfisher/Ephemerides/times.html
+   */
+  
   enum TimeScale {
     TS_UTC = 1,
     TS_UT  = 2,
@@ -76,8 +100,6 @@ namespace orsaSolarSystem {
   orsa::Time J2000();
   
   orsa::Time now();
-  
-  double dayFraction(const orsa::Time &);
   
 }; // namespace orsaSolarSystem
 

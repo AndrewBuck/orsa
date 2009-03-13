@@ -104,29 +104,6 @@ double orsa::int_pow(const double    & x,
   return _pow;
 }
 
-/* 
-   const double & orsa::epsilon() {
-   // ORSA_DEBUG("epsilon power: %Zi",mpz_class(-0.28125*mpf_get_default_prec()).get_mpz_t());
-   // approx 15 digits (base 10) every 64 bits... is this correct?
-   // return int_pow(double("10.0"),mpz_class(-15.0*(mpf_get_default_prec()/64.0))); 
-   // ...or a bit better: 16 digits for 64 bits:
-   // return int_pow(double("10.0"),mpz_class(-(int)mpf_get_default_prec()/4)); 
-   // ...or more... (0.3125 = 1/3.2 -> 20 digits per 64 bits)
-   // return int_pow(double("10.0"),mpz_class(-0.3125*mpf_get_default_prec())); 
-   // ...or simply 0.3, which seems to be the one working better...
-   // return 
-   // int_pow(double("10.0"),mpz_class(-0.3*mpf_get_default_prec())); 
-   // ... OK, 0.28125 = 18/64 works great.
-   static double _eps;
-   static unsigned int old_prec = 0;
-   if (old_prec != mpf_get_default_prec()) {
-   _eps = int_pow(double("10.0"),mpz_class(-0.28125*mpf_get_default_prec()),false); 
-   old_prec = mpf_get_default_prec();
-   } 
-   return _eps;
-   }
-*/
-
 const double & orsa::epsilon() {
   static double _eps = __DBL_EPSILON__; /* 2.2204460492503131e-16 */
   return _eps;

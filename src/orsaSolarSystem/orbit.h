@@ -6,6 +6,7 @@
 #include <orsa/integrator_radau.h>
 #include <orsa/multifit.h>
 #include <orsa/orbit.h>
+#include <orsa/print.h>
 
 #include <orsaSolarSystem/observation.h>
 #include <orsaSolarSystem/observatory.h>
@@ -53,12 +54,12 @@ namespace orsaSolarSystem {
     const orsaSolarSystem::ObservatoryPositionCallback * obsPosCB;
     
   protected:
+    void singleIterationDone(const gsl_multifit_fdfsolver *) const;
+    
+  protected:
     void computeAllFunctionCalls(const orsa::MultifitParameters * par, 
 				 const orsa::MultifitData       * data,
 				 const computeAllCallsMode        m) const { 
-      
-      // #warning TEST ONLY...
-      // return;
       
       // MODE_FDF is ignored, as MODE_F and MODE_DF will be called anyway
       
@@ -69,6 +70,13 @@ namespace orsaSolarSystem {
 	// pre_f[j] = realFunction(par,data,j);
 	realFunction(pre_f,par,data);
 	// }
+
+	//debug
+	/* for (unsigned int j=0; j<data->size(); ++j) {
+	   orsa::print(pre_f[j]);
+	   }
+	*/
+	
       } else if (m==MODE_DF) {
 	osg::ref_ptr<orsa::MultifitParameters> par_m = new orsa::MultifitParameters;
 	osg::ref_ptr<orsa::MultifitParameters> par_p = new orsa::MultifitParameters;
@@ -89,9 +97,18 @@ namespace orsaSolarSystem {
 	  realFunction(pre_df_p[p],par_p.get(),data);
 	  // }
 	}
-      } else {
-	ORSA_DEBUG("problems");
+	
+	//debug
+	/* for (unsigned int p=0; p<par->size(); ++p) {
+	   for (unsigned int j=0; j<data->size(); ++j) {
+	   orsa::print(pre_df_m[p][j]);
+	   orsa::print(pre_df_p[p][j]);
+	   }
+	   }
+	*/
+	
       }
+      
     } 
   protected:
     mutable std::vector<double> pre_f;
@@ -319,6 +336,8 @@ namespace orsaSolarSystem {
 	orbit.omega_pericenter = par->get("orbit_omega_pericenter");
 	orbit.M                = par->get("orbit_M");
 	
+	// ORSA_DEBUG("orbit_a: %f [AU]",orsa::FromUnits(par->get("orbit_a"),orsa::Unit::AU,-1));
+	
 	orsa::Vector rOrbit, vOrbit;
 	if (!orbit.relativePosVel(rOrbit,vOrbit)) {
 	  ORSA_DEBUG("problems");
@@ -381,13 +400,19 @@ namespace orsaSolarSystem {
 	  }
 	
 	  const orsa::Vector obsPosition = data->getV("obsPosition",row);
-	
+	  
+	  // ORSA_DEBUG("obsPosition: [km]");
+	  // orsa::print(obsPosition/orsa::FromUnits(1,orsa::Unit::KM));
+	  
 	  // code from OrbitSolution::computeRMS(...)
 	
 	  // orsa::Vector dr =  refBodyPosition+relativePosition-obsPosition;
 	  orsa::Vector dr = bodyPosition-obsPosition;
 	  const double lightTimeDelay = dr.length()/orsa::Unit::instance()->getC();
 	  dr -= lightTimeDelay*(bodyVelocity);
+	  //
+	  // ORSA_DEBUG("dr: [AU]");
+	  // orsa::print(dr/orsa::FromUnits(1,orsa::Unit::AU));
 	  //
 	  dr = orsaSolarSystem::eclipticToEquatorial()*dr;
 	  //
@@ -450,7 +475,9 @@ namespace orsaSolarSystem {
 	orbit.omega_node       = par->get("orbit_omega_node");
 	orbit.omega_pericenter = par->get("orbit_omega_pericenter");
 	orbit.M                = par->get("orbit_M");
-      
+	
+	// ORSA_DEBUG("orbit_a: %f [AU]",orsa::FromUnits(par->get("orbit_a"),orsa::Unit::AU,-1));
+	
 	result.resize(data->size());
       
 	orsa::Vector refBodyPosition, refBodyVelocity;
@@ -459,22 +486,24 @@ namespace orsaSolarSystem {
       
 	unsigned int row=0;
 	while (row<data->size()) {
-	
+	  
 	  const orsa::Time obsTime = orsa::Time(data->getZ("epoch",row));
-	
+	  
 	  if (!bg->getInterpolatedPosVel(refBodyPosition,
 					 refBodyVelocity,
 					 sun.get(),
 					 obsTime)) { 
 	    ORSA_DEBUG("problems");
 	  }
-	
+	  
 	  if (!bg->getInterpolatedMass(mass,
 				       sun.get(),
 				       obsTime)) { 
 	    ORSA_DEBUG("problems...");
 	  }	
-	
+	  
+	  // ORSA_DEBUG("Sun Mass: %f [MSun]",orsa::FromUnits(mass,orsa::Unit::MSUN,-1));
+	  
 	  orbit.mu = mass*orsa::Unit::instance()->getG();
 	
 	  {
@@ -493,17 +522,20 @@ namespace orsaSolarSystem {
 	  */
 	
 	  const orsa::Vector obsPosition = data->getV("obsPosition",row);
-	
+	  
+	  // ORSA_DEBUG("obsPosition: [km]");
+	  // orsa::print(obsPosition/FromUnits(1,orsa::Unit::KM));
+	  
 	  // ORSA_DEBUG("observer position - sun:");
 	  // print((obsPosition-refBodyPosition)/orsa::FromUnits(1,orsa::Unit::KM));
-	
+	  
 	  // code from OrbitSolution::computeRMS(...)
-	
+	  
 	  orsa::Vector dr = refBodyPosition+relativePosition-obsPosition;
-	
+	  
 	  // ORSA_DEBUG("[dr]");
 	  // print(dr/orsa::FromUnits(1,orsa::Unit::KM));
-	
+	  
 	  const double lightTimeDelay = dr.length()/orsa::Unit::instance()->getC();
 	  dr -= lightTimeDelay*(refBodyVelocity+relativeVelocity);
 	  //
@@ -517,9 +549,9 @@ namespace orsaSolarSystem {
 	  // (done) #warning "remember: cos_dec factor, and check for 360 deg periodicity"
 	  
 	  // const double radToArcsec = 3600*orsa::radToDeg();
-	
+	  
 	  // add both rows...
-	
+	  
 	  if (row%2==0) {
 	    result[row] = ra_orbit;
 	  } else {
@@ -527,7 +559,7 @@ namespace orsaSolarSystem {
 	  }
 	  //
 	  ++row;
-	
+	  
 	  if (row%2==0) {
 	    ORSA_DEBUG("problems");
 	  } else {
@@ -535,17 +567,15 @@ namespace orsaSolarSystem {
 	  }
 	  //
 	  ++row;
-	
+	  
 	}
       }
     }
     
   public:
     int f_gsl (const gsl_vector * parameters, 
-	       void * dataPoints, 
-	       gsl_vector * f) {
-      
-      // call standard one, and then rescale
+	       void             * dataPoints, 
+	       gsl_vector       * f) {
       int retval =  orsa::Multifit::f_gsl(parameters, 
 					  dataPoints, 
 					  f);
@@ -562,18 +592,17 @@ namespace orsaSolarSystem {
 	  fj /= sj;
 	  // multiply by cos(dec)
 	  gsl_vector_set(f,j, 
-			 orsa::cos(data->getF(j+1))*fj);
+			 cos(data->getF(j+1))*fj);
 	} 
 	ORSA_DEBUG("f[%02i] = %10.3f", j, gsl_vector_get(f,j));
       }
       return retval;
     }
-  
+    
   public:
     int df_gsl (const gsl_vector * v, 
-		void * dataPoints, 
-		gsl_matrix * J) {
-    
+		void             * dataPoints, 
+		gsl_matrix       * J) {
       int retval = Multifit::df_gsl(v, 
 				    dataPoints, 
 				    J);
@@ -585,8 +614,9 @@ namespace orsaSolarSystem {
 	    // need to check for twopi periodicity? (see f_gsl)
 	    // multiply by cos(dec)
 	    gsl_matrix_set(J,j,k,
-			   orsa::cos(data->getF(j+1))*gsl_matrix_get(J,j,k));  
+			   cos(data->getF(j+1))*gsl_matrix_get(J,j,k));  
 	  }
+	  // ORSA_DEBUG("df[%02i][%02i] = %10.3f",j,k,gsl_matrix_get(J,j,k));
 	}
       }
       return retval;

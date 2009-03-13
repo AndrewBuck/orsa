@@ -17,15 +17,17 @@ double orsaSolarSystem::RMS(const std::vector<orsaSolarSystem::Residual> & r) {
     rms += d2ra + d2dec;
   }
   rms /= 2*r.size();
-  return sqrt(rms);
+  rms = sqrt(rms);
+  // ORSA_DEBUG("RMS: %f",rms);
+  return rms;
 }
 
-void orsaSolarSystem::ComputeResidual(std::vector<orsaSolarSystem::Residual> & residual,
-				      const orsaSolarSystem::OrbitWithEpoch & orbit,
+void orsaSolarSystem::ComputeResidual(std::vector<orsaSolarSystem::Residual>   & residual,
+				      const orsaSolarSystem::OrbitWithEpoch    & orbit,
 				      const orsaSolarSystem::ObservationVector & obs,
 				      const orsaSolarSystem::ObservatoryPositionCallback * obsPosCB, 
 				      const orsa::Body * refBody,
-				      orsa::BodyGroup * bg) {
+				      orsa::BodyGroup  * bg) {
   
   orsa::Vector refBodyPosition, refBodyVelocity;
   orsa::Vector obsPosition;
@@ -57,7 +59,7 @@ void orsaSolarSystem::ComputeResidual(std::vector<orsaSolarSystem::Residual> & r
     double delta_ra = obs[k]->ra.getRef().getRad()-ra_orbit;
     if (fabs(obs[k]->ra.getRef().getRad()-ra_orbit+orsa::twopi()) < fabs(delta_ra)) delta_ra = obs[k]->ra.getRef().getRad()-ra_orbit+orsa::twopi();
     if (fabs(obs[k]->ra.getRef().getRad()-ra_orbit-orsa::twopi()) < fabs(delta_ra)) delta_ra = obs[k]->ra.getRef().getRad()-ra_orbit-orsa::twopi();
-    const double cos_dec = orsa::cos(0.5*(obs[k]->dec.getRef().getRad()+dec_orbit));
+    const double cos_dec = cos(0.5*(obs[k]->dec.getRef().getRad()+dec_orbit));
     delta_ra *= cos_dec;
     
     double delta_dec = obs[k]->dec.getRef().getRad()-dec_orbit;
@@ -68,3 +70,66 @@ void orsaSolarSystem::ComputeResidual(std::vector<orsaSolarSystem::Residual> & r
   
 }
 
+void orsaSolarSystem::OrbitMultifit::singleIterationDone(const gsl_multifit_fdfsolver * s) const {
+  
+  for (unsigned int k=0; k<_par->size(); ++k) {
+    _par->set(k, gsl_vector_get(s->x,k));
+  }
+  
+  double c = 1.0;
+  //
+  const unsigned int dof = _data->size() - _par->size();
+  if (dof > 0) {
+    const double chi = gsl_blas_dnrm2(s->f);
+    c = GSL_MAX_DBL(1.0, chi / sqrt(dof)); 
+    // ORSA_DEBUG("chisq/dof = %g",  chi*chi/dof);
+    // gmp_fprintf(fp,"chisq/dof = %g\n",  chi*chi/dof);
+  }
+  //
+  const double factor = c;
+  
+  gsl_matrix * covar = gsl_matrix_alloc(_par->size(),_par->size());
+  
+  gsl_multifit_covar(s->J, 0.0, covar);
+  
+  orsaSolarSystem::OrbitWithEpoch orbit;
+  //
+  orbit.epoch = orbitEpoch.getRef();
+  //
+  orbit.a = _par->get("orbit_a");
+  orbit.e = _par->get("orbit_e");
+  orbit.i = _par->get("orbit_i");
+  orbit.omega_node       = _par->get("orbit_omega_node");
+  orbit.omega_pericenter = _par->get("orbit_omega_pericenter");
+  orbit.M                = _par->get("orbit_M");
+  //
+#warning remember to set orbit.mu
+  
+#define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
+
+  ORSA_DEBUG("a: %14.10f +/- %14.10f [AU]",
+	     orsa::FromUnits(orbit.a,orsa::Unit::AU,-1),
+	     orsa::FromUnits(factor*ERR(0),orsa::Unit::AU,-1));
+
+  ORSA_DEBUG("e: %14.10f +/- %14.10f",
+	     orbit.e,
+	     factor*ERR(1));
+  
+  ORSA_DEBUG("i: %14.10f +/- %14.10f [deg]",
+	     orsa::radToDeg()*orbit.i,
+	     orsa::radToDeg()*factor*ERR(2));
+  
+  ORSA_DEBUG("O: %14.10f +/- %14.10f [deg]",
+	     orsa::radToDeg()*orbit.omega_node,
+	     orsa::radToDeg()*factor*ERR(3));
+  
+  ORSA_DEBUG("w: %14.10f +/- %14.10f [deg]",
+	     orsa::radToDeg()*orbit.omega_pericenter,
+	     orsa::radToDeg()*factor*ERR(4));
+  
+  ORSA_DEBUG("M: %14.10f +/- %14.10f [deg]",
+	     orsa::radToDeg()*orbit.M,
+	     orsa::radToDeg()*factor*ERR(5));
+  
+  gsl_matrix_free(covar);  
+}

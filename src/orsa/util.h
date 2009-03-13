@@ -241,6 +241,10 @@ namespace orsa {
       ::gsl_ran_dir_3d(rnd,x,y,z);
     }
   public:
+    double gsl_ran_gaussian(double sigma) const {
+      return ::gsl_ran_gaussian(rnd,sigma);
+    }
+  public:
     double gsl_ran_laplace(double a) const {
       return ::gsl_ran_laplace(rnd,a);
     }    

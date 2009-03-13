@@ -445,8 +445,8 @@ int Multifit::f_gsl (const gsl_vector * parameters,
     // gsl_vector_set (f, j, double((fun(_par.get(),data,j) - data->getF(j))/(data->getSigma(j))).get_d());
     // const double fj = (fun(_par.get(),data,j) - data->getF(j))/(data->getSigma(j));
     /* ORSA_DEBUG("orbit: %f   obs: %f",
-       double(orsa::radToDeg()*fun(_par.get(),data,0,0,j))(),
-       double(orsa::radToDeg()*data->getF(j)));
+       orsa::radToDeg()*fun(_par.get(),data,0,0,j),
+       orsa::radToDeg()*data->getF(j));
     */
     //
     const double fj = (fun(_par.get(),data,0,0,j) - data->getF(j))/(data->getSigma(j));
@@ -476,19 +476,14 @@ double Multifit::_diff_five_points_ (const double & y_mm,
 }
 
 int Multifit::df_gsl (const gsl_vector * v, 
-		      void * dataPoints, 
-		      gsl_matrix * J) {
+		      void             * dataPoints, 
+		      gsl_matrix       * J) {
   
   ORSA_DEBUG("df...");
   
   for(unsigned int k=0; k<_par->size(); ++k) {
     _par->set(k,gsl_vector_get(v,k));
   }
-  
-  // osg::ref_ptr<orsa::MultifitParameters> par_mm = new orsa::MultifitParameters;
-  // osg::ref_ptr<orsa::MultifitParameters> par_m  = new orsa::MultifitParameters;
-  // osg::ref_ptr<orsa::MultifitParameters> par_p  = new orsa::MultifitParameters;
-  // osg::ref_ptr<orsa::MultifitParameters> par_pp = new orsa::MultifitParameters;
   
   const orsa::MultifitData * data = (orsa::MultifitData *) dataPoints;
   
@@ -497,35 +492,7 @@ int Multifit::df_gsl (const gsl_vector * v,
   computeAllFunctionCalls(_par.get(), data, MODE_DF);
   
   for (unsigned int k=0; k<_par->size(); ++k) {
-    
-    // deep copies of the reference _par
-    // (*(par_mm.get())) = (*(_par.get()));
-    // (*(par_m.get()))  = (*(_par.get()));
-    // (*(par_p.get()))  = (*(_par.get()));
-    // (*(par_pp.get())) = (*(_par.get()));
-    
-    // par_mm->set(k, _par->get(k) - two()*_par->getDelta(k));
-    // par_m-> set(k, _par->get(k) -       _par->getDelta(k));
-    // par_p-> set(k, _par->get(k) +       _par->getDelta(k));
-    // par_pp->set(k, _par->get(k) + two()*_par->getDelta(k));
-    
     for (unsigned int j=0; j<data->size(); ++j) {
-      
-      /* 
-	 gsl_matrix_set (J, j, k, double(_diff_five_points_(fun(par_mm.get(), data, j),
-	 fun(par_m.get() , data, j),
-	 fun(par_p.get() , data, j),
-	 fun(par_pp.get(), data, j)) / 
-	 (data->getSigma(j) * _par->getDelta(k)) 
-	 ).get_d());  
-      */
-      //
-      /* gsl_matrix_set (J, j, k, double(_diff_two_points_(fun(par_m.get() , data, j),
-	 fun(par_p.get() , data, j)) / 
-	 (data->getSigma(j) * _par->getDelta(k)) 
-	 ).get_d());  
-      */
-      //
       gsl_matrix_set (J, j, k, _diff_two_points_(fun(_par.get(),data,k,-1,j),
 						 fun(_par.get(),data,k,+1,j)) / 
 		      (data->getSigma(j) * _par->getDelta(k)));  
@@ -539,8 +506,9 @@ int Multifit::fdf_gsl (const gsl_vector * v,
 		       void * dataPoints, 
 		       gsl_vector * f, 
 		       gsl_matrix * J) {
+  
   ORSA_DEBUG("fdf...");
-
+  
   for(unsigned int k=0; k<_par->size(); ++k) {
     _par->set(k,gsl_vector_get(v,k));
   }
@@ -749,6 +717,15 @@ bool Multifit::run() {
 		   k,
 		   _par->name(k).c_str(),
 		   _par->get(k));
+      } 
+      
+      double c = 1.0;
+      //
+      if (mf.n > mf.p) {
+	double chi = gsl_blas_dnrm2(s->f);
+	double dof = mf.n - mf.p;
+	c = GSL_MAX_DBL(1.0, chi / sqrt(dof)); 
+	ORSA_DEBUG("chisq/dof = %g",  chi*chi/dof);
       }
     }
     
@@ -781,16 +758,6 @@ bool Multifit::run() {
       ORSA_DEBUG("appending to file %s",logFile.getRef().c_str());
       
       for (unsigned int k=0; k<_par->size(); ++k) {
-	// ORSA_DEBUG("par[%i] = \"%s\" = %18.8f +/- %18.8f (%g * %g)",
-	/* 
-	   ORSA_DEBUG("par[%02i] = [%20s] = %18.8g +/- %18.8g (%g * %g)",
-	   k,
-	   _par->name(k).c_str(),
-	   FIT(k),
-	   c*ERR(k),
-	   c,
-	   ERR(k));
-	*/
 	gmp_fprintf(fp,"par[%02i] = [%32s] = %18.8g +/- %18.8g (%g * %g)\n",
 		    k,
 		    _par->name(k).c_str(),

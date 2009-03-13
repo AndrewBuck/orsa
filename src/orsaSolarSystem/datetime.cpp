@@ -402,6 +402,8 @@ static double deltaSeconds(int y, int m, int d,
     break;
   }
   
+  // ORSA_DEBUG("delta-seconds = %g",ds);
+  
   return (ds);
 }
 
@@ -410,7 +412,7 @@ orsa::Time orsaSolarSystem::FromTimeScale(const orsa::Time & t,
 					  const orsaSolarSystem::TimeScale ts) {
   int y,m,d,H,M,S,ms;
   gregorDay(t,y,m,d,H,M,S,ms);
-  const orsa::Time dt = orsa::Time(0,0,0,0,FromUnits(deltaSeconds(y,m,d,ts),orsa::Unit::MICROSECOND));
+  const orsa::Time dt = orsa::Time(0,0,0,0,1000000*deltaSeconds(y,m,d,ts));
   return (t+dt);
 }
 
@@ -418,7 +420,7 @@ orsa::Time orsaSolarSystem::ToTimeScale(const orsa::Time & t,
 					const orsaSolarSystem::TimeScale ts) {
   int y,m,d,H,M,S,ms;
   gregorDay(t,y,m,d,H,M,S,ms);
-  const orsa::Time dt = orsa::Time(0,0,0,0,FromUnits(deltaSeconds(y,m,d,ts),orsa::Unit::MICROSECOND));
+  const orsa::Time dt = orsa::Time(0,0,0,0,1000000*deltaSeconds(y,m,d,ts));
   return (t-dt);
 }
 
@@ -562,27 +564,14 @@ orsa::Time orsaSolarSystem::J2000() {
 }
 
 orsa::Time orsaSolarSystem::now() {
-  ORSA_DEBUG("timescales??");
   const time_t tt_now = time(0);
   struct tm * tm_struct = gmtime(&tt_now);
-  return gregorTime(1900+tm_struct->tm_year,
-		    1+tm_struct->tm_mon,
-		    tm_struct->tm_mday,
-		    tm_struct->tm_hour,
-		    tm_struct->tm_min,
-		    tm_struct->tm_sec,
-		    0);
-}
-
-/* 
-   orsa::Time dayFraction(const orsa::Time & t) {
-   // rough...
-   return orsa::Time(t.getMuSec() % mpz_class("86400000000"));
-   }
-*/
-
-double orsaSolarSystem::dayFraction(const orsa::Time & t) {
-  // rough...
-  return FromUnits(mpz_class(t.getMuSec() % mpz_class("86400000000")).get_d(),Unit::DAY,-1);
-  // return FromUnits(orsa::Time((t.getMuSec()+mpz_class("86400000000")) % mpz_class("86400000000")).get_d(),Unit::DAY,-1);
+  return orsaSolarSystem::FromTimeScale(gregorTime(1900+tm_struct->tm_year,
+						   1+tm_struct->tm_mon,
+						   tm_struct->tm_mday,
+						   tm_struct->tm_hour,
+						   tm_struct->tm_min,
+						   tm_struct->tm_sec,
+						   0),
+					orsaSolarSystem::TS_UTC);
 }

@@ -30,34 +30,28 @@ double orsaSolarSystem::obleq(const orsa::Time & t) {
 }
 
 double orsaSolarSystem::obleqJ2000() {
-  static double _obleqJ2000;
-  static unsigned int old_prec = 0;
-  if (old_prec != mpf_get_default_prec()) {
-    // Time J2000; J2000.setJ2000();
-    _obleqJ2000 = orsaSolarSystem::obleq(J2000());
-    old_prec = mpf_get_default_prec();
-  }	
+  static double _obleqJ2000 = orsaSolarSystem::obleq(J2000());
   return _obleqJ2000;
 }
 
 orsa::Matrix orsaSolarSystem::eclipticToEquatorial() {
   static orsa::Matrix _m;
-  static unsigned int old_prec = 0;
-  if (old_prec != mpf_get_default_prec()) {
+  static bool firstCall = true;
+  if (firstCall) {
     _m = Matrix::identity();
     _m.rotX(orsaSolarSystem::obleqJ2000());
-    old_prec = mpf_get_default_prec();
-  }	
+    firstCall = false;
+  }
   return _m;
 }
 
 orsa::Matrix orsaSolarSystem::equatorialToEcliptic() {
   static orsa::Matrix _m;
-  static unsigned int old_prec = 0;
-  if (old_prec != mpf_get_default_prec()) {
+  static bool firstCall = true;
+  if (firstCall) {
     _m = Matrix::identity();
     _m.rotX(-orsaSolarSystem::obleqJ2000());
-    old_prec = mpf_get_default_prec();
+    firstCall = false;
   }	
   return _m;
 }

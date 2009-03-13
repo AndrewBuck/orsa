@@ -240,8 +240,12 @@ void orsaSolarSystem::GaussMethod(std::vector<orsaSolarSystem::OrbitWithEpoch> &
     double c_ra,  s_ra;
     double c_dec, s_dec;
     for (unsigned int k=0; k<3; ++k) { 
-      orsa::sincos(obs[k]->ra.getRef(), s_ra, c_ra);
-      orsa::sincos(obs[k]->dec.getRef(),s_dec,c_dec);
+      sincos(obs[k]->ra.getRef().getRad(), 
+	     &s_ra, 
+	     &c_ra);
+      sincos(obs[k]->dec.getRef().getRad(),
+	     &s_dec,
+	     &c_dec);
       u_rho[k].set(c_dec*c_ra,
 		   c_dec*s_ra,
 		   s_dec);
@@ -393,7 +397,7 @@ void orsaSolarSystem::GaussMethod(std::vector<orsaSolarSystem::OrbitWithEpoch> &
       orbit.compute(r[0],v,sqrtGM[0]*sqrtGM[0]);
       orbit.epoch = obs[0]->epoch.getRef();
       
-      // ORSA_DEBUG("orbit.mu: %f",orbit.mu());
+      // ORSA_DEBUG("orbit.mu: %f",orbit.mu);
       
       /*
 	ORSA_DEBUG("tentative orbit: a=%f [au]   e=%f   i=%f [deg]",
