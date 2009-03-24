@@ -4,6 +4,7 @@
 
 #include <orsa/util.h>
 
+#include <orsaSolarSystem/data.h>
 #include <orsaSolarSystem/datetime.h>
 
 using namespace orsa;
@@ -39,7 +40,7 @@ bool MPCAsteroidFile::processLine(const char * line) {
   const Time epoch = MPC_packedToTime(s_epoch.c_str());
   
   Orbit orbit;
-  orbit.mu = orsa::Unit::instance()->getG()*orsa::FromUnits(1,orsa::Unit::MSUN); 
+  orbit.mu = orsaSolarSystem::Data::GMSun(); 
   orbit.e  = atof(s_e.c_str());
   //
   if (orbit.e > 0.99) {

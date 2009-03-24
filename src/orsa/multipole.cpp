@@ -966,7 +966,7 @@ bool Multipole::readFromBisFile(const std::string & filename) {
     gmp_sscanf(line,"GM(%d) =   %lf,",&index,&GM);
     GM = FromUnits(FromUnits(GM,Unit::KM,3),Unit::SECOND,-2);
     //
-    ORSA_DEBUG("M: %e kg",FromUnits(GM/Unit::instance()->getG(),Unit::KG,-1));
+    ORSA_DEBUG("M: %e kg",FromUnits(GM/Unit::G(),Unit::KG,-1));
   }
   
   const unsigned int _order_plus_one = _order.getRef()+1;

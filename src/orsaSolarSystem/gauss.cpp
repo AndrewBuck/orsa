@@ -192,7 +192,7 @@ void orsaSolarSystem::GaussMethod(std::vector<orsaSolarSystem::OrbitWithEpoch> &
     double mass;
     for (unsigned int k=0; k<3; ++k) {
       if (!bg->getInterpolatedMass(mass,refBody,obs[k]->epoch.getRef())) { ORSA_DEBUG("problems..."); }	
-      sqrtGM[k] = sqrt(orsa::Unit::instance()->getG()*mass);
+      sqrtGM[k] = sqrt(orsa::Unit::G()*mass);
       // ORSA_DEBUG("sqrtGM[%i]: %f",k,sqrtGM[k]());
     }
     
@@ -378,8 +378,7 @@ void orsaSolarSystem::GaussMethod(std::vector<orsaSolarSystem::OrbitWithEpoch> &
       orsa::Vector v = (r[1]-r[0]) / (obs[1]->epoch.getRef()-obs[0]->epoch.getRef()).get_d();
       
       // light-time correction [to be checked!]
-      // r[0] += (refBodyVelocity[0]+v)*(r[0]-R[0]).length()/orsa::Unit::instance()->getC();
-      r[0] += (refBodyVelocity[0]+v)*(r[0]-R[0]).length()/orsa::Unit::instance()->getC();
+      r[0] += (refBodyVelocity[0]+v)*(r[0]-R[0]).length()/orsa::Unit::c();
       
       /* 
 	 ORSA_DEBUG("r and v");

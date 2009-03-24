@@ -77,7 +77,9 @@ namespace orsa {
 	    double             & M2,
 	    const orsa::Orbit  & o1,
 	    const orsa::Orbit  & o2,
-	    const double       & epsAbs = 1e-6);
+	    const int          & randomSeed,
+	    const unsigned int & numPoints = 16,
+	    const double       & epsAbs    = 1e-6);
   
   double HillRadius(const double & a,
 		    const double & m,

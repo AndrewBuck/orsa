@@ -2,6 +2,7 @@
 
 #include <orsa/util.h>
 
+#include <orsaSolarSystem/data.h>
 #include <orsaSolarSystem/datetime.h>
 
 using namespace orsa;
@@ -52,7 +53,7 @@ bool MPCCometFile::processLine(const char * line) {
 						 atof(s_epoch_d.c_str()));
   
   Orbit orbit;
-  orbit.mu = orsa::Unit::instance()->getG()*orsa::FromUnits(1,orsa::Unit::MSUN); 
+  orbit.mu = orsaSolarSystem::Data::GMSun(); 
   orbit.e  = atof(s_e.c_str());
   //
   if (orbit.e > 0.99) {

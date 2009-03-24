@@ -4,6 +4,8 @@
 
 #include <orsa/util.h>
 
+#include <orsaSolarSystem/data.h>
+
 using namespace orsa;
 using namespace orsaInputOutput;
 using namespace orsaSolarSystem;
@@ -54,8 +56,8 @@ bool MPCObsCodeFile::processLine(const char * line) {
   Observatory workObs;
   
   if (s_longitude.size()) workObs.lon = degToRad() * atof(s_longitude.c_str());
-  if (s_pos_xy.size())    workObs.pxy = FromUnits(atof(s_pos_xy.c_str()), Unit::REARTH);
-  if (s_pos_z.size())     workObs.pz  = FromUnits(atof(s_pos_z.c_str()),  Unit::REARTH);
+  if (s_pos_xy.size())    workObs.pxy = atof(s_pos_xy.c_str()) * orsaSolarSystem::Data::REarth();
+  if (s_pos_z.size())     workObs.pz  = atof(s_pos_z.c_str())  * orsaSolarSystem::Data::REarth();
   
   workObs.name = s_name;
   

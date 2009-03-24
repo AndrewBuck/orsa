@@ -153,11 +153,11 @@ bool Orbit::compute(const Body * b, const Body * ref_b, BodyGroup * bg, const Ti
   if (b->betaSun == ref_b) {
     ORSA_DEBUG("beta-orbit...");
     // mu = (1 - b->beta.getRef())*b->getMu() + ref_b->getMu();
-    mu = orsa::Unit::instance()->getG() * 
+    mu = orsa::Unit::G() * 
       ((1-b->beta.getRef())*m_b + m_ref_b);
   } else {
     // mu = b->getMu()+ref_b->getMu();
-    mu = orsa::Unit::instance()->getG() * 
+    mu = orsa::Unit::G() * 
       (m_b + m_ref_b);
   }
   
@@ -566,6 +566,8 @@ public:
   double fun(const orsa::MultiminParameters * par) const {
     o1.M = par->get("M1");
     o2.M = par->get("M2");
+    o1.M = fmod(fmod(o1.M,orsa::twopi())+orsa::twopi(),orsa::twopi());
+    o2.M = fmod(fmod(o2.M,orsa::twopi())+orsa::twopi(),orsa::twopi());
     orsa::Vector r1, r2;
     o1.relativePosition(r1);
     o2.relativePosition(r2);
@@ -575,19 +577,19 @@ public:
   mutable orsa::Orbit o1, o2;
 };
 
-bool orsa::MOID(double       & moid,
-		double       & M1,
-		double       & M2,
+bool orsa::MOID(double             & moid,
+		double             & M1,
+		double             & M2,
 		const orsa::Orbit  & o1,
 		const orsa::Orbit  & o2,
-		const double & epsAbs) {
-  
-  ORSA_DEBUG("called...");
+		const int          & randomSeed,
+		const unsigned int & numPoints,
+		const double       & epsAbs) {
   
   osg::ref_ptr<orsa::MultiminParameters> par = new MultiminParameters;
   //
-  par->insert("M1",o1.M,1.0*orsa::degToRad());
-  par->insert("M2",o2.M,1.0*orsa::degToRad());
+  par->insert("M1",o1.M,orsa::arcsecToRad());
+  par->insert("M2",o2.M,orsa::arcsecToRad());
   
   osg::ref_ptr<MOID_Multimin> multimin = new MOID_Multimin(o1,o2);
   //
@@ -595,53 +597,58 @@ bool orsa::MOID(double       & moid,
   
   bool found=false;
   
-  // inital tentative solution, using original orbit::M values
-  if (multimin->run_nmsimplex(128,
-			      epsAbs)) {
-    moid = multimin->fun(multimin->getMultiminParameters());
-    M1   = multimin->getMultiminParameters()->get("M1");
-    M2   = multimin->getMultiminParameters()->get("M2");
-    found=true;
-    
-    ORSA_DEBUG("moid: %.16f [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1));
-  }
-  
-  const unsigned int numTests=5;
-  for (unsigned int k=0; k<numTests; ++k) {
-    par->set("M1", k*orsa::twopi()/numTests);
-    par->set("M2",-k*orsa::twopi()/numTests);
-    if (multimin->run_nmsimplex(128,
-				epsAbs)) {
-      if ((found && (multimin->fun(multimin->getMultiminParameters()) < moid)) ||
-	  (!found) ) {      
-	moid = multimin->fun(multimin->getMultiminParameters());
-	M1   = multimin->getMultiminParameters()->get("M1");
-	M2   = multimin->getMultiminParameters()->get("M2");
-	found=true;
-	
-	ORSA_DEBUG("better value! k: %i *******",k);
-	ORSA_DEBUG("moid: %.16f [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1));
+  {
+    osg::ref_ptr<orsa::RNG> rng = new orsa::RNG(randomSeed);  
+    for (unsigned int k=0; k<numPoints; ++k) {
+      par->set("M1",rng->gsl_rng_uniform()*orsa::twopi());
+      par->set("M2",rng->gsl_rng_uniform()*orsa::twopi());
+      if (multimin->run_nmsimplex(128,
+				  epsAbs)) {
+	if ((found && (multimin->fun(multimin->getMultiminParameters()) < moid)) ||
+	    (!found) ) {      
+	  moid = multimin->fun(multimin->getMultiminParameters());
+	  M1   = multimin->getMultiminParameters()->get("M1");
+	  M2   = multimin->getMultiminParameters()->get("M2");
+	  found=true;
+	  
+	  M1 = fmod(fmod(M1,orsa::twopi())+orsa::twopi(),orsa::twopi());
+	  M2 = fmod(fmod(M2,orsa::twopi())+orsa::twopi(),orsa::twopi());
+	  
+	  /* ORSA_DEBUG("moid: %.16f [AU]   M1: %f  M2: %f   k: %i",
+	     orsa::FromUnits(moid,orsa::Unit::AU,-1),
+	     M1,
+	     M2,
+	     k);
+	  */
+	}
       }
     }
   }
   
-  // #warning remove this in production, testing only...
-  /* {
-     osg::ref_ptr<orsa::RNG> rng = new orsa::RNG(997345);
-     for (unsigned int k=0; k<1024; ++k) {
+  /* 
+     #warning remove this in production, testing only...
+     {
+     static osg::ref_ptr<orsa::RNG> rng = new orsa::RNG(23523);
+     for (unsigned int k=0; k<256; ++k) {
      par->set("M1",rng->gsl_rng_uniform()*orsa::twopi());
      par->set("M2",rng->gsl_rng_uniform()*orsa::twopi());
-     const double tmp_moid = multimin->fun(par.get());
+     if (multimin->run_nmsimplex(128,
+     epsAbs)) {
+     
+     const double tmp_moid = 1.001 * multimin->fun(par.get());
      if (tmp_moid < moid) {
      ORSA_DEBUG("************ FOUND SMALLER MOID IN STRESS TEST ***********");
-     ORSA_DEBUG("moid: %.16f [AU]",orsa::FromUnits(moid,orsa::Unit::AU,-1));
+     ORSA_DEBUG("moid: %.16f [AU] M1: %f  M2: %f   (deeper k: %i)",
+     orsa::FromUnits(tmp_moid,orsa::Unit::AU,-1),
+     par->get("M1"), 
+     par->get("M2"),
+     k);
      exit(0);
      }	
      }
      }
-  */
-  
-  ORSA_DEBUG("done.");
+     }
+  */	
   
   return found;
 }
@@ -810,9 +817,9 @@ const Body * orsa::simpleParentBody(const Body * b,
       if (bg->getInterpolatedPosVel(r_b_it,v_b_it,(*_b_it).get(),t)) {
 	// const double E = 0.5*(v_b-v_b_it).lengthSquared() - (*_b_it)->getMu()/(r_b-r_b_it).length();
 	const double E = 0.5*(v_b-v_b_it).lengthSquared() - 
-	  orsa::Unit::instance()->getG() * m_b_it/(r_b-r_b_it).length();
+	  orsa::Unit::G() * m_b_it/(r_b-r_b_it).length();
 	// const double a = - (*_b_it)->getMu() / (2*E);
-	const double a = - orsa::Unit::instance()->getG() * m_b_it / (2*E);
+	const double a = - orsa::Unit::G() * m_b_it / (2*E);
 	
 	/* 
 	   ORSA_DEBUG("---------------- b: %s  b_it: %s   a: %g    dr: %g  dv: %g  mu: %g",

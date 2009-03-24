@@ -278,8 +278,8 @@ bool Interaction::acceleration(InteractionVector & a,
 	  // a_ref_b += b->getMu()     * accTerm;
 	  // a_b     -= ref_b->getMu() * accTerm;
 	  
-	  a[j] += orsa::Unit::instance()->getG() * m_b     * accTerm;
-	  a[k] -= orsa::Unit::instance()->getG() * m_ref_b * accTerm;
+	  a[j] += orsa::Unit::G() * m_b     * accTerm;
+	  a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
 	  
 	  /*   
 	       } else {
@@ -319,16 +319,16 @@ bool Interaction::acceleration(InteractionVector & a,
 	    // a[    (*b_it).get()] -= (*ref_b_it)->getMu() * accTerm;
 	    // a_ref_b += b->getMu()     * accTerm;
 	    // a_b     -= ref_b->getMu() * accTerm;
-	    a[j] += orsa::Unit::instance()->getG() * m_b     * accTerm;
-	    a[k] -= orsa::Unit::instance()->getG() * m_ref_b * accTerm;
+	    a[j] += orsa::Unit::G() * m_b     * accTerm;
+	    a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
 	  } else {
 	    const orsa::Vector accTerm = _d;
 	    // a[(*ref_b_it).get()] += (*b_it)->getMu()     * accTerm;
 	    // a[    (*b_it).get()] -= (*ref_b_it)->getMu() * accTerm;
 	    // a_ref_b += b->getMu()     * accTerm;
 	    // a_b     -= ref_b->getMu() * accTerm;
-	    a[j] += orsa::Unit::instance()->getG() * m_b     * accTerm;
-	    a[k] -= orsa::Unit::instance()->getG() * m_ref_b * accTerm;
+	    a[j] += orsa::Unit::G() * m_b     * accTerm;
+	    a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
 	  }
 	  
 	  /* 
@@ -572,8 +572,8 @@ bool Interaction::torque(InteractionVector & N,
 	    // N[(*ref_b_it)->id()] += orsa::Unit::instance()->getG() * m_b * torqueTerm;
 	    // N[    (*b_it)->id()] -= orsa::Unit::instance()->getG() * m_ref_b * torqueTerm;
 	    //
-	    N[j] += orsa::Unit::instance()->getG() * m_b     * torqueTerm;
-	    N[k] -= orsa::Unit::instance()->getG() * m_ref_b * torqueTerm;
+	    N[j] += orsa::Unit::G() * m_b     * torqueTerm;
+	    N[k] -= orsa::Unit::G() * m_ref_b * torqueTerm;
 	    
 	  } else {
 	    if (!ref_b_ibps.translational.get()) ORSA_DEBUG("problems: [%s].translational.get() = %x",

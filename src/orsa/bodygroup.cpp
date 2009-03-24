@@ -1017,7 +1017,7 @@ double BodyGroup::totalEnergy(const orsa::Time & t) const {
 	}	
 	
 	E -= 
-	  orsa::Unit::instance()->getG() *
+	  orsa::Unit::G() *
 	  m1 * 
 	  m2 *
 	  Paul::gravitationalPotential(b1_pm.get(),

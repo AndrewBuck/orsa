@@ -130,7 +130,8 @@ namespace orsa {
   //
   // double int_pow(const double & x, const mpz_class & p);
   // double int_pow(const double & x, const mpz_class & p, const bool can_call_epsilon=true);
-  double int_pow(const double & x, const mpz_class & p);
+  // double int_pow(const double & x, const mpz_class & p);
+  double int_pow(const double & x, const int & p);
   
   //! x^y
   // double pow(const double & x, const double & y);

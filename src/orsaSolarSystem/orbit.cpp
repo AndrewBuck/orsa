@@ -49,7 +49,7 @@ void orsaSolarSystem::ComputeResidual(std::vector<orsaSolarSystem::Residual>   &
     }
     
     dr = refBodyPosition+relativePosition-obsPosition;
-    const double lightTimeDelay = dr.length()/orsa::Unit::instance()->getC();
+    const double lightTimeDelay = dr.length()/orsa::Unit::c();
     dr -= lightTimeDelay*(refBodyVelocity+relativeVelocity);
     dr = orsaSolarSystem::eclipticToEquatorial()*dr;
     

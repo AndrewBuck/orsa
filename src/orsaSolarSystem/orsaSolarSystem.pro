@@ -30,6 +30,7 @@ win32 {
 }
 
 HEADERS = attitude.h \
+          data.h \
           datetime.h \
           gauss.h \
           gmst.h \
