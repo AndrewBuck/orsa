@@ -137,20 +137,22 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
       ORSA_DEBUG("problems...");
     }
     
-    ORSA_DEBUG("ctstart: %f [day]",
-	       FromUnits(FromUnits(ctstart.getMuSec().get_d(),Unit::MICROSECOND),Unit::DAY,-1));
-    ORSA_DEBUG(" ctstop: %f [day]",
-	       FromUnits(FromUnits(ctstop.getMuSec().get_d(),Unit::MICROSECOND),Unit::DAY,-1));
+    /* 
+       ORSA_DEBUG("ctstart: %f [day]",
+       FromUnits(FromUnits(ctstart.getMuSec().get_d(),Unit::MICROSECOND),Unit::DAY,-1));
+       ORSA_DEBUG(" ctstop: %f [day]",
+       FromUnits(FromUnits(ctstop.getMuSec().get_d(),Unit::MICROSECOND),Unit::DAY,-1));
+    */
     
     if ((ctstart==start) && (ctstop==stop)) {
       // nothing to be done...
     } else if (ctstart==start) {
-      ORSA_DEBUG("new code ctstart...");
+      // ORSA_DEBUG("new code ctstart...");
       t    = ctstop;
       tEnd = stop;
       sign.set((t-tEnd).getMuSec()/abs((t-tEnd).getMuSec()));
     } else if (ctstop==stop) {
-      ORSA_DEBUG("new code ctstop...");
+      // ORSA_DEBUG("new code ctstop...");
       t    = ctstart;
       tEnd = start;
       sign.set((t-tEnd).getMuSec()/abs((t-tEnd).getMuSec()));
