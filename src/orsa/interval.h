@@ -7,7 +7,7 @@
 #include <osg/ref_ptr>
 
 #include <algorithm>
-#include <vector>
+#include <deque>
 
 // #include <QList>
 
@@ -25,9 +25,9 @@ namespace orsa {
   template <typename T> class Interval : public osg::Referenced {
   public:
 #ifdef ORSA_USE_TBB
-    typedef std::list<T, tbb::cache_aligned_allocator<T> > DataType;
+    typedef std::deque<T, tbb::cache_aligned_allocator<T> > DataType;
 #else
-    typedef std::list<T> DataType;
+    typedef std::deque<T> DataType;
 #endif
   public:
     Interval() : Referenced(true) { 
