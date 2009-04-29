@@ -58,8 +58,8 @@ bool orsa::Euler(orsa::Vector       & omegaDot,
       
       omegaDot = principalToGeneric*inv_Ip*(genericToPrincipal*T - orsa::externalProduct(genericToPrincipal*omega,Lp));
       
-      ORSA_DEBUG("omegaDot...");
-      print(omegaDot);
+      // ORSA_DEBUG("omegaDot...");
+      // print(omegaDot);
       
       return true;
       
@@ -80,8 +80,8 @@ bool orsa::Euler(orsa::Vector       & omegaDot,
       
       omegaDot = inv_I*(T-orsa::externalProduct(omega,L));
       
-      ORSA_DEBUG("omegaDot...");
-      print(omegaDot);
+      // ORSA_DEBUG("omegaDot...");
+      // print(omegaDot);
       
       return true;
       
