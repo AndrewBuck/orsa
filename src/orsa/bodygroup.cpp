@@ -48,13 +48,14 @@ bool BodyGroup::addBody(const Body * b) {
     return false;
   } 
   
-  if (!(b->getInitialConditions().translational.get())) {
-    ORSA_ERROR("...");
-    return false;
-  }	
+  /* if (!(b->getInitialConditions().translational.get())) {
+     ORSA_ERROR("...");
+     return false;
+     }	
+  */
   
   // if (b->getBodyPosVelCallback()) {
-  if (!(b->getInitialConditions().translational->dynamic())) {
+  if (!(b->getInitialConditions().dynamic())) {
     _b_list.push_back(b);
     return true;
   } else {
@@ -136,7 +137,7 @@ bool BodyGroup::getIBPS(orsa::IBPS       & ibps,
 			const orsa::Body * b,
 			const orsa::Time & t) const {
   // if (b->getBodyPosVelCallback()) {
-  if (!(b->getInitialConditions().translational->dynamic())) { 
+  if (!(b->getInitialConditions().dynamic())) { 
     // trv.t = t;
     // b->getBodyPosVelCallback()->getPosVel(t,trv.r,trv.v);
     ibps = b->getInitialConditions();
@@ -150,7 +151,8 @@ bool BodyGroup::getIBPS(orsa::IBPS       & ibps,
     ibps.time = t;
     // if (_b_interval->getSubInterval(trv, _trv1, _trv2)) {
     if (bi->getSubInterval(ibps,ibps1,ibps2)) {
-      if ((ibps.time.getRef() == ibps2.time.getRef()) && (t == ibps1.time.getRef())) {
+      if ((t == ibps1.time.getRef()) && 
+	  (t == ibps2.time.getRef())) {
 	ibps = ibps1;
 	return true;
       } else {
@@ -167,7 +169,7 @@ bool BodyGroup::getIBPS(orsa::IBPS       & ibps,
 bool BodyGroup::getClosestIBPS(orsa::IBPS       & ibps,
 			       const orsa::Body * b,
 			       const orsa::Time & t) const {
-  if (!(b->getInitialConditions().translational->dynamic())) { 
+  if (!(b->getInitialConditions().dynamic())) { 
     ibps = b->getInitialConditions();
     ibps.update(t);
     return true;
@@ -198,13 +200,6 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
 				    const orsa::Body * b,
 				    const orsa::Time & t) const {
   
-  // ORSA_DEBUG("b: %x",b);
-  // 
-  /* if (!b) {
-     return false;
-     }
-  */
-  
   if (!b->alive(t)) {
     // ORSA_DEBUG("out, body [%s]",b->getName().c_str());
     return false;
@@ -216,7 +211,7 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
      size());
   */
   
-  if (b->getInitialConditions().translational->dynamic()) {
+  if (b->getInitialConditions().dynamic()) {
     IBPS ibps1, ibps2;
     osg::ref_ptr<const orsa::BodyGroup::BodyInterval> bi = getBodyInterval(b);
     ibps.time = t; 
@@ -227,6 +222,9 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
     if (bi->getSubInterval(ibps,ibps1,ibps2)) {
       if ((t == ibps1.time.getRef()) && (t == ibps2.time.getRef())) {
 	ibps = ibps1;	
+	//
+	// VERY IMPORTANT call to update(t);
+	ibps.update(t);
 	// ORSA_DEBUG("out, body [%s]",b->getName().c_str());
 	return true;
       } else {
@@ -239,7 +237,7 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
 	}
 	if (ibps1.time.getRef() == ibps2.time.getRef()) {
 	  ibps = ibps1;
-	  ORSA_DEBUG("out, body [%s]",b->getName().c_str());
+	  // ORSA_DEBUG("out, body [%s]",b->getName().c_str());
 	  return true;	  
 	} else {
 	  // to copy pointers...
@@ -247,125 +245,46 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
 	  // set time again...
 	  ibps.time = t; 
 	  
+#warning ADD inertial here...
+	  
 	  if (ibps.translational.get()) {
-	    osg::ref_ptr<orsa::PhysicalSpline<orsa::Vector> > s = new orsa::PhysicalSpline<orsa::Vector>;
-	    //
-	    if (s->set(ibps1.translational->position(),
-		       ibps1.translational->velocity(),
-		       ibps1.time.getRef(),
-		       ibps2.translational->position(),
-		       ibps2.translational->velocity(),
-		       ibps2.time.getRef())) {
-	      orsa::Vector r,v;
-	      if (s->get(r,v,t)) {
-		ibps.translational->setPosition(r);
-		ibps.translational->setVelocity(v);
-		/* 
-		   ORSA_DEBUG("spline, r: %f   r1: %f   r2: %f",
-		   r.length(),
-		   ibps1.translational->position().length(),
-		   ibps2.translational->position().length());
-		*/
+	    if (ibps.translational->dynamic()) {
+	      osg::ref_ptr<orsa::PhysicalSpline<orsa::Vector> > s = new orsa::PhysicalSpline<orsa::Vector>;
+	      //
+	      if (s->set(ibps1.translational->position(),
+			 ibps1.translational->velocity(),
+			 ibps1.time.getRef(),
+			 ibps2.translational->position(),
+			 ibps2.translational->velocity(),
+			 ibps2.time.getRef())) {
+		orsa::Vector r,v;
+		if (s->get(r,v,t)) {
+		  ibps.translational->setPosition(r);
+		  ibps.translational->setVelocity(v);
+		  
+		  /* 
+		     ORSA_DEBUG("spline, r: %f   r1: %f   r2: %f",
+		     r.length(),
+		     ibps1.translational->position().length(),
+		     ibps2.translational->position().length());
+		  */
+		  
+		}
+	      } else {
+		ORSA_DEBUG("problems...");
+		return false;
 	      }
 	    } else {
-	      ORSA_DEBUG("problems...");
-	      return false;
+	      ibps.translational->update(t);
 	    }
 	  } 
 	  
 	  if (ibps.rotational.get()) {
 	    
-	    // ORSA_DEBUG("CODE NEEDED HERE!!");
-	    // 
-	    /* 
-	       double sPhi,sPhiDot,sTheta,sThetaDot,sPsi,sPsiDot;
-	       
-	       osg::ref_ptr<orsa::PhysicalSpline<double> > sAngle = 
-	       new orsa::PhysicalSpline<double>;
-	       
-	       if (sAngle->set(ibps1.rotational->getPhi(),
-	       ibps1.rotational->getPhiDot(),
-	       ibps1.time.getRef(),
-	       ibps2.rotational->getPhi(),
-	       ibps2.rotational->getPhiDot(),
-	       ibps2.time.getRef())) {
-	       if (!sAngle->get(sPhi,sPhiDot,t)) {
-	       ORSA_DEBUG("problems...");
-	       return false;
-	       }
-	       } else {
-	       ORSA_DEBUG("problems...");
-	       return false;   
-	       }	
-	       
-	       if (sAngle->set(ibps1.rotational->getTheta(),
-	       ibps1.rotational->getThetaDot(),
-	       ibps1.time.getRef(),
-	       ibps2.rotational->getTheta(),
-	       ibps2.rotational->getThetaDot(),
-	       ibps2.time.getRef())) {
-	       if (!sAngle->get(sTheta,sThetaDot,t)) {
-	       ORSA_DEBUG("problems...");
-	       return false;
-	       }
-	       } else {
-	       ORSA_DEBUG("problems...");
-	       return false;   
-	       }	
-	       
-	       if (sAngle->set(ibps1.rotational->getPsi(),
-	       ibps1.rotational->getPsiDot(),
-	       ibps1.time.getRef(),
-	       ibps2.rotational->getPsi(),
-	       ibps2.rotational->getPsiDot(),
-	       ibps2.time.getRef())) {
-	       if (!sAngle->get(sPsi,sPsiDot,t)) {
-	       ORSA_DEBUG("problems...");
-	       return false;
-	       }
-	       } else {
-	       ORSA_DEBUG("problems...");
-	       return false;   
-	       }	
-	       
-	       ibps.rotational->set(sPhi,
-	       sTheta,
-	       sPsi,
-	       sPhiDot,
-	       sThetaDot,
-	       sPsiDot);
-	    */
-	    //
-
-	    // for now I interpolate both q and omega linearly
-	    // in the future, q should be interpolated using omega directly..
-	    
-	    if (1) {
-	      
-	      // ORSA_DEBUG("interpolation...");
+	    if (ibps.rotational->dynamic()) {
 	      
 	      orsa::Quaternion sQ, sQDot;
 	      
-	      /* 
-		 osg::ref_ptr<orsa::PhysicalSpline<orsa::Quaternion> > spline = 
-		 new orsa::PhysicalSpline<orsa::Quaternion>;
-		 
-		 if (spline->set(ibps1.rotational->getQ(),
-		 ibps1.rotational->getQDot(),
-		 ibps1.time.getRef(),
-		 ibps2.rotational->getQ(),
-		 ibps2.rotational->getQDot(),
-		 ibps2.time.getRef())) {
-		 if (!spline->get(sQ,sQDot,t)) {
-		 ORSA_DEBUG("problems...");
-		 return false;
-		 }
-		 } else {
-		 ORSA_DEBUG("problems...");
-		 return false;   
-		 }	
-	      */
-
 	      osg::ref_ptr<orsa::Slerp> slerp = new Slerp;
 	      
 	      if (slerp->set(ibps1.rotational->getQ(),
@@ -383,41 +302,14 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
 	      
 	      sQ = unitQuaternion(sQ);
 	      
-	      /* 
-		 if (slerp->set(ibps1.rotational->getQDot(),
-		 ibps1.time.getRef(),
-		 ibps2.rotational->getQDot(),
-		 ibps2.time.getRef())) {
-		 if (!slerp->get(sQDot,t)) {
-		 ORSA_DEBUG("problems...");
-		 return false;
-		 }
-		 } else {
-		 ORSA_DEBUG("problems...");
-		 return false;   
-		 }	
-	      */
-	      
-	      // ORSA_DEBUG("FINIRE QUI!!!!");
-	      
-	      // important constraint on qDot!
-	      /* 
-		 const double delta = 
-		 sQ.getScalar()*sQDot.getScalar() +
-		 sQ.getVector()*sQDot.getVector();
-		 //
-		 sQDot -= sQ*delta;
-	      */
 	      
 	      ibps.rotational->set(sQ,
 				   ibps1.rotational->getOmega());
 	      
-	      // ORSA_DEBUG("sQDot.getVector(): %Fg",sQDot.getVector().length());
-	      
+	    } else {
+	      ibps.rotational->update(t); 
 	    }
-	    
 	  }
-	  
 	  // ORSA_DEBUG("out, body [%s]",b->getName().c_str());
 	  return true;
 	}
@@ -426,7 +318,7 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
       // ORSA_DEBUG("problems...");
       ORSA_DEBUG("problems... body: [%s] dynamic: %i",
 		 b->getName().c_str(),
-		 b->getInitialConditions().translational->dynamic());
+		 b->getInitialConditions().dynamic());
       // ORSA_DEBUG("..out..");
       return false;
     }	
@@ -547,7 +439,7 @@ bool BodyGroup::getClosestCommonTime(orsa::Time       & t,
       continue;
     }
     
-    if (!(*b_it)->getInitialConditions().translational->dynamic()) { 
+    if (!(*b_it)->getInitialConditions().dynamic()) { 
       ++b_it;
       continue;
     }
@@ -597,7 +489,7 @@ bool BodyGroup::getClosestCommonTime(orsa::Time       & t,
 	    continue;
 	  }
 	  
-	  if (!(*b2_it)->getInitialConditions().translational->dynamic()) { 
+	  if (!(*b2_it)->getInitialConditions().dynamic()) { 
 	    ++b2_it;
 	    continue;
 	  }
@@ -661,7 +553,7 @@ bool BodyGroup::getCommonInterval(orsa::Time & start, orsa::Time & stop, const b
        }
     */
     //
-    if (!(_bi.key()->getInitialConditions().translational->dynamic())) { 
+    if (!(_bi.key()->getInitialConditions().dynamic())) { 
       ++_bi;
       continue;
     }
@@ -723,7 +615,7 @@ bool BodyGroup::getGlobalInterval(orsa::Time & start, orsa::Time & stop, const b
        }
     */
     //
-    if (!(_bi.key()->getInitialConditions().translational->dynamic())) { 
+    if (!(_bi.key()->getInitialConditions().dynamic())) { 
       ++_bi;
       continue;
     }
