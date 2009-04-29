@@ -255,42 +255,58 @@ bool Interaction::acceleration(InteractionVector & a,
 	    (b_ibps.translational->position() + b_l2g*b_pm->getCenterOfMass()) - 
 	    (ref_b_ibps.translational->position() + ref_b_l2g*ref_b_pm->getCenterOfMass());
 	  
-	  /* 
-	     const orsa::Vector accTerm =
-	     Paul::gravitationalForce(ref_b_pm.get(),
-	     new orsa::BodyAttitude((*ref_b_it).get(),bg),
-	     b_pm.get(),
-	     new orsa::BodyAttitude((*b_it).get(),bg),
-	     R,
-	     t);
-	  */
-	  //
-	  const orsa::Vector accTerm =
-	    Paul::gravitationalForce(ref_b_pm.get(),
-				     ref_b_g2l,
-				     b_pm.get(),
-				     b_g2l,
-				     R);
-	  
-	  // a[(*ref_b_it).get()] += (*b_it)->getMu()     * accTerm;
-	  // a[    (*b_it).get()] -= (*ref_b_it)->getMu() * accTerm;
-	  
-	  // a_ref_b += b->getMu()     * accTerm;
-	  // a_b     -= ref_b->getMu() * accTerm;
-	  
-	  a[j] += orsa::Unit::G() * m_b     * accTerm;
-	  a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
-	  
-	  /*   
-	       } else {
-	       if (!bp->ref_b_ibps->translational.get()) ORSA_DEBUG("problems: [%s].translational.get() = %x",
-	       ref_b->getName().c_str(),
-	       bp->ref_b_ibps->translational.get());
-	       if (!bp->b_ibps->translational.get()) ORSA_DEBUG("problems: [%s].translational.get() = %x",
-	       b->getName().c_str(),
-	       bp->b_ibps->translational.get());
-	       }
-	  */
+	  if (b->getRadius()+ref_b->getRadius() > R.length()) {
+	    
+	    ORSA_DEBUG("bodies too close: R<R1+R2, R=%g R1=%g R2=%g [km]",
+		       orsa::FromUnits(R.length(),orsa::Unit::KM,-1),
+		       orsa::FromUnits(b->getRadius(),orsa::Unit::KM,-1),
+		       orsa::FromUnits(ref_b->getRadius(),orsa::Unit::KM,-1));
+	    ORSA_DEBUG("reverting to pointlike...");
+#warning should handle this better....
+	   
+	    orsa::Vector _d =
+	      b_ibps.translational->position() - 
+	      ref_b_ibps.translational->position();
+	    
+	    const double _l = _d.length();
+	    
+	    /* 
+	       if (_l > epsilon()) {
+	    */
+	    
+	    _d /= (_l*_l*_l);
+	    
+	    if (ref_b->betaSun == b) {
+	      const orsa::Vector accTerm = (1 - ref_b->beta.getRef()) * _d;
+	      // a[(*ref_b_it).get()] += (*b_it)->getMu()     * accTerm;
+	      // a[    (*b_it).get()] -= (*ref_b_it)->getMu() * accTerm;
+	      // a_ref_b += b->getMu()     * accTerm;
+	      // a_b     -= ref_b->getMu() * accTerm;
+	      a[j] += orsa::Unit::G() * m_b     * accTerm;
+	      a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
+	    } else {
+	      const orsa::Vector accTerm = _d;
+	      // a[(*ref_b_it).get()] += (*b_it)->getMu()     * accTerm;
+	      // a[    (*b_it).get()] -= (*ref_b_it)->getMu() * accTerm;
+	      // a_ref_b += b->getMu()     * accTerm;
+	      // a_b     -= ref_b->getMu() * accTerm;
+	      a[j] += orsa::Unit::G() * m_b     * accTerm;
+	      a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
+	    }	
+	    
+	  } else {
+	    
+	    const orsa::Vector accTerm =
+	      Paul::gravitationalForce(ref_b_pm.get(),
+				       ref_b_g2l,
+				       b_pm.get(),
+				       b_g2l,
+				       R);
+	    
+	    a[j] += orsa::Unit::G() * m_b     * accTerm;
+	    a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
+	    
+	  }
 	  
 	} else {
 	  
