@@ -19,12 +19,11 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
   // #warning "remember: if any of the bodies has propulsion, care should be taken for timestep management, to hit all the intervals where propulsion is used"
   
   doAbort = false;
- 
-  /* 
-     ORSA_DEBUG("CALL start: %f [day]",
-     FromUnits(FromUnits(start.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)());
+  
+  /* ORSA_DEBUG("CALL start: %f [day]",
+     FromUnits(start.get_d(),Unit::DAY,-1));
      ORSA_DEBUG("CALL stop:  %f [day]",
-     FromUnits(FromUnits(stop.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)());
+     FromUnits(stop.get_d(),Unit::DAY,-1));
   */
   
   // always start <= stop
@@ -145,7 +144,7 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
     */
     
     if ((ctstart==start) && (ctstop==stop)) {
-      // nothing to be done...
+      return true;
     } else if (ctstart==start) {
       // ORSA_DEBUG("new code ctstart...");
       t    = ctstop;
@@ -387,9 +386,9 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
 	*/
 	//
 	/* ORSA_DEBUG("radt: %f %f %f",
-	   FromUnits(FromUnits(t.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)(),
-	   FromUnits(rs->average(),Unit::SECOND,-1)(),
-	   FromUnits(rs->averageError(),Unit::SECOND,-1)());
+	   FromUnits(t.get_d(),Unit::DAY,-1),
+	   FromUnits(rs->average(),Unit::SECOND,-1),
+	   FromUnits(rs->averageError(),Unit::SECOND,-1));
 	*/
 	/* 
 	   {
