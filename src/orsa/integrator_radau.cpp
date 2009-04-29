@@ -1489,9 +1489,10 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	  //
 #warning "check this length()..."
 	  
-	  ORSA_DEBUG("tmp test...");
-	  print(tmp);
-	  print(fabs(bQ[6][k].length()));
+	  /* ORSA_DEBUG("tmp test...");
+	     print(tmp);
+	     print(fabs(bQ[6][k].length()));
+	  */
 	  //
 	  tmp = std::max(tmp,fabs(bQ[6][k].length()));
 	}
