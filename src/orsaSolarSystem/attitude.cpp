@@ -41,6 +41,9 @@ ConstantZRotationEcliptic_RotationalBodyProperty::ConstantZRotationEcliptic_Rota
 
 bool ConstantZRotationEcliptic_RotationalBodyProperty::update(const orsa::Time & t) {
   
+  // ORSA_DEBUG("--- UPDATE called ---");
+  // orsa::print(t);
+  
   /* 
      if (_previousTime.isSet()) {
      ORSA_DEBUG("this: %x   t: %Zi   prev.t: %Zi !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
@@ -56,7 +59,7 @@ bool ConstantZRotationEcliptic_RotationalBodyProperty::update(const orsa::Time &
   
   if (_previousTime.isSet()) {
     if (_previousTime.getRef() == t) {
-      ORSA_DEBUG("cached...");
+      // ORSA_DEBUG("cached...");
       return true;
     }    
   }
