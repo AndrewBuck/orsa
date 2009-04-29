@@ -142,7 +142,7 @@ orsa::Vector RotationalBodyProperty::newOmega (const orsa::Vector & omega,
   */
   
   if (omegaDot.length() < orsa::epsilon()) {
-    ORSA_DEBUG("omegaDot is really tiny...");
+    // ORSA_DEBUG("omegaDot is really tiny...");
     return (omega + omegaDot * dt.get_d());
   }
   
@@ -161,7 +161,7 @@ orsa::Vector RotationalBodyProperty::newOmega (const orsa::Vector & omega,
     
     const double radialComponent = omegaDot * uOmega;
     
-    ORSA_DEBUG("radialComponent/omegaDotMagnitude: %g",radialComponent/omegaDotMagnitude);
+    // ORSA_DEBUG("radialComponent/omegaDotMagnitude: %g",radialComponent/omegaDotMagnitude);
     
     const orsa::Vector  tangentOmegaDot          = omegaDot - radialComponent * uOmega;
     const double  tangentOmegaDotMagnitude = tangentOmegaDot.length();
@@ -189,10 +189,12 @@ orsa::Vector RotationalBodyProperty::newOmega (const orsa::Vector & omega,
   
   // ORSA_DEBUG("omega comparison...");
   // print(omega);
-  print(newOmega);
+  // print(newOmega);
   
-  ORSA_DEBUG("scalar product: %20.16f",
-	     newOmega.normalized() * omega.normalized());
+  /* 
+     ORSA_DEBUG("scalar product: %20.16f",
+     newOmega.normalized() * omega.normalized());
+  */
   
   return newOmega;  
 }

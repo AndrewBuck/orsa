@@ -333,6 +333,20 @@ namespace orsa {
     }
     
   public:
+    bool dynamic() const {
+      if (inertial.get()) {
+	if (inertial->dynamic()) return true;
+      }
+      if (translational.get()) {
+	if (translational->dynamic()) return true;
+      }
+      if (rotational.get()) {
+	if (rotational->dynamic()) return true;
+      }
+      return false;
+    }
+    
+  public:
     bool tmp;
     
     // time ordering, needed when used in orsa::Interval<>
