@@ -23,7 +23,6 @@ namespace orsa {
     double mu;
   public:
     double period() const {
-      // ORSA_DEBUG("a: %g   mu: %g",a(),mu());
       return (sqrt(4*pi()*pi()*fabs(a*a*a)/mu));
     }
   public:
@@ -50,7 +49,7 @@ namespace orsa {
     
     // try to speed up relativePosVel
     // comment this define to disable...
-#define _ORBIT_RPV_SPEEDUP_
+    // #define _ORBIT_RPV_SPEEDUP_
     
 #ifdef _ORBIT_RPV_SPEEDUP_
   protected:
