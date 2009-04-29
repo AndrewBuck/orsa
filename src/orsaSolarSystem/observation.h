@@ -25,7 +25,8 @@ namespace orsaSolarSystem {
     orsa::Cache<bool>         discovery;
     orsa::Cache<orsa::Time>   epoch;
     orsa::Cache<orsa::Angle>  ra, dec;
-    orsa::Cache<double> mag;
+    orsa::Cache<orsa::Angle>  sigma_ra, sigma_dec;
+    orsa::Cache<double>       mag;
   };
   
   class RadarObservation : public osg::Referenced {
