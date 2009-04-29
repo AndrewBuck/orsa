@@ -496,7 +496,7 @@ void PaulMoment::_moment(std::vector< std::vector< std::vector<double> > > & Mo,
     }
   }
   
-  if (1) {
+  if (0) {
     // remove "not significant" values
     for (unsigned int i=0; i<_order_plus_one; ++i) {
       for (unsigned int j=0; j<_order_plus_one-i; ++j) {
