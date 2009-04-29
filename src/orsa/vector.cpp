@@ -7,15 +7,15 @@
 using namespace orsa;
 
 osg::Vec3d Vector::getVec3d() const {
-  return osg::Vec3d(getX(),
-		    getY(),
-		    getZ());
+  return osg::Vec3d(_x,
+		    _y,
+		    _z);
 }
 
 osg::Vec3f Vector::getVec3f() const {
-  return osg::Vec3f(getX(),
-		    getY(),
-		    getZ());
+  return osg::Vec3f(_x,
+		    _y,
+		    _z);
 }
 
 void Vector::_update_l() const {
@@ -96,33 +96,33 @@ Vector & Vector::normalize() {
 
 /* 
    Vector operator + (const Vector & u, const Vector & v) {
-   return Vector(u.getX()+v.getX(),
-   u.getY()+v.getY(),
-   u.getZ()+v.getZ());
+   return Vector(u._x+v._x,
+   u._y+v._y,
+   u._z+v._z);
    }
 */
 
 /* 
    Vector operator - (const Vector & u, const Vector & v) {
-   return Vector(u.getX()-v.getX(),
-   u.getY()-v.getY(),
-   u.getZ()-v.getZ());
+   return Vector(u._x-v._x,
+   u._y-v._y,
+   u._z-v._z);
    }
 */
 
 /* 
    Vector externalProduct (const Vector & lhs, const Vector & rhs) {
-   return Vector (lhs.getY()*rhs.getZ()-lhs.getZ()*rhs.getY(),
-   lhs.getZ()*rhs.getX()-lhs.getX()*rhs.getZ(),
-   lhs.getX()*rhs.getY()-lhs.getY()*rhs.getX()); 
+   return Vector (lhs._y*rhs._z-lhs._z*rhs._y,
+   lhs._z*rhs._x-lhs._x*rhs._z,
+   lhs._x*rhs._y-lhs._y*rhs._x); 
    }
 */
 
 /* 
    double operator * (const Vector & u, const Vector & v) {
-   return (u.getX()*v.getX()+
-   u.getY()*v.getY()+
-   u.getZ()*v.getZ());
+   return (u._x*v._x+
+   u._y*v._y+
+   u._z*v._z);
    }  
 */
 

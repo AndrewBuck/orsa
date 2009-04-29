@@ -76,23 +76,23 @@ namespace orsa {
     
     // binary operators
     inline Vector operator + (const Vector & rhs) const {
-      return Vector(getX()+rhs.getX(),
-		    getY()+rhs.getY(),
-		    getZ()+rhs.getZ());
+      return Vector(_x+rhs._x,
+		    _y+rhs._y,
+		    _z+rhs._z);
     }
     
     inline Vector operator - (const Vector & rhs) const {
       // ORSA_DEBUG("Vector -> binary minus...");
-      return Vector(getX()-rhs.getX(),
-		    getY()-rhs.getY(),
-		    getZ()-rhs.getZ());
+      return Vector(_x-rhs._x,
+		    _y-rhs._y,
+		    _z-rhs._z);
     }
     
     // scalar product
     inline double operator * (const Vector & rhs) const {
-      return double(getX()*rhs.getX()+
-		    getY()*rhs.getY()+
-		    getZ()*rhs.getZ());
+      return double(_x*rhs._x+
+		    _y*rhs._y+
+		    _z*rhs._z);
     }
     
     // rotation
@@ -204,28 +204,28 @@ namespace orsa {
   };
   
   inline Vector operator * (const double & f, const Vector & v) {
-    return Vector(v.getX()*f, 
-		  v.getY()*f, 
-		  v.getZ()*f);
+    Vector p(v);
+    p *=f;
+    return p;
   }
   
   inline Vector operator * (const Vector & v, const double & f) {
-    return Vector(v.getX()*f, 
-		  v.getY()*f, 
-		  v.getZ()*f);
+    Vector p(v);
+    p *=f;
+    return p;
   }
   
   inline Vector operator / (const Vector & v, const double & f) {
-    return Vector(v.getX()/f, 
-		  v.getY()/f, 
-		  v.getZ()/f); 
+    Vector p(v);
+    p /=f;
+    return p;
   }
- 
+  
   /*  
       inline Vector operator + (const Vector & u, const Vector & v) {
-      return Vector(u.getX()+v.getX(),
-      u.getY()+v.getY(),
-      u.getZ()+v.getZ());
+      return Vector(u._x+v._x,
+      u._y+v._y,
+      u._z+v._z);
       }
   */
   //
@@ -233,14 +233,14 @@ namespace orsa {
   
   /* 
      inline Vector operator - (const Vector & u, const Vector & v) {
-     return Vector(u.getX()-v.getX(),
-     u.getY()-v.getY(),
-     u.getZ()-v.getZ());
+     return Vector(u._x-v._x,
+     u._y-v._y,
+     u._z-v._z);
      }
   */
   //
   // Vector operator - (const Vector &, const Vector &);
-
+  
   inline Vector externalProduct (const Vector & lhs, const Vector & rhs) {
     return Vector (lhs.getY()*rhs.getZ()-lhs.getZ()*rhs.getY(),
 		   lhs.getZ()*rhs.getX()-lhs.getX()*rhs.getZ(),
@@ -260,9 +260,9 @@ namespace orsa {
   // scalar product
   /* 
      double operator * (const Vector & u, const Vector & v) {
-     return (u.getX()*v.getX()+
-     u.getY()*v.getY()+
-     u.getZ()*v.getZ());
+     return (u._x*v._x+
+     u._y*v._y+
+     u._z*v._z);
      }  
   */
   //
@@ -270,9 +270,9 @@ namespace orsa {
   
   /* 
      bool operator == (const Vector & v1, const Vector & v2) {
-     if (v1.getX() != v2.getX()) return false;
-     if (v1.getY() != v2.getY()) return false;
-     if (v1.getZ() != v2.getZ()) return false;
+     if (v1._x != v2._x) return false;
+     if (v1._y != v2._y) return false;
+     if (v1._z != v2._z) return false;
      return true;
      }
   */
