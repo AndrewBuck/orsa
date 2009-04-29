@@ -450,7 +450,7 @@ int Multifit::f_gsl (const gsl_vector * parameters,
     */
     //
     const double fj = (fun(_par.get(),data,0,0,j) - data->getF(j))/(data->getSigma(j));
-    // ORSA_DEBUG("f[%02i] = %10.3f", j, fj());
+    // ORSA_DEBUG("f[%02i] = %10.3f", j, fj);
     gsl_vector_set (f, j, fj);
   }
   
@@ -589,7 +589,7 @@ bool Multifit::run() {
     //
     ORSA_DEBUG("itaration status = %s",gsl_strerror(it_status));
     
-    cv_status = gsl_multifit_test_delta(s->dx, s->x, 1.0e-9, 1.0e-9);
+    cv_status = gsl_multifit_test_delta(s->dx, s->x, 1.0e-12, 1.0e-12);
     //
     /* 
        {
