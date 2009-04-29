@@ -43,12 +43,16 @@ public:
   double value, error;
 };
 
-void poly_8_gsl_solve(poly_8_params &params, std::vector<poly_8_solution> &solutions) {
+void poly_8_gsl_solve(poly_8_params & params, 
+		      std::vector<poly_8_solution> & solutions,
+		      const double & minRange,
+		      const double & maxRange,
+		      const unsigned int steps) {
   
   // ORSA_DEBUG("inside poly_8...");
   
   // const double x_start  = FromUnits(100,orsa::Unit::KM).get_d();
-  const double x_start  = FromUnits(0.1,orsa::Unit::AU);
+  // const double x_start  = FromUnits(100,orsa::Unit::KM);
   // const double x_incr   = FromUnits(0.2,AU);
   // smaller increment needed for Earth's artificial satellites...
   /* 
@@ -56,9 +60,14 @@ void poly_8_gsl_solve(poly_8_params &params, std::vector<poly_8_solution> &solut
      const int    max_iter = 1500;
   */
   //
-  const double x_incr   = FromUnits(0.1,orsa::Unit::AU);
-  const int    max_iter = 100;
+  // const double x_incr   = FromUnits(50,orsa::Unit::KM);
+  // const int    max_iter = 1000;
   
+
+  const double x_start = minRange;
+  const double x_incr  = (maxRange-minRange)/steps;
+  const int    max_iter = steps;
+
   const double nominal_relative_accuracy = 1.0e-5;
   
   solutions.clear();
@@ -152,6 +161,9 @@ void poly_8_gsl_solve(poly_8_params &params, std::vector<poly_8_solution> &solut
 
 void orsaSolarSystem::GaussMethod(std::vector<orsaSolarSystem::OrbitWithEpoch> & preliminaryOrbitVector,
 				  const orsaSolarSystem::ObservationVector & obs,
+				  const double & minRange,
+				  const double & maxRange,
+				  const unsigned int steps,
 				  const orsaSolarSystem::ObservatoryPositionCallback * obsPosCB,
 				  const orsa::Body * refBody,
 				  orsa::BodyGroup * bg) {
@@ -271,7 +283,7 @@ void orsaSolarSystem::GaussMethod(std::vector<orsaSolarSystem::OrbitWithEpoch> &
   params.coeff_3 = 2*A*B + 2*B*Xl_Ym_Zn;
   params.coeff_0 = B*B;
   std::vector<poly_8_solution> solutions;
-  poly_8_gsl_solve(params,solutions);
+  poly_8_gsl_solve(params,solutions,minRange,maxRange,steps);
   
   // ORSA_DEBUG("solutions: %i",solutions.size());
   
