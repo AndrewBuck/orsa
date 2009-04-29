@@ -50,9 +50,9 @@ namespace orsa {
     }
 #else  
   public:
-    T get() const { return _val; }
-    const T & getRef() const { return _val; }
-    const T * getPtr() const { return & _val; }
+    inline T get() const { return _val; }
+    inline const T & getRef() const { return _val; }
+    inline const T * getPtr() const { return & _val; }
 #endif
   public:
     bool set(const T & val) { 
@@ -85,7 +85,7 @@ namespace orsa {
       }
     }
   public:
-    bool isSet() const { return _set; }
+    inline bool isSet() const { return _set; }
   public:
     void reset() { 
       _set=false;
