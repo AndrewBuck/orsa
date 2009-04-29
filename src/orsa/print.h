@@ -4,6 +4,7 @@
 #include <orsa/angle.h>
 #include <orsa/datetime.h>
 #include <orsa/matrix.h>
+#include <orsa/orbit.h>
 #include <orsa/quaternion.h>
 
 #include <orsaSolarSystem/datetime.h>
@@ -68,12 +69,16 @@ namespace orsa {
     // orsaSolarSystem::gregorDay(t,y,m,d,fd);
     orsaSolarSystem::gregorDay(orsaSolarSystem::ToTimeScale(t,orsaSolarSystem::TS_UTC),
 			       y_UTC,m_UTC,d_UTC,H_UTC,M_UTC,S_UTC,ms_UTC);
-    ORSA_DEBUG("t: %.12f [day] = JD %.5f (TDT) = JD %.5f (UTC) = %i %i %i %02i:%02i:%02i.%03i (TDT) = %i %i %i %02i:%02i:%02i.%03i (UTC)",
+    ORSA_DEBUG("t: %.12f [day] = JD %.5f (TDT) = JD %.5f (UTC) = %i %2i %2i %02i:%02i:%02i.%03i (TDT) = %i %2i %2i %02i:%02i:%02i.%03i (UTC)",
 	       orsa::FromUnits(t.get_d(),orsa::Unit::DAY,-1),
 	       orsaSolarSystem::timeToJulian(t),
 	       orsaSolarSystem::timeToJulian(orsaSolarSystem::ToTimeScale(t,orsaSolarSystem::TS_UTC)),
 	       y,m,d,H,M,S,ms,
 	       y_UTC,m_UTC,d_UTC,H_UTC,M_UTC,S_UTC,ms_UTC);
+  }
+  
+  inline void print(const orsa::Orbit & o) {
+    
   }
   
 } // namespace orsa
