@@ -169,13 +169,13 @@ void Multipole::_centerOfMass(Vector & center_of_mass,
   
   if (1) {
     // debug output
-    ORSA_DEBUG("cm.x: %14.6Fe +/- %14.6Fe",
+    ORSA_DEBUG("cm.x: %14.6e +/- %14.6e",
 	       center_of_mass.getX(),
 	       center_of_mass_uncertainty.getX());
-    ORSA_DEBUG("cm.y: %14.6Fe +/- %14.6Fe",
+    ORSA_DEBUG("cm.y: %14.6e +/- %14.6e",
 	       center_of_mass.getY(),
 	       center_of_mass_uncertainty.getY());
-    ORSA_DEBUG("cm.z: %14.6Fe +/- %14.6Fe",
+    ORSA_DEBUG("cm.z: %14.6e +/- %14.6e",
 	       center_of_mass.getZ(),
 	       center_of_mass_uncertainty.getZ());
   }
@@ -338,7 +338,7 @@ void Multipole::_multipole(std::vector<std::vector<double> > & C,
 	_vec_c_m_phi[m] = cos(m*_phi);
 	_vec_s_m_phi[m] = sin(m*_phi);
 	//
-	// ORSA_DEBUG("m: %i  vec_s_m_phi[%i] =  %Fg",m,m,_vec_s_m_phi[m]);
+	// ORSA_DEBUG("m: %i  vec_s_m_phi[%i] =  %g",m,m,_vec_s_m_phi[m]);
       }
       //
       Legendre _L(_c_theta,_order.getRef());
@@ -405,15 +405,15 @@ void Multipole::_multipole(std::vector<std::vector<double> > & C,
   if (1) {
     // debug output
     const double _test_norm = 1/(Legendre::norm(0,0)*_stat_C[0][0]->average());
-    ORSA_DEBUG("test_norm: %Fg",_test_norm);
+    ORSA_DEBUG("test_norm: %g",_test_norm);
     for (unsigned int l=0; l<=_order.getRef(); ++l) {
       for (unsigned int m=0; m<=l; ++m) {
-	ORSA_DEBUG("C[%02i][%02i]: %14.6e +/- %14.6e   rln: %Fg",
+	ORSA_DEBUG("C[%02i][%02i]: %14.6e +/- %14.6e   rln: %g",
 		   l,m,
 		   _test_norm*Legendre::norm(l,m)*_stat_C[l][m]->average(),
 		   _test_norm*Legendre::norm(l,m)*_stat_C[l][m]->averageError(),
 		   Legendre::norm(l,m));
-	ORSA_DEBUG("S[%02i][%02i]: %14.6e +/- %14.6e   rln: %Fg",
+	ORSA_DEBUG("S[%02i][%02i]: %14.6e +/- %14.6e   rln: %g",
 		   l,m,
 		   _test_norm*Legendre::norm(l,m)*_stat_S[l][m]->average(),
 		   _test_norm*Legendre::norm(l,m)*_stat_S[l][m]->averageError(),
@@ -466,13 +466,13 @@ bool Multipole::computeUsingShape(const unsigned int sample_points,
   */
   //
   if (R0 > 0) {
-    ORSA_DEBUG("setting R0=%Fg",R0);
+    ORSA_DEBUG("setting R0=%g",R0);
     _R0.set(R0);
-    ORSA_DEBUG("_R0=%Fg",_R0.getRef());
+    ORSA_DEBUG("_R0=%g",_R0.getRef());
   } else {
     ORSA_ERROR("cannot set negative R0, using Shape::boundingRadius()");
     _R0.set(_shape->boundingRadius());
-    ORSA_DEBUG("_R0=%Fg",_R0.getRef());
+    ORSA_DEBUG("_R0=%g",_R0.getRef());
   }
   
   /*
@@ -646,7 +646,7 @@ bool Multipole::writeToFile(const std::string & filename) const {
       //
       /* 
 	 gmp_fprintf(fp,
-	 "%18.10e %18.10e  C %i %i %18.10e %18.10e %Fg\n",
+	 "%18.10e %18.10e  C %i %i %18.10e %18.10e %g\n",
 	 _C[l][m],
 	 _C_uncertainty[l][m],
 	 l,
@@ -655,7 +655,7 @@ bool Multipole::writeToFile(const std::string & filename) const {
 	 double(_C[l][m]/Legendre::norm(l,m)),
 	 double(Legendre::norm(l,m)));
 	 gmp_fprintf(fp,
-	 "%18.10e %18.10e  S %i %i %18.10e %18.10e %Fg\n",
+	 "%18.10e %18.10e  S %i %i %18.10e %18.10e %g\n",
 	 _S[l][m],
 	 _S_uncertainty[l][m],
 	 l,
@@ -858,7 +858,7 @@ bool Multipole::readFromAltFile(const std::string & filename) {
     gmp_sscanf(line,"%*s %lf",
 	       &R0); // '&' not required for GMP vars
     _R0.set(FromUnits(R0,Unit::KM));
-    // ORSA_DEBUG("read R0: %Fg [km]",FromUnits(_R0.getRef(),Unit::KM,-1));
+    // ORSA_DEBUG("read R0: %g [km]",FromUnits(_R0.getRef(),Unit::KM,-1));
  } else {
     ORSA_ERROR("problems while reading file [%s]",filename.c_str());
     return false;
@@ -881,7 +881,7 @@ bool Multipole::readFromAltFile(const std::string & filename) {
     for (unsigned int m=0; m<=l; ++m) {
       // C
       gmp_fscanf(fp,"%lf",&file_entry);
-      // ORSA_DEBUG("file_entry: %Fg",file_entry());      
+      // ORSA_DEBUG("file_entry: %g",file_entry());      
       _C[l][m]             = file_entry;
       _C_uncertainty[l][m] = 0;
       //
@@ -893,7 +893,7 @@ bool Multipole::readFromAltFile(const std::string & filename) {
 	_S_uncertainty[l][m] = 0;
       } else {
 	gmp_fscanf(fp,"%lf",&file_entry);
-	// ORSA_DEBUG("file_entry: %Fg",file_entry());     
+	// ORSA_DEBUG("file_entry: %g",file_entry());     
 	//
 	_S[l][m]             = file_entry;
 	_S_uncertainty[l][m] = 0;
@@ -936,7 +936,7 @@ bool Multipole::readFromBisFile(const std::string & filename) {
 	       &R0); // '&' not required for GMP vars
     _R0.set(FromUnits(R0,Unit::KM));
     //
-    ORSA_DEBUG("read R0: %Fg [km]",FromUnits(_R0.getRef(),Unit::KM,-1));
+    ORSA_DEBUG("read R0: %g [km]",FromUnits(_R0.getRef(),Unit::KM,-1));
   } else {
     ORSA_ERROR("problems while reading file [%s]",filename.c_str());
     return false;
