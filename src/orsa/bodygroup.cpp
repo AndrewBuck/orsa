@@ -141,6 +141,7 @@ bool BodyGroup::getIBPS(orsa::IBPS       & ibps,
     // trv.t = t;
     // b->getBodyPosVelCallback()->getPosVel(t,trv.r,trv.v);
     ibps = b->getInitialConditions();
+    ibps.update(t);
     return true;
   } else {
     // BodyGroup::TRV _trv1, _trv2;
@@ -154,6 +155,7 @@ bool BodyGroup::getIBPS(orsa::IBPS       & ibps,
       if ((t == ibps1.time.getRef()) && 
 	  (t == ibps2.time.getRef())) {
 	ibps = ibps1;
+	ibps.update(t);
 	return true;
       } else {
 	// ORSA_ERROR("point not present in interval...");
@@ -189,6 +191,7 @@ bool BodyGroup::getClosestIBPS(orsa::IBPS       & ibps,
       } else {
 	ibps = ibps2;
       }  
+      ibps.update(t);
       return true;
     } else {
       return false;
@@ -238,6 +241,7 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
 	if (ibps1.time.getRef() == ibps2.time.getRef()) {
 	  ibps = ibps1;
 	  // ORSA_DEBUG("out, body [%s]",b->getName().c_str());
+	  ibps.update(t);
 	  return true;	  
 	} else {
 	  // to copy pointers...
@@ -310,7 +314,10 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
 	      ibps.rotational->update(t); 
 	    }
 	  }
+	  
+	  
 	  // ORSA_DEBUG("out, body [%s]",b->getName().c_str());
+	  ibps.update(t);
 	  return true;
 	}
       }	
