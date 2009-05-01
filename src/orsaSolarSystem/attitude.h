@@ -3,6 +3,7 @@
 
 // #include <orsa/attitude.h>
 #include <orsa/body.h>
+#include <orsa/print.h>
 
 namespace orsaSolarSystem {
   
@@ -10,11 +11,11 @@ namespace orsaSolarSystem {
   public orsa::PrecomputedRotationalBodyProperty {
   
   public:
-    ConstantZRotationEcliptic_RotationalBodyProperty(const orsa::Time   & t0,
-						     const double & phi0,
-						     const double & omega,
-						     const double & lambda,
-						     const double & beta);
+    ConstantZRotationEcliptic_RotationalBodyProperty(const orsa::Time & t0,
+						     const double     & phi0,
+						     const double     & omega,
+						     const double     & lambda,
+						     const double     & beta);
     
   public:
     ConstantZRotationEcliptic_RotationalBodyProperty(const ConstantZRotationEcliptic_RotationalBodyProperty &);
@@ -33,6 +34,7 @@ namespace orsaSolarSystem {
     }
   public:
     orsa::Quaternion getQ()    const  { return _q.getRef(); } 
+    // orsa::Quaternion getQ()    const  { ORSA_DEBUG("--called--"); orsa::print(_q.getRef()); return _q.getRef(); } 
     orsa::Vector     getOmega() const { return _omegaVector.getRef(); }
   public:
     orsa::RotationalBodyProperty * clone() const {

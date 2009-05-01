@@ -112,7 +112,7 @@ namespace orsa {
   
   // p = albedo, H = absolute magnitude
   double asteroidDiameter(const double & p, 
-				const double & H);
+			  const double & H);
   
   /* 
      class ConstantZRotation : public PrecomputedRotationalBodyProperty {

@@ -302,7 +302,7 @@ orsa::Matrix orsa::globalToLocal(const orsa::Body       * b,
 }
 
 double orsa::asteroidDiameter(const double & p, 
-				    const double & H) {
+			      const double & H) {
   return orsa::FromUnits(1329,orsa::Unit::KM)*pow(10,-0.2*H)/sqrt(p);
 }
 

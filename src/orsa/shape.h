@@ -67,6 +67,7 @@ namespace orsa {
     
   public:
     virtual bool rayIntersection(orsa::Vector & intersectionPoint,
+				 orsa::Vector & normal,
 				 const orsa::Vector & P,
 				 const orsa::Vector & u,
 				 const bool fullLine = false) const = 0;
@@ -200,6 +201,7 @@ namespace orsa {
     
   public:
     bool rayIntersection(orsa::Vector & intersectionPoint,
+			 orsa::Vector & normal,
 			 const orsa::Vector & P,
 			 const orsa::Vector & u,
 			 const bool fullLine = false) const;
@@ -363,6 +365,7 @@ namespace orsa {
     
   public:
     bool rayIntersection(orsa::Vector & intersectionPoint,
+			 orsa::Vector & normal,
 			 const orsa::Vector & P,
 			 const orsa::Vector & u,
 			 const bool fullLine = false) const; 

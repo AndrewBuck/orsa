@@ -383,6 +383,7 @@ unsigned int TriShape::closestVertexIndex(const Vector & v) const {
 }
 
 bool TriShape::rayIntersection(orsa::Vector & intersectionPoint,
+			       orsa::Vector & normal,
 			       const orsa::Vector & P,
 			       const orsa::Vector & u,
 			       const bool fullLine) const {
@@ -397,8 +398,8 @@ bool TriShape::rayIntersection(orsa::Vector & intersectionPoint,
 			      _vertex[t.k()],
 			      fullLine)) {
       
-      const orsa::Vector & faceNormal = _getFaceNormal(j);
-      if ((faceNormal*u) < 0) {
+      normal = _getFaceNormal(j);
+      if ((normal*u) < 0) {
 	return true;
       }
     }
@@ -780,6 +781,7 @@ bool EllipsoidShape::_updateCache() const {
 }
 
 bool EllipsoidShape::rayIntersection(orsa::Vector & intersectionPoint,
+				     orsa::Vector & normal,
 				     const orsa::Vector & P,
 				     const orsa::Vector & u,
 				     const bool fullLine) const {
@@ -831,6 +833,8 @@ bool EllipsoidShape::rayIntersection(orsa::Vector & intersectionPoint,
       return false;
     }
   }
+  
+  normal = normalVector(intersectionPoint);
   
   return true;
 }

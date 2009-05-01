@@ -131,6 +131,7 @@ void TrackFillThread::run() {
   
   orsa::Vector r_b, r_ref_b;
   orsa::Vector intersectionPoint;
+  orsa::Vector intersectionNormal;
   
   TrackElement tmpTrackElement;
   
@@ -167,6 +168,7 @@ void TrackFillThread::run() {
 	    const orsa::Vector dr_local = g2l * dr;
 	    
 	    if (_ref_b->getShape()->rayIntersection(intersectionPoint,
+						    intersectionNormal,
 						    dr_local,
 						    (-dr_local).normalized(),
 						    false)) {
