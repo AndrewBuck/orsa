@@ -194,6 +194,7 @@ namespace orsa {
     
   public:
     const Vector & closestVertex(const Vector &) const;   
+    unsigned int   closestVertexIndex(const Vector &) const;   
   protected:
     mutable unsigned int _old_closest_vertex_index;
     

@@ -324,6 +324,10 @@ bool TriShape::_isInside_useNormalMethod(const Vector & v) const {
 }
 
 const Vector & TriShape::closestVertex(const Vector & v) const {
+  return _vertex[closestVertexIndex(v)];
+}
+
+unsigned int TriShape::closestVertexIndex(const Vector & v) const {
   _updateCache();
   //
   /* unsigned int _vertex_index;
@@ -375,7 +379,7 @@ const Vector & TriShape::closestVertex(const Vector & v) const {
   }
   // update local static variable
   _old_closest_vertex_index = _vertex_index;
-  return _vertex[_vertex_index];
+  return _vertex_index;
 }
 
 bool TriShape::rayIntersection(orsa::Vector & intersectionPoint,
