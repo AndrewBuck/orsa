@@ -7,6 +7,7 @@
 #include <orsa/util.h>
 
 #include <orsaSolarSystem/attitude.h>
+#include <orsaSolarSystem/data.h>
 #include <orsaSolarSystem/datetime.h>
 
 #include <orsaSPICE/spice.h>
@@ -20,8 +21,9 @@
 #include <gsl/gsl_rng.h>
 
 #include "vesta.h"
+// #include "kleopatrashape.h"
 
-#include <tbb/task_scheduler_init.h>
+// #include <tbb/task_scheduler_init.h>
 
 using namespace orsa;
 using namespace orsaSolarSystem;
@@ -33,7 +35,7 @@ CustomIntegrator::CustomIntegrator(const MainThread * mt) :
   IntegratorRadau(),
   mainThread(mt) {
   // ORSA_DEBUG("update accuracy!");
-  _accuracy = 1.0e-3;
+  _accuracy = 1.0e-4;
   connect(this,
 	  SIGNAL(progress(int)),
 	  mainThread,
@@ -100,7 +102,7 @@ MainThread::MainThread() :
 void MainThread::run() {
   
   // TBB
-  tbb::task_scheduler_init init;
+  // tbb::task_scheduler_init init;
   
   // const Time samplingPeriod(0,0,30,0,0);
   const Time samplingPeriod(0,0,5,0,0);
@@ -172,7 +174,7 @@ void MainThread::run() {
       SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(sun->getName());
       // sbpvc->setBodyName(sun->getName());
       orsa::IBPS ibps;
-      ibps.inertial = new ConstantMassBodyProperty(FromUnits(1,Unit::MSUN));
+      ibps.inertial = new ConstantMassBodyProperty(orsaSolarSystem::Data::MSun());
       ibps.translational = sbpvc;
       sun->setInitialConditions(ibps);
     } else {
@@ -202,7 +204,7 @@ void MainThread::run() {
       SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(mercury->getName());
       // sbpvc->setBodyName(mercury->getName());
       orsa::IBPS ibps;
-      ibps.inertial = new ConstantMassBodyProperty(FromUnits(0.33022e24,Unit::KG));
+      ibps.inertial = new ConstantMassBodyProperty(orsaSolarSystem::Data::MMercury());
       ibps.translational = sbpvc;
       mercury->setInitialConditions(ibps);
       //
@@ -218,13 +220,13 @@ void MainThread::run() {
       SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(venus->getName());
       // sbpvc->setBodyName(venus->getName());
       orsa::IBPS ibps;
-      ibps.inertial = new ConstantMassBodyProperty(FromUnits(4.8690e24,Unit::KG));
+      ibps.inertial = new ConstantMassBodyProperty(orsaSolarSystem::Data::MVenus());
       ibps.translational = sbpvc;
       venus->setInitialConditions(ibps);
       //
       bg->addBody(venus);
     }
-
+    
     {
       Body * earth = new Body;
       //
@@ -234,7 +236,7 @@ void MainThread::run() {
       SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(earth->getName());
       // sbpvc->setBodyName(earth->getName());
       orsa::IBPS ibps;
-      ibps.inertial = new ConstantMassBodyProperty(FromUnits(5.9742e24,Unit::KG));
+      ibps.inertial = new ConstantMassBodyProperty(orsaSolarSystem::Data::MEarthMoon());
       ibps.translational = sbpvc;
       earth->setInitialConditions(ibps);
       //
@@ -250,7 +252,7 @@ void MainThread::run() {
       SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(mars->getName());
       // sbpvc->setBodyName(mars->getName());
       orsa::IBPS ibps;
-      ibps.inertial = new ConstantMassBodyProperty(FromUnits(0.64191e24,Unit::KG));
+      ibps.inertial = new ConstantMassBodyProperty(orsaSolarSystem::Data::MMars());
       ibps.translational = sbpvc;
       mars->setInitialConditions(ibps);
       //
@@ -267,7 +269,7 @@ void MainThread::run() {
       // sbpvc->setBodyName(jupiter->getName());
       orsa::IBPS ibps;
       ibps.translational = sbpvc;
-      ibps.inertial = new ConstantMassBodyProperty(FromUnits(1898.8e24,Unit::KG));
+      ibps.inertial = new ConstantMassBodyProperty(orsaSolarSystem::Data::MJupiter());
       jupiter->setInitialConditions(ibps);
       //
       bg->addBody(jupiter);
@@ -283,7 +285,7 @@ void MainThread::run() {
       // sbpvc->setBodyName(saturn->getName());
       orsa::IBPS ibps;
       ibps.translational = sbpvc;
-      ibps.inertial = new ConstantMassBodyProperty(FromUnits(568.50e24,Unit::KG));
+      ibps.inertial = new ConstantMassBodyProperty(orsaSolarSystem::Data::MSaturn());
       saturn->setInitialConditions(ibps);
       //
       bg->addBody(saturn);
@@ -315,7 +317,7 @@ void MainThread::run() {
       // sbpvc->setBodyName(neptune->getName());
       orsa::IBPS ibps;
       ibps.translational = sbpvc;
-      ibps.inertial = new ConstantMassBodyProperty(FromUnits(102.78e24,Unit::KG));
+      ibps.inertial = new ConstantMassBodyProperty(orsaSolarSystem::Data::MNeptune());
       neptune->setInitialConditions(ibps);
       //
       bg->addBody(neptune);
@@ -406,53 +408,17 @@ void MainThread::run() {
       vesta->setInitialConditions(ibps);
     }
     
-    // gravitational multipole
-    /* 
-       {
-       osg::ref_ptr<Multipole> m = new Multipole;
-       
-       {
-       // read multipole from file
-       const std::string fileName = multipoleFileName(vestaMassDistribution.getRef(),
-       vestaShapeModel.getRef());
-       if (!m->readFromFile(fileName)) {
-       ORSA_ERROR("...");
-       }
-       }
-       
-       {
-       // shape
-       if (vestaShapeModel.getRef() == ComboShapeModel::smt_ellipsoid) {
-       m->setShape(new EllipsoidShape(FromUnits(280,Unit::KM),
-       FromUnits(272,Unit::KM),
-       FromUnits(227,Unit::KM)));
-       } else if (vestaShapeModel.getRef() == ComboShapeModel::smt_thomas) {
-       osg::ref_ptr<VestaShape> vestaShapeThomas = new VestaShape;
-       if (!vestaShapeThomas->read("vesta_thomas.dat")) {
-       ORSA_ERROR("problems encountered while reading shape file...");
-       }
-       m->setShape(vestaShapeThomas.get());
-       } else {
-       ORSA_ERROR("problems");
-       }
-       }
-       
-       ORSA_DEBUG("re-enable this...");
-       // vesta->setMultipole(m.get());
-       
-       vesta->setShape(m->getShape());
-       }
-    */
-    
     // alternative to Multipole: PaulMoment
     {
-      osg::ref_ptr<PaulMoment> pm = new PaulMoment(2);
+      const unsigned int PM_order = 2;
+      
+      osg::ref_ptr<PaulMoment> pm = new PaulMoment(PM_order);
       
 #warning "code needed here, for mass distribution..."
       // implement this later...
       // pm->setMassDistribution(vestaMassDistribution.getRef());
       
-      {
+      if (1) {
 	// shape
 	if (vestaShapeModel.getRef() == ComboShapeModel::smt_ellipsoid) {
 	  pm->setShape(new EllipsoidShape(FromUnits(280,Unit::KM),
@@ -467,13 +433,49 @@ void MainThread::run() {
 	} else {
 	  ORSA_ERROR("problems");
 	}
+      } else {
+	// just a test!
+	/* KleopatraShape * kleopatraShape = new KleopatraShape;
+	   if (!kleopatraShape->read("216kleopatra.tab")) {
+	   ORSA_ERROR("problems encountered while reading shape file...");
+	   exit(0);
+	   }
+	   pm->setShape(kleopatraShape);
+	*/
       }
       
       // read from file... code to come...
       
+      
+      pm->computeUsingShape(2000,
+			    93881);
+      pm->setCenterOfMass(orsa::Vector(0,0,0));
       {
-	pm->computeUsingShape(16384,
-			      93881);
+	const orsa::Matrix I = pm->getInertiaMoment();
+	pm->setInertiaMoment(orsa::Matrix(I.getM11(),0,0,
+					  0,I.getM22(),0,
+					  0,0,I.getM33()));
+      }
+      //
+      if (PM_order > 0) {
+	pm->setM(0,1,0,0);
+	pm->setM(0,0,1,0);
+	pm->setM(0,0,0,1);
+      }
+        
+      ORSA_DEBUG("--------------- PM info ----------------");
+      orsa::print(pm->getCenterOfMass());
+      orsa::print(pm->getInertiaMoment());
+      for (unsigned int sum=0; sum<=PM_order; ++sum) {
+	for (unsigned int i=0; i<=PM_order; ++i) {
+	  for (unsigned int j=0; j<=PM_order; ++j) {
+	    for (unsigned int k=0; k<=PM_order; ++k) {
+	      if (i+j+k == sum) {
+		ORSA_DEBUG("M[%i][%i][%i] = %f",i,j,k,pm->M(i,j,k));
+	      }
+	    }
+	  }
+	}
       }
       
       vesta->setPaulMoment(pm.get());
@@ -681,7 +683,7 @@ void MainThread::run() {
     //
     orsa::Orbit orbit;
     //
-    orbit.mu = orsa::Unit::instance()->getG() * vestaMass.getRef();
+    orbit.mu = orsa::Unit::G() * vestaMass.getRef();
     orbit.a  = orbitRadius.getRef();
     orbit.e  = 0;
     orbit.i  = orbitInclination.getRef();
@@ -1033,18 +1035,21 @@ void MainThread::run() {
 		    "# ---------------------\n"
 		    "#  1  [day] Julian Date\n"
 		    "#  2    [s] Simulation time\n"
-		    "#  3   [km] DAWN orbit: semi-major axis\n"
-		    "#  4  [---] DAWN orbit: eccentricity\n"
-		    "#  5  [deg] DAWN orbit: inclination relative to Vesta's equatorial plane\n"
-		    "#  6  [deg] Phase angle relative to DAWN's orbital plane\n"
-		    "#  7  [deg] Phase angle relative to DAWN's position\n"
-		    "#  8  [deg] DAWN's latitude relative to Vesta\n"
-		    "#  9  [deg] DAWN's longitude relative to Vesta\n"
+		    "#  3   [km] Dawn orbit: semi-major axis\n"
+		    "#  4  [---] Dawn orbit: eccentricity\n"
+		    "#  5  [deg] Dawn orbit: inclination relative to Vesta's equatorial plane\n"
+		    "#  6  [deg] Phase angle relative to Dawn's orbital plane\n"
+		    "#  7  [deg] Phase angle relative to Dawn's position\n"
+		    "#  8  [deg] Dawn's latitude relative to Vesta\n"
+		    "#  9  [deg] Dawn's longitude relative to Vesta\n"
 		    "# 10   [km] Center-to-center distance\n"
+		    "# 11   [km] X component of Dawn position relative to Vesta, ecliptic frame\n"
+		    "# 12   [km] Y component of Dawn position relative to Vesta, ecliptic frame\n"
+		    "# 13   [km] Z component of Dawn position relative to Vesta, ecliptic frame\n"
 		    "# \n"
 		    );
       }
-
+      
       Vector rDAWN,  vDAWN;
       Vector rVesta, vVesta;
       Vector rSun,   vSun;
@@ -1068,6 +1073,9 @@ void MainThread::run() {
 				      t)) {
 	  dr  = rDAWN-rVesta;
 	  dv  = vDAWN-vVesta;
+	  //
+	  const orsa::Vector dr_eclip = dr;
+	  //
 	  dru = dr.normalized();
 	  dvu = dv.normalized();
 	  // pole, in global coordinates, unitary vector
@@ -1097,12 +1105,12 @@ void MainThread::run() {
 	  // ORSA_DEBUG("remember: globalToLocal!");
 	  orbit.compute(dr,
 			dv,
-			orsa::Unit::instance()->getG() * vestaMass_t);
+			orsa::Unit::G() * vestaMass_t);
 	  const double latitude  = halfpi() - acos(dru.getZ());
 	  const double longitude = fmod(twopi() + atan2(dru.getY(),dru.getX()),twopi());
 	  // if (realPhaseAngle < halfpi()) {
 	  gmp_fprintf(fp,
-		      "%15.5f %14.3f %12.3f %10.6f %10.6f %10.6f %10.6f %+10.6f %10.6f %12.3f\n",
+		      "%15.5f %14.3f %12.3f %10.6f %10.6f %10.6f %10.6f %+10.6f %10.6f %12.3f %12.3f %12.3f %12.3f\n",
 		      timeToJulian(t),
 		      FromUnits((t-orbitEpoch.getRef()).get_d(),Unit::SECOND,-1),
 		      FromUnits(orbit.a,Unit::KM,-1),
@@ -1112,7 +1120,10 @@ void MainThread::run() {
 		      radToDeg()*realPhaseAngle,
 		      radToDeg()*latitude,
 		      radToDeg()*longitude,
-		      FromUnits(dr.length(),Unit::KM,-1));
+		      FromUnits(dr.length(),Unit::KM,-1),
+		      FromUnits(dr_eclip.getX(),Unit::KM,-1),
+		      FromUnits(dr_eclip.getY(),Unit::KM,-1),
+		      FromUnits(dr_eclip.getZ(),Unit::KM,-1));
 	  // }
 	}
 	t += samplingPeriod;
