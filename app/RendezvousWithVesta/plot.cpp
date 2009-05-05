@@ -44,6 +44,7 @@ void PlotFillThread::run() {
     
     orsa::Vector rVesta, rDAWN;
     orsa::Vector intersectionPoint;
+    orsa::Vector normal;
     
     PlotData tmpData;
     
@@ -86,6 +87,7 @@ void PlotFillThread::run() {
 	  const orsa::Vector dr_local = g2l*dr;
 	  
 	  if (vesta_shape->rayIntersection(intersectionPoint,
+					   normal,
 					   dr_local,
 					   (-dr_local).normalized(),
 					   false)) {
