@@ -109,7 +109,12 @@ class ViewerQT : public osgViewer::Viewer, public AdapterWidget
             AdapterWidget( parent, name, shareWidget, f )
 	  {
 	    
-	    const double FOV = 45.0;
+	    // usually true is a good value
+	    bool use_multiple_cameras = false;
+	    
+	    if (use_multiple_cameras) {
+	      
+	      const double FOV = 45.0;
 	    
 	    /* const double nearClip = orsa::FromUnits(  1,orsa::Unit::METER);
 	       const double  farClip = orsa::FromUnits(1e3,orsa::Unit::AU);
@@ -128,13 +133,14 @@ class ViewerQT : public osgViewer::Viewer, public AdapterWidget
 					osg::CullSettings::SMALL_FEATURE_CULLING);
 	    getCamera()->setProjectionMatrixAsPerspective(FOV, 
 							  static_cast<double>(width())/static_cast<double>(height()), 
-							  orsa::FromUnits(  1,orsa::Unit::METER), 
-							  orsa::FromUnits(1e3,orsa::Unit::AU));
+							  nearClip, 
+							  farClip);
 	    
 	    setThreadingModel(osgViewer::Viewer::SingleThreaded);
 	    
 	    connect(&_timer, SIGNAL(timeout()), this, SLOT(updateGL()));
-	    _timer.start(100);
+	    _timer.start(40);
+	    
 	    
 	    const osg::Matrixd invertedMainProjection = osg::Matrixd::inverse(getCamera()->getProjectionMatrix());
 	    
@@ -176,6 +182,20 @@ class ViewerQT : public osgViewer::Viewer, public AdapterWidget
 	    
 	    ORSA_DEBUG("total cameras: %i",cameraID);
 	    
+	    } else {
+
+	      // use_multiple_cameras == false
+	      
+	      getCamera()->setViewport(new osg::Viewport(0,0,width(),height()));
+	      getCamera()->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(width())/static_cast<double>(height()), 1.0f, 10000.0f);
+	      getCamera()->setGraphicsContext(getGraphicsWindow());
+	      
+	      setThreadingModel(osgViewer::Viewer::SingleThreaded);
+	      
+	      connect(&_timer, SIGNAL(timeout()), this, SLOT(updateGL()));
+	      _timer.start(40);
+	      
+	    }
 	}
 	
         virtual void paintGL()
