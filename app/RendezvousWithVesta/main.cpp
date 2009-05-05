@@ -6,12 +6,12 @@
 
 #include <iostream>
 
-#include <tbb/task_scheduler_init.h>
+// #include <tbb/task_scheduler_init.h>
 
 int main(int argc, char ** argv) {
   
   // TBB
-  tbb::task_scheduler_init init;
+  // tbb::task_scheduler_init init;
   
   QApplication app(argc, argv);
   
