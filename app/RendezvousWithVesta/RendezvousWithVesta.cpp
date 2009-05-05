@@ -29,6 +29,8 @@
 #include <orsaOSG/viz.h>
 #include <orsaOSG/FindNamedNodeVisitor.h>
 #include <orsaOSG/Track.h>
+#include <orsaOSG/DepthPartitionNode.h>
+#include <orsaOSG/DistanceAccumulator.h>
 
 #include <orsa/debug.h>
 
@@ -566,17 +568,16 @@ void RendezvousWithVestaWidget::runFinished() const {
        }
     */
     
-    viewerWindow->setSceneData(rootNode);
+    // viewerWindow->setSceneData(rootNode);
     //
-    /* osg::ref_ptr<DepthPartitionNode> dpn = new DepthPartitionNode;
-       dpn->addChild(rootNode);
-       dpn->setActive(true);
-       //
-       viewerWindow->setSceneData(dpn.get());
-       //
-       // depth partion node only supports single window/single threaded at present.
-       viewerWindow->setThreadingModel(osgViewer::Viewer::SingleThreaded);
-    */
+    osg::ref_ptr<DepthPartitionNode> dpn = new DepthPartitionNode;
+    dpn->addChild(rootNode);
+    dpn->setActive(true);
+    //
+    viewerWindow->setSceneData(dpn.get());
+    //
+    // depth partion node only supports single window/single threaded at present.
+    viewerWindow->setThreadingModel(osgViewer::Viewer::SingleThreaded);
     
     /*
       {
