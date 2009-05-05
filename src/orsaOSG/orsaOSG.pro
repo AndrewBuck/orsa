@@ -35,6 +35,8 @@ HEADERS = bioCallback.h \
           LightSourceUpdateCallback.h \
           OrbitNodeCallback.h \
           viz.h \
+          DepthPartitionNode.h \
+          DistanceAccumulator.h \
           AnimationTime.h \
           BodyTranslationCallback.h \
           CenterOfMassPositionCallback.h \
@@ -46,6 +48,8 @@ HEADERS = bioCallback.h \
 SOURCES = bioCallback.cpp \
           OrbitNodeCallback.cpp \
           viz.cpp \
+          DepthPartitionNode.cpp \
+          DistanceAccumulator.cpp \
           AnimationTime.cpp \
           BodyTranslationCallback.cpp \
           Track.cpp \
