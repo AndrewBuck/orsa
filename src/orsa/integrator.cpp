@@ -1,6 +1,7 @@
 #include <orsa/integrator.h>
 
 #include <orsa/bodygroup.h>
+#include <orsa/print.h>
 #include <orsa/statistic.h>
 
 #include <iostream>
@@ -20,11 +21,12 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
   
   doAbort = false;
   
-  /* ORSA_DEBUG("CALL start: %f [day]",
-     FromUnits(start.get_d(),Unit::DAY,-1));
-     ORSA_DEBUG("CALL stop:  %f [day]",
-     FromUnits(stop.get_d(),Unit::DAY,-1));
-  */
+  ORSA_DEBUG("CALL start: %f [day]",
+	     FromUnits(start.get_d(),Unit::DAY,-1));
+  orsa::print(start);
+  ORSA_DEBUG("CALL stop:  %f [day]",
+	     FromUnits(stop.get_d(),Unit::DAY,-1));
+  orsa::print(stop);
   
   // always start <= stop
   // but integration direction may not be from start to stop.... 
