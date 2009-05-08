@@ -40,8 +40,9 @@ namespace orsa {
     bool insert(const T & val, const bool replace = false) {
       if (_store_data) {
 	// _recent_vars.insert(val);
-	if (!valid()) {
-     	  _data.push_front(val);
+	// if (!valid()) {
+     	if (size() == 0) {
+	  _data.push_front(val);
 	  // _recent_vars.insert(val);
 	} else {
 	  if (val < _min.getRef()) {
@@ -128,13 +129,15 @@ namespace orsa {
        }
     */
   public:
-    bool valid() const {
-      if (_store_data) {
-	return (_data.begin() != _data.end());
-      } else {
-	return (_min.isSet() && _max.isSet());
-      }
-    }
+    /* 
+       bool valid() const {
+       if (_store_data) {
+       return (_data.begin() != _data.end());
+       } else {
+       return (_min.isSet() && _max.isSet());
+       }
+       }
+    */
   public:
     bool reset() { 
       _data.clear();
@@ -215,13 +218,13 @@ namespace orsa {
       }
       // ORSA_DEBUG("//3//");
       if (val < min()) {
-	ORSA_ERROR("value requested is below minimum");
+	ORSA_ERROR("value requested is below minimum, size: %i",size());
 	sub_min = sub_max = min();
 	return false;
       }
       // ORSA_DEBUG("//4//");
       if (val > max()) {
-	ORSA_ERROR("value requested is above maximum");
+	ORSA_ERROR("value requested is above maximum, size: %i",size());
 	sub_min = sub_max = max();
 	return false;
       }
