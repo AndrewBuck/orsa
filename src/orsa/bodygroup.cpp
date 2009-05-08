@@ -249,7 +249,23 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
 	  // set time again...
 	  ibps.time = t; 
 	  
-#warning ADD inertial here...
+	  
+	  if (ibps.inertial.get()) {
+	    if (ibps.inertial->dynamic()) {
+	      // linear interpolation (enough?)
+	      const double m1 = ibps1.inertial->mass();
+	      const double m2 = ibps2.inertial->mass();
+	      //
+	      const orsa::Time & t1 = ibps1.time.getRef();
+	      const orsa::Time & t2 = ibps2.time.getRef();
+	      //
+	      const double mt = ((m2-m1)/(t2-t1).get_d())*(t-t1).get_d();
+	      ibps.inertial->setMass(mt);
+	    } else {
+	      ibps.inertial->update(t);
+	    }
+	  }
+	  
 	  
 	  if (ibps.translational.get()) {
 	    if (ibps.translational->dynamic()) {
@@ -282,6 +298,7 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
 	      ibps.translational->update(t);
 	    }
 	  } 
+	  
 	  
 	  if (ibps.rotational.get()) {
 	    
