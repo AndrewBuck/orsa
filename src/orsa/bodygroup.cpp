@@ -1,6 +1,6 @@
 #include <orsa/bodygroup.h>
 
-// #include <orsa/attitude.h>
+#include <orsa/print.h>
 #include <orsa/paul.h>
 #include <orsa/slerp.h>
 #include <orsa/spline.h>
@@ -322,10 +322,14 @@ bool BodyGroup::getInterpolatedIBPS(orsa::IBPS       & ibps,
 	}
       }	
     } else {
-      // ORSA_DEBUG("problems...");
-      ORSA_DEBUG("problems... body: [%s] dynamic: %i",
+      ORSA_DEBUG("problems... body: [%s] dynamic: %i time: [below]",
 		 b->getName().c_str(),
 		 b->getInitialConditions().dynamic());
+      orsa::print(t);
+      
+      ORSA_DEBUG("body initial conditions time: [below]");
+      orsa::print(b->getInitialConditions().time.getRef());
+      
       // ORSA_DEBUG("..out..");
       return false;
     }	
