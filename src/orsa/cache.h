@@ -15,13 +15,13 @@ namespace orsa {
   //
   template <typename T> class Cache {
   public:
-    Cache() : _set(false) { }
+    Cache() : _val(), _set(false) { }
   public:
     Cache(const T & val) : _val(val), _set(true) { }
   public:
     Cache(const Cache<T> & c) : _val(c._val), _set(c._set) { }
   public:
-    // virtual destructor is slow, and not needed so far...
+    // virtual destructor is slow, and never needed so far...
     // virtual ~Cache() { }
     ~Cache() { }
   public:
