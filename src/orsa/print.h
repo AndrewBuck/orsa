@@ -78,7 +78,7 @@ namespace orsa {
 	       y_UTC,m_UTC,d_UTC,H_UTC,M_UTC,S_UTC,ms_UTC);
   }
   
-  inline void print(const orsa::Orbit & o) {
+  inline void print(const orsa::Orbit &) {
     
   }
   
