@@ -152,7 +152,7 @@ orsa::Vector RotationalBodyProperty::newOmega (const orsa::Vector & omega,
   const double  omegaMagnitude = omega.length();
   const orsa::Vector uOmega          = omega.normalized();
 
-  const double  omegaDotMagnitude = omegaDot.length();
+  // const double  omegaDotMagnitude = omegaDot.length();
   const orsa::Vector uOmegaDot          = omegaDot.normalized();
   
   orsa::Vector newOmega;

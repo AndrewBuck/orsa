@@ -167,27 +167,27 @@ namespace orsa {
     bool update(const orsa::Time &) { return true; }
   public:
     orsa::Vector position() const { 
-      // ORSA_DEBUG("_position: %.20Fe",_position.getRef().length());
+      // ORSA_DEBUG("_position: %.20e",_position.getRef().length());
       // orsa::print(_position.getRef());
       return _position.getRef();
     }
   public:
     orsa::Vector velocity() const {
-      // ORSA_DEBUG("_velocity: %.20Fe",_velocity.getRef().length());
+      // ORSA_DEBUG("_velocity: %.20e",_velocity.getRef().length());
       // orsa::print(_velocity.getRef());
       return _velocity.getRef();
     }
   public:
     bool setPosition(const orsa::Vector & r) { 
       _position = r;
-      // ORSA_DEBUG("_position: %.20Fe",_position.getRef().length());
+      // ORSA_DEBUG("_position: %.20e",_position.getRef().length());
       // orsa::print(_position.getRef());
       return true;
     }
   public: 
     bool setVelocity(const orsa::Vector & v) {
       _velocity = v;
-      // ORSA_DEBUG("_velocity: %.20Fe",_velocity.getRef().length());
+      // ORSA_DEBUG("_velocity: %.20e",_velocity.getRef().length());
       // orsa::print(_velocity.getRef());
       return true;
     }
