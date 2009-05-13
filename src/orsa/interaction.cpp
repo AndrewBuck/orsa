@@ -255,12 +255,24 @@ bool Interaction::acceleration(InteractionVector & a,
 	    (b_ibps.translational->position() + b_l2g*b_pm->getCenterOfMass()) - 
 	    (ref_b_ibps.translational->position() + ref_b_l2g*ref_b_pm->getCenterOfMass());
 	  
+	  /* 
+	     ORSA_DEBUG("---R---");
+	     orsa::print(R);
+	     orsa::print(b_ibps.translational->position());
+	     orsa::print(b_l2g*b_pm->getCenterOfMass());
+	     orsa::print(ref_b_ibps.translational->position());
+	     orsa::print(ref_b_l2g*ref_b_pm->getCenterOfMass());
+	     orsa::print(t);
+	  */
+	  
 	  if (b->getRadius()+ref_b->getRadius() > R.length()) {
 	    
-	    ORSA_DEBUG("bodies too close: R<R1+R2, R=%g R1=%g R2=%g [km]",
+	    ORSA_DEBUG("bodies too close: R<R1+R2, R=%g R1=%g R2=%g [km] [b1:%s] [b2:%s]",
 		       orsa::FromUnits(R.length(),orsa::Unit::KM,-1),
 		       orsa::FromUnits(b->getRadius(),orsa::Unit::KM,-1),
-		       orsa::FromUnits(ref_b->getRadius(),orsa::Unit::KM,-1));
+		       orsa::FromUnits(ref_b->getRadius(),orsa::Unit::KM,-1),
+		       b->getName().c_str(),
+		       ref_b->getName().c_str());
 	    ORSA_DEBUG("reverting to pointlike...");
 #warning should handle this better....
 	   
