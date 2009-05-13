@@ -22,29 +22,29 @@ void Vector::_update_l() const {
   if (!_l2.isSet()) {
     _update_l2();
   }
-  _l.set(sqrt(_l2.getRef()));
+  _l = sqrt(_l2.getRef());
 }
 
 void Vector::_update_l2() const {
-  _l2.set((_x*_x) +
-	  (_y*_y) +
-	  (_z*_z) );
+  _l2 = (_x*_x) + (_y*_y) + (_z*_z);
 }
 
 const double & Vector::length() const {
   if (_l.isSet()) {
     return _l.getRef();
+  } else {
+    _update_l();
+    return _l.getRef();
   }
-  _update_l();
-  return _l.getRef();
 }
 
 const double & Vector::lengthSquared() const {
   if (_l2.isSet()) {
     return _l2.getRef();
+  } else {
+    _update_l2();
+    return _l2.getRef();
   }
-  _update_l2();
-  return _l2.getRef();
 }
 
 bool Vector::isZero() const {

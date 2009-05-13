@@ -17,7 +17,7 @@ namespace orsa {
   public:
     Vector() { }
   public:
-    Vector(const Vector & v) : _x(v._x), _y(v._y), _z(v._z) { }
+    Vector(const Vector & v) : _x(v._x), _y(v._y), _z(v._z), _l(v._l), _l2(v._l2) { }
   public:	
     Vector(const double & x, 
 	   const double & y, 
