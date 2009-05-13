@@ -14,6 +14,8 @@ double Unit::getTimeScale(const TimeUnit & tu) {
   case MILLISECOND: return 1.0e-3;   break;
   case MICROSECOND: return 1.0e-6;   break;
   }
+  ORSA_DEBUG("problems...");
+  return 1;
 }
 
 double Unit::getLengthScale(const LengthUnit & lu) {
@@ -29,6 +31,8 @@ double Unit::getLengthScale(const LengthUnit & lu) {
   case         M: return 1;             break;
   case        CM: return 0.01;          break;
   }
+  ORSA_DEBUG("problems...");
+  return 1;
 }
 
 double Unit::getMassScale(const MassUnit & mu) {
@@ -36,4 +40,6 @@ double Unit::getMassScale(const MassUnit & mu) {
   case   KG: return 1;     break;
   case GRAM: return 0.001; break;
   }
+  ORSA_DEBUG("problems...");
+  return 1;
 }
