@@ -162,9 +162,9 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
       */
       
       // should this be here??
-      if (b->getInitialConditions().translational.get()) {
-	if (b->getInitialConditions().translational->dynamic()) {
-	  
+      // if (b->getInitialConditions().translational.get()) {
+      // if (b->getInitialConditions().translational->dynamic()) {
+      
       if (b->getInitialConditions().rotational.get()) {
 	if (b->getInitialConditions().rotational->dynamic()) {
 	  
@@ -216,9 +216,9 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	  }
 	}
       }
-	
-	}
-      }
+      
+      // }
+      // }
       
       // } else {
       // ORSA_DEBUG("problem, body: [%s]",(*bl_it).get()->getName().c_str());
@@ -305,9 +305,9 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
       */
       //
      
-      if ((*bl_it)->getInitialConditions().translational.get()) {
-	if ((*bl_it)->getInitialConditions().translational->dynamic()) {
-	  
+      // if ((*bl_it)->getInitialConditions().translational.get()) {
+      // if ((*bl_it)->getInitialConditions().translational->dynamic()) {
+      
       if ((*bl_it)->getInitialConditions().rotational.get()) {
 	if ((*bl_it)->getInitialConditions().rotational->dynamic()) {
 	  
@@ -321,8 +321,8 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	}
       }
       
-	}
-      }
+      // }
+      // }
       
       ++bl_it;
     }
@@ -388,6 +388,31 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 		s[1]*a1[k] + 
 		s[0]*v1[k] + 
 		x1[k];
+	      
+	      /* 
+		 ORSA_DEBUG("--MARK-- x[k] , k=%s",(*bl_it)->getName().c_str());
+		 orsa::print(x[k]);
+		 
+		 ORSA_DEBUG("--MARK-- x1[k] , k=%s",(*bl_it)->getName().c_str());
+		 orsa::print(x1[k]);
+		 
+		 for (unsigned int dd=0; dd<=6; ++dd) {
+		 ORSA_DEBUG("b[%i][k]:",dd);
+		 orsa::print(b[dd][k]);
+		 }	
+		 
+		 for (unsigned int sj=0; sj<=8; ++sj) {
+		 ORSA_DEBUG("s[%i]:",sj);
+		 orsa::print(s[sj]);	
+		 }
+		 
+		 ORSA_DEBUG("a1:");
+		 orsa::print(a1[k]);
+		 
+		 ORSA_DEBUG("v1:");
+		 orsa::print(v1[k]);
+	      */
+	      
 	    }
 	  }
 	  
@@ -444,9 +469,9 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	     }
 	  */
 	  //
-	  if ((*bl_it)->getInitialConditions().translational.get()) {
-	    if ((*bl_it)->getInitialConditions().translational->dynamic()) {
-	      
+	  // if ((*bl_it)->getInitialConditions().translational.get()) {
+	  // if ((*bl_it)->getInitialConditions().translational->dynamic()) {
+	  
 	  if ((*bl_it)->getInitialConditions().rotational.get()) {
 	    if ((*bl_it)->getInitialConditions().rotational->dynamic()) {
 	      
@@ -481,8 +506,8 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	    }
 	  }
 	  
-	    }
-	  }
+	  // }
+	  // }
 	  
 	  ++bl_it;
 	}
@@ -686,7 +711,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	  
 	  IBPS ibps = k->getInitialConditions();
 	  
-	  if (!ibps.translational->dynamic()) {
+	  if (!ibps.dynamic()) {
 	    ++bl_it;
 	    continue;
 	  }
@@ -700,8 +725,13 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	  
 	  if ((*bl_it)->getInitialConditions().translational.get()) {
 	    if ((*bl_it)->getInitialConditions().translational->dynamic()) {
+	      
+	      // ORSA_DEBUG("--MARK--");
+	      // orsa::print(x[k]);
+	      
 	      ibps.translational->setPosition(x[k]);
 	      ibps.translational->setVelocity(v[k]);
+	      
 	    }
 	  }
 	  
@@ -1792,7 +1822,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
       
       IBPS ibps = k->getInitialConditions();
       
-      if (!ibps.translational->dynamic()) {
+      if (!ibps.dynamic()) {
 	++bl_it;
 	continue;
       }
@@ -1801,8 +1831,13 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
       
       if ((*bl_it)->getInitialConditions().translational.get()) {
 	if ((*bl_it)->getInitialConditions().translational->dynamic()) {
+	  
+	  // ORSA_DEBUG("--MARK--");
+	  // orsa::print(x1[k]);
+	  
 	  ibps.translational->setPosition(x1[k]);
 	  ibps.translational->setVelocity(v1[k]);
+	  
 	}
       }
       
