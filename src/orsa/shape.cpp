@@ -169,7 +169,8 @@ bool TriShape::isInside(const Vector & v) const {
   // choose one
   //
   // return _isInside_useLineMethod(v);
-  return _isInside_useNormalMethod(v);
+  // return _isInside_useNormalMethod(v);
+  return _isInside_useFaceMethod(v);
 }
 
 bool TriShape::_isInside_useLineMethod(const Vector & v) const {
@@ -322,6 +323,38 @@ bool TriShape::_isInside_useNormalMethod(const Vector & v) const {
   // ORSA_DEBUG("last out");
   return false;
 }
+
+bool TriShape::_isInside_useFaceMethod(const Vector & v) const {
+  _updateCache();
+  if (v.lengthSquared() > (_r_max.getRef()*_r_max.getRef())) {
+    /* 
+       ORSA_DEBUG("fast out: v.length()=%f > _r_max.getRef()=%f",
+       v.length(),
+       _r_max.getRef());
+    */
+    return false;
+  } else if (v.lengthSquared() < (_r_min.getRef()*_r_min.getRef())) {
+    // ORSA_DEBUG("fast in");
+    return true;
+  }
+  
+  // for all faces containing the vertex closet to "v", check that
+  // the relative distance between "v" and each face vertex lays inside the face
+  unsigned int id = closestVertexIndex(v);
+  for (unsigned int fi=0; fi<_face.size(); ++fi) {
+    if ( (_face[fi].i() == id) ||
+	 (_face[fi].j() == id) ||
+	 (_face[fi].k() == id) ) {
+      if (_getFaceNormal(fi)*(_vertex[_face[fi].i()]-v) > 0) { return true; }
+      if (_getFaceNormal(fi)*(_vertex[_face[fi].j()]-v) > 0) { return true; }
+      if (_getFaceNormal(fi)*(_vertex[_face[fi].k()]-v) > 0) { return true; }
+    }
+  }
+  
+  return false;
+}
+
+
 
 const Vector & TriShape::closestVertex(const Vector & v) const {
   return _vertex[closestVertexIndex(v)];

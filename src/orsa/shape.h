@@ -192,6 +192,9 @@ namespace orsa {
   protected:
     //! This method assumes that the normals always point outward.
     bool _isInside_useNormalMethod(const Vector &) const;
+  protected:    
+    //
+    bool _isInside_useFaceMethod(const Vector &) const;
     
   public:
     const Vector & closestVertex(const Vector &) const;   
