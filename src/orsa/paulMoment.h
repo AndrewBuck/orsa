@@ -21,7 +21,7 @@ namespace orsa {
   public:
     PaulMoment();
   public:
-    PaulMoment(const unsigned int order);
+    PaulMoment(const int order);
   protected:
     virtual ~PaulMoment();
     
@@ -31,7 +31,7 @@ namespace orsa {
       return true;
     }
   public:
-    bool setShape(const orsa::Shape * s, const unsigned int order) {
+    bool setShape(const orsa::Shape * s, const int order) {
       _shape = s;
       _order.set(order);
       return true;
@@ -106,25 +106,30 @@ namespace orsa {
     */
     
   public:
-    const double M (const unsigned int i,
-		    const unsigned int j, 
-		    const unsigned int k) const {
-      if (i+j+k <= _order.getRef()) {
-	return _M[i][j][k];
-      } else {
-	return 0;
-      }
+    const double M (const int i,
+		    const int j, 
+		    const int k) const {
+      if (i<0) { ORSA_ERROR("negative index: i=%i",i); return 0; }
+      if (j<0) { ORSA_ERROR("negative index: j=%i",j); return 0; }
+      if (k<0) { ORSA_ERROR("negative index: k=%i",k); return 0; }
+      //
+      if (i+j+k > _order.getRef()) { ORSA_ERROR("index out of bound"); return 0; }
+      //
+      return _M[i][j][k];
     }
   public:
     void setM (const double & val,
-	       const unsigned int i, 
-	       const unsigned int j, 
-	       const unsigned int k) {
-      if (i+j+k <= _order.getRef()) {
-	_M[i][j][k] = val;
-      } else {
-        ORSA_ERROR("...");
-      }
+	       const int i, 
+	       const int j, 
+	       const int k) {
+
+      if (i<0) { ORSA_ERROR("negative index: i=%i",i); return; }
+      if (j<0) { ORSA_ERROR("negative index: j=%i",j); return; }
+      if (k<0) { ORSA_ERROR("negative index: k=%i",k); return; }
+      //
+      if (i+j+k > _order.getRef()) { ORSA_ERROR("index out of bound"); return; }
+      //
+      _M[i][j][k] = val;
     }
   protected:
     std::vector< std::vector< std::vector<double> > > _M, _M_uncertainty;
@@ -156,7 +161,8 @@ namespace orsa {
     
   public:
     // the order can only be reduced...
-    bool setOrder(const unsigned int newOrder) {
+    bool setOrder(const int newOrder) {
+#warning "this should trigger some set_dirty method..."
       if (newOrder <= order()) {
 	_order = newOrder;
 	return true;
@@ -165,12 +171,16 @@ namespace orsa {
       }
     }
   public:
-    const unsigned int order() const {
+    const int order() const {
       return _order.getRef();
     }
   protected:
-    orsa::Cache<unsigned int> _order;
+    orsa::Cache<int> _order;
   };
+  
+  // utility, just printing out values for now
+  void convert(const PaulMoment * const pm,
+	       const double     & R0);
   
 }; // namespace orsa
 
