@@ -13,11 +13,11 @@
 
 Telescope::Telescope(const orsa::Time   & start,
 		     const orsa::Time   & stop,
-		     const orsa::Double & limitingMagnitude_in,
-		     const orsa::Double & FOV_DEG_in,
-		     const orsa::Double & maxZenithDistanceAngle_DEG_in,
-		     const orsa::Double & minMoonDistanceAngle_DEG_in,
-		     const orsa::Double & minMoonPhase_DEG_in,
+		     const double & limitingMagnitude_in,
+		     const double & FOV_DEG_in,
+		     const double & maxZenithDistanceAngle_DEG_in,
+		     const double & minMoonDistanceAngle_DEG_in,
+		     const double & minMoonPhase_DEG_in,
 		     const int            recycleTime_DAY_in,
 		     const int            dutyCycle_SEC_in,
 		     const int            dutyCycleMultiplicity_in,
@@ -58,35 +58,36 @@ void Telescope::writeTP(const TelescopePointing & localTP,
 			const orsa::Vector      & sunPosition,
 			const orsa::Vector      & obsPosition) const {
   
-  const orsa::Double lambda = 
-    orsa::fmod(orsa::twopi() + 
-	       orsa::atan2(localTP.u.getY(),
-			   localTP.u.getX()),
-	       orsa::twopi());
-  const orsa::Double beta = orsa::halfpi() - orsa::acos(localTP.u.getZ());
+  const double lambda = 
+    fmod(orsa::twopi() + 
+	 atan2(localTP.u.getY(),
+	       localTP.u.getX()),
+	 orsa::twopi());
+  const double beta = orsa::halfpi() - acos(localTP.u.getZ());
   
   const orsa::Vector u_opposition = -(sunPosition-obsPosition).normalized();
-  const orsa::Double lambdaOpposition = 
-    orsa::fmod(orsa::twopi() + 
-	       orsa::atan2(u_opposition.getY(),
-			   u_opposition.getX()),
-	       orsa::twopi());
+  const double lambdaOpposition = 
+    fmod(orsa::twopi() + 
+	 atan2(u_opposition.getY(),
+	       u_opposition.getX()),
+	 orsa::twopi());
   
-  const orsa::Double dLambda = orsa::fmod(orsa::twopi() + 
-					  lambda-lambdaOpposition,
-					  orsa::twopi());
+  const double dLambda = 
+    fmod(orsa::twopi() + 
+	 lambda-lambdaOpposition,
+	 orsa::twopi());
   
   char line[1024];
-  gmp_snprintf(line,1024,"%.5Ff %Zi %+.12Ff %+.12Ff %+.12Ff %7.3Ff %+7.3Ff %7.3Ff %.3Ff [%s]",
-	       orsaSolarSystem::timeToJulian(localTP.epoch).get_mpf_t(),
+  gmp_snprintf(line,1024,"%.5f %Zi %+.12f %+.12f %+.12f %7.3f %+7.3f %7.3f %.3f [%s]",
+	       orsaSolarSystem::timeToJulian(localTP.epoch),
 	       localTP.epoch.getMuSec().get_mpz_t(),
-	       localTP.u.getX().get_mpf_t(),
-	       localTP.u.getY().get_mpf_t(),
-	       localTP.u.getZ().get_mpf_t(),
-	       orsa::Double(dLambda*orsa::radToDeg()).get_mpf_t(),
-	       orsa::Double(beta*orsa::radToDeg()).get_mpf_t(),
-	       orsa::Double(orsa::acos(u_opposition*localTP.u)*orsa::radToDeg()).get_mpf_t(),
-	       FromUnits((sunPosition-obsPosition).length(),orsa::Unit::AU,-1).get_mpf_t(),
+	       localTP.u.getX(),
+	       localTP.u.getY(),
+	       localTP.u.getZ(),
+	       dLambda*orsa::radToDeg(),
+	       beta*orsa::radToDeg(),
+	       acos(u_opposition*localTP.u)*orsa::radToDeg(),
+	       FromUnits((sunPosition-obsPosition).length(),orsa::Unit::AU,-1),
 	       name.c_str());
   boinc_begin_critical_section();
   strcat(line,MODEOL);
@@ -115,7 +116,7 @@ bool OppositionTelescope::sampleTP(TelescopePointing   & localTP,
 				   const orsa::Time    & t,
 				   const TelescopeList & telescopeList,
 				   const NEOList       & ,
-				   const orsa::Double  & ,
+				   const double  & ,
 				   const orsa::Vector  &  sunPosition,
 				   const orsa::Vector  & moonPosition,
 				   const orsa::Vector  &  obsPosition,
@@ -144,21 +145,21 @@ bool OppositionTelescope::sampleTP(TelescopePointing   & localTP,
   
   for (unsigned int m=0; m<1000000; ++m) {
     localTP.u = u_opposition;
-    const orsa::Double sqrtM = sqrt(m);
+    const double sqrtM = sqrt(m);
     localTP.u = orsa::Matrix::axisRotation(u_ortho,
 					   FOV*sqrtM*(2.0*rnd->gsl_rng_uniform()-1.0)) * localTP.u;
     localTP.u = orsa::Matrix::axisRotation(u_northPole,
 					   2.0*FOV*sqrtM*(2.0*rnd->gsl_rng_uniform()-1.0)) * localTP.u;
     localTP.u.normalize();
     
-    // const orsa::Double moonDistanceAngle = orsa::acos(((moonPosition-obsPosition).normalized())*localTP.u);
+    // const double moonDistanceAngle = acos(((moonPosition-obsPosition).normalized())*localTP.u);
     //
-    const orsa::Double cos_moonDistanceAngle = ((moonPosition-obsPosition).normalized()) * localTP.u;
+    const double cos_moonDistanceAngle = ((moonPosition-obsPosition).normalized()) * localTP.u;
     
-    // const orsa::Double zenithDistanceAngle = orsa::acos(obsNormal*localTP.u);
-    // const orsa::Double elevation = orsa::halfpi() - orsa::acos(obsNormal*localTP.u);
+    // const double zenithDistanceAngle = acos(obsNormal*localTP.u);
+    // const double elevation = orsa::halfpi() - acos(obsNormal*localTP.u);
     //
-    const orsa::Double cos_zenithDistanceAngle = obsNormal*localTP.u;
+    const double cos_zenithDistanceAngle = obsNormal*localTP.u;
     
     /* 
        if ( ((moonDistanceAngle*orsa::radToDeg()) > 45.0) &&
@@ -175,17 +176,17 @@ bool OppositionTelescope::sampleTP(TelescopePointing   & localTP,
 	while (tl_it != telescopeList.end()) {
 	  if ((*tl_it)->limitingMagnitude+1.05 <= limitingMagnitude) {
 	    /* 
-	       ORSA_DEBUG("NOT using external TPs, this Vlim: %Ff   other Vlim: %Ff",
-	       limitingMagnitude.get_mpf_t(),
-	       (*tl_it)->limitingMagnitude.get_mpf_t());
+	       ORSA_DEBUG("NOT using external TPs, this Vlim: %f   other Vlim: %f",
+	       limitingMagnitude,
+	       (*tl_it)->limitingMagnitude);
 	    */
 	    ++tl_it;
 	    continue;
 	  } 
 	  /* 
-	     ORSA_DEBUG("using external TPs, this Vlim: %Ff   other Vlim: %Ff",
-	     limitingMagnitude.get_mpf_t(),
-	     (*tl_it)->limitingMagnitude.get_mpf_t());
+	     ORSA_DEBUG("using external TPs, this Vlim: %f   other Vlim: %f",
+	     limitingMagnitude,
+	     (*tl_it)->limitingMagnitude);
 	  */
 	  tpList::const_iterator tp_it = (*tl_it)->getTPList().begin();
 	  while (tp_it != (*tl_it)->getTPList().end()) {
@@ -232,7 +233,7 @@ bool SieveTelescope::sampleTP(TelescopePointing   & localTP,
 			      const orsa::Time    & t,
 			      const TelescopeList & telescopeList,
 			      const NEOList       & syntheticNEO,
-			      const orsa::Double  & detectionProbabilityThreshold,
+			      const double  & detectionProbabilityThreshold,
 			      const orsa::Vector  &  sunPosition,
 			      const orsa::Vector  & moonPosition,
 			      const orsa::Vector  &  obsPosition,	
@@ -263,10 +264,10 @@ bool SieveTelescope::sampleTP(TelescopePointing   & localTP,
   //
   {
     orsa::Vector u_obs2neo;
-    orsa::Double V; // apparent magnitude
+    double V; // apparent magnitude
     orsa::Vector neo2obs;
     orsa::Vector neo2sun;
-    orsa::Double phaseAngle;
+    double phaseAngle;
     
     uVit tmp_uVit;
     
@@ -319,7 +320,7 @@ bool SieveTelescope::sampleTP(TelescopePointing   & localTP,
   
   orsa::Cache<orsa::Vector> selected_u;
   std::list<uVit>           selected_synthetic_uVit;
-  orsa::Double              selected_synthetic_total_prob = orsa::zero();
+  double              selected_synthetic_total_prob = 0;
   //
   // const unsigned int num_iter = synthetic_uVit.size();
   unsigned int count=0;
@@ -366,8 +367,8 @@ bool SieveTelescope::sampleTP(TelescopePointing   & localTP,
        }
     */
     
-    const orsa::Double cos_moonDistanceAngle   = ((moonPosition-obsPosition).normalized())*localTP.u;
-    const orsa::Double cos_zenithDistanceAngle = obsNormal*localTP.u;
+    const double cos_moonDistanceAngle   = ((moonPosition-obsPosition).normalized())*localTP.u;
+    const double cos_zenithDistanceAngle = obsNormal*localTP.u;
     
     if ( (cos_zenithDistanceAngle > cos_maxZenithDistanceAngle) &&
 	 (cos_moonDistanceAngle < cos_minMoonDistanceAngle) ) {
@@ -397,12 +398,12 @@ bool SieveTelescope::sampleTP(TelescopePointing   & localTP,
       if (!tooClose) {
 	
 	std::list<uVit> local_selected_synthetic_uVit;
-	orsa::Double    local_selected_synthetic_total_prob = orsa::zero();
+	double    local_selected_synthetic_total_prob = 0;
 	
 	std::list<uVit>::const_iterator it = synthetic_uVit.begin();
 	while (it != synthetic_uVit.end()) {
 	  if (((*it).u*localTP.u) > cos_effectiveHalfFOV) {  
-	    const orsa::Double prob = detectionProbability((*it).V);
+	    const double prob = detectionProbability((*it).V);
 	    // if (prob > 0) {
 	    local_selected_synthetic_uVit.push_back(*it);
 	    local_selected_synthetic_total_prob += prob;
@@ -415,9 +416,9 @@ bool SieveTelescope::sampleTP(TelescopePointing   & localTP,
 	//
 	if (local_selected_synthetic_total_prob > selected_synthetic_total_prob) {
 	  if (boinc_is_standalone()) {
-	    ORSA_DEBUG("better field: %3i synthetic NEOs   p.tot: %.3Ff   synthetic_uVit.size(): %i",
+	    ORSA_DEBUG("better field: %3i synthetic NEOs   p.tot: %.3f   synthetic_uVit.size(): %i",
 		       local_selected_synthetic_uVit.size(),
-		       local_selected_synthetic_total_prob.get_mpf_t(),
+		       local_selected_synthetic_total_prob,
 		       synthetic_uVit.size());
 	  }	
 	  
@@ -462,14 +463,14 @@ bool SieveTelescope::sampleTP(TelescopePointing   & localTP,
       localTP.u = orsa::Vector(sx,sy,sz);    
       localTP.u.normalize();
       
-      // const orsa::Double moonDistanceAngle = orsa::acos(((moonPosition-obsPosition).normalized())*localTP.u);
+      // const double moonDistanceAngle = acos(((moonPosition-obsPosition).normalized())*localTP.u);
       //
-      const orsa::Double cos_moonDistanceAngle = ((moonPosition-obsPosition).normalized()) * localTP.u;
+      const double cos_moonDistanceAngle = ((moonPosition-obsPosition).normalized()) * localTP.u;
       
-      // const orsa::Double zenithDistanceAngle = orsa::acos(obsNormal*localTP.u);
-      // const orsa::Double elevation = orsa::halfpi() - orsa::acos(obsNormal*localTP.u);
+      // const double zenithDistanceAngle = acos(obsNormal*localTP.u);
+      // const double elevation = orsa::halfpi() - acos(obsNormal*localTP.u);
       //
-      const orsa::Double cos_zenithDistanceAngle = obsNormal*localTP.u;
+      const double cos_zenithDistanceAngle = obsNormal*localTP.u;
       
       /* 
 	 if ( ((moonDistanceAngle*orsa::radToDeg()) > 45.0) &&
@@ -486,17 +487,17 @@ bool SieveTelescope::sampleTP(TelescopePointing   & localTP,
 	  while (tl_it != telescopeList.end()) {
 	    if ((*tl_it)->limitingMagnitude+1.05 <= limitingMagnitude) {
 	      /* 
-		 ORSA_DEBUG("NOT using external TPs, this Vlim: %Ff   other Vlim: %Ff",
-		 limitingMagnitude.get_mpf_t(),
-		 (*tl_it)->limitingMagnitude.get_mpf_t());
+		 ORSA_DEBUG("NOT using external TPs, this Vlim: %f   other Vlim: %f",
+		 limitingMagnitude,
+		 (*tl_it)->limitingMagnitude);
 	      */
 	      ++tl_it;
 	      continue;
 	    } 
 	    /* 
-	       ORSA_DEBUG("using external TPs, this Vlim: %Ff   other Vlim: %Ff",
-	       limitingMagnitude.get_mpf_t(),
-	       (*tl_it)->limitingMagnitude.get_mpf_t());
+	       ORSA_DEBUG("using external TPs, this Vlim: %f   other Vlim: %f",
+	       limitingMagnitude,
+	       (*tl_it)->limitingMagnitude);
 	    */
 	    tpList::const_iterator tp_it = (*tl_it)->getTPList().begin();
 	    while (tp_it != (*tl_it)->getTPList().end()) {
@@ -545,7 +546,7 @@ bool AllSkyTelescope::sampleTP(TelescopePointing   & localTP,
 			       const orsa::Time    & t,
 			       const TelescopeList & telescopeList,
 			       const NEOList       & ,
-			       const orsa::Double  & ,
+			       const double  & ,
 			       const orsa::Vector  &  sunPosition,
 			       const orsa::Vector  & moonPosition,
 			       const orsa::Vector  &  obsPosition,
@@ -581,14 +582,14 @@ bool AllSkyTelescope::sampleTP(TelescopePointing   & localTP,
     localTP.u = orsa::Vector(sx,sy,sz);    
     localTP.u.normalize();
     
-    // const orsa::Double moonDistanceAngle = orsa::acos(((moonPosition-obsPosition).normalized())*localTP.u);
+    // const double moonDistanceAngle = acos(((moonPosition-obsPosition).normalized())*localTP.u);
     //
-    const orsa::Double cos_moonDistanceAngle = ((moonPosition-obsPosition).normalized()) * localTP.u;
+    const double cos_moonDistanceAngle = ((moonPosition-obsPosition).normalized()) * localTP.u;
     
-    // const orsa::Double zenithDistanceAngle = orsa::acos(obsNormal*localTP.u);
-    // const orsa::Double elevation = orsa::halfpi() - orsa::acos(obsNormal*localTP.u);
+    // const double zenithDistanceAngle = acos(obsNormal*localTP.u);
+    // const double elevation = orsa::halfpi() - acos(obsNormal*localTP.u);
     //
-    const orsa::Double cos_zenithDistanceAngle = obsNormal*localTP.u;
+    const double cos_zenithDistanceAngle = obsNormal*localTP.u;
     
     /* 
        if ( ((moonDistanceAngle*orsa::radToDeg()) > 45.0) &&
@@ -605,17 +606,17 @@ bool AllSkyTelescope::sampleTP(TelescopePointing   & localTP,
 	while (tl_it != telescopeList.end()) {
 	  if ((*tl_it)->limitingMagnitude+1.05 <= limitingMagnitude) {
 	    /* 
-	       ORSA_DEBUG("NOT using external TPs, this Vlim: %Ff   other Vlim: %Ff",
-	       limitingMagnitude.get_mpf_t(),
-	       (*tl_it)->limitingMagnitude.get_mpf_t());
+	       ORSA_DEBUG("NOT using external TPs, this Vlim: %f   other Vlim: %f",
+	       limitingMagnitude,
+	       (*tl_it)->limitingMagnitude);
 	    */
 	    ++tl_it;
 	    continue;
 	  } 
 	  /* 
-	     ORSA_DEBUG("using external TPs, this Vlim: %Ff   other Vlim: %Ff",
-	     limitingMagnitude.get_mpf_t(),
-	     (*tl_it)->limitingMagnitude.get_mpf_t());
+	     ORSA_DEBUG("using external TPs, this Vlim: %f   other Vlim: %f",
+	     limitingMagnitude,
+	     (*tl_it)->limitingMagnitude);
 	  */
 	  tpList::const_iterator tp_it = (*tl_it)->getTPList().begin();
 	  while (tp_it != (*tl_it)->getTPList().end()) {
@@ -678,11 +679,11 @@ bool readTelescope(TelescopeList     & tl,
   int  mode;
   int  start_DAY, stop_DAY;
   int  randomSeed;
-  orsa::Double limitingMagnitude;
-  orsa::Double FOV_DEG;
-  orsa::Double maxZenithDistanceAngle_DEG;
-  orsa::Double minMoonDistanceAngle_DEG;
-  orsa::Double minMoonPhase_DEG;
+  double limitingMagnitude;
+  double FOV_DEG;
+  double maxZenithDistanceAngle_DEG;
+  double minMoonDistanceAngle_DEG;
+  double minMoonPhase_DEG;
   int  recycleTime_DAY;
   int  dutyCycle_SEC;
   int  dutyCycleMultiplicity;
@@ -697,16 +698,16 @@ bool readTelescope(TelescopeList     & tl,
       if (line[0] == '#') {
 	continue;
       }
-      if (14 == gmp_sscanf(line,"%d %d %d %d %Ff %Ff %Ff %Ff %Ff %d %d %d %s %s",
+      if (14 == gmp_sscanf(line,"%d %d %d %d %lf %lf %lf %lf %lf %d %d %d %s %s",
 			   &mode,
 			   &start_DAY,
 			   &stop_DAY,
 			   &randomSeed,
-			   limitingMagnitude.get_mpf_t(),
-			   FOV_DEG.get_mpf_t(),
-			   maxZenithDistanceAngle_DEG.get_mpf_t(),
-			   minMoonDistanceAngle_DEG.get_mpf_t(),
-			   minMoonPhase_DEG.get_mpf_t(),
+			   &limitingMagnitude,
+			   &FOV_DEG,
+			   &maxZenithDistanceAngle_DEG,
+			   &minMoonDistanceAngle_DEG,
+			   &minMoonPhase_DEG,
 			   &recycleTime_DAY,
 			   &dutyCycle_SEC,
 			   &dutyCycleMultiplicity,
@@ -782,11 +783,11 @@ bool readTelescope(TelescopeList     & tl,
 		    "start_DAY.................: %10i\n"
 		    "stop_DAY..................: %10i\n"
 		    "randomSeed................: %10i\n"
-		    "limitingMagnitude.........: %20.9Ff\n"
-		    "FOV_DEG...................: %20.9Ff\n"
-		    "maxZenithDistanceAngle_DEG: %20.9Ff\n"
-		    "minMoonDistanceAngle_DEG..: %20.9Ff\n"
-		    "minMoonPhase_DEG..........: %20.9Ff\n"
+		    "limitingMagnitude.........: %20.9f\n"
+		    "FOV_DEG...................: %20.9f\n"
+		    "maxZenithDistanceAngle_DEG: %20.9f\n"
+		    "minMoonDistanceAngle_DEG..: %20.9f\n"
+		    "minMoonPhase_DEG..........: %20.9f\n"
 		    "recycleTime_DAY...........: %10i\n"
 		    "dutyCycle_SEC.............: %10i\n"
 		    "dutyCycleMultiplicity.....: %10i\n"
@@ -796,11 +797,11 @@ bool readTelescope(TelescopeList     & tl,
 		    start_DAY,
 		    stop_DAY,
 		    randomSeed,
-		    limitingMagnitude.get_mpf_t(),
-		    FOV_DEG.get_mpf_t(),
-		    maxZenithDistanceAngle_DEG.get_mpf_t(),
-		    minMoonDistanceAngle_DEG.get_mpf_t(),
-		    minMoonPhase_DEG.get_mpf_t(),
+		    limitingMagnitude,
+		    FOV_DEG,
+		    maxZenithDistanceAngle_DEG,
+		    minMoonDistanceAngle_DEG,
+		    minMoonPhase_DEG,
 		    recycleTime_DAY,
 		    dutyCycle_SEC,
 		    dutyCycleMultiplicity,

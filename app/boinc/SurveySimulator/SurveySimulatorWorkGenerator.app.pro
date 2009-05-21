@@ -24,7 +24,7 @@ DESTDIR     = ../../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
 	INCLUDEPATH += /home/tricaric/boinc/ /home/tricaric/boinc/lib/ /home/tricaric/boinc/tools/ /home/tricaric/boinc/sched/ /home/tricaric/boinc/db/ /usr/include/mysql/
-	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads -lorsaTBB /home/tricaric/boinc/api/libboinc_api.a /home/tricaric/boinc/lib/libboinc.a -lmysqlclient -lssl -lcrypto -ltbb -ltbbmalloc
+	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads -lorsaTBB /home/tricaric/boinc/api/libboinc_api.a /home/tricaric/boinc/lib/libboinc.a -lmysqlclient -lssl -lcrypto
 }
 
 macx {

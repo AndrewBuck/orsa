@@ -22,6 +22,7 @@
 #include <orsaSPICE/spiceBodyAttitudeCallback.h>
 #include <orsaSPICE/spiceBodyPosVelCallback.h>
 
+#include <orsaSolarSystem/data.h>
 #include <orsaSolarSystem/datetime.h>
 #include <orsaSolarSystem/gmst.h>
 #include <orsaSolarSystem/obleq.h>
@@ -45,21 +46,21 @@ osg::ref_ptr<NEO> NEOFactory::sampleNEO(const orsa::Time & orbitEpoch) const {
   osg::ref_ptr<NEO> newNEO = createNEO(idCounter++,
 				       rnd->randomSeed);
   
-  const orsa::Double sample_a_AU = ddu_a_AU->sample(rnd.get(), a_AU_min.get_d(), a_AU_max.get_d());
+  const double sample_a_AU = ddu_a_AU->sample(rnd.get(), a_AU_min, a_AU_max);
   if ( (sample_a_AU < a_AU_min) || 
        (sample_a_AU > a_AU_max) ) {
     ORSA_ERROR("problems");
   }
   newNEO->orbit.a = FromUnits(sample_a_AU,orsa::Unit::AU);
   
-  const orsa::Double sample_e = ddu_e->sample(rnd.get(), e_min.get_d(), e_max.get_d());
+  const double sample_e = ddu_e->sample(rnd.get(), e_min, e_max);
   if ( (sample_e < e_min) || 
        (sample_e > e_max) ) {
     ORSA_ERROR("problems");
   }
   newNEO->orbit.e = sample_e;
   
-  const orsa::Double sample_i_DEG = ddu_i_DEG->sample(rnd.get(), i_DEG_min.get_d(), i_DEG_max.get_d());
+  const double sample_i_DEG = ddu_i_DEG->sample(rnd.get(), i_DEG_min, i_DEG_max);
   if ( (sample_i_DEG < i_DEG_min) || 
        (sample_i_DEG > i_DEG_max) ) {
     ORSA_ERROR("problems");
@@ -72,16 +73,17 @@ osg::ref_ptr<NEO> NEOFactory::sampleNEO(const orsa::Time & orbitEpoch) const {
   
   newNEO->orbit.M                = orsa::twopi()*rnd->gsl_rng_uniform();
   
-  newNEO->orbit.mu = orsa::Unit::instance()->getG()*orsa::FromUnits(orsa::one(),orsa::Unit::MSUN); 
+  // newNEO->orbit.mu = orsa::Unit::G()*orsa::FromUnits(1,orsa::Unit::MSUN); 
+  newNEO->orbit.mu = orsaSolarSystem::Data::GMSun(); 
   
   newNEO->orbitEpoch = orbitEpoch;
   
   /* 
-     ORSA_DEBUG("id: %6i   a: %Ff   e: %Ff   i: %Ff",
+     ORSA_DEBUG("id: %6i   a: %f   e: %f   i: %f",
      newNEO->id,
-     FromUnits(newNEO->orbit.a,orsa::Unit::AU,-1).get_mpf_t(),
-     newNEO->orbit.e.get_mpf_t(),
-     orsa::Double(orsa::radToDeg()*newNEO->orbit.i).get_mpf_t());
+     FromUnits(newNEO->orbit.a,orsa::Unit::AU,-1),
+     newNEO->orbit.e,
+     orsa::radToDeg()*newNEO->orbit.i);
   */
   
   return newNEO;
@@ -92,18 +94,18 @@ osg::ref_ptr<NEO> NEOFactory::sampleNEO(const orsa::Time & orbitEpoch) const {
    void writeDataFiles(int                  fd,
    const NEO          * neo,
    const orsa::Time   & t,
-   const orsa::Double & V,
+   const double & V,
    Telescope          * telescope) {
    char line[1024];
-   gmp_snprintf(line,1024,"%.5Ff %Zi %6i %.3Ff %.4Ff %6.2Ff %5.2Ff %5.2Ff [%s]",
-   orsaSolarSystem::julianTime(t).get_mpf_t(),
+   gmp_snprintf(line,1024,"%.5f %Zi %6i %.3f %.4f %6.2f %5.2f %5.2f [%s]",
+   orsaSolarSystem::julianTime(t),
    t.getMuSec().get_mpz_t(),
    neo->id,
-   FromUnits(neo->orbit.a,orsa::Unit::AU,-1).get_mpf_t(),
-   neo->orbit.e.get_mpf_t(),
-   orsa::Double(neo->orbit.i*orsa::radToDeg()).get_mpf_t(),
-   neo->getH(t).get_mpf_t(),
-   V.get_mpf_t(),
+   FromUnits(neo->orbit.a,orsa::Unit::AU,-1),
+   neo->orbit.e,
+   neo->orbit.i*orsa::radToDeg(),
+   neo->getH(t),
+   V,
    telescope->name.c_str());
    boinc_begin_critical_section();
    strcat(line,MODEOL);
@@ -115,7 +117,7 @@ osg::ref_ptr<NEO> NEOFactory::sampleNEO(const orsa::Time & orbitEpoch) const {
 
 void dumpSampledNEOs (const NEOList      & neoList,
 		      const std::string  & fileName,
-		      const orsa::Double & detectionProbabilityThreshold) {
+		      const double & detectionProbabilityThreshold) {
   
   FILE * fp = fopen(fileName.c_str(),"w");
   if (!fp) {
@@ -129,22 +131,22 @@ void dumpSampledNEOs (const NEOList      & neoList,
     const SyntheticNEO * syntheticNEO = dynamic_cast<const SyntheticNEO *> ((*it).get());
     
     if (realNEO) {      
-      gmp_fprintf(fp,"%10i %12i %12.9Ff %12.10Ff %12.8Ff %5.2Ff"
+      gmp_fprintf(fp,"%10i %12i %12.9f %12.10f %12.8f %5.2f"
 		  MODEOL,
 		  realNEO->randomSeed,
 		  realNEO->id,
-		  orsa::FromUnits(realNEO->orbit.a,orsa::Unit::AU,-1).get_mpf_t(),
-		  realNEO->orbit.e.get_mpf_t(),
-		  orsa::Double(realNEO->orbit.i*orsa::radToDeg()).get_mpf_t(),
-		  realNEO->getH(orsaSolarSystem::J2000(),detectionProbabilityThreshold).get_mpf_t());      
+		  orsa::FromUnits(realNEO->orbit.a,orsa::Unit::AU,-1),
+		  realNEO->orbit.e,
+		  realNEO->orbit.i*orsa::radToDeg(),
+		  realNEO->getH(orsaSolarSystem::J2000(),detectionProbabilityThreshold));      
     } else if (syntheticNEO) {
-      gmp_fprintf(fp,"%10i %12i %12.9Ff %12.10Ff %12.8Ff"
+      gmp_fprintf(fp,"%10i %12i %12.9f %12.10f %12.8f"
 		  MODEOL,
 		  syntheticNEO->randomSeed,
 		  syntheticNEO->id,
-		  orsa::FromUnits(syntheticNEO->orbit.a,orsa::Unit::AU,-1).get_mpf_t(),
-		  syntheticNEO->orbit.e.get_mpf_t(),
-		  orsa::Double(syntheticNEO->orbit.i*orsa::radToDeg()).get_mpf_t());
+		  orsa::FromUnits(syntheticNEO->orbit.a,orsa::Unit::AU,-1),
+		  syntheticNEO->orbit.e,
+		  syntheticNEO->orbit.i*orsa::radToDeg());
     } else {
       ORSA_DEBUG("case not handled");
     }
@@ -156,7 +158,7 @@ void dumpSampledNEOs (const NEOList      & neoList,
 
 
 osg::ref_ptr<orsa::Body> SPICEBody (const std::string  & bodyName,
-				    const orsa::Double & bodyMass) {
+				    const double & bodyMass) {
   
   osg::ref_ptr<orsa::Body> localBody = new orsa::Body;
   localBody->setName(bodyName);
@@ -172,33 +174,33 @@ osg::ref_ptr<orsa::Body> SPICEBody (const std::string  & bodyName,
 }
 
 void simpleNEOVector(orsa::Vector & u_obs2neo,
-		     orsa::Double & V,
+		     double & V,
 		     orsa::Vector & neo2obs,
 		     orsa::Vector & neo2sun,
-		     orsa::Double & phaseAngle,
+		     double & phaseAngle,
 		     const NEO * neo,
 		     const orsa::Time   & epoch,
 	    	     const orsa::Vector & sunPosition,
 		     const orsa::Vector & obsPosition,
 		     const orsa::Vector & tp_u,
-		     const orsa::Double & apertureAngle,
-		     const orsa::Double & cos_apertureAngle,
-		     const orsa::Double & detectionProbabilityThreshold,
+		     const double & apertureAngle,
+		     const double & cos_apertureAngle,
+		     const double & detectionProbabilityThreshold,
 		     const bool           cacheON) {
   
   if (cacheON && (neo->r_cache.isSet())) {
     const r_Cache      & rC   = neo->r_cache.getRef();
     const orsa::Time     dt   = epoch - rC.epoch.getRef();
-    const orsa::Double   dMax = abs(rC.vMax.getRef() * dt.asDouble());
-    const orsa::Double   dr   = (rC.r.getRef() - obsPosition).length();
+    const double   dMax = abs(rC.vMax.getRef() * dt.get_d());
+    const double   dr   = (rC.r.getRef() - obsPosition).length();
     if (dMax < dr) {
       // good: NEO far enough to make cache still useful
       
       // quick test: arcsin(z)<=1.1*z for z<=0.68
-      const orsa::Double ratio = dMax / dr;
+      const double ratio = dMax / dr;
       if (ratio <= 0.68) {
-	const orsa::Double z = 1.1*ratio + apertureAngle;
-	const orsa::Double mod_cos_scalarProduct = 1 - z*z/2;
+	const double z = 1.1*ratio + apertureAngle;
+	const double mod_cos_scalarProduct = 1 - z*z/2;
 	u_obs2neo = (rC.r.getRef() - obsPosition).normalized();
 	if ((u_obs2neo*tp_u) < mod_cos_scalarProduct) {    
 	  // ORSA_DEBUG("saved time by using the cache...");
@@ -211,11 +213,11 @@ void simpleNEOVector(orsa::Vector & u_obs2neo,
   
   orsa::Orbit & localOrbit = neo->orbit;
   
-  const orsa::Double orbitPeriod = localOrbit.period();
+  const double orbitPeriod = localOrbit.period();
   
-  const orsa::Double original_M  = localOrbit.M;
+  const double original_M  = localOrbit.M;
   
-  localOrbit.M += orsa::fmod(orsa::twopi() * (epoch - neo->orbitEpoch).asDouble() / orbitPeriod, orsa::twopi());
+  localOrbit.M += fmod(orsa::twopi() * (epoch - neo->orbitEpoch).get_d() / orbitPeriod, orsa::twopi());
   //
   orsa::Vector r;
   localOrbit.relativePosition(r);
@@ -225,17 +227,17 @@ void simpleNEOVector(orsa::Vector & u_obs2neo,
   localOrbit.M = original_M;
   
   /* 
-     ORSA_DEBUG("OBS position: %Ff %Ff %Ff",
-     orsa::FromUnits(obsPosition.getX(),orsa::Unit::AU,-1).get_mpf_t(),
-     orsa::FromUnits(obsPosition.getY(),orsa::Unit::AU,-1).get_mpf_t(),
-     orsa::FromUnits(obsPosition.getZ(),orsa::Unit::AU,-1).get_mpf_t());
+     ORSA_DEBUG("OBS position: %f %f %f",
+     orsa::FromUnits(obsPosition.getX(),orsa::Unit::AU,-1),
+     orsa::FromUnits(obsPosition.getY(),orsa::Unit::AU,-1),
+     orsa::FromUnits(obsPosition.getZ(),orsa::Unit::AU,-1));
   */
   //
   /* 
-     ORSA_DEBUG("NEO position: %Ff %Ff %Ff",
-     orsa::FromUnits(neoPosition.getX(),orsa::Unit::AU,-1).get_mpf_t(),
-     orsa::FromUnits(neoPosition.getY(),orsa::Unit::AU,-1).get_mpf_t(),
-     orsa::FromUnits(neoPosition.getZ(),orsa::Unit::AU,-1).get_mpf_t());
+     ORSA_DEBUG("NEO position: %f %f %f",
+     orsa::FromUnits(neoPosition.getX(),orsa::Unit::AU,-1),
+     orsa::FromUnits(neoPosition.getY(),orsa::Unit::AU,-1),
+     orsa::FromUnits(neoPosition.getZ(),orsa::Unit::AU,-1));
   */
   
   u_obs2neo = (neoPosition - obsPosition).normalized();
@@ -258,7 +260,7 @@ void simpleNEOVector(orsa::Vector & u_obs2neo,
     // save these values in any case, because they're returned
     neo2obs    = obsPosition - neoPosition;
     neo2sun    = sunPosition - neoPosition;
-    phaseAngle = orsa::acos((neo2obs.normalized())*(neo2sun.normalized()));
+    phaseAngle = acos((neo2obs.normalized())*(neo2sun.normalized()));
     
     /* 
        V = neo->getH(epoch,detectionProbabilityThreshold) + 
@@ -268,7 +270,7 @@ void simpleNEOVector(orsa::Vector & u_obs2neo,
     */
     //
     /* 
-       orsa::Double proxyP;
+       double proxyP;
        if (phaseComponentProxy->get(proxyP,phaseAngle)) {
        V = neo->getH(epoch,detectionProbabilityThreshold) + 
        proxyP +
@@ -290,13 +292,13 @@ void simpleNEOVector(orsa::Vector & u_obs2neo,
     
     // debug
     /* {
-       const orsa::Double nominalP = P(phaseAngle);
-       orsa::Double proxyP;
+       const double nominalP = P(phaseAngle);
+       double proxyP;
        if (phaseComponentProxy->get(proxyP,phaseAngle)) {
-       ORSA_DEBUG("nominal: %Ff   proxy: %Ff   diff: %Ff",
-       nominalP.get_mpf_t(),
-       proxyP.get_mpf_t(),
-       orsa::fabs(proxyP-nominalP).get_mpf_t());
+       ORSA_DEBUG("nominal: %f   proxy: %f   diff: %f",
+       nominalP,
+       proxyP,
+       orsa::fabs(proxyP-nominalP));
        } else {
        ORSA_DEBUG("problems...");
        }
@@ -316,19 +318,19 @@ class synthetic_getH_parameters {
 public:
   SyntheticNEO::detectionLog log;
   orsa::Time                 t;
-  orsa::Double               detectionProbabilityThreshold;
+  double               detectionProbabilityThreshold;
 };
 
 double synthetic_getH_f (double H, void * p) {
   
   synthetic_getH_parameters * parameters = (synthetic_getH_parameters *) p;
   
-  orsa::Double prob = orsa::one();  
+  double prob = 1;  
   SyntheticNEO::detectionLog::const_iterator it = parameters->log.begin();
   while (it != parameters->log.end()) {
     if ((*it).first <= parameters->t) {
       /* 
-	 const orsa::Double V =
+	 const double V =
 	 H + 
 	 P((*it).second->phaseAngle.getRef()) +
 	 5*orsa::log10(FromUnits((*it).second->neo2obs.getRef(),orsa::Unit::AU,-1)*
@@ -336,51 +338,51 @@ double synthetic_getH_f (double H, void * p) {
       */
       //
       /* 
-	 orsa::Double proxyP;
+	 double proxyP;
 	 if (phaseComponentProxy->get(proxyP,(*it).second->phaseAngle.getRef())) {
-	 const orsa::Double V =
+	 const double V =
 	 H + 
 	 proxyP +
 	 5*orsa::log10(FromUnits((*it).second->neo2obs.getRef(),orsa::Unit::AU,-1)*
 	 FromUnits((*it).second->neo2sun.getRef(),orsa::Unit::AU,-1));
-	 prob *= (orsa::one() - Telescope::detectionProbability(V,(*it).second->limitingMagnitude.getRef()));
+	 prob *= (1 - Telescope::detectionProbability(V,(*it).second->limitingMagnitude.getRef()));
 	 } else {
 	 ORSA_DEBUG("problems: slow version");
-	 const orsa::Double V =
+	 const double V =
 	 H + 
 	 P((*it).second->phaseAngle.getRef()) +
 	 5*orsa::log10(FromUnits((*it).second->neo2obs.getRef(),orsa::Unit::AU,-1)*
 	 FromUnits((*it).second->neo2sun.getRef(),orsa::Unit::AU,-1));
-	 prob *= (orsa::one() - Telescope::detectionProbability(V,(*it).second->limitingMagnitude.getRef()));
+	 prob *= (1 - Telescope::detectionProbability(V,(*it).second->limitingMagnitude.getRef()));
 	 }
       */
       //
-      const orsa::Double V = apparentMagnitude(H,
+      const double V = apparentMagnitude(H,
 					       (*it).second->phaseAngle.getRef(),
 					       (*it).second->neo2obs.getRef(),
 					       (*it).second->neo2sun.getRef());
-      prob *= (orsa::one() - Telescope::detectionProbability(V,(*it).second->limitingMagnitude.getRef()));
+      prob *= (1 - Telescope::detectionProbability(V,(*it).second->limitingMagnitude.getRef()));
       
       /* 
 	 if (boinc_is_standalone()) {
-	 ORSA_DEBUG("V: %Ff",V.get_mpf_t());
+	 ORSA_DEBUG("V: %f",V);
 	 }
       */
-      // prob *= (orsa::one() - Telescope::detectionProbability(V,(*it).second->limitingMagnitude.getRef()));
+      // prob *= (1 - Telescope::detectionProbability(V,(*it).second->limitingMagnitude.getRef()));
     }
     ++it;
   }
   
-  prob = (orsa::one() - prob);
+  prob = (1 - prob);
   
-  // ORSA_DEBUG("prob: %Ff",prob.get_mpf_t());
+  // ORSA_DEBUG("prob: %f",prob);
   
-  return orsa::Double(prob - parameters->detectionProbabilityThreshold).get_d();
+  return (prob - parameters->detectionProbabilityThreshold);
 }
 
 
-orsa::Double SyntheticNEO::getH(const orsa::Time   & t,
-				const orsa::Double & detectionProbabilityThreshold) const {
+double SyntheticNEO::getH(const orsa::Time   & t,
+				const double & detectionProbabilityThreshold) const {
   
   // debug
   /* 
@@ -388,12 +390,12 @@ orsa::Double SyntheticNEO::getH(const orsa::Time   & t,
      ORSA_DEBUG("id: %i   rS: %i",id,randomSeed);
      SyntheticNEO::detectionLog::const_iterator it = log.begin();
      while (it != log.end()) {
-     ORSA_DEBUG("%Zi %12.9Ff %12.9Ff %13.9Ff %6.3Ff %s",
+     ORSA_DEBUG("%Zi %12.9f %12.9f %13.9f %6.3f %s",
      (*it).first.getMuSec().get_mpz_t(),
-     FromUnits((*it).second->neo2obs.getRef(),orsa::Unit::AU,-1).get_mpf_t(),
-     FromUnits((*it).second->neo2sun.getRef(),orsa::Unit::AU,-1).get_mpf_t(),
-     orsa::Double(orsa::radToDeg()*(*it).second->phaseAngle.getRef()).get_mpf_t(),
-     (*it).second->limitingMagnitude.getRef().get_mpf_t(),
+     FromUnits((*it).second->neo2obs.getRef(),orsa::Unit::AU,-1),
+     FromUnits((*it).second->neo2sun.getRef(),orsa::Unit::AU,-1),
+     orsa::radToDeg()*(*it).second->phaseAngle.getRef(),
+     (*it).second->limitingMagnitude.getRef(),
      (*it).second->telescopeName.getRef().c_str());
      ++it;
      }
@@ -475,8 +477,8 @@ orsa::Double SyntheticNEO::getH(const orsa::Time   & t,
   
   gsl_root_fsolver * s = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
   
-  double H_min = detectionInterval->size() ? detectionInterval->max().H.getRef().get_d()   : 15.0;
-  double H_max = detectionInterval->size() ? detectionInterval->max().H.getRef().get_d()+1 : 16.0;
+  double H_min = detectionInterval->size() ? detectionInterval->max().H.getRef()   : 15.0;
+  double H_max = detectionInterval->size() ? detectionInterval->max().H.getRef()+1 : 16.0;
   // make sure the H range above encloses the root
   {
     double f;
@@ -562,7 +564,7 @@ orsa::Double SyntheticNEO::getH(const orsa::Time   & t,
   // getH_cache_set = true;
   // getH_cache_t   = t;
   // getH_cache_detectionProbabilityThreshold = detectionProbabilityThreshold;
-  // getH_cache_H   = orsa::Double(H);
+  // getH_cache_H   = H;
   
   // cache update
   detectionIntervalEntry e;
@@ -570,7 +572,7 @@ orsa::Double SyntheticNEO::getH(const orsa::Time   & t,
   e.H = H;
   detectionInterval->insert(e);
   
-  return orsa::Double(H);
+  return H;
 }
 
 /********/
@@ -600,13 +602,13 @@ void SyntheticNEO::logInsert(const orsa::Time   & t,
       FILE * fp = fopen(logFileName().c_str(),"a");
       if (fp) {
 	boinc_begin_critical_section();
-	gmp_fprintf(fp,"%Zi %12.9Ff %12.9Ff %13.9Ff %6.3Ff %s"
+	gmp_fprintf(fp,"%Zi %12.9f %12.9f %13.9f %6.3f %s"
 		    MODEOL,
 		    t.getMuSec().get_mpz_t(),
-		    FromUnits(se->neo2obs.getRef(),orsa::Unit::AU,-1).get_mpf_t(),
-		    FromUnits(se->neo2sun.getRef(),orsa::Unit::AU,-1).get_mpf_t(),
-		    orsa::Double(orsa::radToDeg()*se->phaseAngle.getRef()).get_mpf_t(),
-		    se->limitingMagnitude.getRef().get_mpf_t(),
+		    FromUnits(se->neo2obs.getRef(),orsa::Unit::AU,-1),
+		    FromUnits(se->neo2sun.getRef(),orsa::Unit::AU,-1),
+		    orsa::radToDeg()*se->phaseAngle.getRef(),
+		    se->limitingMagnitude.getRef(),
 		    se->telescopeName.getRef().c_str());
 	fflush(fp);
 	boinc_end_critical_section();
@@ -618,13 +620,13 @@ void SyntheticNEO::logInsert(const orsa::Time   & t,
 	detectionLog::const_iterator it = log.begin();
 	boinc_begin_critical_section();
 	while (it != log.end()) {
-	  gmp_fprintf(fp,"%Zi %12.9Ff %12.9Ff %13.9Ff %6.3Ff %s"
+	  gmp_fprintf(fp,"%Zi %12.9f %12.9f %13.9f %6.3f %s"
 		      MODEOL,
 		      (*it).first.getMuSec().get_mpz_t(),
-		      FromUnits((*it).second->neo2obs.getRef(),orsa::Unit::AU,-1).get_mpf_t(),
-		      FromUnits((*it).second->neo2sun.getRef(),orsa::Unit::AU,-1).get_mpf_t(),
-		      orsa::Double(orsa::radToDeg()*(*it).second->phaseAngle.getRef()).get_mpf_t(),
-		      (*it).second->limitingMagnitude.getRef().get_mpf_t(),
+		      FromUnits((*it).second->neo2obs.getRef(),orsa::Unit::AU,-1),
+		      FromUnits((*it).second->neo2sun.getRef(),orsa::Unit::AU,-1),
+		      orsa::radToDeg()*(*it).second->phaseAngle.getRef(),
+		      (*it).second->limitingMagnitude.getRef(),
 		      (*it).second->telescopeName.getRef().c_str());
 	  ++it;
 	}
@@ -637,20 +639,20 @@ void SyntheticNEO::logInsert(const orsa::Time   & t,
   }
 }
 
-void SyntheticNEO::logPurify(const orsa::Double & detectionProbabilityThreshold) const {
+void SyntheticNEO::logPurify(const double & detectionProbabilityThreshold) const {
   // ORSA_DEBUG("initial log size: %i",log.size());
   detectionInterval->reset();
   trustLogFile=false;
-  const orsa::Double H = getH((*log.rbegin()).first, 
+  const double H = getH((*log.rbegin()).first, 
 			      detectionProbabilityThreshold);
   detectionLog::iterator it = log.begin();
   while (it != log.end()) {
-    const orsa::Double V = 
+    const double V = 
       apparentMagnitude(H,
 			(*it).second->phaseAngle.getRef(),
 			(*it).second->neo2obs.getRef(),
 			(*it).second->neo2sun.getRef());
-    const orsa::Double dp = 
+    const double dp = 
       Telescope::detectionProbability(V,(*it).second->limitingMagnitude.getRef());
     if (dp <= 0) {
       log.erase(it++);

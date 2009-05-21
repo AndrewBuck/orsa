@@ -9,9 +9,9 @@
 #include <osg/Referenced>
 #include <osg/ref_ptr>
 
-typedef orsa::Cache<orsa::Double> ParameterD;
-typedef orsa::Cache<int>          ParameterI;
-typedef orsa::Cache<std::string>  ParameterS;
+typedef orsa::Cache<double>      ParameterD;
+typedef orsa::Cache<int>         ParameterI;
+typedef orsa::Cache<std::string> ParameterS;
 
 class ParameterFile : public osg::Referenced {
  public:

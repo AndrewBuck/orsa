@@ -7,7 +7,7 @@
 class OutputTemplateEntry {
  public:	
   OutputTemplateEntry(const std::string & name,
-		      const mpz_class   & size,
+		      const int         & size,
 		      const bool          doUpload,
 		      const bool          isOptional) :	
     fileName(name),
@@ -16,7 +16,7 @@ class OutputTemplateEntry {
     optional(isOptional) { }
  public:
   orsa::Cache<std::string> fileName;
-  orsa::Cache<mpz_class>   fileSize;
+  orsa::Cache<int>         fileSize;
   orsa::Cache<bool>        upload;
   orsa::Cache<bool>        optional;
 };

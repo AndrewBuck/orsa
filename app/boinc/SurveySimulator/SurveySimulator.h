@@ -21,7 +21,7 @@ class r_Cache {
  public:
   orsa::Cache<orsa::Vector> r; // absolute position at epochj
  public:
-  orsa::Cache<orsa::Double> vMax; // maximum orbital velocity
+  orsa::Cache<double> vMax; // maximum orbital velocity
  public:
   void update_vMax(const orsa::Orbit & orbit) {
     vMax = sqrt((orbit.mu/orbit.a)*(1+orbit.e)/(1-orbit.e));
@@ -31,19 +31,19 @@ class r_Cache {
 // magnitude function
 // alpha = solar phase angle = angle Sun-Asteroid-Observer
 // G = slope parameter (G ~= 0.15)
-inline orsa::Double P (const orsa::Double & alpha, 
-		       const orsa::Double & G = 0.15) {
-  // ORSA_DEBUG("P:   alpha = %Ff",alpha.get_mpf_t());
-  const orsa::Double phi_1 = orsa::exp(-3.33*orsa::pow(orsa::tan(0.5*alpha),0.63));
-  const orsa::Double phi_2 = orsa::exp(-1.87*orsa::pow(orsa::tan(0.5*alpha),1.22));
+inline double P (const double & alpha, 
+		       const double & G = 0.15) {
+  // ORSA_DEBUG("P:   alpha = %f",alpha.get_mpf_t());
+  const double phi_1 = exp(-3.33*pow(tan(0.5*alpha),0.63));
+  const double phi_2 = exp(-1.87*pow(tan(0.5*alpha),1.22));
   /* 
-     ORSA_DEBUG("P = %Ff   alpha: %Ff   p1: %Ff   p2: %Ff",
-     orsa::Double(-2.5*orsa::log10((1.0-G)*phi_1+G*phi_2)).get_mpf_t(),
+     ORSA_DEBUG("P = %f   alpha: %f   p1: %f   p2: %f",
+     -2.5*log10((1.0-G)*phi_1+G*phi_2),
      alpha.get_mpf_t(),
-     phi_1.get_mpf_t(),
-     phi_2.get_mpf_t());
+     phi_1,
+     phi_2);
   */
-  return (-2.5*orsa::log10((1.0-G)*phi_1+G*phi_2));
+  return (-2.5*log10((1.0-G)*phi_1+G*phi_2));
 }
 
 /**** function interpolation, inspired from OrbitProxy ****/
@@ -54,7 +54,7 @@ template <class X, class Y> class FunctionProxyEntry {
  public:
   virtual ~FunctionProxyEntry() { }
  public:
-  virtual orsa::Double delta(const FunctionProxyEntry * e1,
+  virtual double delta(const FunctionProxyEntry * e1,
 			     const FunctionProxyEntry * e2) const = 0;
  public:	
   X x;
@@ -83,7 +83,7 @@ template <class X, class Y> class FunctionProxyEntry {
 
 template <class X, class Y, class E> class FunctionProxy : public osg::Referenced {
  public:
-  FunctionProxy(const orsa::Double & accuracy_in) :
+  FunctionProxy(const double & accuracy_in) :
     osg::Referenced(),
     accuracy(accuracy_in) {
     if (accuracy <= 0) {
@@ -158,7 +158,7 @@ template <class X, class Y, class E> class FunctionProxy : public osg::Reference
  protected:
   // virtual osg::ref_ptr<E> createEntry() const { return new E; }
  protected:
-  const orsa::Double accuracy;
+  const double accuracy;
  protected:
   // mutable osg::ref_ptr< orsa::Interval< osg::ref_ptr<E> > > entryInterval;
   mutable osg::ref_ptr< orsa::Interval<E> > entryInterval;
@@ -166,25 +166,25 @@ template <class X, class Y, class E> class FunctionProxy : public osg::Reference
 
 /**** FunctionProxy: using it for the P(phase,G) function ****/
 
-class PhaseComponentProxyEntry : public FunctionProxyEntry < orsa::Double, orsa::Double > {
+class PhaseComponentProxyEntry : public FunctionProxyEntry < double, double > {
  public:
-  PhaseComponentProxyEntry() : FunctionProxyEntry<orsa::Double,orsa::Double>() { }
+  PhaseComponentProxyEntry() : FunctionProxyEntry<double,double>() { }
  public:
-  orsa::Double delta(const FunctionProxyEntry<orsa::Double,orsa::Double> * e1,
-		     const FunctionProxyEntry<orsa::Double,orsa::Double> * e2) const {
+  double delta(const FunctionProxyEntry<double,double> * e1,
+		     const FunctionProxyEntry<double,double> * e2) const {
     const PhaseComponentProxyEntry * p1 = dynamic_cast<const PhaseComponentProxyEntry *> (e1);
     const PhaseComponentProxyEntry * p2 = dynamic_cast<const PhaseComponentProxyEntry *> (e2);
-    const orsa::Double d = orsa::fabs((p2->y-p1->y)/(std::min(orsa::fabs(p1->y),orsa::fabs(p2->y))+orsa::epsilon()));
+    const double d = fabs((p2->y-p1->y)/(std::min(fabs(p1->y),fabs(p2->y))+orsa::epsilon()));
     return d;
   }
 };
 
-class PhaseComponentProxy : public FunctionProxy <orsa::Double,orsa::Double,PhaseComponentProxyEntry> { 
+class PhaseComponentProxy : public FunctionProxy <double,double,PhaseComponentProxyEntry> { 
  public:
-  PhaseComponentProxy(const orsa::Double & accuracy) : 
-    FunctionProxy<orsa::Double,orsa::Double,PhaseComponentProxyEntry>(accuracy) { }
+  PhaseComponentProxy(const double & accuracy) : 
+    FunctionProxy<double,double,PhaseComponentProxyEntry>(accuracy) { }
  protected:
-  orsa::Double function(const orsa::Double & x) const {
+  double function(const double & x) const {
     return P(x);
   }	
 };
@@ -194,26 +194,26 @@ extern osg::ref_ptr<PhaseComponentProxy> phaseComponentProxy;
 
 /**** FunctionProxy: using it for the log10(x) function ****/
 
-class Log10ProxyEntry : public FunctionProxyEntry < orsa::Double, orsa::Double > {
+class Log10ProxyEntry : public FunctionProxyEntry < double, double > {
  public:
-  Log10ProxyEntry() : FunctionProxyEntry<orsa::Double,orsa::Double>() { }
+  Log10ProxyEntry() : FunctionProxyEntry<double,double>() { }
  public:
-  orsa::Double delta(const FunctionProxyEntry<orsa::Double,orsa::Double> * e1,
-		     const FunctionProxyEntry<orsa::Double,orsa::Double> * e2) const {
+  double delta(const FunctionProxyEntry<double,double> * e1,
+		     const FunctionProxyEntry<double,double> * e2) const {
     const Log10ProxyEntry * p1 = dynamic_cast<const Log10ProxyEntry *> (e1);
     const Log10ProxyEntry * p2 = dynamic_cast<const Log10ProxyEntry *> (e2);
-    const orsa::Double d = orsa::fabs((p2->y-p1->y)/(std::min(orsa::fabs(p1->y),orsa::fabs(p2->y))+orsa::epsilon()));
+    const double d = fabs((p2->y-p1->y)/(std::min(fabs(p1->y),fabs(p2->y))+orsa::epsilon()));
     return d;
   }
 };
 
-class Log10Proxy : public FunctionProxy <orsa::Double,orsa::Double,Log10ProxyEntry> { 
+class Log10Proxy : public FunctionProxy <double,double,Log10ProxyEntry> { 
  public:
-  Log10Proxy(const orsa::Double & accuracy) : 
-    FunctionProxy<orsa::Double,orsa::Double,Log10ProxyEntry>(accuracy) { }
+  Log10Proxy(const double & accuracy) : 
+    FunctionProxy<double,double,Log10ProxyEntry>(accuracy) { }
  protected:
-  orsa::Double function(const orsa::Double & x) const {
-    return orsa::log10(x);
+  double function(const double & x) const {
+    return log10(x);
   }	
 };
 
@@ -222,15 +222,15 @@ extern osg::ref_ptr<Log10Proxy> log10Proxy;
 
 /*********/
 
-inline orsa::Double apparentMagnitude(const orsa::Double & H,
-				      const orsa::Double & phaseAngle,
-				      const orsa::Double & neo2obs,
-				      const orsa::Double & neo2sun) {
-  orsa::Double proxyP;
+inline double apparentMagnitude(const double & H,
+				      const double & phaseAngle,
+				      const double & neo2obs,
+				      const double & neo2sun) {
+  double proxyP;
   if (!phaseComponentProxy->get(proxyP,phaseAngle)) {
     ORSA_DEBUG("problems");
   }
-  orsa::Double proxyLog10;
+  double proxyLog10;
   if (!log10Proxy->get(proxyLog10,
 		       FromUnits(neo2obs,orsa::Unit::AU,-1)*FromUnits(neo2sun,orsa::Unit::AU,-1))) {
     ORSA_DEBUG("problems");
@@ -238,14 +238,14 @@ inline orsa::Double apparentMagnitude(const orsa::Double & H,
   
   // debug
   /* 
-     const orsa::Double nominalLog10 = orsa::log10(FromUnits(neo2obs,orsa::Unit::AU,-1)*FromUnits(neo2sun,orsa::Unit::AU,-1));
-     ORSA_DEBUG("nominal: %Ff   proxy: %Ff   diff: %Ff",
-     nominalLog10.get_mpf_t(),
-     proxyLog10.get_mpf_t(),
-     orsa::fabs(proxyLog10-nominalLog10).get_mpf_t());
+     const double nominalLog10 = log10(FromUnits(neo2obs,orsa::Unit::AU,-1)*FromUnits(neo2sun,orsa::Unit::AU,-1));
+     ORSA_DEBUG("nominal: %f   proxy: %f   diff: %f",
+     nominalLog10,
+     proxyLog10,
+     fabs(proxyLog10-nominalLog10));
   */
   
-  const orsa::Double V = H + proxyP + 5*proxyLog10;
+  const double V = H + proxyP + 5*proxyLog10;
   
   return V;
 }
@@ -255,13 +255,13 @@ inline orsa::Double apparentMagnitude(const orsa::Double & H,
    public:
    DiscreteDistributionElement() { }
    public:
-   DiscreteDistributionElement(const orsa::Double & x,
-   const orsa::Double & val) :
+   DiscreteDistributionElement(const double & x,
+   const double & val) :
    _x(x),
    _val(val) { }
    public:
-   orsa::Cache<orsa::Double> _x;   // left (initial) position
-   orsa::Cache<orsa::Double> _val;
+   orsa::Cache<double> _x;   // left (initial) position
+   orsa::Cache<double> _val;
    public:
    bool operator < (const DiscreteDistributionElement & rhs) const {
    return (_x.getRef() < rhs._x.getRef());
@@ -348,7 +348,7 @@ class DiscreteDistributionUtility : public osg::Referenced {
     if (xMin.getRef() == xMax.getRef()) {
       ORSA_DEBUG("dubiously singular distribution");
     }
-    // ORSA_DEBUG("totalVal: %Fg",totalVal.get_mpf_t());
+    // ORSA_DEBUG("totalVal: %g",totalVal);
   }
  protected:
   virtual ~DiscreteDistributionUtility() { }
@@ -408,11 +408,11 @@ class DiscreteDistributionUtility : public osg::Referenced {
 		const double   rangeMax) const {
     
     /* 
-       ORSA_DEBUG("rangeMin: %Ff   rangeMax: %Ff   xMin: %Ff   xMax: %Ff",
-       rangeMin.get_mpf_t(),
-       rangeMax.get_mpf_t(),
-       xMin.get_mpf_t(),
-       xMax.get_mpf_t());
+       ORSA_DEBUG("rangeMin: %f   rangeMax: %f   xMin: %f   xMax: %f",
+       rangeMin,
+       rangeMax,
+       xMin,
+       xMax);
     */
     
     if ( (rangeMin < xMin.getRef()) || 
@@ -515,7 +515,7 @@ class DiscreteDistributionUtility : public osg::Referenced {
   orsa::Cache<double> xMin;
   orsa::Cache<double> xMax;
  private:
-  mutable orsa::Cache<orsa::Double> sampleRangeMin, sampleRangeMax;
+  mutable orsa::Cache<double> sampleRangeMin, sampleRangeMax;
   mutable osg::ref_ptr<DiscreteDistributionUtility> sampleRangeDDU;
 };
 
@@ -525,12 +525,12 @@ class NEO;
 
 class NEOFactory : public osg::Referenced {
  public:
-  NEOFactory(const orsa::Double & a_AU_min_in,
-	     const orsa::Double & a_AU_max_in,
-	     const orsa::Double & e_min_in,
-	     const orsa::Double & e_max_in,
-	     const orsa::Double & i_DEG_min_in,
-	     const orsa::Double & i_DEG_max_in,
+  NEOFactory(const double & a_AU_min_in,
+	     const double & a_AU_max_in,
+	     const double & e_min_in,
+	     const double & e_max_in,
+	     const double & i_DEG_min_in,
+	     const double & i_DEG_max_in,
 	     const int            randomSeed) :
     osg::Referenced(),
     a_AU_min(a_AU_min_in),
@@ -626,12 +626,12 @@ class NEOFactory : public osg::Referenced {
   virtual osg::ref_ptr<NEO> sampleNEO(const orsa::Time & orbitEpoch) const;
   
  protected:
-  const orsa::Double a_AU_min;
-  const orsa::Double a_AU_max;
-  const orsa::Double e_min;
-  const orsa::Double e_max;
-  const orsa::Double i_DEG_min;
-  const orsa::Double i_DEG_max;
+  const double a_AU_min;
+  const double a_AU_max;
+  const double e_min;
+  const double e_max;
+  const double i_DEG_min;
+  const double i_DEG_max;
   
  protected:
   osg::ref_ptr<orsa::RNG> rnd;
@@ -673,10 +673,10 @@ class NEO : public osg::Referenced {
   orsa::Time orbitEpoch;
   
  public:
-  virtual bool setH(const orsa::Double & H) = 0;
+  virtual bool setH(const double & H) = 0;
  public:
-  virtual orsa::Double getH(const orsa::Time   & t,
-			    const orsa::Double & detectionProbabilityThreshold) const = 0;
+  virtual double getH(const orsa::Time   & t,
+			    const double & detectionProbabilityThreshold) const = 0;
  public:
   mutable orsa::Cache<r_Cache> r_cache;
   
@@ -699,7 +699,7 @@ class NEO : public osg::Referenced {
     return filename;
   }
  public:
-  virtual orsa::Double detectionProbabilityFromLog (const orsa::Time & t) const = 0;
+  virtual double detectionProbabilityFromLog (const orsa::Time & t) const = 0;
 };
 
 
@@ -710,7 +710,7 @@ class RealNEO : public NEO {
   public NEO::LogEntry {
   public:
     //! detection probability at each observation epoch;
-    orsa::Cache<orsa::Double> p;
+    orsa::Cache<double> p;
   public:
     orsa::Cache<std::string> telescopeName;
   }; 
@@ -719,12 +719,12 @@ class RealNEO : public NEO {
   class NEOFactory : 
   public ::NEOFactory {
   public:
-    NEOFactory(const orsa::Double & a_AU_min,
-	       const orsa::Double & a_AU_max,
-	       const orsa::Double & e_min,
-	       const orsa::Double & e_max,
-	       const orsa::Double & i_DEG_min,
-	       const orsa::Double & i_DEG_max,
+    NEOFactory(const double & a_AU_min,
+	       const double & a_AU_max,
+	       const double & e_min,
+	       const double & e_max,
+	       const double & i_DEG_min,
+	       const double & i_DEG_max,
 	       const int            randomSeed) :
       ::NEOFactory(a_AU_min,
 		   a_AU_max,
@@ -735,32 +735,33 @@ class RealNEO : public NEO {
 		   randomSeed) { }
   public:
     osg::ref_ptr<NEO> sampleNEO(const orsa::Time   & orbitEpoch,
-				const orsa::Double & Hmax,
-				const orsa::Double & Ha,
-				const orsa::Double & detectionProbabilityThreshold) const {
+				const double & Hmax,
+				const double & Ha,
+				const double & detectionProbabilityThreshold) const {
       
       while (1) {
 	
 	osg::ref_ptr<NEO> neo = ::NEOFactory::sampleNEO(orbitEpoch);
 	
-	const orsa::Double q = neo->orbit.a*(orsa::one()-neo->orbit.e);
-	const orsa::Double Q = neo->orbit.a*(orsa::one()+neo->orbit.e);
+	const double q = neo->orbit.a*(1-neo->orbit.e);
+	const double Q = neo->orbit.a*(1+neo->orbit.e);
 	
-	neo->setH(Hmax - fabs(rnd->gsl_ran_laplace(Ha.get_d())));
+	neo->setH(Hmax - fabs(rnd->gsl_ran_laplace(Ha)));
 	
 	// approximate minimum apparent magnitude
 	// all in AU already // P(0) = 0 
 	/* 
-	   const orsa::Double V_min = 
+	   const double V_min = 
 	   neo->getH(orbitEpoch,detectionProbabilityThreshold) + 
-	   5*orsa::log10(0.3*1.3); // all in AU already // P(0) = 0 
+	   5*log10(0.3*1.3); // all in AU already // P(0) = 0 
 	*/
 	//
-	const orsa::Double V_min = 
-	  apparentMagnitude(neo->getH(orbitEpoch,detectionProbabilityThreshold),
-			    0,
-			    orsa::FromUnits(0.3,orsa::Unit::AU),
-			    orsa::FromUnits(1.3,orsa::Unit::AU));
+	/* const double V_min = 
+	   apparentMagnitude(neo->getH(orbitEpoch,detectionProbabilityThreshold),
+	   0,
+	   orsa::FromUnits(0.3,orsa::Unit::AU),
+	   orsa::FromUnits(1.3,orsa::Unit::AU));
+	*/
 	
 	if ( (q < FromUnits(1.3,  orsa::Unit::AU)) &&
 	     (Q > FromUnits(0.983,orsa::Unit::AU)) ) {
@@ -785,17 +786,17 @@ class RealNEO : public NEO {
     FILE * fp = fopen(logFileName().c_str(),"r");
     if (fp) {
       mpz_class z;
-      orsa::Double p;
+      double p;
       char telescopeName[1024];
       char line[1024];
       while (fgets(line,1024,fp)) {
-	gmp_sscanf(line,"%Zi %Ff %s",
+	gmp_sscanf(line,"%Zi %lf %s",
 		   z.get_mpz_t(),
-		   p.get_mpf_t(),
+		   &p,
 		   telescopeName);
 	const orsa::Time t = orsa::Time(z);
 	if (p > 0) {
-	  // ORSA_DEBUG("id: %i   t: %Zi   p: %Ff",id,t.getMuSec().get_mpz_t(),p.get_mpf_t());
+	  // ORSA_DEBUG("id: %i   t: %Zi   p: %f",id,t.getMuSec().get_mpz_t(),p);
 	  RealNEO::LogEntry * e = new RealNEO::LogEntry;
 	  //
 	  e->p = p;
@@ -810,15 +811,15 @@ class RealNEO : public NEO {
   }
     
  protected:
-  orsa::Cache<orsa::Double> _H; //! absolute magnitude 
+  orsa::Cache<double> _H; //! absolute magnitude 
  public:
-  bool setH(const orsa::Double & H) {
+  bool setH(const double & H) {
     _H = H;
     return true;
   }
  public:
-  orsa::Double getH(const orsa::Time   &,
-		    const orsa::Double &) const {
+  double getH(const orsa::Time   &,
+		    const double &) const {
     return _H.getRef();
   }
   
@@ -840,17 +841,17 @@ class RealNEO : public NEO {
     if (!e) return;
     RealNEO::LogEntry * re = dynamic_cast<RealNEO::LogEntry *>(e);
     if (!re) return;
-    if (re->p.getRef() > orsa::zero()) {
+    if (re->p.getRef() > 0) {
       log[t] = re;
       if (writeFile) {
        	if (trustLogFile) {
 	  FILE * fp = fopen(logFileName().c_str(),"a");
 	  if (fp) {
 	    boinc_begin_critical_section();
-	    gmp_fprintf(fp,"%Zi %.9Ff %s"
+	    gmp_fprintf(fp,"%Zi %.9f %s"
 			MODEOL,
 			t.getMuSec().get_mpz_t(),
-			re->p.getRef().get_mpf_t(),
+			re->p.getRef(),
 			re->telescopeName.getRef().c_str());
 	    fflush(fp);
 	    boinc_end_critical_section();
@@ -862,10 +863,10 @@ class RealNEO : public NEO {
 	    detectionLog::const_iterator it = log.begin();
 	    boinc_begin_critical_section();
 	    while (it != log.end()) {
-	      gmp_fprintf(fp,"%Zi %.9Ff %s"
+	      gmp_fprintf(fp,"%Zi %.9f %s"
 			  MODEOL,
 			  (*it).first.getMuSec().get_mpz_t(),
-			  (*it).second->p.getRef().get_mpf_t(),
+			  (*it).second->p.getRef(),
 			  (*it).second->telescopeName.getRef().c_str());
 	      ++it;
 	    }
@@ -879,16 +880,16 @@ class RealNEO : public NEO {
     }
   }
  public:
-  orsa::Double detectionProbabilityFromLog (const orsa::Time & t) const {
-    orsa::Double p = orsa::one();
+  double detectionProbabilityFromLog (const orsa::Time & t) const {
+    double p = 1;
     detectionLog::const_iterator it = log.begin();
     while (it != log.end()) {
       if ((*it).first <= t) {
-	p *= (orsa::one() - (*it).second->p.getRef());
+	p *= (1 - (*it).second->p.getRef());
       }
       ++it;
     }
-    return (orsa::one() - p);
+    return (1 - p);
   }
   
 };
@@ -900,12 +901,12 @@ class SyntheticNEO : public NEO {
   class LogEntry : 
   public NEO::LogEntry {
   public:
-    orsa::Cache<orsa::Double> neo2obs;
-    orsa::Cache<orsa::Double> neo2sun;
-    orsa::Cache<orsa::Double> phaseAngle;
+    orsa::Cache<double> neo2obs;
+    orsa::Cache<double> neo2sun;
+    orsa::Cache<double> phaseAngle;
   public:
     // data needed to reconstruct the probability curve for the telescope detecting this NEO
-    orsa::Cache<orsa::Double> limitingMagnitude;
+    orsa::Cache<double> limitingMagnitude;
   public:
     orsa::Cache<std::string> telescopeName;
   };
@@ -914,12 +915,12 @@ class SyntheticNEO : public NEO {
   class NEOFactory : 
   public ::NEOFactory {
   public:
-    NEOFactory(const orsa::Double & a_AU_min,
-	       const orsa::Double & a_AU_max,
-	       const orsa::Double & e_min,
-	       const orsa::Double & e_max,
-	       const orsa::Double & i_DEG_min,
-	       const orsa::Double & i_DEG_max,
+    NEOFactory(const double & a_AU_min,
+	       const double & a_AU_max,
+	       const double & e_min,
+	       const double & e_max,
+	       const double & i_DEG_min,
+	       const double & i_DEG_max,
 	       const int            randomSeed) :
       ::NEOFactory(a_AU_min,
 		   a_AU_max,
@@ -932,8 +933,8 @@ class SyntheticNEO : public NEO {
     osg::ref_ptr<NEO> sampleNEO(const orsa::Time & orbitEpoch) const {
       while (1) {
 	osg::ref_ptr<NEO> neo = ::NEOFactory::sampleNEO(orbitEpoch);
-	const orsa::Double q = neo->orbit.a*(orsa::one()-neo->orbit.e);
-	const orsa::Double Q = neo->orbit.a*(orsa::one()+neo->orbit.e);
+	const double q = neo->orbit.a*(1-neo->orbit.e);
+	const double Q = neo->orbit.a*(1+neo->orbit.e);
 	if ( (q < FromUnits(1.3,  orsa::Unit::AU)) &&
 	     (Q > FromUnits(0.983,orsa::Unit::AU)) ) {
 	  // done
@@ -957,17 +958,17 @@ class SyntheticNEO : public NEO {
     FILE * fp = fopen(logFileName().c_str(),"r");
     if (fp) {
       mpz_class z;
-      orsa::Double neo2obs, neo2sun, phaseAngle;
-      orsa::Double limitingMagnitude;
+      double neo2obs, neo2sun, phaseAngle;
+      double limitingMagnitude;
       char telescopeName[1024];
       char line[1024];
       while (fgets(line,1024,fp)) {
-	gmp_sscanf(line,"%Zi %Ff %Ff %Ff %Ff %s",
+	gmp_sscanf(line,"%Zi %lf %lf %lf %lf %s",
 		   z.get_mpz_t(),
-		   neo2obs.get_mpf_t(),
-		   neo2sun.get_mpf_t(),
-		   phaseAngle.get_mpf_t(),
-		   limitingMagnitude.get_mpf_t(),
+		   &neo2obs,
+		   &neo2sun,
+		   &phaseAngle,
+		   &limitingMagnitude,
 		   telescopeName);
 	neo2obs     = FromUnits(neo2obs,orsa::Unit::AU);
 	neo2sun     = FromUnits(neo2sun,orsa::Unit::AU);
@@ -987,11 +988,11 @@ class SyntheticNEO : public NEO {
 	//
 	log[t] = e;	
 	/* 
-	   ORSA_DEBUG("id: %i   neo2obs: %5.3Ff AU   neo2sun: %5.3Ff AU   phaseAngle: %7.4Ff DEG   t: %Zi",
+	   ORSA_DEBUG("id: %i   neo2obs: %5.3f AU   neo2sun: %5.3f AU   phaseAngle: %7.4f DEG   t: %Zi",
 	   id,
-	   orsa::FromUnits(neo2obs,orsa::Unit::AU,-1).get_mpf_t(),
-	   orsa::FromUnits(neo2sun,orsa::Unit::AU,-1).get_mpf_t(),
-	   orsa::Double(orsa::radToDeg()*phaseAngle).get_mpf_t(),
+	   orsa::FromUnits(neo2obs,orsa::Unit::AU,-1),
+	   orsa::FromUnits(neo2sun,orsa::Unit::AU,-1),
+	   orsa::radToDeg()*phaseAngle,
 	   t.getMuSec().get_mpz_t());
 	*/
       }
@@ -1000,13 +1001,13 @@ class SyntheticNEO : public NEO {
   }
     
  public:
-  bool setH(const orsa::Double &) {
+  bool setH(const double &) {
     ORSA_ERROR("cannot set H in a SyntheticNEO");
     return false;
   }
  public:
-  orsa::Double getH(const orsa::Time   & t,
-		    const orsa::Double & detectionProbabilityThreshold) const;
+  double getH(const orsa::Time   & t,
+		    const double & detectionProbabilityThreshold) const;
   
  public:
   typedef std::map<orsa::Time, osg::ref_ptr<SyntheticNEO::LogEntry> > detectionLog;
@@ -1021,7 +1022,7 @@ class SyntheticNEO : public NEO {
   class detectionIntervalEntry {
   public:	
     orsa::Cache<orsa::Time>   t;
-    orsa::Cache<orsa::Double> H;
+    orsa::Cache<double> H;
   public:
     inline bool operator == (const detectionIntervalEntry & rhs) const { return (t.getRef() == rhs.t.getRef()); }
     inline bool operator != (const detectionIntervalEntry & rhs) const { return (t.getRef() != rhs.t.getRef()); }
@@ -1043,11 +1044,11 @@ class SyntheticNEO : public NEO {
 		 const bool           writeFile = true) const;
  public:	
   // call logPurify after a series of logInsert calls, to remove all the log entries that do not contribute to H
-  void logPurify(const orsa::Double & detectionProbabilityThreshold) const;
+  void logPurify(const double & detectionProbabilityThreshold) const;
  public:
-  orsa::Double detectionProbabilityFromLog (const orsa::Time &) const {
+  double detectionProbabilityFromLog (const orsa::Time &) const {
     ORSA_ERROR("you should not need to call this...");
-    return orsa::zero();
+    return 0;
   }
 };
 
@@ -1074,40 +1075,40 @@ inline bool NEOListSortPredicate (const osg::ref_ptr<NEO> & lhs, const osg::ref_
 class uVit {
  public:
   orsa::Vector u;
-  orsa::Double V;
+  double V;
  public:
   NEOList::const_iterator it;
 };
 
 void dumpSampledNEOs (const NEOList      & neoList,
 		      const std::string  & fileName,
-		      const orsa::Double & detectionProbabilityThreshold);
+		      const double & detectionProbabilityThreshold);
 
 osg::ref_ptr<orsa::Body> SPICEBody (const std::string  & bodyName,
-				    const orsa::Double & bodyMass);
+				    const double & bodyMass);
 
 void simpleNEOVector(orsa::Vector & u_obs2neo,
-		     orsa::Double & V,
+		     double & V,
 		     orsa::Vector & neo2obs,
 		     orsa::Vector & neo2sun,
-		     orsa::Double & phaseAngle,
+		     double & phaseAngle,
 		     const NEO * neo,
 		     const orsa::Time   & epoch,
 	    	     const orsa::Vector & sunPosition,
 		     const orsa::Vector & obsPosition,
 		     const orsa::Vector & tp_u,
-		     const orsa::Double & apertureAngle,
-		     const orsa::Double & cos_apertureAngle,
-		     const orsa::Double & detectionProbabilityThreshold,
+		     const double & apertureAngle,
+		     const double & cos_apertureAngle,
+		     const double & detectionProbabilityThreshold,
 		     const bool           cacheON);
 
 // same refsys as u_obs2neo
-inline void vecToSky(orsa::Double & ra,
-		     orsa::Double & dec,
+inline void vecToSky(double & ra,
+		     double & dec,
 		     const orsa::Vector & u_obs2neo) {
-  ra  = orsa::atan2(u_obs2neo.getY(),
-		    u_obs2neo.getX());
-  dec = orsa::halfpi() - orsa::acos(u_obs2neo.getZ());
+  ra  = atan2(u_obs2neo.getY(),
+	      u_obs2neo.getX());
+  dec = orsa::halfpi() - acos(u_obs2neo.getZ());
 }
 
 #endif // _SURVEY_SIMULATOR_H_

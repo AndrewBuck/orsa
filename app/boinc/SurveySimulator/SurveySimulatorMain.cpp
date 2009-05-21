@@ -19,6 +19,7 @@
 #include <orsaSPICE/spiceBodyAttitudeCallback.h>
 #include <orsaSPICE/spiceBodyPosVelCallback.h>
 
+#include <orsaSolarSystem/data.h>
 #include <orsaSolarSystem/datetime.h>
 #include <orsaSolarSystem/gmst.h>
 #include <orsaSolarSystem/obleq.h>
@@ -35,9 +36,9 @@ void writeCheckpoint(const orsa::Time    & t,
 		     const TelescopeList & telescopeList) {
   
   if (boinc_is_standalone()) {
-    ORSA_DEBUG("muSec: %Zi   JD: %.5Ff",
+    ORSA_DEBUG("muSec: %Zi   JD: %.5f",
 	       t.getMuSec().get_mpz_t(),
-	       orsaSolarSystem::timeToJulian(t).get_mpf_t());
+	       orsaSolarSystem::timeToJulian(t));
   }
   
   {
@@ -88,7 +89,7 @@ int main() {
      3,
      "703",
      "test");
-     orsa::Double V = 10.0;
+     double V = 10.0;
      while (V <= 25.0) {
      std::cout << V << " " <<  telescope->detectionProbability(V) << std::endl;
      V += 0.02134;
@@ -178,7 +179,7 @@ int main() {
   // const int      realRandomSeed = parFile->randomSeedRealNEO.getRef();
   // const int syntheticRandomSeed = parFile->randomSeedSyntheticNEO.getRef();
   
-  const orsa::Double detectionProbabilityThreshold = parFile->detectionProbabilityThreshold.getRef();
+  const double detectionProbabilityThreshold = parFile->detectionProbabilityThreshold.getRef();
   
   // tpList tp;
   
@@ -345,16 +346,16 @@ int main() {
       mpz_class    muSec;
       int          randomSeed;
       unsigned int id;
-      orsa::Double p;
+      double p;
       char telescopeName[1024];
       char line[1024];
       osg::ref_ptr<NEO> neo;
       while (fgets(line,1024,fp_log) != 0) {
-	if (5 == gmp_sscanf(line,"%Zi %d %d %Ff %s",
+	if (5 == gmp_sscanf(line,"%Zi %d %d %lf %s",
 			    muSec.get_mpz_t(),
 			    &randomSeed,
 			    &id,
-			    p.get_mpf_t(),
+			    &p,
 			    telescopeName)) {
 	  /* 
 	     if (boinc_is_standalone()) {
@@ -425,20 +426,20 @@ int main() {
       mpz_class    muSec;
       int          randomSeed;
       unsigned int id;
-      orsa::Double neo2obs, neo2sun, phaseAngle;
-      orsa::Double limitingMagnitude;
+      double neo2obs, neo2sun, phaseAngle;
+      double limitingMagnitude;
       char telescopeName[1024];
       char line[1024];
       osg::ref_ptr<NEO> neo;
       while (fgets(line,1024,fp_log) != 0) {
-	if (8 == gmp_sscanf(line,"%Zi %d %d %Ff %Ff %Ff %Ff %s",
+	if (8 == gmp_sscanf(line,"%Zi %d %d %lf %lf %lf %lf %s",
 			    muSec.get_mpz_t(),
 			    &randomSeed,
 			    &id,
-			    neo2obs.get_mpf_t(),
-			    neo2sun.get_mpf_t(),
-			    phaseAngle.get_mpf_t(),
-			    limitingMagnitude.get_mpf_t(),
+			    &neo2obs,
+			    &neo2sun,
+			    &phaseAngle,
+			    &limitingMagnitude,
 			    telescopeName)) {
 	  /* 
 	     if (boinc_is_standalone()) {
@@ -525,16 +526,16 @@ int main() {
   
   // SUN
   osg::ref_ptr<orsa::Body> sun   = SPICEBody("SUN",
-					     FromUnits(orsa::one(),orsa::Unit::MSUN));
+					     orsaSolarSystem::Data::MSun());
   bg->addBody(sun.get());
   
   // EARTH
   osg::ref_ptr<orsa::Body> earth = SPICEBody("EARTH",
-					     FromUnits(orsa::one(),orsa::Unit::MEARTH));
+					     orsaSolarSystem::Data::MEarth());
   bg->addBody(earth.get());
   
   // MOON
-  osg::ref_ptr<orsa::Body> moon  = SPICEBody("MOON",orsa::zero());
+  osg::ref_ptr<orsa::Body> moon  = SPICEBody("MOON",0);
   bg->addBody(moon.get());
   
   orsa::Matrix eclipticToEquatorial = orsa::Matrix::identity();
@@ -626,7 +627,7 @@ int main() {
 	 
 	 // ORSA_DEBUG("goodLine: [%s]   newLinePos: %i",goodLine,newLinePos);
 	 
-	 if (gmp_sscanf(goodLine,"%*Ff %Zi %i",
+	 if (gmp_sscanf(goodLine,"%*f %Zi %i",
 	 muSec.get_mpz_t(),
 	 &NEO_id) != 2) {
 	 break;
@@ -668,7 +669,7 @@ int main() {
 	 strncpy(goodLine,line,newLinePos);
 	 goodLine[newLinePos] = '\0';
 	 // ORSA_DEBUG("goodLine: [%s]   newLinePos: %i",goodLine,newLinePos);
-	 if (gmp_sscanf(goodLine,"%*Ff %Zi %i",
+	 if (gmp_sscanf(goodLine,"%*f %Zi %i",
 	 muSec.get_mpz_t(),
 	 &NEO_id) != 2) {
 	 break;
@@ -709,11 +710,11 @@ int main() {
 	 
 	 // ORSA_DEBUG("goodLine: [%s]   newLinePos: %i",goodLine,newLinePos);
 	 
-	 if (gmp_sscanf(goodLine,"%*Ff %Zi %Ff %Ff %Ff",
+	 if (gmp_sscanf(goodLine,"%*f %Zi %lf %lf %lf",
 	 muSec.get_mpz_t(),
-	 ux.get_mpf_t(),
-	 uy.get_mpf_t(),
-	 uz.get_mpf_t()) != 4) {
+	 &ux,
+	 &uy,
+	 &uz) != 4) {
 	 break;
 	 }
 	 
@@ -763,13 +764,13 @@ int main() {
 	RealNEO::detectionLog::const_iterator log_it = log.begin();
 	while (log_it != log.end()) {
 	  if ((*neo_it)->detectionProbabilityFromLog((*log_it).first) > detectionProbabilityThreshold) {
-	    gmp_snprintf(line,1024,"%Zi %Ff %10i %10i %11.9Ff %s"
+	    gmp_snprintf(line,1024,"%Zi %f %10i %10i %11.9f %s"
 			 MODEOL,
 			 (*log_it).first.getMuSec().get_mpz_t(),
-			 orsaSolarSystem::timeToJulian((*log_it).first).get_mpf_t(),
+			 orsaSolarSystem::timeToJulian((*log_it).first),
 			 realNEO->randomSeed,
 			 realNEO->id,
-			 (*neo_it)->detectionProbabilityFromLog((*log_it).first).get_mpf_t(),
+			 (*neo_it)->detectionProbabilityFromLog((*log_it).first),
 			 (*log_it).second->telescopeName.getRef().c_str());
 	    std::cout << line;
 	    break;
@@ -808,18 +809,18 @@ int main() {
     // const orsa::Vector moonPosition = r;
     
     orsa::Vector u_obs2neo;
-    orsa::Double V; // apparent magnitude
+    double V; // apparent magnitude
     orsa::Vector neo2obs;
     orsa::Vector neo2sun;
-    orsa::Double phaseAngle; 
+    double phaseAngle; 
     
-    orsa::Double ra,dec;
+    double ra,dec;
     
     vecToSky(ra,
 	     dec,
 	     (sunPosition-obsPosition).normalized());
-    const orsa::Double sun_ra  = ra;
-    const orsa::Double sun_dec = dec;
+    const double sun_ra  = ra;
+    const double sun_dec = dec;
     
     // used for both H and V
     const unsigned int fp_mag_min = 15;
@@ -831,19 +832,19 @@ int main() {
       FILE * fp_H[fp_mag_max];
       
       for (unsigned int k=fp_mag_min; k<=fp_mag_max; ++k) {
-	gmp_sprintf(filename,"NEO.PP.real.V%0i.%04.Ffd.dat",
+	gmp_sprintf(filename,"NEO.PP.real.V%0i.%04.fd.dat",
 		    k,
-		    orsa::Double(orsaSolarSystem::timeToJulian(t)-orsaSolarSystem::timeToJulian(orsaSolarSystem::J2000())).get_mpf_t());
+		    orsaSolarSystem::timeToJulian(t)-orsaSolarSystem::timeToJulian(orsaSolarSystem::J2000()));
 	fp_V[k] = fopen(filename,"w");
    	
-	gmp_sprintf(filename,"NEO.PP.real.H%0i.%04.Ffd.dat",
+	gmp_sprintf(filename,"NEO.PP.real.H%0i.%04.fd.dat",
 		    k,
-		    orsa::Double(orsaSolarSystem::timeToJulian(t)-orsaSolarSystem::timeToJulian(orsaSolarSystem::J2000())).get_mpf_t());
+		    orsaSolarSystem::timeToJulian(t)-orsaSolarSystem::timeToJulian(orsaSolarSystem::J2000()));
 	fp_H[k] = fopen(filename,"w");
       }
       //
-      gmp_sprintf(filename,"NEO.PP.real.DETECTED.%04.Ffd.dat",
-		  orsa::Double(orsaSolarSystem::timeToJulian(t)-orsaSolarSystem::timeToJulian(orsaSolarSystem::J2000())).get_mpf_t());
+      gmp_sprintf(filename,"NEO.PP.real.DETECTED.%04.fd.dat",
+		  orsaSolarSystem::timeToJulian(t)-orsaSolarSystem::timeToJulian(orsaSolarSystem::J2000()));
       FILE * fp_detected = fopen(filename,"w");
       
       NEOList::const_iterator it = realNEO.begin();
@@ -870,48 +871,48 @@ int main() {
 	
 	if ((*it)->detectionProbabilityFromLog(t) > detectionProbabilityThreshold) {
 	  gmp_fprintf(fp_detected,
-		      "%10i %10i %8.5Ff %+09.5Ff %8.3Ff %8.3Ff %12.9Ff %12.10Ff %12.8Ff"
+		      "%10i %10i %8.5f %+09.5f %8.3f %8.3f %12.9f %12.10f %12.8f"
 		      MODEOL,
 		      (*it)->randomSeed,
 		      (*it)->id,
-		      orsa::fmod(24+orsa::radToDeg()*(ra-sun_ra),24).get_mpf_t(),
-		      orsa::Double(orsa::radToDeg()*dec).get_mpf_t(),
-		      V.get_mpf_t(),
-		      (*it)->getH(t,detectionProbabilityThreshold).get_mpf_t(),
-		      orsa::FromUnits((*it)->orbit.a,orsa::Unit::AU,-1).get_mpf_t(),
-		      (*it)->orbit.e.get_mpf_t(),
-		      orsa::Double(orsa::radToDeg()*(*it)->orbit.i).get_mpf_t());
+		      fmod(24+orsa::radToDeg()*(ra-sun_ra),24),
+		      orsa::radToDeg()*dec,
+		      V,
+		      (*it)->getH(t,detectionProbabilityThreshold),
+		      orsa::FromUnits((*it)->orbit.a,orsa::Unit::AU,-1),
+		      (*it)->orbit.e,
+		      orsa::radToDeg()*(*it)->orbit.i);
 	  fflush(fp_detected);
 	} else {
 	  for (unsigned int k=fp_mag_min; k<=fp_mag_max; ++k) {
 	    if (V <= k) {
 	      gmp_fprintf(fp_V[k],
-			  "%10i %10i %8.5Ff %+09.5Ff %8.3Ff %8.3Ff %12.9Ff %12.10Ff %12.8Ff"
+			  "%10i %10i %8.5f %+09.5f %8.3f %8.3f %12.9f %12.10f %12.8f"
 			  MODEOL,
 			  (*it)->randomSeed,
 			  (*it)->id,
-			  orsa::fmod(24+orsa::radToDeg()*(ra-sun_ra),24).get_mpf_t(),
-			  orsa::Double(orsa::radToDeg()*dec).get_mpf_t(),
-			  V.get_mpf_t(),
-			  (*it)->getH(t,detectionProbabilityThreshold).get_mpf_t(),
-			  orsa::FromUnits((*it)->orbit.a,orsa::Unit::AU,-1).get_mpf_t(),
-			  (*it)->orbit.e.get_mpf_t(),
-			  orsa::Double(orsa::radToDeg()*(*it)->orbit.i).get_mpf_t());
+			  fmod(24+orsa::radToDeg()*(ra-sun_ra),24),
+			  orsa::radToDeg()*dec,
+			  V,
+			  (*it)->getH(t,detectionProbabilityThreshold),
+			  orsa::FromUnits((*it)->orbit.a,orsa::Unit::AU,-1),
+			  (*it)->orbit.e,
+			  orsa::radToDeg()*(*it)->orbit.i);
 	      fflush(fp_V[k]);
 	    }
 	    if ((*it)->getH(t,detectionProbabilityThreshold) <= k) {
 	      gmp_fprintf(fp_H[k],
-			  "%10i %10i %8.5Ff %+09.5Ff %8.3Ff %8.3Ff %12.9Ff %12.10Ff %12.8Ff"
+			  "%10i %10i %8.5f %+09.5f %8.3f %8.3f %12.9f %12.10f %12.8f"
 			  MODEOL,
 			  (*it)->randomSeed,
 			  (*it)->id,
-			  orsa::fmod(24+orsa::radToDeg()*(ra-sun_ra),24).get_mpf_t(),
-			  orsa::Double(orsa::radToDeg()*dec).get_mpf_t(),
-			  V.get_mpf_t(),
-			  (*it)->getH(t,detectionProbabilityThreshold).get_mpf_t(),
-			  orsa::FromUnits((*it)->orbit.a,orsa::Unit::AU,-1).get_mpf_t(),
-			  (*it)->orbit.e.get_mpf_t(),
-			  orsa::Double(orsa::radToDeg()*(*it)->orbit.i).get_mpf_t());
+			  fmod(24+orsa::radToDeg()*(ra-sun_ra),24),
+			  orsa::radToDeg()*dec,
+			  V,
+			  (*it)->getH(t,detectionProbabilityThreshold),
+			  orsa::FromUnits((*it)->orbit.a,orsa::Unit::AU,-1),
+			  (*it)->orbit.e,
+			  orsa::radToDeg()*(*it)->orbit.i);
 	      fflush(fp_H[k]);
 	    }
 	  }
@@ -935,19 +936,19 @@ int main() {
       FILE * fp_H[fp_mag_max];
       
       for (unsigned int k=fp_mag_min; k<=fp_mag_max; ++k) {
-	gmp_sprintf(filename,"NEO.PP.synthetic.V%0i.%04.Ffd.dat",
+	gmp_sprintf(filename,"NEO.PP.synthetic.V%0i.%04.fd.dat",
 		    k,
-		    orsa::Double(orsaSolarSystem::timeToJulian(t)-orsaSolarSystem::timeToJulian(orsaSolarSystem::J2000())).get_mpf_t());
+		    orsaSolarSystem::timeToJulian(t)-orsaSolarSystem::timeToJulian(orsaSolarSystem::J2000()));
 	fp_V[k] = fopen(filename,"w");
 	
-	gmp_sprintf(filename,"NEO.PP.synthetic.H%0i.%04.Ffd.dat",
+	gmp_sprintf(filename,"NEO.PP.synthetic.H%0i.%04.fd.dat",
 		    k,
-		    orsa::Double(orsaSolarSystem::timeToJulian(t)-orsaSolarSystem::timeToJulian(orsaSolarSystem::J2000())).get_mpf_t());
+		    orsaSolarSystem::timeToJulian(t)-orsaSolarSystem::timeToJulian(orsaSolarSystem::J2000()));
 	fp_H[k] = fopen(filename,"w");
       }
       //
-      gmp_sprintf(filename,"NEO.PP.synthetic.UNOBSERVED.%04.Ffd.dat",
-		  orsa::Double(orsaSolarSystem::timeToJulian(t)-orsaSolarSystem::timeToJulian(orsaSolarSystem::J2000())).get_mpf_t());
+      gmp_sprintf(filename,"NEO.PP.synthetic.UNOBSERVED.%04.fd.dat",
+		  orsaSolarSystem::timeToJulian(t)-orsaSolarSystem::timeToJulian(orsaSolarSystem::J2000()));
       FILE * fp_unobserved = fopen(filename,"w");
       
       NEOList::const_iterator it = syntheticNEO.begin();
@@ -978,11 +979,11 @@ int main() {
 	   SyntheticNEO * syntheticNEO = dynamic_cast<SyntheticNEO *> ((*it).get());
 	   SyntheticNEO::detectionLog::const_iterator log_it = syntheticNEO->getLog().begin();
 	   while (log_it != syntheticNEO->getLog().end()) {
-	   ORSA_DEBUG("randomSeed: %10i   id: %10i   t: %Ff   H: %Ff",
+	   ORSA_DEBUG("randomSeed: %10i   id: %10i   t: %f   H: %f",
 	   (*it)->randomSeed,
 	   (*it)->id,
-	   orsaSolarSystem::timeToJulian((*log_it).first).get_mpf_t(),
-	   (*it)->getH((*log_it).first,detectionProbabilityThreshold).get_mpf_t());
+	   orsaSolarSystem::timeToJulian((*log_it).first),
+	   (*it)->getH((*log_it).first,detectionProbabilityThreshold));
 	   ++log_it;
 	   }
 	   }
@@ -991,48 +992,48 @@ int main() {
 	if ((*it)->getH(t,detectionProbabilityThreshold) < -10) {
 	  // never observed synthetic NEOs
 	  gmp_fprintf(fp_unobserved,
-		      "%10i %10i %8.5Ff %+09.5Ff %8.3Ff %8.3Ff %12.9Ff %12.10Ff %12.8Ff"
+		      "%10i %10i %8.5f %+09.5f %8.3f %8.3f %12.9f %12.10f %12.8f"
 		      MODEOL,
 		      (*it)->randomSeed,
 		      (*it)->id,
-		      orsa::fmod(24+orsa::radToDeg()*(ra-sun_ra),24).get_mpf_t(),
-		      orsa::Double(orsa::radToDeg()*dec).get_mpf_t(),
-		      V.get_mpf_t(),
-		      (*it)->getH(t,detectionProbabilityThreshold).get_mpf_t(),
-		      orsa::FromUnits((*it)->orbit.a,orsa::Unit::AU,-1).get_mpf_t(),
-		      (*it)->orbit.e.get_mpf_t(),
-		      orsa::Double(orsa::radToDeg()*(*it)->orbit.i).get_mpf_t());
+		      fmod(24+orsa::radToDeg()*(ra-sun_ra),24),
+		      orsa::radToDeg()*dec,
+		      V,
+		      (*it)->getH(t,detectionProbabilityThreshold),
+		      orsa::FromUnits((*it)->orbit.a,orsa::Unit::AU,-1),
+		      (*it)->orbit.e,
+		      orsa::radToDeg()*(*it)->orbit.i);
 	  fflush(fp_unobserved);
 	} else {
 	  for (unsigned int k=fp_mag_min; k<=fp_mag_max; ++k) {
 	    if (V <= k) {
 	      gmp_fprintf(fp_V[k],
-			  "%10i %10i %8.5Ff %+09.5Ff %8.3Ff %8.3Ff %12.9Ff %12.10Ff %12.8Ff"
+			  "%10i %10i %8.5f %+09.5f %8.3f %8.3f %12.9f %12.10f %12.8f"
 			  MODEOL,
 			  (*it)->randomSeed,
 			  (*it)->id,
-			  orsa::fmod(24+orsa::radToDeg()*(ra-sun_ra),24).get_mpf_t(),
-			  orsa::Double(orsa::radToDeg()*dec).get_mpf_t(),
-			  V.get_mpf_t(),
-			  (*it)->getH(t,detectionProbabilityThreshold).get_mpf_t(),
-			  orsa::FromUnits((*it)->orbit.a,orsa::Unit::AU,-1).get_mpf_t(),
-			  (*it)->orbit.e.get_mpf_t(),
-			  orsa::Double(orsa::radToDeg()*(*it)->orbit.i).get_mpf_t());
+			  fmod(24+orsa::radToDeg()*(ra-sun_ra),24),
+			  orsa::radToDeg()*dec,
+			  V,
+			  (*it)->getH(t,detectionProbabilityThreshold),
+			  orsa::FromUnits((*it)->orbit.a,orsa::Unit::AU,-1),
+			  (*it)->orbit.e,
+			  orsa::radToDeg()*(*it)->orbit.i);
 	      fflush(fp_V[k]);
 	    }	   
 	    if ((*it)->getH(t,detectionProbabilityThreshold) <= k) {
 	      gmp_fprintf(fp_H[k],
-			  "%10i %10i %8.5Ff %+09.5Ff %8.3Ff %8.3Ff %12.9Ff %12.10Ff %12.8Ff"
+			  "%10i %10i %8.5f %+09.5f %8.3f %8.3f %12.9f %12.10f %12.8f"
 			  MODEOL,
 			  (*it)->randomSeed,
 			  (*it)->id,
-			  orsa::fmod(24+orsa::radToDeg()*(ra-sun_ra),24).get_mpf_t(),
-			  orsa::Double(orsa::radToDeg()*dec).get_mpf_t(),
-			  V.get_mpf_t(),
-			  (*it)->getH(t,detectionProbabilityThreshold).get_mpf_t(),
-			  orsa::FromUnits((*it)->orbit.a,orsa::Unit::AU,-1).get_mpf_t(),
-			  (*it)->orbit.e.get_mpf_t(),
-			  orsa::Double(orsa::radToDeg()*(*it)->orbit.i).get_mpf_t());
+			  fmod(24+orsa::radToDeg()*(ra-sun_ra),24),
+			  orsa::radToDeg()*dec,
+			  V,
+			  (*it)->getH(t,detectionProbabilityThreshold),
+			  orsa::FromUnits((*it)->orbit.a,orsa::Unit::AU,-1),
+			  (*it)->orbit.e,
+			  orsa::radToDeg()*(*it)->orbit.i);
 	      fflush(fp_H[k]);
 	    }
 	  }
@@ -1083,8 +1084,8 @@ int main() {
     if (t >= tStop) break;
     
     /* 
-       ORSA_DEBUG("------------------------------------------------ t: %Ff",
-       orsaSolarSystem::timeToJulian(t).get_mpf_t());
+       ORSA_DEBUG("------------------------------------------------ t: %f",
+       orsaSolarSystem::timeToJulian(t));
     */
     
     /* 
@@ -1127,22 +1128,22 @@ int main() {
       
       const orsaSolarSystem::Observatory observatory = (*tl_main)->getObservatory();
       
-      // const orsa::Double FOV = (*tl_main)->FOV_DEG * orsa::degToRad();
+      // const double FOV = (*tl_main)->FOV_DEG * orsa::degToRad();
       //
-      // const orsa::Double halfFOV          = 0.5*FOV;
-      // const orsa::Double effectiveHalfFOV = 1.15*halfFOV;
+      // const double halfFOV          = 0.5*FOV;
+      // const double effectiveHalfFOV = 1.15*halfFOV;
       //
-      // const orsa::Double cos_FOV              = orsa::cos(FOV);
-      // const orsa::Double cos_effectiveHalfFOV = orsa::cos(effectiveHalfFOV);
-      // const orsa::Double sin_effectiveHalfFOV = orsa::sin(effectiveHalfFOV);
+      // const double cos_FOV              = orsa::cos(FOV);
+      // const double cos_effectiveHalfFOV = orsa::cos(effectiveHalfFOV);
+      // const double sin_effectiveHalfFOV = orsa::sin(effectiveHalfFOV);
       
-      // const orsa::Double     maxZenithDistanceAngle = parFile->maxZenithDistanceAngle_DEG.getRef() * orsa::degToRad();
-      // const orsa::Double       minMoonDistanceAngle = parFile->minMoonDistanceAngle_DEG.getRef()   * orsa::degToRad();
-      // const orsa::Double          minMoonPhaseAngle = parFile->minMoonPhaseAngle_DEG.getRef()      * orsa::degToRad();
+      // const double     maxZenithDistanceAngle = parFile->maxZenithDistanceAngle_DEG.getRef() * orsa::degToRad();
+      // const double       minMoonDistanceAngle = parFile->minMoonDistanceAngle_DEG.getRef()   * orsa::degToRad();
+      // const double          minMoonPhaseAngle = parFile->minMoonPhaseAngle_DEG.getRef()      * orsa::degToRad();
       //
-      // const orsa::Double cos_maxZenithDistanceAngle = orsa::cos(maxZenithDistanceAngle);
-      // const orsa::Double sin_maxZenithDistanceAngle = orsa::sin(maxZenithDistanceAngle);
-      // const orsa::Double   cos_minMoonDistanceAngle = orsa::cos(  minMoonDistanceAngle);
+      // const double cos_maxZenithDistanceAngle = orsa::cos(maxZenithDistanceAngle);
+      // const double sin_maxZenithDistanceAngle = orsa::sin(maxZenithDistanceAngle);
+      // const double   cos_minMoonDistanceAngle = orsa::cos(  minMoonDistanceAngle);
       
       
       //
@@ -1174,12 +1175,12 @@ int main() {
       const orsa::Vector obsNormal = (equatorialToEcliptic*(earthRotation*obsPos.normalized())).normalized();
       
       /* 
-	 ORSA_DEBUG("t: %6.3Ff   obsNormal: %+Ff %+Ff %+Ff   gmst: %Ff [deg]",
-	 orsaSolarSystem::timeToJulian(t).get_mpf_t(),
-	 obsNormal.getX().get_mpf_t(),
-	 obsNormal.getY().get_mpf_t(),
-	 obsNormal.getZ().get_mpf_t(),
-	 orsa::Double((orsaSolarSystem::gmst(t)-orsaSolarSystem::gmst(genEpoch))*orsa::radToDeg()).get_mpf_t());
+	 ORSA_DEBUG("t: %6.3f   obsNormal: %+f %+f %+f   gmst: %f [deg]",
+	 orsaSolarSystem::timeToJulian(t),
+	 obsNormal.getX(),
+	 obsNormal.getY(),
+	 obsNormal.getZ(),
+	 (orsaSolarSystem::gmst(t)-orsaSolarSystem::gmst(genEpoch))*orsa::radToDeg());
       */
       
       bg->getInterpolatedPosVel(r,v,sun.get(),t);
@@ -1189,11 +1190,11 @@ int main() {
       bg->getInterpolatedPosition(r,moon.get(),t);
       const orsa::Vector moonPosition = r;
       
-      orsa::Double sunElevation = orsa::halfpi() - orsa::acos(obsNormal*((sunPosition-obsPosition).normalized()));
+      double sunElevation = orsa::halfpi() - acos(obsNormal*((sunPosition-obsPosition).normalized()));
       
-      orsa::Double moonElevation = orsa::halfpi() - orsa::acos(obsNormal*((moonPosition-obsPosition).normalized()));
+      double moonElevation = orsa::halfpi() - acos(obsNormal*((moonPosition-obsPosition).normalized()));
       
-      const orsa::Double moonPhaseAngle = orsa::acos(((obsPosition-moonPosition).normalized())*((sunPosition-moonPosition).normalized()));
+      const double moonPhaseAngle = acos(((obsPosition-moonPosition).normalized())*((sunPosition-moonPosition).normalized()));
       
       /* 
 	 if ( (sunElevation*orsa::radToDeg() > (-18.0)) || 
@@ -1203,7 +1204,7 @@ int main() {
 	 }	
       */
       
-      const orsa::Double minMoonPhaseAngle = (*tl_main)->minMoonPhase_DEG * orsa::degToRad();
+      const double minMoonPhaseAngle = (*tl_main)->minMoonPhase_DEG * orsa::degToRad();
       
       if ( (sunElevation*orsa::radToDeg() > (-18.0)) || 
 	   (moonPhaseAngle < minMoonPhaseAngle) ) {
@@ -1229,10 +1230,10 @@ int main() {
       if (foundGoodTP) {
 	
        	orsa::Vector u_obs2neo;
-	orsa::Double V; // apparent magnitude
+	double V; // apparent magnitude
 	orsa::Vector neo2obs;
 	orsa::Vector neo2sun;
-	orsa::Double phaseAngle;
+	double phaseAngle;
 	
 	typedef std::list<NEOList *> NEOSuperList;
 	NEOSuperList NEO_sl;
@@ -1264,9 +1265,9 @@ int main() {
 			    cacheNEOVector);
 	    
 	    /* 
-	       ORSA_DEBUG("NEO id: %i   scalar product: %Ff",
+	       ORSA_DEBUG("NEO id: %i   scalar product: %f",
 	       (*it)->id,
-	       orsa::Double(u_obs2neo*localTP.u).get_mpf_t());
+	       u_obs2neo*localTP.u);
 	    */
 	    
 	    if ((u_obs2neo*localTP.u) > (*tl_main)->cos_effectiveHalfFOV) {  
@@ -1277,18 +1278,18 @@ int main() {
 	      if (realNEO) {
 		
 		if (boinc_is_standalone()) {
-		  ORSA_DEBUG("real NEO in FOV: id: %10i   randomSeed: %10i   V: %5.2Ff   H: %5.2Ff   t: %.5Ff [%s]",
+		  ORSA_DEBUG("real NEO in FOV: id: %10i   randomSeed: %10i   V: %5.2f   H: %5.2f   t: %.5f [%s]",
 			     (*it)->id,
 			     (*it)->randomSeed,
-			     V.get_mpf_t(),
-			     (*it)->getH(t,detectionProbabilityThreshold).get_mpf_t(),
-			     orsaSolarSystem::timeToJulian(t).get_mpf_t(),
+			     V,
+			     (*it)->getH(t,detectionProbabilityThreshold),
+			     orsaSolarSystem::timeToJulian(t),
 			     (*tl_main)->name.c_str());
 		}
 		
-		const orsa::Double prob = (*tl_main)->detectionProbability(V);
+		const double prob = (*tl_main)->detectionProbability(V);
 		//
-		if ((prob < orsa::zero()) || (prob > orsa::one())) {
+		if ((prob < 0) || (prob > 1)) {
 		  ORSA_DEBUG("...probability problems...");
 		}
 		
@@ -1300,15 +1301,15 @@ int main() {
 		//
 		(*it)->logInsert(t,re,writeNEOLogFile);
 		
-		if (prob > orsa::zero()) {
+		if (prob > 0) {
 		  if (boinc_is_standalone()) {
-		    ORSA_DEBUG("real NEO potentially observed: id: %10i   randomSeed: %10i   V: %5.2Ff   H: %5.2Ff   p: %4.2Ff   t: %.5Ff",
+		    ORSA_DEBUG("real NEO potentially observed: id: %10i   randomSeed: %10i   V: %5.2f   H: %5.2f   p: %4.2f   t: %.5f",
 			       (*it)->id,
 			       (*it)->randomSeed,
-			       V.get_mpf_t(),
-			       (*it)->getH(t,detectionProbabilityThreshold).get_mpf_t(),
-			       prob.get_mpf_t(),
-			       orsaSolarSystem::timeToJulian(t).get_mpf_t());
+			       V,
+			       (*it)->getH(t,detectionProbabilityThreshold),
+			       prob,
+			       orsaSolarSystem::timeToJulian(t));
 		  }
 		}
 		
@@ -1322,13 +1323,13 @@ int main() {
 	      } else if (syntheticNEO) {
 		
 		if (boinc_is_standalone()) {
-		  ORSA_DEBUG("synthetic NEO in FOV: id: %10i   randomSeed: %10i   neo2obs: %5.3Ff AU   neo2sun: %5.3Ff AU   phaseAngle: %7.3Ff DEG    t: %.5Ff [%s]",
+		  ORSA_DEBUG("synthetic NEO in FOV: id: %10i   randomSeed: %10i   neo2obs: %5.3f AU   neo2sun: %5.3f AU   phaseAngle: %7.3f DEG    t: %.5f [%s]",
 			     (*it)->id,
 			     (*it)->randomSeed,
-			     orsa::FromUnits(neo2obs.length(),orsa::Unit::AU,-1).get_mpf_t(),
-			     orsa::FromUnits(neo2sun.length(),orsa::Unit::AU,-1).get_mpf_t(),
-			     orsa::Double(orsa::radToDeg()*phaseAngle).get_mpf_t(),
-			     orsaSolarSystem::timeToJulian(t).get_mpf_t(),
+			     orsa::FromUnits(neo2obs.length(),orsa::Unit::AU,-1),
+			     orsa::FromUnits(neo2sun.length(),orsa::Unit::AU,-1),
+			     orsa::radToDeg()*phaseAngle,
+			     orsaSolarSystem::timeToJulian(t),
 			     (*tl_main)->name.c_str());
 		}
 		
@@ -1355,10 +1356,10 @@ int main() {
 	  
 	  /* 
 	     if (num_in_FOV > 0) {
-	     ORSA_DEBUG("FOV stats -- NEOs in FOV: %i   V range: %5.2Ff to %5.2Ff",
+	     ORSA_DEBUG("FOV stats -- NEOs in FOV: %i   V range: %5.2f to %5.2f",
 	     num_in_FOV,
-	     V_min_in_FOV.get_mpf_t(),
-	     V_max_in_FOV.get_mpf_t());
+	     V_min_in_FOV,
+	     V_max_in_FOV);
 	     }
 	  */
 	  
@@ -1371,16 +1372,16 @@ int main() {
     }
     
     /* 
-       ORSA_DEBUG("t: %6.3Ff   sunElevation: %6.2Ff [deg]   moonElevation: %6.2Ff [deg]   moonPhase: %6.2Ff [deg]",
-       orsaSolarSystem::timeToJulian(t).get_mpf_t(),
-       orsa::Double(sunElevation*orsa::radToDeg()).get_mpf_t(),
-       orsa::Double(moonElevation*orsa::radToDeg()).get_mpf_t(),
-       orsa::Double(moonPhaseAngle*orsa::radToDeg()).get_mpf_t());
+       ORSA_DEBUG("t: %6.3f   sunElevation: %6.2f [deg]   moonElevation: %6.2f [deg]   moonPhase: %6.2f [deg]",
+       orsaSolarSystem::timeToJulian(t),
+       sunElevation*orsa::radToDeg(),
+       moonElevation*orsa::radToDeg(),
+       moonPhaseAngle*orsa::radToDeg());
     */
     
     {
-      const orsa::Double fractionCompleted = (t-genEpoch).asDouble() / (tStop-genEpoch).asDouble();
-      boinc_fraction_done(fractionCompleted.get_d());
+      const double fractionCompleted = (t-genEpoch).get_d() / (tStop-genEpoch).get_d();
+      boinc_fraction_done(fractionCompleted);
     }
     
     // write checkpoint
@@ -1422,12 +1423,12 @@ int main() {
 	const RealNEO::detectionLog & log = realNEO->getLog();
 	RealNEO::detectionLog::const_iterator log_it = log.begin();
 	while (log_it != log.end()) {
-	  gmp_snprintf(line,1024,"%Zi %10i %10i %11.9Ff %s"
+	  gmp_snprintf(line,1024,"%Zi %10i %10i %11.9f %s"
 		       MODEOL,
 		       (*log_it).first.getMuSec().get_mpz_t(),
 		       realNEO->randomSeed,
 		       realNEO->id,
-		       (*log_it).second->p.getRef().get_mpf_t(),
+		       (*log_it).second->p.getRef(),
 		       (*log_it).second->telescopeName.getRef().c_str());
 	  write(fd_real,line,strlen(line));
 	  ++log_it;
@@ -1447,15 +1448,15 @@ int main() {
 	const SyntheticNEO::detectionLog & log = syntheticNEO->getLog();
 	SyntheticNEO::detectionLog::const_iterator log_it = log.begin();
 	while (log_it != log.end()) {
-	  gmp_snprintf(line,1024,"%Zi %10i %10i %12.9Ff %12.9Ff %13.9Ff %6.3Ff %s"
+	  gmp_snprintf(line,1024,"%Zi %10i %10i %12.9f %12.9f %13.9f %6.3f %s"
 		       MODEOL,
 		       (*log_it).first.getMuSec().get_mpz_t(),
 		       syntheticNEO->randomSeed,
 		       syntheticNEO->id,
-		       FromUnits((*log_it).second->neo2obs.getRef(),orsa::Unit::AU,-1).get_mpf_t(),
-		       FromUnits((*log_it).second->neo2sun.getRef(),orsa::Unit::AU,-1).get_mpf_t(),
-		       orsa::Double(orsa::radToDeg()*(*log_it).second->phaseAngle.getRef()).get_mpf_t(),
-		       (*log_it).second->limitingMagnitude.getRef().get_mpf_t(),
+		       FromUnits((*log_it).second->neo2obs.getRef(),orsa::Unit::AU,-1),
+		       FromUnits((*log_it).second->neo2sun.getRef(),orsa::Unit::AU,-1),
+		       orsa::radToDeg()*(*log_it).second->phaseAngle.getRef(),
+		       (*log_it).second->limitingMagnitude.getRef(),
 		       (*log_it).second->telescopeName.getRef().c_str());
 	  write(fd_synthetic,line,strlen(line));
 	  ++log_it;

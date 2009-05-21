@@ -41,11 +41,11 @@ class Telescope : public osg::Referenced {
  public:
   Telescope(const orsa::Time   & start,
 	    const orsa::Time   & stop,
-	    const orsa::Double & limitingMagnitude_in,
-	    const orsa::Double & FOV_DEG_in,
-	    const orsa::Double & maxZenithDistanceAngle_DEG_in,
-	    const orsa::Double & minMoonDistanceAngle_DEG_in,
-	    const orsa::Double & minMoonPhase_DEG_in,
+	    const double & limitingMagnitude_in,
+	    const double & FOV_DEG_in,
+	    const double & maxZenithDistanceAngle_DEG_in,
+	    const double & minMoonDistanceAngle_DEG_in,
+	    const double & minMoonPhase_DEG_in,
 	    const int            recycleTime_DAY_in,
 	    const int            dutyCycle_SEC_in,
 	    const int            dutyCycleMultiplicity_in,
@@ -84,7 +84,7 @@ class Telescope : public osg::Referenced {
 			const orsa::Time    & t,
 			const TelescopeList & telescopeList,
 			const NEOList       & syntheticNEO,
-			const orsa::Double  & detectionProbabilityThreshold,
+			const double  & detectionProbabilityThreshold,
 			const orsa::Vector  &  sunPosition,
 			const orsa::Vector  & moonPosition,
 			const orsa::Vector  &  obsPosition,
@@ -125,7 +125,7 @@ class Telescope : public osg::Referenced {
     char line[1024];
     char goodLine[1024];
     off_t lastGoodFilePosition;
-    orsa::Double ux, uy, uz;
+    double ux, uy, uz;
     
     const mpz_class muSec = t.getMuSec();
     
@@ -139,11 +139,11 @@ class Telescope : public osg::Referenced {
       
       // ORSA_DEBUG("goodLine: [%s]   newLinePos: %i",goodLine,newLinePos);
       
-      if (gmp_sscanf(goodLine,"%*Ff %Zi %Ff %Ff %Ff",
+      if (gmp_sscanf(goodLine,"%*f %Zi %lf %lf %lf",
 		     muSec.get_mpz_t(),
-		     ux.get_mpf_t(),
-		     uy.get_mpf_t(),
-		     uz.get_mpf_t()) != 4) {
+		     &ux,
+		     &uy,
+		     &uz) != 4) {
 	break;
       }
       
@@ -235,18 +235,18 @@ class Telescope : public osg::Referenced {
   
  public:
   // NOT virtual: all telescopes should use the same function; added flexibility should be managed with more parameters
-  orsa::Double detectionProbability(const orsa::Double & apparentMagnitude) {
+  double detectionProbability(const double & apparentMagnitude) {
     return detectionProbability(apparentMagnitude,
 				limitingMagnitude);
   }
  public:
-  static orsa::Double detectionProbability(const orsa::Double & apparentMagnitude,
-					   const orsa::Double & limitingMagnitude) {
+  static double detectionProbability(const double & apparentMagnitude,
+					   const double & limitingMagnitude) {
     
-    orsa::Double retVal = 0.5 + (limitingMagnitude - apparentMagnitude) * 0.45;
+    double retVal = 0.5 + (limitingMagnitude - apparentMagnitude) * 0.45;
     
-    if (retVal > orsa::one())  retVal = orsa::one();
-    if (retVal < orsa::zero()) retVal = orsa::zero();
+    if (retVal > 1) retVal = 1;
+    if (retVal < 0) retVal = 0;
     
     return retVal;
   }
@@ -255,11 +255,11 @@ class Telescope : public osg::Referenced {
   const orsa::Time tStart;
   const orsa::Time tStop;
  public:
-  const orsa::Double limitingMagnitude;
-  const orsa::Double FOV_DEG;
-  const orsa::Double maxZenithDistanceAngle_DEG;
-  const orsa::Double minMoonDistanceAngle_DEG;
-  const orsa::Double minMoonPhase_DEG;
+  const double limitingMagnitude;
+  const double FOV_DEG;
+  const double maxZenithDistanceAngle_DEG;
+  const double minMoonDistanceAngle_DEG;
+  const double minMoonPhase_DEG;
  public:
   const int recycleTime_DAY;
   const int dutyCycle_SEC;
@@ -273,13 +273,13 @@ class Telescope : public osg::Referenced {
  public:
   const orsa::Time   effectiveDutyCycle;
   const orsa::Time   recycleTime;
-  const orsa::Double FOV;
-  // const orsa::Double cos_FOV;
-  const orsa::Double     effectiveHalfFOV;
-  const orsa::Double cos_effectiveHalfFOV;
-  const orsa::Double maxZenithDistanceAngle;
-  const orsa::Double cos_maxZenithDistanceAngle;
-  const orsa::Double cos_minMoonDistanceAngle;
+  const double FOV;
+  // const double cos_FOV;
+  const double     effectiveHalfFOV;
+  const double cos_effectiveHalfFOV;
+  const double maxZenithDistanceAngle;
+  const double cos_maxZenithDistanceAngle;
+  const double cos_minMoonDistanceAngle;
   
  protected:
   const orsa::Matrix eclipticToEquatorial;
@@ -292,11 +292,11 @@ class SingleModeTelescope : public Telescope {
   SingleModeTelescope(const orsa::Time         & start,
 		      const orsa::Time         & stop,
 		      const int                  randomSeed,
-		      const orsa::Double       & limitingMagnitude,
-		      const orsa::Double       & FOV_DEG,
-		      const orsa::Double       & maxZenithDistanceAngle_DEG,
-		      const orsa::Double       & minMoonDistanceAngle_DEG,
-		      const orsa::Double       & minMoonPhase_DEG,
+		      const double       & limitingMagnitude,
+		      const double       & FOV_DEG,
+		      const double       & maxZenithDistanceAngle_DEG,
+		      const double       & minMoonDistanceAngle_DEG,
+		      const double       & minMoonPhase_DEG,
 		      const int                  recycleTime_DAY,
 		      const int                  dutyCycle_SEC,
 		      const int                  dutyCycleMultiplicity,
@@ -361,11 +361,11 @@ class OppositionTelescope : public SingleModeTelescope {
   OppositionTelescope(const orsa::Time         & start,
 		      const orsa::Time         & stop,
 		      const int                  randomSeed,
-		      const orsa::Double       & limitingMagnitude,
-		      const orsa::Double       & FOV_DEG,
-		      const orsa::Double       & maxZenithDistanceAngle_DEG,
-		      const orsa::Double       & minMoonDistanceAngle_DEG,
-		      const orsa::Double       & minMoonPhase_DEG,
+		      const double       & limitingMagnitude,
+		      const double       & FOV_DEG,
+		      const double       & maxZenithDistanceAngle_DEG,
+		      const double       & minMoonDistanceAngle_DEG,
+		      const double       & minMoonPhase_DEG,
 		      const int                  recycleTime_DAY,
 		      const int                  dutyCycle_SEC,
 		      const int                  dutyCycleMultiplicity,
@@ -389,7 +389,7 @@ class OppositionTelescope : public SingleModeTelescope {
 		const orsa::Time    & t,
 		const TelescopeList & telescopeList,
 		const NEOList       & syntheticNEO,
-		const orsa::Double  & detectionProbabilityThreshold,
+		const double  & detectionProbabilityThreshold,
 		const orsa::Vector  &  sunPosition,
 		const orsa::Vector  & moonPosition,
 		const orsa::Vector  &  obsPosition,
@@ -403,11 +403,11 @@ class SieveTelescope : public SingleModeTelescope {
   SieveTelescope(const orsa::Time         & start,
 		 const orsa::Time         & stop,
 		 const int                  randomSeed,
-		 const orsa::Double       & limitingMagnitude,
-		 const orsa::Double       & FOV_DEG,
-		 const orsa::Double       & maxZenithDistanceAngle_DEG,
-		 const orsa::Double       & minMoonDistanceAngle_DEG,
-		 const orsa::Double       & minMoonPhase_DEG,
+		 const double       & limitingMagnitude,
+		 const double       & FOV_DEG,
+		 const double       & maxZenithDistanceAngle_DEG,
+		 const double       & minMoonDistanceAngle_DEG,
+		 const double       & minMoonPhase_DEG,
 		 const int                  recycleTime_DAY,
 		 const int                  dutyCycle_SEC,
 		 const int                  dutyCycleMultiplicity,
@@ -431,7 +431,7 @@ class SieveTelescope : public SingleModeTelescope {
 		const orsa::Time    & t,
 		const TelescopeList & telescopeList,
 		const NEOList       & syntheticNEO,
-		const orsa::Double  & detectionProbabilityThreshold,
+		const double  & detectionProbabilityThreshold,
 		const orsa::Vector  &  sunPosition,
 		const orsa::Vector  & moonPosition,
 		const orsa::Vector  &  obsPosition,
@@ -445,11 +445,11 @@ class AllSkyTelescope : public SingleModeTelescope {
   AllSkyTelescope(const orsa::Time         & start,
 		  const orsa::Time         & stop,
 		  const int                  randomSeed,
-		  const orsa::Double       & limitingMagnitude,
-		  const orsa::Double       & FOV_DEG,
-		  const orsa::Double       & maxZenithDistanceAngle_DEG,
-		  const orsa::Double       & minMoonDistanceAngle_DEG,
-		  const orsa::Double       & minMoonPhase_DEG,
+		  const double       & limitingMagnitude,
+		  const double       & FOV_DEG,
+		  const double       & maxZenithDistanceAngle_DEG,
+		  const double       & minMoonDistanceAngle_DEG,
+		  const double       & minMoonPhase_DEG,
 		  const int                  recycleTime_DAY,
 		  const int                  dutyCycle_SEC,
 		  const int                  dutyCycleMultiplicity,
@@ -473,7 +473,7 @@ class AllSkyTelescope : public SingleModeTelescope {
 		const orsa::Time    & t,
 		const TelescopeList & telescopeList,
 		const NEOList       & syntheticNEO,
-		const orsa::Double  & detectionProbabilityThreshold,
+		const double  & detectionProbabilityThreshold,
 		const orsa::Vector  &  sunPosition,
 		const orsa::Vector  & moonPosition,
 		const orsa::Vector  &  obsPosition,

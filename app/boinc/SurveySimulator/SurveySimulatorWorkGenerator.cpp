@@ -13,18 +13,18 @@ std::string inputTemplateFileName(const std::string  & baseName,
 				  const unsigned int   ,
 				  const unsigned int   ,
 				  const orsa::Time   & delay_bound,
-				  const orsa::Double & ,
-				  const orsa::Double & ,
-				  const orsa::Double & rsc_memory_bound,
-				  const orsa::Double & rsc_disk_bound) {
+				  const double & ,
+				  const double & ,
+				  const double & rsc_memory_bound,
+				  const double & rsc_disk_bound) {
   char fileName[1024];
   gmp_snprintf(fileName,
 	       1024,
-	       "templates/wu.SS.input.%s_%.Ff_%.Ff_%.Ff.xml",  
+	       "templates/wu.SS.input.%s_%.f_%.f_%.f.xml",  
 	       baseName.c_str(),
-	       orsa::Double(delay_bound.getMuSec()/1000000.0).get_mpf_t(),
-	       rsc_memory_bound.get_mpf_t(),
-	       rsc_disk_bound.get_mpf_t());
+	       orsa::FromUnits(delay_bound.get_d(),orsa::Unit::SECOND,-1),
+	       rsc_memory_bound,
+	       rsc_disk_bound);
   return fileName;
 }
 
@@ -32,10 +32,10 @@ bool writeInputTemplate(const std::string  & fileName,
 			const unsigned int   min_quorum,
 			const unsigned int   target_nresults,
 			const orsa::Time   & delay_bound,
-			const orsa::Double & rsc_fpops_est,
-			const orsa::Double & rsc_fpops_bound,
-			const orsa::Double & rsc_memory_bound,
-			const orsa::Double & rsc_disk_bound) {
+			const double & rsc_fpops_est,
+			const double & rsc_fpops_bound,
+			const double & rsc_memory_bound,
+			const double & rsc_disk_bound) {
   FILE * fp = fopen(fileName.c_str(),"w");
   if (!fp) {
     ORSA_ERROR("problems");
@@ -83,19 +83,19 @@ bool writeInputTemplate(const std::string  & fileName,
 	      "  <max_error_results>5</max_error_results>\n"
 	      "  <max_total_results>10</max_total_results>\n"
 	      "  <max_success_results>10</max_success_results>\n"
-	      "  <delay_bound>%Ff</delay_bound>\n"
-	      "  <rsc_fpops_est>%Ff</rsc_fpops_est>\n"
-	      "  <rsc_fpops_bound>%Ff</rsc_fpops_bound>\n"
-	      "  <rsc_memory_bound>%Ff</rsc_memory_bound>\n"
-	      "  <rsc_disk_bound>%Ff</rsc_disk_bound>\n"
+	      "  <delay_bound>%f</delay_bound>\n"
+	      "  <rsc_fpops_est>%f</rsc_fpops_est>\n"
+	      "  <rsc_fpops_bound>%f</rsc_fpops_bound>\n"
+	      "  <rsc_memory_bound>%f</rsc_memory_bound>\n"
+	      "  <rsc_disk_bound>%f</rsc_disk_bound>\n"
 	      "</workunit>\n",
 	      min_quorum,
 	      target_nresults,
-	      orsa::Double(delay_bound.getMuSec()/mpz_class("1000000")).get_mpf_t(),
-	      rsc_fpops_est.get_mpf_t(),
-	      rsc_fpops_bound.get_mpf_t(),
-	      rsc_memory_bound.get_mpf_t(),
-	      rsc_disk_bound.get_mpf_t());
+	      orsa::FromUnits(delay_bound.get_d(),orsa::Unit::SECOND,-1),
+	      rsc_fpops_est,
+	      rsc_fpops_bound,
+	      rsc_memory_bound,
+	      rsc_disk_bound);
   fclose(fp);
   return true;
 }
@@ -103,15 +103,15 @@ bool writeInputTemplate(const std::string  & fileName,
 std::string outputTemplateFileName(const std::string  & baseName,
 				   const unsigned int   numRealNEO,
 				   const unsigned int   numSyntheticNEO,
-				   const mpz_class    & tp_lines) {
+				   const int          & tp_lines) {
   char fileName[1024];
   gmp_snprintf(fileName,
 	       1024,
-	       "templates/wu.SS.output.%s.%i_%i_%Zi.xml",  
+	       "templates/wu.SS.output.%s.%i_%i_%i.xml",  
 	       baseName.c_str(),
 	       numRealNEO,
 	       numSyntheticNEO,
-	       tp_lines.get_mpz_t());
+	       tp_lines);
   return fileName;
 }
 
@@ -131,11 +131,11 @@ bool writeOutputTemplate(const std::string          & fileName,
 		    "  <name><OUTFILE_%i/></name>\n"
 		    "  <generated_locally/>\n"
 		    "  <upload_when_present/>\n"
-		    "  <max_nbytes>%Zi</max_nbytes>\n"
+		    "  <max_nbytes>%i</max_nbytes>\n"
 		    "  <url><UPLOAD_URL/></url>\n"
 		    "</file_info>\n",
 		    uploadCounter,
-		    outputTemplateVector[k].fileSize.getRef().get_mpz_t());
+		    outputTemplateVector[k].fileSize.getRef());
 	++uploadCounter;
       }
     }
@@ -241,50 +241,48 @@ int main(int argc, char ** argv) {
   
   OutputTemplateVector outputTemplateVector;
   //
-  mpz_class    total_tp_lines   = 0;
-  orsa::Double total_FOV_DEG_SQ = 0;
+  int total_tp_lines = 0;
+  double total_FOV_DEG_SQ = 0;
   // visits = observing time / recycle time
-  mpz_class    total_visits = 0;
+  int total_visits = 0;
   {
     TelescopeList::const_iterator it = telescopeList.begin();
     while (it != telescopeList.end()) {
       
-      const mpz_class local_tp_lines = ((*it)->tStop - (*it)->tStart).getMuSec() / (*it)->effectiveDutyCycle.getMuSec();
+      const double local_tp_lines = ((*it)->tStop - (*it)->tStart).get_d() / (*it)->effectiveDutyCycle.get_d();
       //
       total_tp_lines += 1 + local_tp_lines;
       
       total_FOV_DEG_SQ += orsa::int_pow((*it)->FOV_DEG,2);
       
-      total_visits += 1 + ((*it)->tStop - (*it)->tStart).getMuSec() / (*it)->recycleTime.getMuSec();
+      total_visits += 1 + ((*it)->tStop - (*it)->tStart).get_d() / (*it)->recycleTime.get_d();
       
-      outputTemplateVector.push_back(OutputTemplateEntry((*it)->logFileName(), mpz_class("1024")*local_tp_lines, false, true));
+      outputTemplateVector.push_back(OutputTemplateEntry((*it)->logFileName(), 1024*local_tp_lines, false, true));
       
       ++it;
     }
   }
   //
-  // ORSA_DEBUG("total_visits: %Zi",total_visits.get_mpz_t());
-  //
-  outputTemplateVector.push_back(OutputTemplateEntry("NEO.real.dat",      mpz_class("1024")*total_visits*numRealNEO,      true, true));
-  outputTemplateVector.push_back(OutputTemplateEntry("NEO.synthetic.dat", mpz_class("1024")*total_visits*numSyntheticNEO, true, true));
+  outputTemplateVector.push_back(OutputTemplateEntry("NEO.real.dat",      1024*total_visits*numRealNEO,      true, true));
+  outputTemplateVector.push_back(OutputTemplateEntry("NEO.synthetic.dat", 1024*total_visits*numSyntheticNEO, true, true));
   
   // tentative value
-  const orsa::Double flops_est = 
+  const double flops_est = 
     1e12 * 
-    (orsa::Double(std::max(512,numRealNEO))/1024.0) * 
-    (orsa::Double(std::max(512,numSyntheticNEO))/1024.0) * 
-    (orsa::Double(total_tp_lines)/3600.0) *
+    (std::max(512,numRealNEO)/1024.0) * 
+    (std::max(512,numSyntheticNEO)/1024.0) * 
+    (total_tp_lines/3600.0) *
     (total_FOV_DEG_SQ/4.0);
   
   const unsigned int min_quorum       = 2;
   const unsigned int target_nresults  = 2;
-  const orsa::Double rsc_fpops_est    =    flops_est;
-  const orsa::Double rsc_fpops_bound  = 32*flops_est;
+  const double rsc_fpops_est    =    flops_est;
+  const double rsc_fpops_bound  = 32*flops_est;
   const orsa::Time   delay_bound      = std::max(orsa::Time(0,0,0,flops_est/1e8,0),
 						 orsa::Time(1,0,0,0,0)); 
-  const orsa::Double rsc_memory_bound = mpz_class("134217728");
+  const double rsc_memory_bound = 134217728;
   //
-  orsa::Double rsc_disk_bound = 0;
+  double rsc_disk_bound = 0;
   for (unsigned int k=0; k<outputTemplateVector.size(); ++k) {
     rsc_disk_bound += outputTemplateVector[k].fileSize.getRef();
   }

@@ -19,10 +19,10 @@ bool ParameterFile::read_D(ParameterD & pD, FILE * fp) {
       }
     }
   } while (skipLine);
-  orsa::Double tmp_D;
-  gmp_sscanf(line,"%Ff",tmp_D.get_mpf_t());
+  double tmp_D;
+  gmp_sscanf(line,"%lf",&tmp_D);
   pD = tmp_D;
-  // ORSA_DEBUG("%Ff",tmp_D.get_mpf_t());
+  // ORSA_DEBUG("%f",tmp_D);
   return true;
 }
 
@@ -113,20 +113,20 @@ void ParameterFile::print() const {
 	      // "randomSeedRealNEO............: %10i\n"
 	      // "randomSeedSyntheticNEO.......: %10i\n"
 	      // "randomSeedSky................: %10i\n"
-	      "orbit_a_AU_min...............: %20.9Ff\n"
-	      "orbit_a_AU_max...............: %20.9Ff\n"
-	      "orbit_e_min..................: %20.9Ff\n"
-	      "orbit_e_max..................: %20.9Ff\n"
-	      "orbit_i_DEG_min..............: %20.9Ff\n"
-	      "orbit_i_DEG_max..............: %20.9Ff\n"
-	      "Hmax.........................: %20.9Ff\n"
-	      "Ha...........................: %20.9Ff\n"
-	      // "limitingMagnitude............: %20.9Ff\n"
-	      // "FOV_DEG......................: %20.9Ff\n"
-	      // "maxZenithDistanceAngle_DEG...: %20.9Ff\n"
-	      // "minMoonDistanceAngle_DEG.....: %20.9Ff\n"
-	      // "minMoonPhaseAngle_DEG........: %20.9Ff\n"
-	      "detectionProbabilityThreshold: %20.9Ff\n"
+	      "orbit_a_AU_min...............: %20.9f\n"
+	      "orbit_a_AU_max...............: %20.9f\n"
+	      "orbit_e_min..................: %20.9f\n"
+	      "orbit_e_max..................: %20.9f\n"
+	      "orbit_i_DEG_min..............: %20.9f\n"
+	      "orbit_i_DEG_max..............: %20.9f\n"
+	      "Hmax.........................: %20.9f\n"
+	      "Ha...........................: %20.9f\n"
+	      // "limitingMagnitude............: %20.9f\n"
+	      // "FOV_DEG......................: %20.9f\n"
+	      // "maxZenithDistanceAngle_DEG...: %20.9f\n"
+	      // "minMoonDistanceAngle_DEG.....: %20.9f\n"
+	      // "minMoonPhaseAngle_DEG........: %20.9f\n"
+	      "detectionProbabilityThreshold: %20.9f\n"
 	      // "recycleTime_DAY..............: %10i\n"
 	      // "dutyCycle_SEC................: %10i\n"
 	      // "dutyCycleMultiplicity........: %10i\n"
@@ -137,20 +137,20 @@ void ParameterFile::print() const {
 	      // randomSeedRealNEO.getRef(),
 	      // randomSeedSyntheticNEO.getRef(),
 	      // randomSeedSky.getRef(),
-	      orbit_a_AU_min.getRef().get_mpf_t(),
-	      orbit_a_AU_max.getRef().get_mpf_t(),
-	      orbit_e_min.getRef().get_mpf_t(),
-	      orbit_e_max.getRef().get_mpf_t(),
-	      orbit_i_DEG_min.getRef().get_mpf_t(),
-	      orbit_i_DEG_max.getRef().get_mpf_t(),
-	      Hmax.getRef().get_mpf_t(),
-	      Ha.getRef().get_mpf_t(),
-	      // limitingMagnitude.getRef().get_mpf_t(),
-	      // FOV_DEG.getRef().get_mpf_t(),
-	      // maxZenithDistanceAngle_DEG.getRef().get_mpf_t(),
-	      // minMoonDistanceAngle_DEG.getRef().get_mpf_t(),
-	      // minMoonPhaseAngle_DEG.getRef().get_mpf_t(),
-	      detectionProbabilityThreshold.getRef().get_mpf_t(),
+	      orbit_a_AU_min.getRef(),
+	      orbit_a_AU_max.getRef(),
+	      orbit_e_min.getRef(),
+	      orbit_e_max.getRef(),
+	      orbit_i_DEG_min.getRef(),
+	      orbit_i_DEG_max.getRef(),
+	      Hmax.getRef(),
+	      Ha.getRef(),
+	      // limitingMagnitude.getRef(),
+	      // FOV_DEG.getRef(),
+	      // maxZenithDistanceAngle_DEG.getRef(),
+	      // minMoonDistanceAngle_DEG.getRef(),
+	      // minMoonPhaseAngle_DEG.getRef(),
+	      detectionProbabilityThreshold.getRef(),
 	      // recycleTime_DAY.getRef(),
 	      // dutyCycle_SEC.getRef(),
 	      // dutyCycleMultiplicity.getRef(),
