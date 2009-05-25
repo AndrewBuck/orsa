@@ -63,20 +63,29 @@ namespace orsa {
     bool setRange(const unsigned int index,
 		  const double & min,
 		  const double & max);
-  protected:
+  public:
+    bool setRangeMin(const std::string & name,
+		     const double      & min);
+    bool setRangeMax(const std::string & name,
+		     const double      & max);
+    bool setRangeMin(const unsigned int   index,
+		     const double       & min);
+    bool setRangeMax(const unsigned int   index,
+		     const double       & max);
+  public:
     void setInRange(const std::string & name);
     void setInRange(const unsigned int index);
   public:
     const double & get(const std::string & name) const;
     const double & get(const unsigned int index) const;
   public:
-    bool haveRange(const std::string & name) const;
-    bool haveRange(const unsigned int index) const;
+    // bool haveRange(const std::string & name) const;
+    // bool haveRange(const unsigned int index) const;
   public:
-    const double & getRangeMin(const std::string & name) const;
-    const double & getRangeMax(const std::string & name) const;
-    const double & getRangeMin(const unsigned int index) const;
-    const double & getRangeMax(const unsigned int index) const;
+    const orsa::Cache<double> & getRangeMin(const std::string & name) const;
+    const orsa::Cache<double> & getRangeMax(const std::string & name) const;
+    const orsa::Cache<double> & getRangeMin(const unsigned int index) const;
+    const orsa::Cache<double> & getRangeMax(const unsigned int index) const;
   public:
     const double & getStep(const std::string & name) const;
     const double & getStep(const unsigned int index) const;
@@ -87,9 +96,9 @@ namespace orsa {
   private:
     class NVS {
     public:
-      std::string  name;
-      double value;
-      double step;
+      std::string name;
+      double      value;
+      double      step;
       //
       orsa::Cache<double> min, max;
     };
@@ -165,16 +174,23 @@ namespace orsa {
     static bool parametersOutsideRange(const gsl_vector * parameters,
 				       const orsa::MultiminParameters * par) {
       for (unsigned int k=0; k<par->size(); ++k) {
-	if (par->haveRange(k)) {
-	  const double xVal = gsl_vector_get(parameters,k);
-	  if (xVal < par->getRangeMin(k)) {
-	    return true;
-	  }
-	  if (xVal > par->getRangeMax(k)) {
+	
+	const double xVal = gsl_vector_get(parameters,k);
+	
+	if (par->getRangeMin(k).isSet()) {
+	  if (xVal < par->getRangeMin(k).getRef()) {
 	    return true;
 	  }
 	}
+	
+	if (par->getRangeMax(k).isSet()) {
+	  if (xVal > par->getRangeMax(k).getRef()) {
+	    return true;
+	  }
+	}
+	
       }
+      
       return false;
     }
     

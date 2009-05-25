@@ -110,8 +110,7 @@ std::string MultiminParameters::name(const unsigned int index) const {
 
 bool MultiminParameters::set(const std::string  & name,
 			     const double & value) {
-  return set(MultiminParameters::index(name),
-	     value);
+  return set(MultiminParameters::index(name),value);
 }
 
 bool MultiminParameters::set(const unsigned int   index,
@@ -138,43 +137,42 @@ bool MultiminParameters::setRange(const unsigned int   index,
   return true;
 }
 
+bool MultiminParameters::setRangeMin(const std::string & name,
+				     const double      & min) {
+  return setRangeMin(MultiminParameters::index(name),min);
+}
+
+bool MultiminParameters::setRangeMax(const std::string & name,
+				     const double      & max) {
+  return setRangeMax(MultiminParameters::index(name),max);
+}
+
+bool MultiminParameters::setRangeMin(const unsigned int   index,
+				     const double       & min) {
+  _data[index].min = min;
+  return true;
+}
+
+bool MultiminParameters::setRangeMax(const unsigned int   index,
+				     const double       & max) {
+  _data[index].max = max;
+  return true;
+}
+
 void MultiminParameters::setInRange(const std::string & name) {
   setInRange(MultiminParameters::index(name));
 }
 
 void MultiminParameters::setInRange(const unsigned int index) {
-  if (haveRange(index)) {
-    // const double outsideRangeFactor = 1.1;
-    //
+  if (_data[index].min.isSet()) {
     if (_data[index].value < _data[index].min.getRef()) {
-      /* 
-	 ORSA_DEBUG("parameter[%02i] = [%20s] = %Fg is below minimum range value %Fg",
-	 index,
-	 name(index).c_str(),
-	 get(index),
-	 _data[index].min.getRef());
-      */
-      //
-      // _data[index].value = _data[index].min.getRef();
-      //
-      // test: mirror setting... helps with the derivatives...
-      _data[index].value = 2*_data[index].min.getRef() - _data[index].value;
+      _data[index].value = _data[index].min.getRef();
     }
+  }
+  if (_data[index].max.isSet()) {
     if (_data[index].value > _data[index].max.getRef()) {
-      /* 
-	 ORSA_DEBUG("parameter[%02i] = [%20s] = %Fg is above maximum range value %Fg",
-	 index,
-	 name(index).c_str(),
-	 get(index),
-	 _data[index].max.getRef());
-      */
-      //
-      // _data[index].value = _data[index].max.getRef();
-      //
-      // test: mirror setting... helps with the derivatives...
-      _data[index].value = 2*_data[index].max.getRef() - _data[index].value;
+      _data[index].value = _data[index].max.getRef();
     }
-    // _data[index].value *= outsideRangeFactor;
   }
 }
 
@@ -186,28 +184,32 @@ const double & MultiminParameters::get(const unsigned int index) const {
   return _data[index].value;
 }
 
-bool MultiminParameters::haveRange(const std::string & name) const {
-  return haveRange(MultiminParameters::index(name));
-}
+/* 
+   bool MultiminParameters::haveRange(const std::string & name) const {
+   return haveRange(MultiminParameters::index(name));
+   }
+*/
 
-bool MultiminParameters::haveRange(const unsigned int index) const {
-  return (_data[index].min.isSet() && _data[index].max.isSet());
-}
+/* 
+   bool MultiminParameters::haveRange(const unsigned int index) const {
+   return (_data[index].min.isSet() _data[index].max.isSet());
+   }
+*/
 
-const double & MultiminParameters::getRangeMin(const std::string & name) const {
+const orsa::Cache<double> & MultiminParameters::getRangeMin(const std::string & name) const {
   return getRangeMin(MultiminParameters::index(name));
 }
 
-const double & MultiminParameters::getRangeMax(const std::string & name) const {
+const orsa::Cache<double> & MultiminParameters::getRangeMax(const std::string & name) const {
   return getRangeMax(MultiminParameters::index(name));
 }
 
-const double & MultiminParameters::getRangeMin(const unsigned int index) const {
-  return (_data[index].min.getRef());
+const orsa::Cache<double> & MultiminParameters::getRangeMin(const unsigned int index) const {
+  return (_data[index].min);
 }
 
-const double & MultiminParameters::getRangeMax(const unsigned int index) const {
-  return (_data[index].max.getRef());
+const orsa::Cache<double> & MultiminParameters::getRangeMax(const unsigned int index) const {
+  return (_data[index].max);
 }
 
 const double & MultiminParameters::getStep(const std::string & name) const {
@@ -225,7 +227,7 @@ bool MultiminParameters::writeToFile(const std::string & fileName) const {
     return false;
   }
   for (unsigned int k=0; k<size(); ++k) {
-    gmp_fprintf(fp,"%16s %F+22.16e %F+22.16e\n",
+    gmp_fprintf(fp,"%16s %+22.16e %+22.16e\n",
 		name(k).c_str(),
 		get(k),
 		getStep(k));
@@ -260,13 +262,13 @@ bool orsa::operator == (const MultiminParameters & p1,
   if (0) {
     // debug output 
     for (unsigned int k=0; k<p1.size(); ++k) {
-      ORSA_DEBUG("p1[%02i] = [%20s] = %18.8Fg",
+      ORSA_DEBUG("p1[%02i] = [%20s] = %18.8g",
 		 k,
 		 p1.name(k).c_str(),
 		 p1.get(k));
     }
     for (unsigned int k=0; k<p2.size(); ++k) {
-      ORSA_DEBUG("p2[%02i] = [%20s] = %18.8Fg",
+      ORSA_DEBUG("p2[%02i] = [%20s] = %18.8g",
 		 k,
 		 p2.name(k).c_str(),
 		 p2.get(k));
@@ -318,14 +320,14 @@ Multimin::Multimin() : Referenced(true) { }
 Multimin::~Multimin() { }
 
 double Multimin::__fun__(const gsl_vector * parameters,
-			       const orsa::MultiminParameters * par,
-			       const bool verbose) const {
+			 const orsa::MultiminParameters * par,
+			 const bool verbose) const {
   double effectiveFun = fun(par);
   if (parametersOutsideRange(parameters, par)) {
     effectiveFun += 1.0e3 * (1.0 + fabs(effectiveFun));
   }
   if (verbose) {
-    ORSA_DEBUG("effectiveFun: %Fg",effectiveFun);
+    ORSA_DEBUG("effectiveFun: %g",effectiveFun);
   }
   //
   return effectiveFun;
@@ -342,35 +344,6 @@ double Multimin::f_gsl(const gsl_vector * parameters,
   // 'fun' must use its own cache to store all the values
   computeAllFunctionCalls(_par.get(), MODE_F);
   
-  /* 
-     bool outsideRange = false;
-     if (1) {   
-     for (unsigned int k=0; k<_par->size(); ++k) {
-     if (_par->haveRange(k)) {
-     const double xVal = gsl_vector_get(parameters,k);
-     if (xVal < _par->getRangeMin(k)) {
-     outsideRange = true;
-     }
-     if (xVal > _par->getRangeMax(k)) {
-     outsideRange = true;
-     }
-     }
-     }
-     }
-     
-     double effectiveFun;
-     if (outsideRange) {
-     const double funVal = fun(_par.get()).get_d();
-     effectiveFun = funVal + 1.0e3 * (1.0 + ::fabs(funVal));
-     } else {
-     effectiveFun = fun(_par.get()).get_d();
-     }
-     //
-     ORSA_DEBUG("effectiveFun: %f",effectiveFun);
-     //
-     return effectiveFun;
-  */
-
   return __fun__(parameters,_par.get(),false);
 }
 

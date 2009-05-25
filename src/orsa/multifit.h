@@ -53,16 +53,43 @@ namespace orsa {
     bool set(const unsigned int   index,
 	     const double & value);
   public:
+    bool setRange(const std::string  & name,
+		  const double & min,
+		  const double & max);
+    bool setRange(const unsigned int index,
+		  const double & min,
+		  const double & max);
+  public:
+    bool setRangeMin(const std::string & name,
+		     const double      & min);
+    bool setRangeMax(const std::string & name,
+		     const double      & max);
+    bool setRangeMin(const unsigned int   index,
+		     const double       & min);
+    bool setRangeMax(const unsigned int   index,
+		     const double       & max);
+  public:
+    void setInRange(const std::string & name);
+    void setInRange(const unsigned int index);
+  public:
     bool setDelta(const std::string  & name,
-		  const double & value);
+		  const double       & value);
     bool setDelta(const unsigned int   index,
-		  const double & value);
+		  const double       & value);
   public:
     double get(const std::string & name) const;
     double get(const unsigned int index) const;
   public:
     double getDelta(const std::string & name) const;
     double getDelta(const unsigned int index) const;
+  public:
+    // bool haveRange(const std::string & name) const;
+    // bool haveRange(const unsigned int index) const;
+  public:
+    const orsa::Cache<double> & getRangeMin(const std::string & name) const;
+    const orsa::Cache<double> & getRangeMax(const std::string & name) const;
+    const orsa::Cache<double> & getRangeMin(const unsigned int index) const;
+    const orsa::Cache<double> & getRangeMax(const unsigned int index) const;
   public:
     unsigned int size() const {
       return _data.size();
@@ -73,6 +100,8 @@ namespace orsa {
       std::string name;
       double      value;
       double      delta;
+      //
+      orsa::Cache<double> min, max;
     };
   private: 
     typedef std::vector<NVD> dataType;
@@ -201,10 +230,16 @@ namespace orsa {
     //
   protected:
     virtual double fun(const orsa::MultifitParameters *, 
-			     const orsa::MultifitData *,
-			     const unsigned int p, // par index
-			     const int          d, // delta
-			     const unsigned int row) const = 0;
+		       const orsa::MultifitData *,
+		       const unsigned int p, // par index
+		       const int          d, // delta
+		       const unsigned int row) const = 0;
+    
+    double __fun__ (const orsa::MultifitParameters *, 
+		    const orsa::MultifitData *,
+		    const unsigned int p, // par index
+		    const int          d, // delta
+		    const unsigned int row) const;
     
   protected:
     enum computeAllCallsMode { 

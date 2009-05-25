@@ -93,16 +93,76 @@ std::string MultifitParameters::name(const unsigned int index) const {
   return _data[index].name;
 }
 
-bool MultifitParameters::set(const std::string  & name,
-			     const double & value) {
-  _data[MultifitParameters::index(name)].value = value;
-  return true;
+bool MultifitParameters::set(const std::string & name,
+			     const double      & value) {
+  return set(MultifitParameters::index(name),value);
 }
 
 bool MultifitParameters::set(const unsigned int   index,
-			     const double & value) {
+			     const double       & value) {
   _data[index].value = value;
+  setInRange(index);
   return true;
+}
+
+bool MultifitParameters::setRange(const std::string  & name,
+				  const double       & min,
+				  const double       & max) {
+  return setRange(MultifitParameters::index(name),
+		  min,
+		  max); 
+}
+
+bool MultifitParameters::setRange(const unsigned int   index,
+				  const double       & min,
+				  const double       & max) {
+  if (min > max) {
+    ORSA_DEBUG("problems: min > max");
+    return false;
+  }
+  _data[index].min = min;
+  _data[index].max = max;
+  setInRange(index);
+  return true;
+}
+
+bool MultifitParameters::setRangeMin(const std::string & name,
+				     const double      & min) {
+  return setRangeMin(MultifitParameters::index(name),min);
+}
+
+bool MultifitParameters::setRangeMax(const std::string & name,
+				     const double      & max) {
+  return setRangeMax(MultifitParameters::index(name),max);
+}
+
+bool MultifitParameters::setRangeMin(const unsigned int   index,
+				     const double       & min) {
+  _data[index].min = min;
+  return true;
+}
+
+bool MultifitParameters::setRangeMax(const unsigned int   index,
+				     const double       & max) {
+  _data[index].max = max;
+  return true;
+}
+
+void MultifitParameters::setInRange(const std::string & name) {
+  setInRange(MultifitParameters::index(name));
+}
+
+void MultifitParameters::setInRange(const unsigned int index) {
+  if (_data[index].min.isSet()) {
+    if (_data[index].value < _data[index].min.getRef()) {
+      _data[index].value = _data[index].min.getRef();
+    }
+  }
+  if (_data[index].max.isSet()) {
+    if (_data[index].value > _data[index].max.getRef()) {
+      _data[index].value = _data[index].max.getRef();
+    }
+  }
 }
 
 double MultifitParameters::get(const std::string & name) const {
@@ -111,6 +171,31 @@ double MultifitParameters::get(const std::string & name) const {
 
 double MultifitParameters::get(const unsigned int index) const {
   return _data[index].value;
+}
+
+/* bool MultifitParameters::haveRange(const std::string & name) const {
+   return haveRange(MultifitParameters::index(name));
+   }
+   
+   bool MultifitParameters::haveRange(const unsigned int index) const {
+   return (_data[index].min.isSet() || _data[index].max.isSet());
+   }
+*/
+
+const orsa::Cache<double> & MultifitParameters::getRangeMin(const std::string & name) const {
+  return getRangeMin(MultifitParameters::index(name));
+}
+
+const orsa::Cache<double> & MultifitParameters::getRangeMax(const std::string & name) const {
+  return getRangeMax(MultifitParameters::index(name));
+}
+
+const orsa::Cache<double> & MultifitParameters::getRangeMin(const unsigned int index) const {
+  return (_data[index].min);
+}
+
+const orsa::Cache<double> & MultifitParameters::getRangeMax(const unsigned int index) const {
+  return (_data[index].max);
 }
 
 bool MultifitParameters::setDelta(const std::string  & name,
@@ -140,7 +225,7 @@ bool MultifitParameters::writeToFile(const std::string & fileName) const {
     return false;
   }
   for (unsigned int k=0; k<size(); ++k) {
-    gmp_fprintf(fp,"%16s %F+22.16e %F+22.16e\n",
+    gmp_fprintf(fp,"%16s %+22.16e %+22.16e\n",
 		name(k).c_str(),
 		get(k),
 		getDelta(k));
@@ -174,13 +259,13 @@ bool orsa::operator == (const MultifitParameters & p1,
   if (0) {
     // debug output 
     for (unsigned int k=0; k<p1.size(); ++k) {
-      ORSA_DEBUG("p1[%02i] = [%20s] = %18.8Fg",
+      ORSA_DEBUG("p1[%02i] = [%20s] = %18.8g",
 		 k,
 		 p1.name(k).c_str(),
 		 p1.get(k));
     }
     for (unsigned int k=0; k<p2.size(); ++k) {
-      ORSA_DEBUG("p2[%02i] = [%20s] = %18.8Fg",
+      ORSA_DEBUG("p2[%02i] = [%20s] = %18.8g",
 		 k,
 		 p2.name(k).c_str(),
 		 p2.get(k));
@@ -425,6 +510,35 @@ Multifit::Multifit() : Referenced(true) { }
 
 Multifit::~Multifit() { }
 
+double Multifit::__fun__(const orsa::MultifitParameters * par, 
+			 const orsa::MultifitData       * data,
+			 const unsigned int p, // par index
+			 const int          d, // delta
+			 const unsigned int row) const {
+  
+  double effectiveFun = fun(par,data,p,d,row);
+  
+  bool outsideRange=false;
+  //
+  if (par->getRangeMin(p).isSet()) {
+    if (par->get(p) < par->getRangeMin(p).getRef()) {
+      outsideRange=true;
+    }    
+  }
+  // 
+  if (par->getRangeMax(p).isSet()) {
+    if (par->get(p) > par->getRangeMax(p).getRef()) {
+        outsideRange=true;
+    }    
+  }
+  // 
+  if (outsideRange) {
+    effectiveFun += 1.0e3 * (1.0 + fabs(effectiveFun));
+  }
+  
+  return effectiveFun;
+}
+
 int Multifit::f_gsl (const gsl_vector * parameters, 
 		     void * dataPoints, 
 		     gsl_vector * f) {
@@ -433,6 +547,7 @@ int Multifit::f_gsl (const gsl_vector * parameters,
   
   for(unsigned int k=0; k<_par->size(); ++k) {
     _par->set(k,gsl_vector_get(parameters,k));
+    _par->setInRange(k);
   }
   
   const orsa::MultifitData * data = (orsa::MultifitData *) dataPoints;
@@ -442,15 +557,8 @@ int Multifit::f_gsl (const gsl_vector * parameters,
   computeAllFunctionCalls(_par.get(), data, MODE_F);
   
   for (unsigned int j=0; j<data->size(); ++j) {
-    // gsl_vector_set (f, j, double((fun(_par.get(),data,j) - data->getF(j))/(data->getSigma(j))).get_d());
-    // const double fj = (fun(_par.get(),data,j) - data->getF(j))/(data->getSigma(j));
-    /* ORSA_DEBUG("orbit: %f   obs: %f",
-       orsa::radToDeg()*fun(_par.get(),data,0,0,j),
-       orsa::radToDeg()*data->getF(j));
-    */
-    //
-    const double fj = (fun(_par.get(),data,0,0,j) - data->getF(j))/(data->getSigma(j));
-    // ORSA_DEBUG("f[%02i] = %10.3f", j, fj);
+    const double fj = (__fun__(_par.get(),data,0,0,j) - data->getF(j))/(data->getSigma(j));
+    ORSA_DEBUG("f[%02i] = %10.3f", j, fj);
     gsl_vector_set (f, j, fj);
   }
   
@@ -483,6 +591,7 @@ int Multifit::df_gsl (const gsl_vector * v,
   
   for(unsigned int k=0; k<_par->size(); ++k) {
     _par->set(k,gsl_vector_get(v,k));
+    _par->setInRange(k);
   }
   
   const orsa::MultifitData * data = (orsa::MultifitData *) dataPoints;
@@ -493,8 +602,8 @@ int Multifit::df_gsl (const gsl_vector * v,
   
   for (unsigned int k=0; k<_par->size(); ++k) {
     for (unsigned int j=0; j<data->size(); ++j) {
-      gsl_matrix_set (J, j, k, _diff_two_points_(fun(_par.get(),data,k,-1,j),
-						 fun(_par.get(),data,k,+1,j)) / 
+      gsl_matrix_set (J, j, k, _diff_two_points_(__fun__(_par.get(),data,k,-1,j),
+						 __fun__(_par.get(),data,k,+1,j)) / 
 		      (data->getSigma(j) * _par->getDelta(k)));  
     }
   }
@@ -511,6 +620,7 @@ int Multifit::fdf_gsl (const gsl_vector * v,
   
   for(unsigned int k=0; k<_par->size(); ++k) {
     _par->set(k,gsl_vector_get(v,k));
+    _par->setInRange(k);
   }
   
   const orsa::MultifitData * data = (orsa::MultifitData *) dataPoints;
@@ -574,9 +684,6 @@ bool Multifit::run() {
   
   gsl_multifit_fdfsolver_set(s,&mf,x);
   
-  // speedup tests
-  double old_nx[_par->size()];
-  
   unsigned int iter = 0;
   const unsigned int local_max_iter = 100000;
   int it_status;
@@ -605,109 +712,6 @@ bool Multifit::run() {
     ORSA_DEBUG("convergence status = %s", gsl_strerror(cv_status));
     
     ORSA_DEBUG("iter: %i",iter);
-    
-    if (0 && (iter > 0)) {
-      
-      // speedup tests
-      
-      // nx = normalized dx
-      double dl = 0;
-      for (unsigned int k=0; k<_par->size(); ++k) {
-	double dk = gsl_vector_get(s->dx,k);
-	dl += dk*dk;
-      }
-      const double l = sqrt(dl);
-      double nx[_par->size()];   
-      for (unsigned int k=0; k<_par->size(); ++k) {
-	nx[k] = (gsl_vector_get(s->dx,k)/l);
-      }
-      
-      // scalar product
-      double sp = 0;
-      for (unsigned int k=0; k<_par->size(); ++k) {
-	sp += old_nx[k]*nx[k];
-      }
-      
-      ORSA_DEBUG("sp: %f",sp);
-
-      if (sp > 0.99) {
-	
-	gsl_vector * local_f  = gsl_vector_alloc(_data->size());
-	
-	gsl_vector * local_dx = gsl_vector_alloc(_par->size());
-	
-	double dx_factor = 1;
-	
-	gsl_vector * local_x = gsl_vector_alloc(_par->size());
-	
-	gsl_vector * local_x_old = gsl_vector_alloc(_par->size());
-	
-	double chi, old_chi;
-	
-	chi = gsl_blas_dnrm2(s->f);
-	
-	for (unsigned int k=0; k<_par->size(); ++k) {
-	  gsl_vector_set(local_x,k,gsl_vector_get(s->x,k));
-	}
-	
-	do {
-	  
-	  old_chi = chi;
-	  
-	  for (unsigned int k=0; k<_par->size(); ++k) {
-	    gsl_vector_set(local_x_old,k,gsl_vector_get(local_x,k));
-	  }
-	  
-	  dx_factor *= 2;
-	  
-	  ORSA_DEBUG("dx_factor: %f",dx_factor);
-	  
-	  for (unsigned int k=0; k<_par->size(); ++k) {
-	    gsl_vector_set(local_dx,k,dx_factor*gsl_vector_get(s->dx,k));
-	  }
-	  
-	  for (unsigned int k=0; k<_par->size(); ++k) {
-	    gsl_vector_set(local_x,k,gsl_vector_get(s->x,k)+gsl_vector_get(local_dx,k));
-	  }
-	  
-	  f_gsl(local_x,_data.get(),local_f);
-	  
-	  chi = gsl_blas_dnrm2(local_f);
-	  
-	  ORSA_DEBUG("old_chi: %f   new_chi: %f",old_chi,chi);
-	  
-	} while (chi < old_chi);
-	
-	gsl_multifit_fdfsolver_set(s,&mf,local_x_old);
-	
-	++iter;
-	
-	it_status = gsl_multifit_fdfsolver_iterate(s);
-	//
-	ORSA_DEBUG("itaration status = %s",gsl_strerror(it_status));
-	
-	cv_status = gsl_multifit_test_delta(s->dx, s->x, 1.0e-9, 1.0e-9);
-	
-	ORSA_DEBUG("convergence status = %s", gsl_strerror(cv_status));
-	
-	ORSA_DEBUG("iter: %i",iter);
-	
-	ORSA_DEBUG("CALL GSL_FREE!!!");
-      }
-      
-      // update old_nx
-      for (unsigned int k=0; k<_par->size(); ++k) {
-	old_nx[k] = nx[k];
-      }
-      
-      gsl_vector * local_dx = gsl_vector_alloc(_par->size());
-      for (unsigned int k=0; k<_par->size(); ++k) {
-	double dk = gsl_vector_get(s->dx,k);
-	dl += dk*dk;
-      }
-      
-      gsl_vector_free(local_dx);
-    }
     
     if (0) {
       // debug only
@@ -752,19 +756,24 @@ bool Multifit::run() {
       gsl_matrix * covar = gsl_matrix_alloc(_par->size(),_par->size());
       gsl_multifit_covar(s->J, 0.0, covar);
       
-#define FIT(i) gsl_vector_get(s->x, i)
-#define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
+      // #define FIT(i) gsl_vector_get(s->x, i)
+      // #define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
       
       ORSA_DEBUG("appending to file %s",logFile.getRef().c_str());
+      
+      for (unsigned int k=0; k<_par->size(); ++k) {
+	_par->set(k, gsl_vector_get(s->x,k));
+	_par->setInRange(k);
+      }
       
       for (unsigned int k=0; k<_par->size(); ++k) {
 	gmp_fprintf(fp,"par[%02i] = [%32s] = %18.8g +/- %18.8g (%g * %g)\n",
 		    k,
 		    _par->name(k).c_str(),
-		    FIT(k),
-		    c*ERR(k),
+		    _par->get(k),
+		    c*sqrt(gsl_matrix_get(covar,k,k)),
 		    c,
-		    ERR(k));
+		    sqrt(gsl_matrix_get(covar,k,k)));
       }
       
       {
@@ -798,6 +807,7 @@ bool Multifit::run() {
     
     for (unsigned int k=0; k<_par->size(); ++k) {
       _par->set(k, gsl_vector_get(s->x,k));
+      _par->setInRange(k);
     }
     
     /* 
@@ -832,6 +842,7 @@ bool Multifit::run() {
   
   for (unsigned int k=0; k<_par->size(); ++k) {
     _par->set(k, gsl_vector_get(s->x,k));
+    _par->setInRange(k);
   }
   
   // covariance matrix here...
