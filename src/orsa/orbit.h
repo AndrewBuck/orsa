@@ -173,6 +173,24 @@ namespace orsa {
     // for RMS residuals handling, another class can be used....
   };
   
+  class EquinoctialOrbit {
+  public:
+    /* p = a*(1-e^2)
+     * f = e*cos(node+peri)
+     * g = e*sin(node+peri)
+     * h = tan(i/2)*cos(node)
+     * k = tan(i/2)*sin(node)
+     * L = node+peri+M
+     */
+    double p,f,g,h,k,L;
+  public:
+    double mu;
+  public:
+    void set(const orsa::Orbit & orbit);
+  public:
+    void get(orsa::Orbit & orbit) const;
+  };
+  
 } // namespace orsa
 
 #endif // _ORSA_ORBIT_

@@ -1146,3 +1146,28 @@ double OrbitProxy::delta(const BOT & bot1,
   // ORSA_DEBUG("delta: %f",d());
   return d;
 }
+
+// EquinoctialOrbit
+
+void EquinoctialOrbit::set(const orsa::Orbit & orbit) {
+  p = orbit.a*(1-orbit.e*orbit.e);
+  f = orbit.e*cos(orbit.omega_node+orbit.omega_pericenter);
+  g = orbit.e*sin(orbit.omega_node+orbit.omega_pericenter);
+  h = tan(orbit.i/2)*cos(orbit.omega_node);
+  k = tan(orbit.i/2)*sin(orbit.omega_node);
+  L = orbit.omega_node+orbit.omega_pericenter+orbit.M;
+  //
+  mu = orbit.mu;
+}
+
+void EquinoctialOrbit::get(orsa::Orbit & orbit) const {
+  // should check if e==1 -> "a" is undetermined
+  orbit.e = sqrt(f*f+g*g);
+  orbit.a = p/(1-orbit.e*orbit.e);
+  orbit.i = 2*atan(sqrt(h*h+k*k));
+  orbit.omega_node = atan2(k,h);
+  orbit.omega_pericenter = atan2(g,f)-orbit.omega_node;
+  orbit.M = L-orbit.omega_node-orbit.omega_pericenter;
+  //
+  orbit.mu = mu;
+}
