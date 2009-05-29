@@ -133,6 +133,10 @@ namespace orsa {
   // double int_pow(const double & x, const mpz_class & p);
   double int_pow(const double & x, const int & p);
   
+  // square and cube
+  inline double square(const double & x) { return (x*x); }
+  inline double cube(const double & x) { return (x*x*x); }
+  
   //! x^y
   // double pow(const double & x, const double & y);
   
