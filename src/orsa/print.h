@@ -7,6 +7,7 @@
 #include <orsa/orbit.h>
 #include <orsa/quaternion.h>
 
+#include <orsaSolarSystem/data.h>
 #include <orsaSolarSystem/datetime.h>
 
 namespace orsa {
@@ -78,8 +79,26 @@ namespace orsa {
 	       y_UTC,m_UTC,d_UTC,H_UTC,M_UTC,S_UTC,ms_UTC);
   }
   
-  inline void print(const orsa::Orbit &) {
-    
+  inline void print(const orsa::Orbit & o) {
+    const double G    = orsa::Unit::G();
+    const double MSun = orsaSolarSystem::Data::MSun();
+    ORSA_DEBUG("orbit:\n"
+	       "   a: %g [AU] = %g [km]\n"
+	       "   e: %g\n"
+	       "   i: %g [deg]\n"
+	       "node: %g [deg]\n"
+	       "peri: %g [deg]\n"
+	       "   M: %g [deg]\n"
+	       "mu/G: %g [MSun] = %g [kg]",
+	       orsa::FromUnits(o.a,orsa::Unit::AU,-1),
+	       orsa::FromUnits(o.a,orsa::Unit::KM,-1),
+	       o.e,
+	       orsa::radToDeg()*o.i,
+	       orsa::radToDeg()*o.omega_node,
+	       orsa::radToDeg()*o.omega_pericenter,
+	       orsa::radToDeg()*o.M,
+	       o.mu/G/MSun,
+	       orsa::FromUnits(o.mu/G,orsa::Unit::KG,-1));
   }
   
 } // namespace orsa
