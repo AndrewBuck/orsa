@@ -21,12 +21,13 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
   
   doAbort = false;
   
-  ORSA_DEBUG("CALL start: %f [day]",
-	     FromUnits(start.get_d(),Unit::DAY,-1));
-  orsa::print(start);
-  ORSA_DEBUG("CALL stop:  %f [day]",
-	     FromUnits(stop.get_d(),Unit::DAY,-1));
-  orsa::print(stop);
+  /* ORSA_DEBUG("CALL start: %f [day]",
+     FromUnits(start.get_d(),Unit::DAY,-1));
+     orsa::print(start);
+     ORSA_DEBUG("CALL stop:  %f [day]",
+     FromUnits(stop.get_d(),Unit::DAY,-1));
+     orsa::print(stop);
+  */
   
   // always start <= stop
   // but integration direction may not be from start to stop.... 
