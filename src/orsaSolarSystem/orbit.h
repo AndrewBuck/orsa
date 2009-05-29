@@ -30,6 +30,24 @@ namespace orsaSolarSystem {
     orsa::Cache<orsa::Time> epoch;
   };
   
+  
+  // convert uncertainties from Equinoctial variables to regular Orbit variables
+  // uncertainty factor (due to non-unitary chi-squared) not included
+  void ConvertEquinoctialUncertainties(double & sigma_a,
+				       double & sigma_e,
+				       double & sigma_i,
+				       double & sigma_omega_node,
+				       double & sigma_omega_pericenter,
+				       double & sigma_M,
+				       const orsa::EquinoctialOrbit & equinoctialOrbit,
+				       const gsl_matrix * equinoctialCovariance,
+				       const int index_p,
+				       const int index_f,
+				       const int index_g,
+				       const int index_h,
+				       const int index_k,
+				       const int index_L);
+  
   //! Residuals relative to orbit not integrated, good for times close to orbit epoch
   void ComputeResidual(std::vector<orsaSolarSystem::Residual> & residual,
 		       const orsaSolarSystem::OrbitWithEpoch & orbit,
@@ -40,6 +58,9 @@ namespace orsaSolarSystem {
   
   //! A class for Orbit Differential Corrections
   class OrbitMultifit : public orsa::Multifit {
+    
+#warning make sure Orbit.mu is always correctly set...
+    
   public:
     OrbitMultifit() :
       orsa::Multifit(),
@@ -323,18 +344,31 @@ namespace orsaSolarSystem {
 	  
 	}
 	
+	orsa::EquinoctialOrbit equinoctialOrbit;
+	//
+	equinoctialOrbit.p = par->get("equinoctialOrbit_p"); 
+	equinoctialOrbit.f = par->get("equinoctialOrbit_f"); 
+	equinoctialOrbit.g = par->get("equinoctialOrbit_g"); 
+	equinoctialOrbit.h = par->get("equinoctialOrbit_h"); 
+	equinoctialOrbit.k = par->get("equinoctialOrbit_k"); 
+	equinoctialOrbit.L = par->get("equinoctialOrbit_L"); 
+	//
+       	equinoctialOrbit.mu = mSun*orsa::Unit::G();
+	
 	orsaSolarSystem::OrbitWithEpoch orbit;
 	//
 	orbit.epoch = orbitEpoch.getRef();
 	//
-	orbit.mu = mSun*orsa::Unit::G();
+	/* orbit.mu = mSun*orsa::Unit::G();
+	   orbit.a = par->get("orbit_a");
+	   orbit.e = par->get("orbit_e");
+	   orbit.i = par->get("orbit_i");
+	   orbit.omega_node       = par->get("orbit_omega_node");
+	   orbit.omega_pericenter = par->get("orbit_omega_pericenter");
+	   orbit.M                = par->get("orbit_M");
+	*/
 	//
-	orbit.a = par->get("orbit_a");
-	orbit.e = par->get("orbit_e");
-	orbit.i = par->get("orbit_i");
-	orbit.omega_node       = par->get("orbit_omega_node");
-	orbit.omega_pericenter = par->get("orbit_omega_pericenter");
-	orbit.M                = par->get("orbit_M");
+	equinoctialOrbit.get(orbit);
 	
 	// ORSA_DEBUG("orbit_a: %f [AU]",orsa::FromUnits(par->get("orbit_a"),orsa::Unit::AU,-1));
 	
@@ -464,17 +498,31 @@ namespace orsaSolarSystem {
 	  //
 	  bg->addBody(sun.get());
 	}
-      
+	
+	orsa::EquinoctialOrbit equinoctialOrbit;
+	//
+	equinoctialOrbit.p = par->get("equinoctialOrbit_p"); 
+	equinoctialOrbit.f = par->get("equinoctialOrbit_f"); 
+	equinoctialOrbit.g = par->get("equinoctialOrbit_g"); 
+	equinoctialOrbit.h = par->get("equinoctialOrbit_h"); 
+	equinoctialOrbit.k = par->get("equinoctialOrbit_k"); 
+	equinoctialOrbit.L = par->get("equinoctialOrbit_L"); 
+	//
+	// mu will be set later...
+	
 	orsaSolarSystem::OrbitWithEpoch orbit;
 	//
 	orbit.epoch = orbitEpoch.getRef();
 	//
-	orbit.a = par->get("orbit_a");
-	orbit.e = par->get("orbit_e");
-	orbit.i = par->get("orbit_i");
-	orbit.omega_node       = par->get("orbit_omega_node");
-	orbit.omega_pericenter = par->get("orbit_omega_pericenter");
-	orbit.M                = par->get("orbit_M");
+	/* orbit.a = par->get("orbit_a");
+	   orbit.e = par->get("orbit_e");
+	   orbit.i = par->get("orbit_i");
+	   orbit.omega_node       = par->get("orbit_omega_node");
+	   orbit.omega_pericenter = par->get("orbit_omega_pericenter");
+	   orbit.M                = par->get("orbit_M");
+	*/
+	//
+	equinoctialOrbit.get(orbit);
 	
 	// ORSA_DEBUG("orbit_a: %f [AU]",orsa::FromUnits(par->get("orbit_a"),orsa::Unit::AU,-1));
 	
