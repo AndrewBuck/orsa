@@ -753,7 +753,16 @@ int main() {
     
   }
 
-  if (0 && boinc_is_standalone()) {
+  if (1 && boinc_is_standalone()) {
+    
+    // for the moid
+    orsa::Orbit earthOrbit;
+    earthOrbit.mu = orsaSolarSystem::Data::GMSun();
+    earthOrbit.a  = FromUnits(1,orsa::Unit::AU);
+    earthOrbit.e  = 0.017;
+    earthOrbit.i  = 0.001;
+    earthOrbit.omega_node = earthOrbit.omega_pericenter = earthOrbit.M = 0.0;
+    
     // real NEOs discovery history
     char line[1024];
     NEOList::const_iterator neo_it = realNEO.begin();
@@ -762,14 +771,37 @@ int main() {
       if (realNEO) {
 	const RealNEO::detectionLog & log = realNEO->getLog();
 	RealNEO::detectionLog::const_iterator log_it = log.begin();
+	
 	while (log_it != log.end()) {
 	  if ((*neo_it)->detectionProbabilityFromLog((*log_it).first) > detectionProbabilityThreshold) {
-	    gmp_snprintf(line,1024,"%Zi %f %10i %10i %11.9f %s"
+	    
+	    // moid
+	    double moid, M1, M2;
+	    const bool have_moid = orsa::MOID(moid, 
+					      M1,
+					      M2,
+					      earthOrbit,
+					      realNEO->orbit,
+					      realNEO->randomSeed,
+					      16,
+					      1e-6); 
+	    
+	    if (!have_moid) {
+	      ORSA_DEBUG("problems...");
+	      moid = orsa::FromUnits(1,orsa::Unit::AU);
+	    }
+	    
+	    gmp_snprintf(line,1024,"%Zi %f %10i %10i %8.3f %12.9f %12.10f %12.8f %12.9f %11.9f %s"
 			 MODEOL,
 			 (*log_it).first.getMuSec().get_mpz_t(),
 			 orsaSolarSystem::timeToJulian((*log_it).first),
 			 realNEO->randomSeed,
 			 realNEO->id,
+			 realNEO->getH(t,detectionProbabilityThreshold),
+			 orsa::FromUnits(realNEO->orbit.a,orsa::Unit::AU,-1),
+			 realNEO->orbit.e,
+			 orsa::radToDeg()*realNEO->orbit.i,
+			 orsa::FromUnits(moid,orsa::Unit::AU,-1),
 			 (*neo_it)->detectionProbabilityFromLog((*log_it).first),
 			 (*log_it).second->telescopeName.getRef().c_str());
 	    std::cout << line;
@@ -778,6 +810,7 @@ int main() {
 	  
 	  ++log_it;
 	}
+	
       }
       ++neo_it;
     }
@@ -820,7 +853,7 @@ int main() {
 	     dec,
 	     (sunPosition-obsPosition).normalized());
     const double sun_ra  = ra;
-    const double sun_dec = dec;
+    // const double sun_dec = dec;
     
     // used for both H and V
     const unsigned int fp_mag_min = 15;
@@ -1192,7 +1225,7 @@ int main() {
       
       double sunElevation = orsa::halfpi() - acos(obsNormal*((sunPosition-obsPosition).normalized()));
       
-      double moonElevation = orsa::halfpi() - acos(obsNormal*((moonPosition-obsPosition).normalized()));
+      // double moonElevation = orsa::halfpi() - acos(obsNormal*((moonPosition-obsPosition).normalized()));
       
       const double moonPhaseAngle = acos(((obsPosition-moonPosition).normalized())*((sunPosition-moonPosition).normalized()));
       
