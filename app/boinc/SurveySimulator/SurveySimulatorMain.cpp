@@ -769,11 +769,33 @@ int main() {
     while (neo_it != realNEO.end()) {
       RealNEO * realNEO = dynamic_cast<RealNEO *> ((*neo_it).get());
       if (realNEO) {
-	const RealNEO::detectionLog & log = realNEO->getLog();
-	RealNEO::detectionLog::const_iterator log_it = log.begin();
 	
-	while (log_it != log.end()) {
-	  if ((*neo_it)->detectionProbabilityFromLog((*log_it).first) > detectionProbabilityThreshold) {
+	// ALL NEOs are printer, either at the discovery time, or at tStop
+	
+	const RealNEO::detectionLog & log = realNEO->getLog();
+	
+	RealNEO::detectionLog::const_iterator log_it = log.begin();
+	//
+	while (1) {
+	  
+	  orsa::Time  logTime;
+	  std::string telescopeName;
+	  bool doPrint = false;
+       	  //
+	  if (log_it != log.end()) {
+	    logTime       = (*log_it).first;
+	    telescopeName = (*log_it).second->telescopeName.getRef();
+	    if (realNEO->detectionProbabilityFromLog(logTime) > detectionProbabilityThreshold) {
+	      doPrint = true;
+	    }
+	  } else {
+	    // no detection in log, print at final time
+	    logTime       = tStop;
+	    telescopeName = "";
+	    doPrint       = true;
+	  }
+	  
+	  if (doPrint) {
 	    
 	    // moid
 	    double moid, M1, M2;
@@ -793,8 +815,8 @@ int main() {
 	    
 	    gmp_snprintf(line,1024,"%Zi %f %10i %10i %8.3f %12.9f %12.10f %12.8f %12.9f %11.9f %s"
 			 MODEOL,
-			 (*log_it).first.getMuSec().get_mpz_t(),
-			 orsaSolarSystem::timeToJulian((*log_it).first),
+			 logTime.getMuSec().get_mpz_t(),
+			 orsaSolarSystem::timeToJulian(logTime),
 			 realNEO->randomSeed,
 			 realNEO->id,
 			 realNEO->getH(t,detectionProbabilityThreshold),
@@ -802,9 +824,10 @@ int main() {
 			 realNEO->orbit.e,
 			 orsa::radToDeg()*realNEO->orbit.i,
 			 orsa::FromUnits(moid,orsa::Unit::AU,-1),
-			 (*neo_it)->detectionProbabilityFromLog((*log_it).first),
-			 (*log_it).second->telescopeName.getRef().c_str());
+			 realNEO->detectionProbabilityFromLog(logTime),
+			 telescopeName.c_str());
 	    std::cout << line;
+	    
 	    break;
 	  }
 	  
