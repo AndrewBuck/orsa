@@ -410,7 +410,7 @@ void MainThread::run() {
     
     // alternative to Multipole: PaulMoment
     {
-      const unsigned int PM_order = 2;
+      const unsigned int PM_order = 4;
       
       osg::ref_ptr<PaulMoment> pm = new PaulMoment(PM_order);
       
@@ -444,10 +444,32 @@ void MainThread::run() {
 	*/
       }
       
-      // read from file... code to come...
+      // mass distribution
+      {
+	const double totalMass = vestaMass.getRef();
+	// UPDATE this when changing shape...
+	const double volume = FromUnits(7.9e7,Unit::KM,3); 
+	const double meanDensity = totalMass/volume;
+	ComboMassDistribution::MassDistributionType mdt = 
+	  vestaMassDistribution.getRef();
+	if (mdt == ComboMassDistribution::mdt_core) {
+	 
+	  const double   coreDensity = FromUnits(FromUnits(6,Unit::GRAM),Unit::CM,-3);
+	  const double mantleDensity = FromUnits(FromUnits(3,Unit::GRAM),Unit::CM,-3);
+	  //
+	  const double    coreRadius = cbrt((3.0/(4.0*pi()))*volume*(meanDensity-mantleDensity)/(coreDensity-mantleDensity));
+	  //
+	  ORSA_DEBUG("core radius: %f km",FromUnits(coreRadius,Unit::KM,-1));
+	  //
+	  pm->setMassDistribution(new SphericalCorePlusMantleMassDistribution(coreRadius,
+									      coreDensity,
+									      mantleDensity));
+	  
+	} /* else... default = uniform... */
+	
+      }
       
-      
-      pm->computeUsingShape(2000,
+      pm->computeUsingShape(100000,
 			    93881);
       pm->setCenterOfMass(orsa::Vector(0,0,0));
       {
@@ -476,6 +498,13 @@ void MainThread::run() {
 	    }
 	  }
 	}
+      }
+      
+      // print out...
+      {
+	const double R0 = orsa::FromUnits(300,orsa::Unit::KM);
+	orsa::convert(pm.get(),
+		      R0);
       }
       
       vesta->setPaulMoment(pm.get());
@@ -1033,29 +1062,38 @@ void MainThread::run() {
 		    "# \n"
 		    "# Col Units Description\n"
 		    "# ---------------------\n"
-		    "#  1  [day] Julian Date\n"
-		    "#  2    [s] Simulation time\n"
-		    "#  3   [km] Dawn orbit: semi-major axis\n"
-		    "#  4  [---] Dawn orbit: eccentricity\n"
-		    "#  5  [deg] Dawn orbit: inclination relative to Vesta's equatorial plane\n"
-		    "#  6  [deg] Phase angle relative to Dawn's orbital plane\n"
-		    "#  7  [deg] Phase angle relative to Dawn's position\n"
-		    "#  8  [deg] Dawn's latitude relative to Vesta\n"
-		    "#  9  [deg] Dawn's longitude relative to Vesta\n"
-		    "# 10   [km] Center-to-center distance\n"
-		    "# 11   [km] X component of Dawn position relative to Vesta, ecliptic frame\n"
-		    "# 12   [km] Y component of Dawn position relative to Vesta, ecliptic frame\n"
-		    "# 13   [km] Z component of Dawn position relative to Vesta, ecliptic frame\n"
+		    "#  1   [day] Julian Date\n"
+		    "#  2     [s] Simulation time\n"
+		    "#  3    [km] Dawn orbit: semi-major axis\n"
+		    "#  4   [---] Dawn orbit: eccentricity\n"
+		    "#  5   [deg] Dawn orbit: inclination relative to Vesta's equatorial plane\n"
+		    "#  6   [deg] Dawn orbit: longitude of the ascending node\n"
+		    "#  7   [deg] Dawn orbit: argument of the pericenter\n"
+		    "#  8   [deg] Dawn orbit: mean anomaly\n"
+		    "#  9   [deg] Phase angle relative to Dawn's orbital plane\n"
+		    "# 10   [deg] Phase angle relative to Dawn's position\n"
+		    "# 11   [deg] Dawn's latitude relative to Vesta\n"
+		    "# 12   [deg] Dawn's longitude relative to Vesta\n"
+		    "# 13    [km] Center-to-center distance\n"
+		    "# 14    [km] Vesta shape profile\n"
+		    "# 15 [deg/h] Derivative of the longitude of the ascending node of Dawn orbit\n"
+		    "# 16    [km] X component of Dawn position relative to Vesta, ecliptic frame\n"
+		    "# 17    [km] Y component of Dawn position relative to Vesta, ecliptic frame\n"
+		    "# 18    [km] Z component of Dawn position relative to Vesta, ecliptic frame\n"
 		    "# \n"
 		    );
       }
+      
+      osg::ref_ptr<const orsa::Shape> vesta_shape = vesta->getShape();
       
       Vector rDAWN,  vDAWN;
       Vector rVesta, vVesta;
       Vector rSun,   vSun;
       //
-      Vector dr, dv, dru, dvu, uPole;
-      Orbit  orbit;
+      // Vector dr, dv, dru, dvu, uPole;
+      Orbit  orbit_rot, orbit_norot;
+      orsa::Cache<double> precNode;
+      double nodeDot;
       Time t = orbitEpoch.getRef();
       while (t <= (orbitEpoch.getRef()+runDuration.getRef())) {
 
@@ -1071,56 +1109,84 @@ void MainThread::run() {
 				      vSun,
 				      sun.get(),
 				      t)) {
-	  dr  = rDAWN-rVesta;
-	  dv  = vDAWN-vVesta;
+	  const orsa::Vector dr  = rDAWN-rVesta;
+	  const orsa::Vector dv  = vDAWN-vVesta;
 	  //
 	  const orsa::Vector dr_eclip = dr;
 	  //
-	  dru = dr.normalized();
-	  dvu = dv.normalized();
+	  const orsa::Vector dru = dr.normalized();
+	  const orsa::Vector dvu = dv.normalized();
 	  // pole, in global coordinates, unitary vector
-	  uPole = externalProduct(dru,dvu).normalized();
+	  const orsa::Vector uPole = externalProduct(dru,dvu).normalized();
 	  //
 	  const double orbitPhaseAngle = fabs(halfpi() - acos(uPole*(rSun-rVesta).normalized()));
 	  const double realPhaseAngle  = acos(dru*(rSun-rVesta).normalized());
-
-
-	  {
-	    // osg::ref_ptr<orsa::Attitude> vesta_attitude = new BodyAttitude(vesta.get(),bg.get());
-	    
-	    // if (vesta_attitude.get()) {
-	    // const Matrix g2l = vesta_attitude->globalToLocal(t);
-	    const orsa::Matrix g2l = orsa::globalToLocal(vesta.get(),bg.get(),t);
-	    dr  =  g2l * dr;
-	    dv  =  g2l * dv;
-	    dru = (g2l * dru).normalized();
-	    dvu = (g2l * dvu).normalized();
-	  }
+	  
+	  // fixed time, so no spin rotation is included (fixed body-equatorial frame)
+	  const orsa::Matrix g2l_norot = orsa::globalToLocal(vesta.get(),bg.get(),orbitEpoch.getRef());
+	  const orsa::Vector dr_norot  =  g2l_norot * dr;
+	  const orsa::Vector dv_norot  =  g2l_norot * dv;
+	  const orsa::Vector dru_norot = (g2l_norot * dru).normalized();
+	  const orsa::Vector dvu_norot = (g2l_norot * dvu).normalized();
+	  
+	  const orsa::Matrix g2l_rot = orsa::globalToLocal(vesta.get(),bg.get(),t);
+	  const orsa::Vector dr_rot  =  g2l_rot * dr;
+	  const orsa::Vector dv_rot  =  g2l_rot * dv;
+	  const orsa::Vector dru_rot = (g2l_rot * dru).normalized();
+	  const orsa::Vector dvu_rot = (g2l_rot * dvu).normalized();
 	  
 	  double vestaMass_t;
 	  if (!bg->getInterpolatedMass(vestaMass_t,vesta.get(),t)) {
 	    ORSA_DEBUG("problems...");
 	  } 
 	  
+	  orsa::Vector intersectionPoint;
+	  orsa::Vector normal;
+	  if (!vesta_shape->rayIntersection(intersectionPoint,
+					    normal,
+					    dr_rot,
+					    (-dr_rot).normalized(),
+					    false)) {
+	    ORSA_DEBUG("problems...");
+	  } 
+	  
 	  // ORSA_DEBUG("remember: globalToLocal!");
-	  orbit.compute(dr,
-			dv,
-			orsa::Unit::G() * vestaMass_t);
-	  const double latitude  = halfpi() - acos(dru.getZ());
-	  const double longitude = fmod(twopi() + atan2(dru.getY(),dru.getX()),twopi());
+	  orbit_norot.compute(dr_norot,
+			      dv_norot,
+			      orsa::Unit::G() * vestaMass_t);
+	  orbit_rot.compute(dr_rot,
+			    dv_rot,
+			    orsa::Unit::G() * vestaMass_t);
+	  const double latitude  = halfpi() - acos(dru_rot.getZ());
+	  const double longitude = fmod(twopi() + atan2(dru_rot.getY(),dru_rot.getX()),twopi());
+	  //
+	  if (precNode.isSet()) {
+	    nodeDot = (orbit_norot.omega_node-precNode.getRef())/samplingPeriod.get_d();
+	  } else {
+	    nodeDot = 0.0;
+	  }
+	  //
+	  precNode = orbit_norot.omega_node;
+	  //
 	  // if (realPhaseAngle < halfpi()) {
 	  gmp_fprintf(fp,
-		      "%15.5f %14.3f %12.3f %10.6f %10.6f %10.6f %10.6f %+10.6f %10.6f %12.3f %12.3f %12.3f %12.3f\n",
+		      /*    1      2      3     4      5      6      7      8      9     10     11     12     13     14      15     16     17     18 */
+		      "%15.5f %14.3f %12.6f %8.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %12.6f %12.6f %+12.9e %12.6f %12.6f %12.6f\n",
 		      timeToJulian(t),
 		      FromUnits((t-orbitEpoch.getRef()).get_d(),Unit::SECOND,-1),
-		      FromUnits(orbit.a,Unit::KM,-1),
-		      orbit.e,
-		      radToDeg()*orbit.i,
+		      FromUnits(orbit_norot.a,Unit::KM,-1),
+		      orbit_norot.e,
+		      radToDeg()*orbit_norot.i,
+		      radToDeg()*orbit_norot.omega_node,
+		      radToDeg()*orbit_norot.omega_pericenter,  
+		      radToDeg()*orbit_norot.M,
 		      radToDeg()*orbitPhaseAngle,
 		      radToDeg()*realPhaseAngle,
 		      radToDeg()*latitude,
 		      radToDeg()*longitude,
 		      FromUnits(dr.length(),Unit::KM,-1),
+		      FromUnits(intersectionPoint.length(),Unit::KM,-1),
+		      FromUnits(radToDeg()*nodeDot,orsa::Unit::HOUR),
 		      FromUnits(dr_eclip.getX(),Unit::KM,-1),
 		      FromUnits(dr_eclip.getY(),Unit::KM,-1),
 		      FromUnits(dr_eclip.getZ(),Unit::KM,-1));
