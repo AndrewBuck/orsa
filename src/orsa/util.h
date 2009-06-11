@@ -198,9 +198,9 @@ namespace orsa {
   // 
   class RNG : public osg::Referenced  {
   public:
-    RNG(int random_seed) : 
+    RNG(int randomSeed_in) : 
       osg::Referenced(true),
-      randomSeed(random_seed) {
+      randomSeed(randomSeed_in) {
       commonInit();
     }
   protected:
