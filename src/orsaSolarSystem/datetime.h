@@ -101,6 +101,14 @@ namespace orsaSolarSystem {
   
   orsa::Time now();
   
+  //! approximated period between two full moons
+  //! real full moon times can be off by up to about 15 hours
+  //! only really useful to divide time in lunation periods of (almost) constant length (very small quadratic term)
+  void ApproximatedLunation(const orsa::Time & t,
+			    orsa::Time & begin,
+			    orsa::Time & end,
+			    int & lunationID);
+  
 }; // namespace orsaSolarSystem
 
 #endif // _ORSA_SOLAR_SYSTEM_DATETIME_

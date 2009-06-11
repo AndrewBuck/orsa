@@ -595,3 +595,45 @@ orsa::Time orsaSolarSystem::now() {
 						   time.msec()),
 					orsaSolarSystem::TS_UTC);
 }
+
+/*****/
+
+void orsaSolarSystem::ApproximatedLunation(const orsa::Time & t,
+					   orsa::Time & begin,
+					   orsa::Time & end,
+					   int & lunationID) {
+  
+  // data for new moon epoch: http://en.wikipedia.org/wiki/New_moon
+  
+  const orsa::Time t0 =  
+    orsaSolarSystem::FromTimeScale(orsaSolarSystem::gregorTime(2000,1,1,0,0,0,0), 
+				   orsaSolarSystem::TS_TT);
+
+  const double d0 = 5.597661;
+  const double d1 = 29.5305888610;
+  const double d2 = 102.026e-12;
+  // better initial guess?
+  int N=((t-t0).get_d()-orsa::FromUnits(d0,orsa::Unit::DAY))/orsa::FromUnits(d1,orsa::Unit::DAY);
+  while (1) {
+    // ORSA_DEBUG("N: %i",N);
+    // original, new moon d:
+    // d = d0 + d1*N + d2*N*N; 
+    //
+    // modified, full moon d: N becomes N-1/2 or N+1/2
+    const double d_begin = d0 + d1*(N-0.5) + d2*(N*N-N+0.25); 
+    const double d_end   = d0 + d1*(N+0.5) + d2*(N*N+N+0.25); 
+    //
+    begin = t0 + orsa::Time(orsa::FromUnits(orsa::FromUnits(d_begin,orsa::Unit::DAY),orsa::Unit::MICROSECOND,-1));
+    end   = t0 + orsa::Time(orsa::FromUnits(orsa::FromUnits(d_end,  orsa::Unit::DAY),orsa::Unit::MICROSECOND,-1));
+    //
+    lunationID = N;
+    //
+    if (begin > t) {
+      N--; continue;
+    } else if (end < t) {
+      N++; continue;
+    } else {
+      break;
+    }
+  }
+}
