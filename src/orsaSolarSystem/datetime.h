@@ -109,6 +109,9 @@ namespace orsaSolarSystem {
 			    orsa::Time & end,
 			    int & lunationID);
   
+  // utility: returns the "fractional year" i.e. 2009.121233, useful for plots...
+  double fractionalYear(const orsa::Time & t);
+  
 }; // namespace orsaSolarSystem
 
 #endif // _ORSA_SOLAR_SYSTEM_DATETIME_

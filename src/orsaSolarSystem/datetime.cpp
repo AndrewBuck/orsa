@@ -637,3 +637,15 @@ void orsaSolarSystem::ApproximatedLunation(const orsa::Time & t,
     }
   }
 }
+
+/*****/
+
+double orsaSolarSystem::fractionalYear(const orsa::Time & t) {
+  int y,m,d;
+  double fd;
+  orsaSolarSystem::gregorDay(t,y,m,d,fd);
+  // NOTE: might not work around year zero....
+  orsa::Time t0 = orsaSolarSystem::gregorTime(y,  1,1);
+  orsa::Time t1 = orsaSolarSystem::gregorTime(y+1,1,1);
+  return (y+((t-t0).get_d()/(t1-t0).get_d()));
+}
