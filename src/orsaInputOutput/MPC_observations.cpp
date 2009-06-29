@@ -22,6 +22,11 @@ bool MPCObservationsFile::goodLine(const char * line) {
   if (!isspace(line[37])) return false;
   if (!isspace(line[47])) return false;
   if (!isspace(line[50])) return false;
+  //
+  // some of the line positions that must be digits
+  if (!isdigit(line[17])) return false;
+  
+  // ORSA_DEBUG("good line: [%s]",line);
   
   return true;
 }
