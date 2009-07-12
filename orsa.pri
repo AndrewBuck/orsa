@@ -131,13 +131,13 @@ unix:!macx {
 		LIBS += -lgsl -lgslcblas
 	}
 	osg_include {
-        	INCLUDEPATH += /home/tricaric/OpenSceneGraph-2.8.0/include		
+        	INCLUDEPATH += /home/tricaric/OpenSceneGraph/include		
 	}
 	osg_lib {
-		LIBS += -L/home/tricaric/OpenSceneGraph-2.8.0/lib
+		LIBS += -L/home/tricaric/OpenSceneGraph/lib
 	}
 	osg_src {
-		OSG_SRC = /home/tricaric/OpenSceneGraph-2.8.0/src/
+		OSG_SRC = /home/tricaric/OpenSceneGraph/src/
 	}
 	qwt_include {
 		INCLUDEPATH += /home/tricaric/qwt/src
