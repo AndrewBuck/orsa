@@ -44,7 +44,7 @@ HEADERS = angle.h \
           matrix.h \
           multifit.h \
           multimin.h \
-          multipole.h \
+#          multipole.h \
 # moved to orsaSolarSystem observation.h \
           orbit.h \
           paul.h \
@@ -79,7 +79,7 @@ SOURCES = angle.cpp \
           matrix.cpp \
           multifit.cpp \
           multimin.cpp \
-          multipole.cpp \
+#          multipole.cpp \
           orbit.cpp \
           paul.cpp \
           paulMoment.cpp \
