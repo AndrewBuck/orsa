@@ -1,0 +1,17 @@
+- [tested complete on Feb 26 2008, svn revision 394] keep checking for the inclusion of <orsaTBB/malloc.h> everywhere;
+- use the cache_aligned_allocator wherever possible;
+- libkdtree++; [alternativa: kdtree implementation to be released as part of OSG]
+- cominciare ad usare HDF5!! (was: NASA CDF library);
+- implementare "roving observer": http://www.cfa.harvard.edu/iau/info/RovingObs.html
+- implementare SPICE code per rotazioni (PCK);
+- weighted statistics? (invece di dare peso '1' ad ogni entry, dare peso variabile...);
+- interaction speed-up: completely skip torque computation if none of the bodies requires it (cache in bodygroup?);
+- handle radar observations;
+- solar pressure, for satellites... and atmosphere drag...
+- remember to initialize osg::Reference using Reference(true) in the library, that makes sure all works fine when the library is used in multi-thread programs;
+- for planets, use GM, and set mass from GM/G, as GM is known with good accuracy;
+- also, add getMu() in body inertial info and use it in interaction computations, to speedup things...;
+- test new OSG DepthPartitionNode code, to see if the fix works in ORSA;
+- think about finding a way to compile orsa software for condor: are threads really needed? where am I getting that, from Qt4?
+- consider using cmake instead of qmake;
+- write a test suite, to quickly check code correctness while developing;
