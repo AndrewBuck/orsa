@@ -7,4 +7,3 @@
 - think about finding a way to compile orsa software for condor: are threads really needed? where am I getting that, from Qt4?
 - consider using cmake instead of qmake;
 - write a test suite, to quickly check code correctness while developing;
-- move from SVN to GIT!
