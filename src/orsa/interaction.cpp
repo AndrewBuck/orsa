@@ -251,9 +251,14 @@ bool Interaction::acceleration(InteractionVector & a,
 	  const orsa::Matrix b_l2g = orsa::localToGlobal(b,bg,t);
 	  const orsa::Matrix b_g2l = orsa::globalToLocal(b,bg,t);
 	  
+	  /* const orsa::Vector R =
+	     (b_ibps.translational->position() + b_l2g*b_pm->getCenterOfMass()) - 
+	     (ref_b_ibps.translational->position() + ref_b_l2g*ref_b_pm->getCenterOfMass());
+	  */
+	  //
 	  const orsa::Vector R =
-	    (b_ibps.translational->position() + b_l2g*b_pm->getCenterOfMass()) - 
-	    (ref_b_ibps.translational->position() + ref_b_l2g*ref_b_pm->getCenterOfMass());
+	    b_ibps.translational->position() - 
+	    ref_b_ibps.translational->position();
 	  
 	  /* 
 	     ORSA_DEBUG("---R---");
@@ -586,9 +591,14 @@ bool Interaction::torque(InteractionVector & N,
 	    const orsa::Matrix b_l2g = orsa::localToGlobal(b,bg,t);
 	    const orsa::Matrix b_g2l = orsa::globalToLocal(b,bg,t);
 	    
+	    /* const orsa::Vector R =
+	       (b_ibps.translational->position() + b_l2g*b_pm->getCenterOfMass()) - 
+	       (ref_b_ibps.translational->position() + ref_b_l2g*ref_b_pm->getCenterOfMass());
+	    */
+	    //
 	    const orsa::Vector R =
-	      (b_ibps.translational->position() + b_l2g*b_pm->getCenterOfMass()) - 
-	      (ref_b_ibps.translational->position() + ref_b_l2g*ref_b_pm->getCenterOfMass());
+	      b_ibps.translational->position() - 
+	      ref_b_ibps.translational->position();
 	    
 	    const orsa::Vector torqueTerm =
 	      Paul::gravitationalTorque(ref_b_pm.get(),
