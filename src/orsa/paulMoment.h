@@ -11,11 +11,54 @@
 #include <orsa/shape.h>
 #include <orsa/vector.h>
 #include <orsa/matrix.h>
-#include <orsa/multipole.h>
+// #include <orsa/multipole.h>
 
 namespace orsa {
   
   // taken from orsa::Multipole
+  
+  class MassDistribution : public osg::Referenced {
+  public:
+    MassDistribution() : osg::Referenced(true) { }
+  protected:
+    virtual ~MassDistribution() { }
+  public:
+    virtual double density(const Vector &) const = 0;
+  };
+  
+  class UniformMassDistribution : public MassDistribution {
+  public:
+    UniformMassDistribution() : MassDistribution() { }
+  protected:
+    ~UniformMassDistribution() { }
+  public:
+    double density(const Vector &) const {
+      return 1;
+    }
+  };
+  
+  class SphericalCorePlusMantleMassDistribution : public MassDistribution {
+  public:
+    SphericalCorePlusMantleMassDistribution(const double & coreRadius,
+					    const double & coreDensity,
+					    const double & mantleDensity) :
+      MassDistribution(),
+      R2(coreRadius*coreRadius),
+      dC(coreDensity),
+      dM(mantleDensity) { }
+  protected:
+    ~SphericalCorePlusMantleMassDistribution() { }
+  public:
+    double density(const Vector & v) const {
+      if (v.lengthSquared() > R2) {
+	return dM;
+      } else {
+	return dC;
+      }
+    }
+  protected:
+    const double R2, dC, dM;
+  };
   
   class PaulMoment : public osg::Referenced {
   public:
