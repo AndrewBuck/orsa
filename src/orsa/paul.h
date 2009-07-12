@@ -14,10 +14,10 @@ namespace orsa {
   public:
     // Eq. (1')
     static double gravitationalPotential(const orsa::PaulMoment * M1,
-					       const orsa::Matrix     & A1_g2l,
-					       const orsa::PaulMoment * M2,
-					       const orsa::Matrix     & A2_g2l,
-					       const orsa::Vector     & R);
+					 const orsa::Matrix     & A1_g2l,
+					 const orsa::PaulMoment * M2,
+					 const orsa::Matrix     & A2_g2l,
+					 const orsa::Vector     & R);
     
   public:
     static orsa::Vector gravitationalForce(const orsa::PaulMoment * M1,
@@ -36,8 +36,8 @@ namespace orsa {
   public:
     // Eq. (21b)
     static double C_lmn(const int l,
-			      const int m,
-			      const int n);
+			const int m,
+			const int n);
     
   public:	
     // Eq. (23)
@@ -55,18 +55,18 @@ namespace orsa {
       
     public:
       double get(const int l,
-		       const int m,
-		       const int n,
-		       const int L,
-		       const int M,
-		       const int N) const;
+		 const int m,
+		 const int n,
+		 const int L,
+		 const int M,
+		 const int N) const;
     private:
       double trueGet(const int l,
-			   const int m,
-			   const int n,
-			   const int L,
-			   const int M,
-			   const int N) const;
+		     const int m,
+		     const int n,
+		     const int L,
+		     const int M,
+		     const int N) const;
       
     private:
       void resize(const size_t order) const;
