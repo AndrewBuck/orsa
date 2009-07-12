@@ -129,11 +129,14 @@ void PaulMoment::_centerOfMass(Vector                  & center_of_mass,
     const Vector & _v = __randomVectorUtil(rnd,boundingBox);
     if (in[_iter]) {
       const double density = _massDistribution->density(_v);
-      _stat_M->insert(density);
       //
-      _stat_CMx->insert(density*_v.getX());
-      _stat_CMy->insert(density*_v.getY());
-      _stat_CMz->insert(density*_v.getZ());
+      if (density > 0) {
+	_stat_M->insert(density);
+	//
+	_stat_CMx->insert(density*_v.getX());
+	_stat_CMy->insert(density*_v.getY());
+	_stat_CMz->insert(density*_v.getZ());
+      }
     }
     ++_iter;
   }
@@ -152,7 +155,7 @@ void PaulMoment::_centerOfMass(Vector                  & center_of_mass,
 		     _stat_CMy->sum()/_stat_M->sum(),
 		     _stat_CMz->sum()/_stat_M->sum());
   
-  ORSA_DEBUG("IMPORTANT: complete density propagation to center_of_mass_uncertainty");
+  // ORSA_DEBUG("IMPORTANT: complete density propagation to center_of_mass_uncertainty");
   center_of_mass_uncertainty.set(_stat_CMx->averageError(),
 				 _stat_CMy->averageError(),
 				 _stat_CMz->averageError());
@@ -179,7 +182,7 @@ void PaulMoment::_centerOfMass(Vector                  & center_of_mass,
 void PaulMoment::_inertiaMoment(Matrix                  & inertia_moment,
 				Matrix                  & inertia_moment_uncertainty,
 				const Vector            & center_of_mass,
-				const Vector            & center_of_mass_uncertainty,
+				const Vector            & /* center_of_mass_uncertainty */,
 				const std::vector<bool> & in,
 				const unsigned int        sample_points,
 				const int                 random_seed) {
@@ -188,8 +191,6 @@ void PaulMoment::_inertiaMoment(Matrix                  & inertia_moment,
      ORSA_DEBUG("called _inertiaMoment(...): %i sample points, random seed: %i",
      sample_points,random_seed);
   */
-  
-  ORSA_DEBUG("IMPORTANT: complete density propagation in _inertiaMoment computation");
   
   // GSL rng init
   gsl_rng * rnd = gsl_rng_alloc(gsl_rng_gfsr4);
@@ -211,13 +212,18 @@ void PaulMoment::_inertiaMoment(Matrix                  & inertia_moment,
     // const Vector & _v = __randomVectorUtil(rnd,boundingRadius) - center_of_mass;
     const Vector & _v = __randomVectorUtil(rnd,boundingBox) - center_of_mass;
     if (in[_iter]) {
-      _stat_Ixx->insert(_v.getY()*_v.getY()+_v.getZ()*_v.getZ());
-      _stat_Iyy->insert(_v.getX()*_v.getX()+_v.getZ()*_v.getZ());
-      _stat_Izz->insert(_v.getX()*_v.getX()+_v.getY()*_v.getY());
+      const double density = _massDistribution->density(_v);
       //
-      _stat_Ixy->insert(-_v.getX()*_v.getY());
-      _stat_Ixz->insert(-_v.getX()*_v.getZ());
-      _stat_Iyz->insert(-_v.getY()*_v.getZ());
+      if (density > 0) {
+	//
+	_stat_Ixx->insert(density*(_v.getY()*_v.getY()+_v.getZ()*_v.getZ()));
+	_stat_Iyy->insert(density*(_v.getX()*_v.getX()+_v.getZ()*_v.getZ()));
+	_stat_Izz->insert(density*(_v.getX()*_v.getX()+_v.getY()*_v.getY()));
+	//
+	_stat_Ixy->insert(density*(-_v.getX()*_v.getY()));
+	_stat_Ixz->insert(density*(-_v.getX()*_v.getZ()));
+	_stat_Iyz->insert(density*(-_v.getY()*_v.getZ()));
+      }
     }
     ++_iter;
   }
@@ -274,7 +280,7 @@ void PaulMoment::_inertiaMoment(Matrix                  & inertia_moment,
 void PaulMoment::_moment(std::vector< std::vector< std::vector<double> > > & Mo,
 			 std::vector< std::vector< std::vector<double> > > & Mo_uncertainty,
 			 const Vector                                            & center_of_mass,
-			 const Vector                                            & center_of_mass_uncertainty,
+			 const Vector                                            & /* center_of_mass_uncertainty */,
 			 const std::vector<bool>                                 & in,
 			 const unsigned int                                        sample_points,
 			 const int                                                 random_seed) {
@@ -331,16 +337,20 @@ void PaulMoment::_moment(std::vector< std::vector< std::vector<double> > > & Mo,
     //
     if (in[_iter]) {
       const double density = _massDistribution->density(_v + center_of_mass);
-      // ORSA_DEBUG("density: %f",density());
-      _stat_M->insert(density);
       //
-      for (unsigned int i=0; i<_order_plus_one; ++i) {
-	for (unsigned int j=0; j<_order_plus_one-i; ++j) {
-	  for (unsigned int k=0; k<_order_plus_one-i-j; ++k) {
-	    _stat_Mo[i][j][k]->insert(density*
-				      int_pow(_v.getX(),i)*
-				      int_pow(_v.getY(),j)*
-				      int_pow(_v.getZ(),k));
+      if (density > 0) {
+	//
+	// ORSA_DEBUG("density: %f",density());
+	_stat_M->insert(density);
+	//
+	for (unsigned int i=0; i<_order_plus_one; ++i) {
+	  for (unsigned int j=0; j<_order_plus_one-i; ++j) {
+	    for (unsigned int k=0; k<_order_plus_one-i-j; ++k) {
+	      _stat_Mo[i][j][k]->insert(density*
+					int_pow(_v.getX(),i)*
+					int_pow(_v.getY(),j)*
+					int_pow(_v.getZ(),k));
+	    }
 	  }
 	}
       }
@@ -348,7 +358,7 @@ void PaulMoment::_moment(std::vector< std::vector< std::vector<double> > > & Mo,
     ++_iter;
   }
   
-  ORSA_DEBUG("IMPORTANT: complete the density propagation...");
+  // ORSA_DEBUG("IMPORTANT: complete the density propagation...");
   
   Mo.resize(_order_plus_one);
   Mo_uncertainty.resize(_order_plus_one);
@@ -697,6 +707,8 @@ double normalization(const unsigned int l,
 
 void orsa::convert(const PaulMoment * const pm,
 		   const double     & R0) {
+  
+#warning add uncertainty estimates...
   
   ORSA_DEBUG("R0: %f [km]",orsa::FromUnits(R0,orsa::Unit::KM,-1));
   
