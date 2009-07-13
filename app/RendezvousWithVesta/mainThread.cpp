@@ -108,17 +108,18 @@ void MainThread::run() {
   const Time samplingPeriod(0,0,5,0,0);
 
   // if false, use interpolation
+  // DON'T change this
   const bool accurateSPICE = true;
   // const bool accurateSPICE = false;
-
-  /*
+  
+  /* 
      SPICE::instance()->setDefaultObserver("SSB");
      //
      SPICE::instance()->loadKernel("de405.bsp");
      // SPICE::instance()->loadKernel("vesta_1900_2100.bsp");
      SPICE::instance()->loadKernel("vesta-2003-2013.bsp");
   */
-
+  
   // osg::ref_ptr<BodyGroup> bg = new BodyGroup;
   bg = new BodyGroup;
 
@@ -328,34 +329,98 @@ void MainThread::run() {
   osg::ref_ptr<Body> vesta = new Body;
   {
     vesta->setName("VESTA");
-    // vesta->setMass(vestaMass.getRef());
-    //
-    /*
-       if (1) {
-       const orsa::Body * b = vesta.get();
-       BodyGroup::TRV trv;
-       orsa::Time t = orbitEpoch.getRef();
-       while (t <= orbitEpoch.getRef()+runDuration.getRef()) {
-       trv.t = t;
-       SPICE::instance()->getPosVel(b->getName(),
-       trv.t,
-       trv.r,
-       trv.v);
-       bg->insertTRV(trv,b);
-       t += samplingPeriod;
-       }
-       } else {
-    */
-    //
+    
     if (accurateSPICE) {
+      
       osg::ref_ptr<SpiceBodyPosVelCallback> sbpvc = new SpiceBodyPosVelCallback(vesta->getName());
       //
       // sbpvc->setBodyName(vesta->getName());
       //
       orsa::IBPS ibps;
-      ibps.inertial = new ConstantInertialBodyProperty(vestaMass.getRef());
+      
+      osg::ref_ptr<orsa::Shape> shape;
+      if (vestaShapeModel.getRef() == ComboShapeModel::smt_ellipsoid) {
+	shape = new EllipsoidShape(FromUnits(280,Unit::KM),
+				   FromUnits(272,Unit::KM),
+				   FromUnits(227,Unit::KM));
+      } else if (vestaShapeModel.getRef() == ComboShapeModel::smt_thomas) {
+	osg::ref_ptr<VestaShape> vestaShapeThomas = new VestaShape;
+	if (!vestaShapeThomas->read("vesta_thomas.dat")) {
+	  ORSA_ERROR("problems encountered while reading shape file...");
+	}
+	shape = vestaShapeThomas.get();
+      } else {
+	ORSA_ERROR("problems");
+      }
+      // mass dist.
+      osg::ref_ptr<orsa::MassDistribution> massDistribution;
+      {
+	const double totalMass = vestaMass.getRef();
+	// UPDATE this when changing shape...
+	const double volume = FromUnits(7.9e7,Unit::KM,3); 
+	const double meanDensity = totalMass/volume;
+	ComboMassDistribution::MassDistributionType mdt = 
+	  vestaMassDistribution.getRef();
+	if (mdt == ComboMassDistribution::mdt_core) {
+	  const double   coreDensity = FromUnits(FromUnits(6,Unit::GRAM),Unit::CM,-3);
+	  const double mantleDensity = FromUnits(FromUnits(3,Unit::GRAM),Unit::CM,-3);
+	  //
+	  const double    coreRadius = cbrt((3.0/(4.0*pi()))*volume*(meanDensity-mantleDensity)/(coreDensity-mantleDensity));
+	  //
+	  ORSA_DEBUG("core radius: %f km",FromUnits(coreRadius,Unit::KM,-1));
+	  //
+	  massDistribution = new orsa::SphericalCorePlusMantleMassDistribution(coreRadius,
+									       coreDensity,
+									       mantleDensity);
+	  
+	} else {
+	  massDistribution = new orsa::UniformMassDistribution;
+	}
+	
+      }
+      //
+      const unsigned int order = 4;
+      const unsigned int N = 100000;
+      const int randomSeed = 95231;
+      //
+      double volume;
+      orsa::Vector centerOfMass;
+      orsa::Matrix shapeToLocal;
+      orsa::Matrix localToShape;
+      orsa::Matrix inertiaMatrix;
+      orsa::PaulMoment * paulMoment;
+      orsa::bodyInertialComputations(volume,
+				     centerOfMass,
+				     shapeToLocal,
+				     localToShape,
+				     inertiaMatrix,
+				     &paulMoment,
+				     order,
+				     shape.get(),
+				     massDistribution.get(),
+				     N,
+				     randomSeed);
+      
+      orsa::print(shapeToLocal);
+      orsa::print(localToShape);
+      
+      ibps.inertial = new ConstantInertialBodyProperty(vestaMass.getRef(),
+						       shape.get(),
+						       centerOfMass,
+						       shapeToLocal,
+						       localToShape,
+						       inertiaMatrix,
+						       paulMoment);
+      
       ibps.translational = sbpvc.get();
+      
+      ibps.rotational = new orsaSolarSystem::ConstantZRotationEcliptic_RotationalBodyProperty(J2000(),
+											      292.0*degToRad(),
+											      twopi()/vestaPeriod.getRef(),
+											      vestaPoleEclipticLongitude.getRef(),
+											      vestaPoleEclipticLatitude.getRef());
       vesta->setInitialConditions(ibps);
+      
     } else {
       /* 
 	 SpiceBodyInterpolatedPosVelCallback * sbipvc =
@@ -366,155 +431,10 @@ void MainThread::run() {
 	 vesta->setBodyPosVelCallback(sbipvc);
       */
     }
-    //
-    // }
-    //
-    /*
-       {
-       osg::ref_ptr<orsa::BodyInitialConditions> vesta_bic = new orsa::BodyInitialConditions;
-       //
-       vesta_bic->setTime(orbitEpoch.getRef());
-       vesta_bic->setPosition(orsa::Vector(1e12,1e12,-3e12));
-       vesta_bic->setVelocity(orsa::Vector(0.1,-0.2,0.3));
-       //
-       vesta->setInitialConditions(vesta_bic.get());
-       }
-    */
-
-
-    /* OLD!
-       vesta->setAttitude(new ConstantZRotationEclipticAttitude(J2000(),
-       287.0*degToRad(),
-       twopi()/vestaPeriod.getRef(),
-       vestaPoleEclipticLongitude.getRef(),
-       vestaPoleEclipticLatitude.getRef()));
-    */
-    //
-    
-    {
-      IBPS ibps = vesta->getInitialConditions();
-      
-      /* 
-	 ibps.rotational = new orsa::ConstantZRotation(J2000(),
-	 292.0*degToRad(),
-	 twopi()/vestaPeriod.getRef());
-      */
-      
-      ibps.rotational = new orsaSolarSystem::ConstantZRotationEcliptic_RotationalBodyProperty(J2000(),
-											      292.0*degToRad(),
-											      twopi()/vestaPeriod.getRef(),
-											      vestaPoleEclipticLongitude.getRef(),
-											      vestaPoleEclipticLatitude.getRef());
-      vesta->setInitialConditions(ibps);
-    }
-    
-    // alternative to Multipole: PaulMoment
-    {
-      const unsigned int PM_order = 4;
-      
-      osg::ref_ptr<PaulMoment> pm = new PaulMoment(PM_order);
-      
-#warning "code needed here, for mass distribution..."
-      // implement this later...
-      // pm->setMassDistribution(vestaMassDistribution.getRef());
-      
-      if (1) {
-	// shape
-	if (vestaShapeModel.getRef() == ComboShapeModel::smt_ellipsoid) {
-	  pm->setShape(new EllipsoidShape(FromUnits(280,Unit::KM),
-					  FromUnits(272,Unit::KM),
-					  FromUnits(227,Unit::KM)));
-	} else if (vestaShapeModel.getRef() == ComboShapeModel::smt_thomas) {
-	  osg::ref_ptr<VestaShape> vestaShapeThomas = new VestaShape;
-	  if (!vestaShapeThomas->read("vesta_thomas.dat")) {
-	    ORSA_ERROR("problems encountered while reading shape file...");
-	  }
-	  pm->setShape(vestaShapeThomas.get());
-	} else {
-	  ORSA_ERROR("problems");
-	}
-      } else {
-	// just a test!
-	/* KleopatraShape * kleopatraShape = new KleopatraShape;
-	   if (!kleopatraShape->read("216kleopatra.tab")) {
-	   ORSA_ERROR("problems encountered while reading shape file...");
-	   exit(0);
-	   }
-	   pm->setShape(kleopatraShape);
-	*/
-      }
-      
-      // mass distribution
-      {
-	const double totalMass = vestaMass.getRef();
-	// UPDATE this when changing shape...
-	const double volume = FromUnits(7.9e7,Unit::KM,3); 
-	const double meanDensity = totalMass/volume;
-	ComboMassDistribution::MassDistributionType mdt = 
-	  vestaMassDistribution.getRef();
-	if (mdt == ComboMassDistribution::mdt_core) {
-	 
-	  const double   coreDensity = FromUnits(FromUnits(6,Unit::GRAM),Unit::CM,-3);
-	  const double mantleDensity = FromUnits(FromUnits(3,Unit::GRAM),Unit::CM,-3);
-	  //
-	  const double    coreRadius = cbrt((3.0/(4.0*pi()))*volume*(meanDensity-mantleDensity)/(coreDensity-mantleDensity));
-	  //
-	  ORSA_DEBUG("core radius: %f km",FromUnits(coreRadius,Unit::KM,-1));
-	  //
-	  pm->setMassDistribution(new SphericalCorePlusMantleMassDistribution(coreRadius,
-									      coreDensity,
-									      mantleDensity));
-	  
-	} /* else... default = uniform... */
-	
-      }
-      
-      pm->computeUsingShape(100000,
-			    93881);
-      pm->setCenterOfMass(orsa::Vector(0,0,0));
-      {
-	const orsa::Matrix I = pm->getInertiaMoment();
-	pm->setInertiaMoment(orsa::Matrix(I.getM11(),0,0,
-					  0,I.getM22(),0,
-					  0,0,I.getM33()));
-      }
-      //
-      if (PM_order > 0) {
-	pm->setM(0,1,0,0);
-	pm->setM(0,0,1,0);
-	pm->setM(0,0,0,1);
-      }
-        
-      ORSA_DEBUG("--------------- PM info ----------------");
-      orsa::print(pm->getCenterOfMass());
-      orsa::print(pm->getInertiaMoment());
-      for (unsigned int sum=0; sum<=PM_order; ++sum) {
-	for (unsigned int i=0; i<=PM_order; ++i) {
-	  for (unsigned int j=0; j<=PM_order; ++j) {
-	    for (unsigned int k=0; k<=PM_order; ++k) {
-	      if (i+j+k == sum) {
-		ORSA_DEBUG("M[%i][%i][%i] = %f",i,j,k,pm->M(i,j,k));
-	      }
-	    }
-	  }
-	}
-      }
-      
-      // print out...
-      {
-	const double R0 = orsa::FromUnits(300,orsa::Unit::KM);
-	orsa::convert(pm.get(),
-		      R0);
-      }
-      
-      vesta->setPaulMoment(pm.get());
-      
-      vesta->setShape(pm->getShape());      
-    }
     
     bg->addBody(vesta.get());
   }
-
+  
   // ORSA_DEBUG("before DAWN...");
 
   osg::ref_ptr<Body> dawn = new Body;
@@ -779,15 +699,16 @@ void MainThread::run() {
     // dawn->setInitialConditions(dawn_bic.get());
     dawn->setInitialConditions(ibps);
     
-    {
-      osg::ref_ptr<PaulMoment> dummy_pm = new PaulMoment(0);
-      //
-      dummy_pm->setM(1,0,0,0);
-      dummy_pm->setCenterOfMass(orsa::Vector(0,0,0));
-      dummy_pm->setInertiaMoment(orsa::Matrix::identity());
-      //
-      dawn->setPaulMoment(dummy_pm.get());
-    }
+    /* {
+       osg::ref_ptr<PaulMoment> dummy_pm = new PaulMoment(0);
+       //
+       dummy_pm->setM(1,0,0,0);
+       // dummy_pm->setCenterOfMass(orsa::Vector(0,0,0));
+       // dummy_pm->setInertiaMoment(orsa::Matrix::identity());
+       //
+       dawn->setPaulMoment(dummy_pm.get());
+       }
+    */
     
     // test
     ORSA_DEBUG("========= DAWN time: %.6f",ibps.time.getRef().get_d());
@@ -1084,7 +1005,7 @@ void MainThread::run() {
 		    );
       }
       
-      osg::ref_ptr<const orsa::Shape> vesta_shape = vesta->getShape();
+      osg::ref_ptr<const orsa::Shape> vesta_shape = vesta->getInitialConditions().inertial->shape();
       
       Vector rDAWN,  vDAWN;
       Vector rVesta, vVesta;

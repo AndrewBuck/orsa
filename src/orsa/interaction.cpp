@@ -273,14 +273,17 @@ bool Interaction::acceleration(InteractionVector & a,
 	     orsa::print(t);
 	  */
 	  
+	  const double     b_radius =     b_ibps.inertial->shape() ?     b_ibps.inertial->shape()->boundingRadius() : 0;
+	  const double ref_b_radius = ref_b_ibps.inertial->shape() ? ref_b_ibps.inertial->shape()->boundingRadius() : 0;
+	  
 	  // if (b->getRadius()+ref_b->getRadius() > R.length()) {
 	  //
-	  if (b_ibps.inertial->shape()->boundingRadius()+ref_b_ibps.inertial->shape()->boundingRadius() > R.length()) {
+	  if ((b_radius+ref_b_radius) > R.length()) {
 	    
 	    ORSA_DEBUG("bodies too close: R<R1+R2, R=%g R1=%g R2=%g [km] [b1:%s] [b2:%s]",
 		       orsa::FromUnits(R.length(),orsa::Unit::KM,-1),
-		       orsa::FromUnits(b_ibps.inertial->shape()->boundingRadius(),orsa::Unit::KM,-1),
-		       orsa::FromUnits(ref_b_ibps.inertial->shape()->boundingRadius(),orsa::Unit::KM,-1),
+		       orsa::FromUnits(b_radius,orsa::Unit::KM,-1),
+		       orsa::FromUnits(ref_b_radius,orsa::Unit::KM,-1),
 		       b->getName().c_str(),
 		       ref_b->getName().c_str());
 	    ORSA_DEBUG("reverting to pointlike...");

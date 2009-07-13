@@ -318,6 +318,19 @@ namespace orsa {
 				       const orsa::RandomPointsInShape * randomPointsInShape,
 				       const orsa::MassDistribution * massDistribution);
   
+  // utility, to perform all the computations above...
+  void bodyInertialComputations(double & volume,
+				orsa::Vector & centerOfMass,
+				orsa::Matrix & shapeToLocal,
+				orsa::Matrix & localToShape,
+				orsa::Matrix & inertiaMatrix,
+				orsa::PaulMoment * * paulMoment,
+				const unsigned int order,
+				const orsa::Shape * shape,
+				const orsa::MassDistribution * massDistribution,
+				const unsigned int N,
+				const int randomSeed);
+  
 } // namespace orsa
 
 #endif // _ORSA_UTIL_

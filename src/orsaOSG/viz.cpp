@@ -37,6 +37,8 @@ using namespace osg;
 using namespace orsa;
 using namespace orsaOSG;
 
+#warning remember to offset and rotate shape model, using BIPS::inertial::centerofMass and shapeToLocal matrix
+
 // by using this callback, we prevent the "erroneous" oscillation of asymmetric Bodies rotating quickly
 class BodySymmetricBoundingBoxCallback : public Drawable::ComputeBoundingBoxCallback {
 public:
@@ -720,7 +722,8 @@ osg::Group * Viz::createRoot() {
       // no shape, just a point
       // ORSA_DEBUG("POINT...");
       
-      double radius = (*_b_it)->getInitialConditions().inertial->shape()->boundingRadius();
+      // double radius = (*_b_it)->getInitialConditions().inertial->shape()->boundingRadius();
+      double radius = (*_b_it)->getInitialConditions().inertial->shape() ? (*_b_it)->getInitialConditions().inertial->shape()->boundingRadius() : 0;
       if (radius == 0) {
 	radius = FromUnits(10.0,Unit::KM); // hmm...
       }

@@ -36,8 +36,8 @@ HEADERS += RendezvousWithVesta.h   RendezvousWithVestaVersion.h   mainThread.h  
 SOURCES += RendezvousWithVesta.cpp RendezvousWithVestaVersion.cpp mainThread.cpp multiminPhase.cpp plot.cpp     main.cpp
 
 # Kleopatra stuff
-HEADERS += kleopatrashape.h
-SOURCES += 
+#HEADERS += kleopatrashape.h
+#SOURCES += 
 
 unix:!macx { BUILD_COUNTER_BIN = ./BuildCounter.$${PLATFORM_NAME} }
 macx:      { BUILD_COUNTER_BIN = ./BuildCounter.$${PLATFORM_NAME}.app/Contents/MacOS/BuildCounter.$${PLATFORM_NAME} }

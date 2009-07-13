@@ -152,10 +152,10 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	  x1[k] = ibps.translational->position();
 	  v1[k] = ibps.translational->velocity();
 	  a1[k] = acc[bodyIndex];
-	} else {
-	  ORSA_DEBUG("problem, body: [%s]",b->getName().c_str());
+	  /* } else {
+	     ORSA_DEBUG("problem, body: [%s]",b->getName().c_str());
+	     } */
 	}
-	// }
       }
       //
       /* 
