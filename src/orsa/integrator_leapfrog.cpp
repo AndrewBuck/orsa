@@ -149,7 +149,8 @@ bool IntegratorLeapFrog::step(orsa::BodyGroup  * bg,
 	  
 #warning "inertia moments needed!! plus rotation to get to the principal axis..."
 	  
-	  if (b->getPaulMoment()) {
+	  // if (b->getPaulMoment()) {
+	  if (ibps.inertial->paulMoment()) {
 	    
 	    double mass;
 	    if (!bg->getInterpolatedMass(mass,b,start+_h2)) {
@@ -158,7 +159,8 @@ bool IntegratorLeapFrog::step(orsa::BodyGroup  * bg,
 	    
 	    orsa::Matrix inertiaMoment = 
 	      mass * 
-	      b->getPaulMoment()->getInertiaMoment();
+	      ibps.inertial->inertiaMatrix();
+	    // b->getPaulMoment()->getInertiaMoment();
 	    
 	    // new approach, following I.P. Omelyan (1999)
 	    if (1) {

@@ -8,8 +8,10 @@
 #include <orsa/cache.h>
 #include <orsa/datetime.h>
 #include <orsa/double.h>
+#include <orsa/massDistribution.h>
 #include <orsa/matrix.h>
 #include <orsa/quaternion.h>
+#include <orsa/shape.h>
 
 #include <map>
 
@@ -253,6 +255,49 @@ namespace orsa {
   protected:  
     gsl_rng * rnd;
   };
+  
+  /***/
+  
+  class RandomPointsInShape : public osg::Referenced {
+  public:
+    RandomPointsInShape(const orsa::Shape * shape,
+			const unsigned int N,
+			const int randomSeed);
+  protected:
+    virtual ~RandomPointsInShape() { } 
+  public:
+    osg::ref_ptr<const orsa::Shape> shape;
+  public:
+    const unsigned int size;
+    const int randomSeed;
+  public:
+    // if get(v) fails, you used all vectors
+    // in order to use again all vectors, call reset()
+    bool get(orsa::Vector & v) const;
+  public:
+    void reset() const { 
+      rng = new orsa::RNG(randomSeed);
+      counter = 0; 
+    }
+  protected:
+    mutable unsigned int counter;
+    mutable osg::ref_ptr<orsa::RNG> rng;
+  protected:
+    static orsa::Vector __randomVectorUtil(const orsa::RNG * rng,
+					   const Box & boundingBox);
+  protected:
+    std::vector<bool> in;
+  };
+  
+  orsa::Vector centerOfMass(const orsa::RandomPointsInShape * randomPointsInShape,
+			    const orsa::MassDistribution * massDistribution);
+  
+  // InertiaMatrix about the centerOfMass, along the PrincipalAxis
+  void principalAxisAndInertiaMatrix(orsa::Matrix & principalAxis,
+				     orsa::Matrix & inertiaMatrix,
+				     const orsa::Vector & centerOfMass,
+				     const orsa::RandomPointsInShape * randomPointsInShape,
+				     const orsa::MassDistribution * massDistribution);
   
 } // namespace orsa
 

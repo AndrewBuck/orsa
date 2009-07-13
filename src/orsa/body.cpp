@@ -216,7 +216,7 @@ void Body::_init() {
   
   // _ibps      = 0;
   // _attitude  = 0;
-  _shape     = 0;
+  // _shape     = 0;
   // _multipole = 0;
   // _bpvc      = 0;
   // _bac       = 0;

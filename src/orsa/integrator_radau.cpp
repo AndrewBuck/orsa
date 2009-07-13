@@ -140,19 +140,22 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
       // if (bg->getInterpolatedIBPS(ibps,(*bl_it).get(),start)) {
       
       IBPS ibps;
+      if (!bg->getInterpolatedIBPS(ibps,b,start)) {
+	ORSA_DEBUG("problem, body: [%s]",b->getName().c_str());
+      }
       
       const orsa::Body * k = b;
       
       if (b->getInitialConditions().translational.get()) {
 	if (b->getInitialConditions().translational->dynamic()) {
-	  if (bg->getInterpolatedIBPS(ibps,b,start)) {
-	    x1[k] = ibps.translational->position();
-	    v1[k] = ibps.translational->velocity();
-	    a1[k] = acc[bodyIndex];
-	  } else {
-	    ORSA_DEBUG("problem, body: [%s]",b->getName().c_str());
-	  }
+	  // if (bg->getInterpolatedIBPS(ibps,b,start)) {
+	  x1[k] = ibps.translational->position();
+	  v1[k] = ibps.translational->velocity();
+	  a1[k] = acc[bodyIndex];
+	} else {
+	  ORSA_DEBUG("problem, body: [%s]",b->getName().c_str());
 	}
+	// }
       }
       //
       /* 
@@ -170,8 +173,9 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	  
 	  // #warning "inertia moments needed!! plus rotation to get to the principal axis..."
 	  
-	  if (b->getPaulMoment()) {
-	  
+	  // if (b->getPaulMoment()) {
+	  if (ibps.inertial->paulMoment()) {
+	    
 	    double m;
 	    if (!bg->getInterpolatedMass(m,b,start)) {
 	      ORSA_DEBUG("problems...");
@@ -179,7 +183,8 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	    
 	    orsa::Matrix inertiaMoment = 
 	      m * 
-	      b->getPaulMoment()->getInertiaMoment();
+	      ibps.inertial->inertiaMatrix();
+	    // b->getPaulMoment()->getInertiaMoment();
 	    
 	    //
 	    {
@@ -852,6 +857,11 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	     }
 	  */
 	  
+	  IBPS ibps;
+	  if (!bg->getInterpolatedIBPS(ibps,b,start+orsa::Time(FromUnits(h[j]*timestep.get_d(),Unit::MICROSECOND,-1)))) {
+	    ORSA_DEBUG("problem, body: [%s]",b->getName().c_str());
+	  }
+	  
 	  const orsa::Body * k = b;
 	  
 	  if (b->getInitialConditions().translational.get()) {
@@ -865,7 +875,8 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	      
 	      // #warning "inertia moments needed!! plus rotation to get to the principal axis..."
 	      
-	      if (b->getPaulMoment()) {
+	      // if (b->getPaulMoment()) {
+	      if (ibps.inertial->paulMoment()) {
 		
 		double m;
 		if (!bg->getInterpolatedMass(m,b,start+orsa::Time(FromUnits(h[j]*timestep.get_d(),Unit::MICROSECOND,-1)))) {
@@ -874,7 +885,8 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 		
 		orsa::Matrix inertiaMoment = 
 		  m * 
-		  b->getPaulMoment()->getInertiaMoment();
+		  ibps.inertial->inertiaMatrix();
+		// b->getPaulMoment()->getInertiaMoment();
 		
 		// ORSA_DEBUG("CODE NEEDED HERE!!");
 		//

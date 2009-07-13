@@ -41,6 +41,7 @@ HEADERS = angle.h \
           interaction.h \
           interval.h \
           legendre.h \
+          massDistribution.h \
           matrix.h \
           multifit.h \
           multimin.h \

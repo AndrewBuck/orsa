@@ -175,7 +175,7 @@ namespace orsaSolarSystem {
 	  orsaSPICE::SpiceBodyPosVelCallback * sbpvc = 
 	    new orsaSPICE::SpiceBodyPosVelCallback(sun->getName());
 	  orsa::IBPS ibps;
-	  ibps.inertial = new orsa::ConstantMassBodyProperty(orsaSolarSystem::Data::MSun());
+	  ibps.inertial = new orsa::ConstantInertialBodyProperty(orsaSolarSystem::Data::MSun());
 	  ibps.translational = sbpvc;
 	  sun->setInitialConditions(ibps);
 	  //
@@ -209,7 +209,7 @@ namespace orsaSolarSystem {
 	    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(mercury->getName());
 	    // sbpvc->setBodyName(mercury->getName());
 	    orsa::IBPS ibps;
-	    ibps.inertial = new orsa::ConstantMassBodyProperty(orsaSolarSystem::Data::MMercury());
+	    ibps.inertial = new orsa::ConstantInertialBodyProperty(orsaSolarSystem::Data::MMercury());
 	    ibps.translational = sbpvc;
 	    mercury->setInitialConditions(ibps);
 	    //
@@ -225,7 +225,7 @@ namespace orsaSolarSystem {
 	    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(venus->getName());
 	    // sbpvc->setBodyName(venus->getName());
 	    orsa::IBPS ibps;
-	    ibps.inertial = new orsa::ConstantMassBodyProperty(orsaSolarSystem::Data::MVenus());
+	    ibps.inertial = new orsa::ConstantInertialBodyProperty(orsaSolarSystem::Data::MVenus());
 	    ibps.translational = sbpvc;
 	    venus->setInitialConditions(ibps);
 	    //
@@ -241,7 +241,7 @@ namespace orsaSolarSystem {
 	    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(earth->getName());
 	    // sbpvc->setBodyName(earth->getName());
 	    orsa::IBPS ibps;
-	    ibps.inertial = new orsa::ConstantMassBodyProperty(orsaSolarSystem::Data::MEarth());
+	    ibps.inertial = new orsa::ConstantInertialBodyProperty(orsaSolarSystem::Data::MEarth());
 	    ibps.translational = sbpvc;
 	    earth->setInitialConditions(ibps);
 	    //
@@ -255,7 +255,7 @@ namespace orsaSolarSystem {
 	    //
 	    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(moon->getName());
 	    orsa::IBPS ibps;
-	    ibps.inertial = new orsa::ConstantMassBodyProperty(orsaSolarSystem::Data::MMoon());
+	    ibps.inertial = new orsa::ConstantInertialBodyProperty(orsaSolarSystem::Data::MMoon());
 	    ibps.translational = sbpvc;
 	    moon->setInitialConditions(ibps);
 	    //
@@ -271,7 +271,7 @@ namespace orsaSolarSystem {
 	    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(mars->getName());
 	    // sbpvc->setBodyName(mars->getName());
 	    orsa::IBPS ibps;
-	    ibps.inertial = new orsa::ConstantMassBodyProperty(orsaSolarSystem::Data::MMars());
+	    ibps.inertial = new orsa::ConstantInertialBodyProperty(orsaSolarSystem::Data::MMars());
 	    ibps.translational = sbpvc;
 	    mars->setInitialConditions(ibps);
 	    //
@@ -288,7 +288,7 @@ namespace orsaSolarSystem {
 	    // sbpvc->setBodyName(jupiter->getName());
 	    orsa::IBPS ibps;
 	    ibps.translational = sbpvc;
-	    ibps.inertial = new orsa::ConstantMassBodyProperty(orsaSolarSystem::Data::MJupiter());
+	    ibps.inertial = new orsa::ConstantInertialBodyProperty(orsaSolarSystem::Data::MJupiter());
 	    jupiter->setInitialConditions(ibps);
 	    //
 	    bg->addBody(jupiter);
@@ -304,7 +304,7 @@ namespace orsaSolarSystem {
 	    // sbpvc->setBodyName(saturn->getName());
 	    orsa::IBPS ibps;
 	    ibps.translational = sbpvc;
-	    ibps.inertial = new orsa::ConstantMassBodyProperty(orsaSolarSystem::Data::MSaturn());
+	    ibps.inertial = new orsa::ConstantInertialBodyProperty(orsaSolarSystem::Data::MSaturn());
 	    saturn->setInitialConditions(ibps);
 	    //
 	    bg->addBody(saturn);
@@ -320,7 +320,7 @@ namespace orsaSolarSystem {
 	    // sbpvc->setBodyName(uranus->getName());
 	    orsa::IBPS ibps;
 	    ibps.translational = sbpvc;
-	    ibps.inertial = new orsa::ConstantMassBodyProperty(orsaSolarSystem::Data::MUranus());
+	    ibps.inertial = new orsa::ConstantInertialBodyProperty(orsaSolarSystem::Data::MUranus());
 	    uranus->setInitialConditions(ibps);
 	    //
 	    bg->addBody(uranus);
@@ -336,7 +336,7 @@ namespace orsaSolarSystem {
 	    // sbpvc->setBodyName(neptune->getName());
 	    orsa::IBPS ibps;
 	    ibps.translational = sbpvc;
-	    ibps.inertial = new orsa::ConstantMassBodyProperty(orsaSolarSystem::Data::MNeptune());
+	    ibps.inertial = new orsa::ConstantInertialBodyProperty(orsaSolarSystem::Data::MNeptune());
 	    neptune->setInitialConditions(ibps);
 	    //
 	    bg->addBody(neptune);
@@ -384,7 +384,7 @@ namespace orsaSolarSystem {
 	  b->setName("b");
 	  orsa::IBPS ibps;
 	  ibps.time = orbitEpoch.getRef();
-	  ibps.inertial = new orsa::ConstantMassBodyProperty(0);
+	  ibps.inertial = new orsa::ConstantInertialBodyProperty(0);
 	  ibps.translational = new orsa::DynamicTranslationalBodyProperty;
 	  ibps.translational->setPosition(rOrbit);
 	  ibps.translational->setVelocity(vOrbit);
@@ -492,7 +492,7 @@ namespace orsaSolarSystem {
 	  orsaSPICE::SpiceBodyPosVelCallback * sbpvc = 
 	    new orsaSPICE::SpiceBodyPosVelCallback(sun->getName());
 	  orsa::IBPS ibps;
-	  ibps.inertial = new orsa::ConstantMassBodyProperty(orsaSolarSystem::Data::MSun());
+	  ibps.inertial = new orsa::ConstantInertialBodyProperty(orsaSolarSystem::Data::MSun());
 	  ibps.translational = sbpvc;
 	  sun->setInitialConditions(ibps);
 	  //

@@ -800,8 +800,8 @@ double BodyGroup::totalEnergy(const orsa::Time & t) const {
   
   osg::ref_ptr<PaulMoment> dummy_pm = new PaulMoment(0);
   dummy_pm->setM(1,0,0,0);
-  dummy_pm->setCenterOfMass(orsa::Vector(0,0,0));
-  dummy_pm->setInertiaMoment(orsa::Matrix::identity());
+  // dummy_pm->setCenterOfMass(orsa::Vector(0,0,0));
+  // dummy_pm->setInertiaMoment(orsa::Matrix::identity());
   
   double E(0);
   
@@ -850,15 +850,32 @@ double BodyGroup::totalEnergy(const orsa::Time & t) const {
       //
       const orsa::Matrix g2l = orsa::globalToLocal((*it).get(),this,t);
       
-      if ((*it)->getPaulMoment()) {
-	orsa::IBPS ibps;
-	if (getInterpolatedIBPS(ibps,(*it).get(),t)) {
-	  if (ibps.rotational.get()) {
+      /* 
+	 if ((*it)->getPaulMoment()) {
+	 orsa::IBPS ibps;
+	 if (getInterpolatedIBPS(ibps,(*it).get(),t)) {
+	 if (ibps.rotational.get()) {
+	 const orsa::Vector omega = 
+	 g2l * ibps.rotational->getOmega();
+	 E += 
+	 omega * 
+	 (*it)->getPaulMoment()->getInertiaMoment() * m *
+	 omega / 2;
+	 }
+	 }
+	 }
+      */
+      //
+      // if ((*it)->getPaulMoment()) {
+      orsa::IBPS ibps;
+      if (getInterpolatedIBPS(ibps,(*it).get(),t)) {
+	if (ibps.rotational.get()) {
+	  if (ibps.inertial.get()) {
 	    const orsa::Vector omega = 
 	      g2l * ibps.rotational->getOmega();
 	    E += 
 	      omega * 
-	      (*it)->getPaulMoment()->getInertiaMoment() * m *
+	      ibps.inertial->inertiaMatrix() * m *
 	      omega / 2;
 	  }
 	}
@@ -891,11 +908,16 @@ double BodyGroup::totalEnergy(const orsa::Time & t) const {
       const orsa::Matrix b1_l2g = orsa::localToGlobal((*it1).get(),this,t);
       const orsa::Matrix b1_g2l = orsa::globalToLocal((*it1).get(),this,t);
       
+      orsa::IBPS ibps1;
+      if (!getInterpolatedIBPS(ibps1,(*it1).get(),t)) {
+	ORSA_DEBUG("problems...");
+      }
+      
       osg::ref_ptr<const PaulMoment> b1_pm = 
-	((*it1)->getPaulMoment()) ? 
-	((*it1)->getPaulMoment()) :
+	(ibps1.inertial->paulMoment()) ? 
+	(ibps1.inertial->paulMoment()) :
 	(dummy_pm.get());
-     
+      
       BodyList::const_iterator it2 = _b_list.begin();
       while (it2 != _b_list.end()) {
 	
@@ -919,15 +941,23 @@ double BodyGroup::totalEnergy(const orsa::Time & t) const {
 	const orsa::Matrix b2_l2g = orsa::localToGlobal((*it2).get(),this,t);
 	const orsa::Matrix b2_g2l = orsa::globalToLocal((*it2).get(),this,t);
 	
+	orsa::IBPS ibps2;
+	if (!getInterpolatedIBPS(ibps2,(*it2).get(),t)) {
+	  ORSA_DEBUG("problems...");
+	}
+	
 	osg::ref_ptr<const PaulMoment> b2_pm = 
-	  ((*it2)->getPaulMoment()) ? 
-	  ((*it2)->getPaulMoment()) :
+	  (ibps2.inertial->paulMoment()) ? 
+	  (ibps2.inertial->paulMoment()) :
 	  (dummy_pm.get());
 	
 	// dr = r2-r1
-	const orsa::Vector dr =
-	  (r2 + b2_l2g*b2_pm->getCenterOfMass()) - 
-	  (r1 + b1_l2g*b1_pm->getCenterOfMass());
+	/* const orsa::Vector dr =
+	   (r2 + b2_l2g*b2_pm->getCenterOfMass()) - 
+	   (r1 + b1_l2g*b1_pm->getCenterOfMass());
+	*/
+	//
+	const orsa::Vector dr = r2 - r1;
 	
 	double m1, m2;
 	
@@ -965,8 +995,8 @@ orsa::Vector BodyGroup::totalAngularMomentum(const orsa::Time & t) const {
   
   osg::ref_ptr<PaulMoment> dummy_pm = new PaulMoment(0);
   dummy_pm->setM(1,0,0,0);
-  dummy_pm->setCenterOfMass(orsa::Vector(0,0,0));
-  dummy_pm->setInertiaMoment(orsa::Matrix::identity());
+  // dummy_pm->setCenterOfMass(orsa::Vector(0,0,0));
+  // dummy_pm->setInertiaMoment(orsa::Matrix::identity());
   
   orsa::Vector L(0,0,0);
   
@@ -991,14 +1021,15 @@ orsa::Vector BodyGroup::totalAngularMomentum(const orsa::Time & t) const {
       //
       const orsa::Matrix g2l = orsa::globalToLocal((*it).get(),this,t);
       
-      if ((*it)->getPaulMoment()) {
-	orsa::IBPS ibps;
-	if (getInterpolatedIBPS(ibps,(*it).get(),t)) {
-	  if (ibps.rotational.get()) {
+      // if ((*it)->getPaulMoment()) {
+      orsa::IBPS ibps;
+      if (getInterpolatedIBPS(ibps,(*it).get(),t)) {
+	if (ibps.rotational.get()) {
+	  if (ibps.inertial.get()) {
 	    const orsa::Vector omega = 
 	      g2l * ibps.rotational->getOmega();
 	    L += 
-	      (*it)->getPaulMoment()->getInertiaMoment() * m *
+	      ibps.inertial->inertiaMatrix() * m *
 	      omega;
 	  }
 	}
@@ -1033,12 +1064,18 @@ orsa::Vector BodyGroup::totalAngularMomentum(const orsa::Time & t) const {
       //
       const orsa::Matrix l2g = orsa::localToGlobal((*it).get(),this,t);
       
+      orsa::IBPS ibps;
+      if (!getInterpolatedIBPS(ibps,(*it).get(),t)) {
+	ORSA_DEBUG("problems...");
+      }
+      
       osg::ref_ptr<const PaulMoment> b_pm = 
-	((*it)->getPaulMoment()) ? 
-	((*it)->getPaulMoment()) :
+	(ibps.inertial->paulMoment()) ? 
+	(ibps.inertial->paulMoment()) :
 	(dummy_pm.get());
       
-      const orsa::Vector rb = r + l2g*b_pm->getCenterOfMass() - rcm;
+      // const orsa::Vector rb = r + l2g*b_pm->getCenterOfMass() - rcm;
+      const orsa::Vector rb = r - rcm;
       const orsa::Vector vb = v + vcm;
       
       L += m * orsa::externalProduct(rb,vb);

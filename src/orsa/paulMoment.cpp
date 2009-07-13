@@ -15,13 +15,13 @@
 using namespace orsa;
 
 PaulMoment::PaulMoment() : osg::Referenced(true) {
-  _shape = 0;
-  _massDistribution = new UniformMassDistribution;
+  // _shape = 0;
+  // _massDistribution = new UniformMassDistribution;
 }
 
 PaulMoment::PaulMoment(const int order) : osg::Referenced(true) {
-  _shape = 0;
-  _massDistribution = new UniformMassDistribution;
+  // _shape = 0;
+  // _massDistribution = new UniformMassDistribution;
   _order = order;
   
   const unsigned int _order_plus_one = _order.getRef()+1;
@@ -38,10 +38,6 @@ PaulMoment::PaulMoment(const int order) : osg::Referenced(true) {
       }
     }
   }
-}
-
-PaulMoment::~PaulMoment() { 
-  
 }
 
 static Vector __randomVectorUtil(gsl_rng   * rnd,

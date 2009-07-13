@@ -1,5 +1,6 @@
 #include <orsa/util.h>
 // #include <orsa/print.h>
+#include <orsa/statistic.h>
 
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_eigen.h>
@@ -360,3 +361,179 @@ void orsa::principalAxis(orsa::Matrix & genericToPrincipal,
   gsl_vector_free (eval);
   gsl_matrix_free (evec);
 }
+
+/***/
+
+RandomPointsInShape::RandomPointsInShape(const orsa::Shape * s,
+					 const unsigned int N,
+					 const int rs) : osg::Referenced(), shape(s), size(N), randomSeed(rs) {
+  rng = new orsa::RNG(randomSeed);
+  in.clear();
+  in.reserve(N);
+  const Box boundingBox = shape->boundingBox();
+  counter = 0;
+  while (counter < N) {
+    in[counter] = shape->isInside(__randomVectorUtil(rng.get(),boundingBox));
+    ++counter;
+  }
+  reset();
+}
+
+bool RandomPointsInShape::get(orsa::Vector & v) const {
+  if (counter >= size) {
+    // ORSA_DEBUG("forgot to call reset() ?");
+    // reset();
+    return false;
+  }
+  do { 
+    v = __randomVectorUtil(rng,shape->boundingBox());
+    if (in[counter]) {
+      return true;
+    }
+    ++counter;
+  } while (counter < size);
+  ORSA_DEBUG("could not find any point inside the shape");
+  v = orsa::Vector(0,0,0);
+  return false;
+}
+
+orsa::Vector RandomPointsInShape::__randomVectorUtil(const orsa::RNG * rng,
+						     const Box & boundingBox) {
+  return Vector(boundingBox.getXMin()+(boundingBox.getXMax()-boundingBox.getXMin())*rng->gsl_rng_uniform(),
+		boundingBox.getYMin()+(boundingBox.getYMax()-boundingBox.getYMin())*rng->gsl_rng_uniform(),
+		boundingBox.getZMin()+(boundingBox.getZMax()-boundingBox.getZMin())*rng->gsl_rng_uniform());
+}
+
+/***/
+
+orsa::Vector centerOfMass(const orsa::RandomPointsInShape * randomPointsInShape,
+			  const orsa::MassDistribution * massDistribution) {
+  
+  osg::ref_ptr<orsa::Statistic<double> > stat_M   = new orsa::Statistic<double>;
+  //
+  osg::ref_ptr<orsa::Statistic<double> > stat_CMx = new orsa::Statistic<double>;
+  osg::ref_ptr<orsa::Statistic<double> > stat_CMy = new orsa::Statistic<double>;
+  osg::ref_ptr<orsa::Statistic<double> > stat_CMz = new orsa::Statistic<double>;
+  
+  orsa::Vector v;
+  randomPointsInShape->reset();
+  while (randomPointsInShape->get(v)) {
+    const double density = massDistribution->density(v);
+    if (density > 0) {
+      stat_M->insert(density);
+      //
+      stat_CMx->insert(density*v.getX());
+      stat_CMy->insert(density*v.getY());
+      stat_CMz->insert(density*v.getZ());
+    }
+  }
+  
+  const orsa::Vector center_of_mass(stat_CMx->sum()/stat_M->sum(),
+				    stat_CMy->sum()/stat_M->sum(),
+				    stat_CMz->sum()/stat_M->sum());
+  
+  if (1) {
+    // debug output
+    const orsa::Vector center_of_mass_uncertainty(stat_CMx->averageError(),
+						  stat_CMy->averageError(),
+						  stat_CMz->averageError());
+    ORSA_DEBUG("cm.x: %14.6e +/- %14.6e",
+	       center_of_mass.getX(),
+	       center_of_mass_uncertainty.getX());
+    ORSA_DEBUG("cm.y: %14.6e +/- %14.6e",
+	       center_of_mass.getY(),
+	       center_of_mass_uncertainty.getY());
+    ORSA_DEBUG("cm.z: %14.6e +/- %14.6e",
+	       center_of_mass.getZ(),
+	       center_of_mass_uncertainty.getZ());
+  }
+  
+  return center_of_mass;
+}
+
+void principalAxisAndInertiaMatrix(orsa::Matrix & principalAxis,
+				   orsa::Matrix & inertiaMatrix,
+				   const orsa::Vector & centerOfMass,
+				   const orsa::RandomPointsInShape * randomPointsInShape,
+				   const orsa::MassDistribution * massDistribution) {
+  
+  principalAxis = orsa::Matrix::identity();
+  // two runs, one not rotated, one rotated
+  bool rotatedRun = false;
+  while (1) {
+    
+    osg::ref_ptr<orsa::Statistic<double> > stat_Ixx = new orsa::Statistic<double>;
+    osg::ref_ptr<orsa::Statistic<double> > stat_Iyy = new orsa::Statistic<double>;
+    osg::ref_ptr<orsa::Statistic<double> > stat_Izz = new orsa::Statistic<double>;
+    osg::ref_ptr<orsa::Statistic<double> > stat_Ixy = new orsa::Statistic<double>;
+    osg::ref_ptr<orsa::Statistic<double> > stat_Ixz = new orsa::Statistic<double>;
+    osg::ref_ptr<orsa::Statistic<double> > stat_Iyz = new orsa::Statistic<double>;
+    
+    orsa::Vector v;
+    randomPointsInShape->reset();
+    while (randomPointsInShape->get(v)) {
+      const double density = massDistribution->density(v);
+      if (density > 0) {
+	v -= centerOfMass;
+	//
+	stat_Ixx->insert(density*(v.getY()*v.getY()+v.getZ()*v.getZ()));
+	stat_Iyy->insert(density*(v.getX()*v.getX()+v.getZ()*v.getZ()));
+	stat_Izz->insert(density*(v.getX()*v.getX()+v.getY()*v.getY()));
+	//
+	stat_Ixy->insert(density*(-v.getX()*v.getY()));
+	stat_Ixz->insert(density*(-v.getX()*v.getZ()));
+	stat_Iyz->insert(density*(-v.getY()*v.getZ()));
+      }
+    }
+    
+    inertiaMatrix.set(stat_Ixx->average(),
+		      stat_Ixy->average(),
+		      stat_Ixz->average(),
+		      stat_Ixy->average(),
+		      stat_Iyy->average(),
+		      stat_Iyz->average(),
+		      stat_Ixz->average(),
+		      stat_Iyz->average(),
+		      stat_Izz->average());
+    
+    if (1) {
+      // debug output    
+      ORSA_DEBUG("rotated: %i",rotatedRun);
+      //
+      ORSA_DEBUG("Ixx:  %14.6e +/- %14.6e",
+		 double(stat_Ixx->average()),
+		 double(stat_Ixx->averageError()));
+      ORSA_DEBUG("Iyy:  %14.6e +/- %14.6e",
+		 double(stat_Iyy->average()),
+		 double(stat_Iyy->averageError()));
+      ORSA_DEBUG("Izz:  %14.6e +/- %14.6e",
+		 double(stat_Izz->average()),
+		 double(stat_Izz->averageError()));
+      //
+      ORSA_DEBUG("Ixy:  %14.6e +/- %14.6e",
+		 double(stat_Ixy->average()),
+		 double(stat_Ixy->averageError()));
+      ORSA_DEBUG("Ixz:  %14.6e +/- %14.6e",
+		 double(stat_Ixz->average()),
+		 double(stat_Ixz->averageError()));
+      ORSA_DEBUG("Iyz:  %14.6e +/- %14.6e",
+		 double(stat_Iyz->average()),
+		 double(stat_Iyz->averageError()));
+    }
+    
+#warning invert??
+    ORSA_DEBUG("invert??");
+    orsa::principalAxis(principalAxis,
+		        inertiaMatrix,
+			inertiaMatrix);
+    
+#warning check largest along z, smallest along x
+    ORSA_DEBUG("principal axis: check largest I along z, smallest along x");
+    
+    if (rotatedRun) break;
+    rotatedRun = true;
+  }
+  
+}
+
+

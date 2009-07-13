@@ -22,7 +22,6 @@
 namespace orsa {
   
   class Body;
-  // class BodyGroup;
   class BodyInitialConditions;
   
   /***/
@@ -52,39 +51,101 @@ namespace orsa {
   
   /***/
   
-  class MassBodyProperty : public BodyProperty {
+  /* 
+   * centerOfMass is in the coordinates used for the shape
+   * principalAxis is the rotation matrix from the shape system to the diagonal system
+   * inertialMatrix is diagonal if principalAxis is correct
+   * paulMoment is about the centerOfMass and in the principalAxis system
+   *
+   * usually, to compute these vars, a mass distribution is assumed,
+   * or the data is otherwise obtained experimentally
+   *	
+   */
+  class InertialBodyProperty : public BodyProperty {
   public:
     virtual double mass() const = 0;
+    virtual const orsa::Shape * shape() const = 0;
+    virtual orsa::Vector centerOfMass() const = 0;
+    virtual orsa::Matrix principalAxis() const = 0;
+    virtual orsa::Matrix inertiaMatrix() const = 0;
+    virtual const orsa::PaulMoment * paulMoment() const = 0;
   public:
     virtual bool setMass(const double &) = 0;
+    virtual bool setShape(const orsa::Shape *) = 0;
+    virtual bool setCenterOfMass(const orsa::Vector &) = 0;
+    virtual bool setPrincipalAxis(const orsa::Matrix &) = 0;
+    virtual bool setInertiaMatrix(const orsa::Matrix &) = 0;
+    virtual bool setPaulMoment(const orsa::PaulMoment *) = 0;
   public:
-    virtual MassBodyProperty * clone() const = 0;
+    virtual InertialBodyProperty * clone() const = 0;
   };
   
-  /* 
-     class ConstantMassBodyProperty : public MassBodyProperty {
-     public:
-     BodyPropertyType type() const { return BP_CONSTANT; }
-     public:
-     bool update(const orsa::Time &) { return true; }
-     };
-  */
-  
-  class ConstantMassBodyProperty : public MassBodyProperty {
+  class ConstantInertialBodyProperty : public InertialBodyProperty {
   public:
-    ConstantMassBodyProperty(const double & m) : MassBodyProperty(), _m(m) { }
+    ConstantInertialBodyProperty(const double & m) :
+      InertialBodyProperty(), 
+      _m(m),
+      _s(0),
+      _cm(orsa::Vector(0,0,0)),
+      _pa(orsa::Matrix::identity()),
+      _I(orsa::Matrix::identity()),
+      _pm(0) { }
+  public:
+    ConstantInertialBodyProperty(const double           & m,
+				 const orsa::Shape      * s,
+				 const orsa::Vector     & cm,
+				 const orsa::Matrix     & pa,
+				 const orsa::Matrix     & I,
+				 const orsa::PaulMoment * pm) :
+      InertialBodyProperty(), 
+      _m(m),
+      _s(s),
+      _cm(cm),
+      _pa(pa),
+      _I(I),
+      _pm(pm) { }
   protected:
     const double _m;
+    osg::ref_ptr<const orsa::Shape> _s;
+    orsa::Vector _cm;
+    orsa::Matrix _pa;
+    orsa::Matrix _I;
+    osg::ref_ptr<const orsa::PaulMoment> _pm;
   public:
     double mass() const { return _m; }
+    const orsa::Shape * shape() const { return _s.get(); }
+    orsa::Vector centerOfMass() const { return _cm; }
+    orsa::Matrix principalAxis() const { return _pa; }
+    orsa::Matrix inertiaMatrix() const { return _I; }
+    const orsa::PaulMoment * paulMoment() const { return _pm.get(); }
   public:
     bool setMass(const double &) {
       ORSA_ERROR("this method should not have been called, please check your code.");
       return false;
     }
+    bool setShape(const orsa::Shape *) {
+      ORSA_ERROR("this method should not have been called, please check your code.");
+      return false;
+    }
+    bool setCenterOfMass(const orsa::Vector &) {
+      ORSA_ERROR("this method should not have been called, please check your code.");
+      return false;
+    }
+    bool setPrincipalAxis(const orsa::Matrix &) {
+      ORSA_ERROR("this method should not have been called, please check your code.");
+      return false;
+    }
+    bool setInertiaMatrix(const orsa::Matrix &) {
+      ORSA_ERROR("this method should not have been called, please check your code.");
+      return false;
+    }
+    bool setPaulMoment(const orsa::PaulMoment *) {
+      ORSA_ERROR("this method should not have been called, please check your code.");
+      return false;
+    }
   public:
-    MassBodyProperty * clone() const {
-      return new ConstantMassBodyProperty(*this);
+    InertialBodyProperty * clone() const {
+      return new ConstantInertialBodyProperty(*this);
     }
   public:
     BodyPropertyType type() const { return BP_CONSTANT; }
@@ -92,37 +153,43 @@ namespace orsa {
     bool update(const orsa::Time &) { return true; }
   };
   
-  class PrecomputedMassBodyProperty : public MassBodyProperty {
-  public:
-    BodyPropertyType type() const { return BP_PRECOMPUTED; }
-  public:
-    bool setMass(const double &) {
-      ORSA_ERROR("this method should not have been called, please check your code.");
-      return false;
-    }
-  };
+
+  // two notes: 1) is this used anywhere? 2) is clone() needed?
+  /* class PrecomputedInertialBodyProperty : public InertialBodyProperty {
+     public:
+     BodyPropertyType type() const { return BP_PRECOMPUTED; }
+     public:
+     bool setMass(const double &) {
+     ORSA_ERROR("this method should not have been called, please check your code.");
+     return false;
+     }
+     };
+  */
   
-  class DynamicMassBodyProperty : public MassBodyProperty {
-  public:
-    BodyPropertyType type() const { return BP_DYNAMIC; }
-  public:
-    bool update(const orsa::Time &) { return true; }
-  public:
-    double mass() const {
-      return _mass.getRef();
-    }
-  public:
-    bool setMass(const double & m) {
-      _mass = m;
-      return true;
-    }
-  public:
-    MassBodyProperty * clone() const {
-      return new DynamicMassBodyProperty(*this);
-    }
-  protected:
-    orsa::Cache<double> _mass;
-  };
+  
+  // used anywhere yet?
+  /* class DynamicInertialBodyProperty : public InertialBodyProperty {
+     public:
+     BodyPropertyType type() const { return BP_DYNAMIC; }
+     public:
+     bool update(const orsa::Time &) { return true; }
+     public:
+     double mass() const {
+     return _mass.getRef();
+     }
+     public:
+     bool setMass(const double & m) {
+     _mass = m;
+     return true;
+     }
+     public:
+     InertialBodyProperty * clone() const {
+     return new DynamicInertialBodyProperty(*this);
+     }
+     protected:
+     orsa::Cache<double> _mass;
+     };
+  */
   
   /***/
 
@@ -307,8 +374,7 @@ namespace orsa {
   public:
     orsa::Cache<orsa::Time> time;
   public:
-    osg::ref_ptr<MassBodyProperty> inertial;
-#warning "remember to integrate inertial component!"
+    osg::ref_ptr<InertialBodyProperty> inertial;
   public:
     osg::ref_ptr<TranslationalBodyProperty> translational;
   public:
@@ -449,28 +515,30 @@ namespace orsa {
   protected:
     orsa::Cache<orsa::IBPS> _ibps;
     
-  public:
-    bool setRadius(const double & r) {
-      if (_shape.get()) {
-	ORSA_ERROR("cannot set radius, this body has a predefined shape");
-	return false;
-      } else {
-	_radius = r;
-	return true;
-      }
-    }
-  public:	
-    const double getRadius() const {
-      if (_shape.get()) {
-	return _shape->boundingRadius();
-      } else if (_radius.isSet()) {
-	return _radius.getRef();
-      } else {
-	return 0;
-      }
-    }
-  protected:
-    orsa::Cache<double> _radius;
+    /* 
+       public:
+       bool setRadius(const double & r) {
+       if (_shape.get()) {
+       ORSA_ERROR("cannot set radius, this body has a predefined shape");
+       return false;
+       } else {
+       _radius = r;
+       return true;
+       }
+       }
+       public:	
+       const double getRadius() const {
+       if (_shape.get()) {
+       return _shape->boundingRadius();
+       } else if (_radius.isSet()) {
+       return _radius.getRef();
+       } else {
+       return 0;
+       }
+       }
+       protected:
+       orsa::Cache<double> _radius;
+    */
     
   public:
     virtual bool setName(const std::string &);
@@ -478,29 +546,33 @@ namespace orsa {
   protected:
     std::string _name;
     
-  public:
-    inline virtual bool setShape(const orsa::Shape * s) {
-      _shape = s;
-      return true;
-    }
-  public:
-    inline virtual const orsa::Shape * getShape() const {
-      return _shape.get();
-    }
-  protected:
-    osg::ref_ptr<const orsa::Shape> _shape;
- 
-  public:
-    inline virtual bool setPaulMoment(const orsa::PaulMoment * m) {
-      _paulMoment = m;
-      return true;
-    }
-  public:
-    inline virtual const orsa::PaulMoment * getPaulMoment() const {
-      return _paulMoment.get();
-    }
-  protected:
-    osg::ref_ptr<const orsa::PaulMoment> _paulMoment;
+    /* 
+       public:
+       inline virtual bool setShape(const orsa::Shape * s) {
+       _shape = s;
+       return true;
+       }
+       public:
+       inline virtual const orsa::Shape * getShape() const {
+       return _shape.get();
+       }
+       protected:
+       osg::ref_ptr<const orsa::Shape> _shape;
+    */
+    
+    /* 
+       public:
+       inline virtual bool setPaulMoment(const orsa::PaulMoment * m) {
+       _paulMoment = m;
+       return true;
+       }
+       public:
+       inline virtual const orsa::PaulMoment * getPaulMoment() const {
+       return _paulMoment.get();
+       }
+       protected:
+       osg::ref_ptr<const orsa::PaulMoment> _paulMoment;
+    */
     
     /* 
        public:
