@@ -416,15 +416,15 @@ double Paul::gravitationalPotential(const orsa::PaulMoment * M1,
   
   double outerSum = 0;
   
-  for (unsigned int i1=0; i1<=M1->order(); ++i1) {
-    for (unsigned int j1=0; j1<=M1->order()-i1; ++j1) {
-      for (unsigned int k1=0; k1<=M1->order()-i1-j1; ++k1) {
+  for (unsigned int i1=0; i1<=M1->order; ++i1) {
+    for (unsigned int j1=0; j1<=M1->order-i1; ++j1) {
+      for (unsigned int k1=0; k1<=M1->order-i1-j1; ++k1) {
 	
 	if (M1->M(i1,j1,k1) == 0) continue;
 	
-	for (unsigned int i2=0; i2<=M2->order(); ++i2) {
-	  for (unsigned int j2=0; j2<=M2->order()-i2; ++j2) {
-	    for (unsigned int k2=0; k2<=M2->order()-i2-j2; ++k2) {
+	for (unsigned int i2=0; i2<=M2->order; ++i2) {
+	  for (unsigned int j2=0; j2<=M2->order-i2; ++j2) {
+	    for (unsigned int k2=0; k2<=M2->order-i2-j2; ++k2) {
 	      
 	      if (M2->M(i2,j2,k2) == 0) continue;
 	      
@@ -633,15 +633,15 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
   double Fy = 0;
   double Fz = 0;
   
-  for (unsigned int i1=0; i1<=M1->order(); ++i1) {
-    for (unsigned int j1=0; j1<=M1->order()-i1; ++j1) {
-      for (unsigned int k1=0; k1<=M1->order()-i1-j1; ++k1) {
+  for (unsigned int i1=0; i1<=M1->order; ++i1) {
+    for (unsigned int j1=0; j1<=M1->order-i1; ++j1) {
+      for (unsigned int k1=0; k1<=M1->order-i1-j1; ++k1) {
 	
 	if (M1->M(i1,j1,k1) == 0) continue;
 	
-	for (unsigned int i2=0; i2<=M2->order(); ++i2) {
-	  for (unsigned int j2=0; j2<=M2->order()-i2; ++j2) {
-	    for (unsigned int k2=0; k2<=M2->order()-i2-j2; ++k2) {
+	for (unsigned int i2=0; i2<=M2->order; ++i2) {
+	  for (unsigned int j2=0; j2<=M2->order-i2; ++j2) {
+	    for (unsigned int k2=0; k2<=M2->order-i2-j2; ++k2) {
 	      
 	      if (M2->M(i2,j2,k2) == 0) continue;
 	      
@@ -944,15 +944,15 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
   double Fy = 0;
   double Fz = 0;
   
-  for (unsigned int i1=0; i1<=M1->order(); ++i1) {
-    for (unsigned int j1=0; j1<=M1->order()-i1; ++j1) {
-      for (unsigned int k1=0; k1<=M1->order()-i1-j1; ++k1) {
+  for (unsigned int i1=0; i1<=M1->order; ++i1) {
+    for (unsigned int j1=0; j1<=M1->order-i1; ++j1) {
+      for (unsigned int k1=0; k1<=M1->order-i1-j1; ++k1) {
 	
 	if (M1->M(i1,j1,k1) == 0) continue;
 	
-	for (unsigned int i2=0; i2<=M2->order(); ++i2) {
-	  for (unsigned int j2=0; j2<=M2->order()-i2; ++j2) {
-	    for (unsigned int k2=0; k2<=M2->order()-i2-j2; ++k2) {
+	for (unsigned int i2=0; i2<=M2->order; ++i2) {
+	  for (unsigned int j2=0; j2<=M2->order-i2; ++j2) {
+	    for (unsigned int k2=0; k2<=M2->order-i2-j2; ++k2) {
 	      
 	      if (M2->M(i2,j2,k2) == 0) continue;
 	      
@@ -1193,17 +1193,17 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
   double Ty = 0;
   double Tz = 0;
   
-  for (unsigned int i1=0; i1<=M1->order(); ++i1) {
-    for (unsigned int j1=0; j1<=M1->order()-i1; ++j1) {
-      for (unsigned int k1=0; k1<=M1->order()-i1-j1; ++k1) {
+  for (unsigned int i1=0; i1<=M1->order; ++i1) {
+    for (unsigned int j1=0; j1<=M1->order-i1; ++j1) {
+      for (unsigned int k1=0; k1<=M1->order-i1-j1; ++k1) {
 	
 	if ( (M1->M(i1+1,j1,k1) == 0) &&
 	     (M1->M(i1,j1+1,k1) == 0) &&
 	     (M1->M(i1,j1,k1+1) == 0) ) continue;
 	
-	for (unsigned int i2=0; i2<=M2->order(); ++i2) {
-	  for (unsigned int j2=0; j2<=M2->order()-i2; ++j2) {
-	    for (unsigned int k2=0; k2<=M2->order()-i2-j2; ++k2) {
+	for (unsigned int i2=0; i2<=M2->order; ++i2) {
+	  for (unsigned int j2=0; j2<=M2->order-i2; ++j2) {
+	    for (unsigned int k2=0; k2<=M2->order-i2-j2; ++k2) {
 	      
 	      if (M2->M(i2,j2,k2) == 0) continue;
 	      

@@ -289,15 +289,34 @@ namespace orsa {
     std::vector<bool> in;
   };
   
+  double volume(const orsa::RandomPointsInShape * randomPointsInShape);
+  
   orsa::Vector centerOfMass(const orsa::RandomPointsInShape * randomPointsInShape,
 			    const orsa::MassDistribution * massDistribution);
   
   // InertiaMatrix about the centerOfMass, along the PrincipalAxis
-  void principalAxisAndInertiaMatrix(orsa::Matrix & principalAxis,
-				     orsa::Matrix & inertiaMatrix,
-				     const orsa::Vector & centerOfMass,
-				     const orsa::RandomPointsInShape * randomPointsInShape,
-				     const orsa::MassDistribution * massDistribution);
+  /* void principalAxisAndInertiaMatrix(orsa::Matrix & principalAxis,
+     orsa::Matrix & inertiaMatrix,
+     const orsa::Vector & centerOfMass,
+     const orsa::RandomPointsInShape * randomPointsInShape,
+     const orsa::MassDistribution * massDistribution);
+  */
+  //
+  // InertiaMatrix about the centerOfMass
+  // local here is the principal axis system
+  void diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
+				 orsa::Matrix & localToShape,
+				 orsa::Matrix & inertiaMatrix,
+				 const orsa::Vector & centerOfMass,
+				 const orsa::RandomPointsInShape * randomPointsInShape,
+				 const orsa::MassDistribution * massDistribution);
+  
+  orsa::PaulMoment * computePaulMoment(const unsigned int order,
+				       const orsa::Matrix & shapeToLocal,
+				       const orsa::Matrix & localToShape,
+				       const orsa::Vector & centerOfMass,
+				       const orsa::RandomPointsInShape * randomPointsInShape,
+				       const orsa::MassDistribution * massDistribution);
   
 } // namespace orsa
 

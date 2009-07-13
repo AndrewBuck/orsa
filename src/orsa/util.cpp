@@ -406,6 +406,16 @@ orsa::Vector RandomPointsInShape::__randomVectorUtil(const orsa::RNG * rng,
 
 /***/
 
+double volume(const orsa::RandomPointsInShape * randomPointsInShape) {
+  unsigned int in=0;
+  orsa::Vector(v);
+  randomPointsInShape->reset();
+  while (randomPointsInShape->get(v)) {
+    ++in;
+  }
+  return ((randomPointsInShape->shape->boundingBox().volume()*in)/randomPointsInShape->size);
+}
+
 orsa::Vector centerOfMass(const orsa::RandomPointsInShape * randomPointsInShape,
 			  const orsa::MassDistribution * massDistribution) {
   
@@ -451,13 +461,15 @@ orsa::Vector centerOfMass(const orsa::RandomPointsInShape * randomPointsInShape,
   return center_of_mass;
 }
 
-void principalAxisAndInertiaMatrix(orsa::Matrix & principalAxis,
-				   orsa::Matrix & inertiaMatrix,
-				   const orsa::Vector & centerOfMass,
-				   const orsa::RandomPointsInShape * randomPointsInShape,
-				   const orsa::MassDistribution * massDistribution) {
+void diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
+			       orsa::Matrix & localToShape,
+			       orsa::Matrix & inertiaMatrix,
+			       const orsa::Vector & centerOfMass,
+			       const orsa::RandomPointsInShape * randomPointsInShape,
+			       const orsa::MassDistribution * massDistribution) {
   
-  principalAxis = orsa::Matrix::identity();
+  shapeToLocal = orsa::Matrix::identity();
+  localToShape = orsa::Matrix::identity();
   // two runs, one not rotated, one rotated
   bool rotatedRun = false;
   while (1) {
@@ -475,6 +487,7 @@ void principalAxisAndInertiaMatrix(orsa::Matrix & principalAxis,
       const double density = massDistribution->density(v);
       if (density > 0) {
 	v -= centerOfMass;
+	v = shapeToLocal*v;
 	//
 	stat_Ixx->insert(density*(v.getY()*v.getY()+v.getZ()*v.getZ()));
 	stat_Iyy->insert(density*(v.getX()*v.getX()+v.getZ()*v.getZ()));
@@ -523,9 +536,10 @@ void principalAxisAndInertiaMatrix(orsa::Matrix & principalAxis,
     
 #warning invert??
     ORSA_DEBUG("invert??");
-    orsa::principalAxis(principalAxis,
+    orsa::principalAxis(localToShape,
 		        inertiaMatrix,
 			inertiaMatrix);
+    orsa::Matrix::invert(localToShape,shapeToLocal);
     
 #warning check largest along z, smallest along x
     ORSA_DEBUG("principal axis: check largest I along z, smallest along x");
@@ -537,3 +551,89 @@ void principalAxisAndInertiaMatrix(orsa::Matrix & principalAxis,
 }
 
 
+
+orsa::PaulMoment * orsa::computePaulMoment(const unsigned int order,
+					   const orsa::Matrix & shapeToLocal,
+					   const orsa::Matrix & localToShape,
+					   const orsa::Vector & centerOfMass,
+					   const orsa::RandomPointsInShape * randomPointsInShape,
+					   const orsa::MassDistribution * massDistribution) {
+  
+  orsa::PaulMoment * pm = new orsa::PaulMoment(order);
+  
+  const unsigned int order_plus_one = order+1;
+  //
+  osg::ref_ptr<orsa::Statistic<double> > _stat_M = new orsa::Statistic<double>;
+  //
+  std::vector< std::vector< std::vector< osg::ref_ptr< orsa::Statistic<double> > > > > _stat_Mo(order_plus_one);
+  //
+  // std::vector< std::vector< std::vector< osg::ref_ptr< orsa::Statistic<double> > > > > _stat_Vo(order_plus_one);
+  //
+  _stat_Mo.resize(order_plus_one);
+  // _stat_Vo.resize(order_plus_one);
+  for (unsigned int i=0; i<order_plus_one; ++i) {
+    _stat_Mo[i].resize(order_plus_one-i);
+    // _stat_Vo[i].resize(order_plus_one-i);
+    for (unsigned int j=0; j<order_plus_one-i; ++j) {
+      _stat_Mo[i][j].resize(order_plus_one-i-j);
+      // _stat_Vo[i][j].resize(order_plus_one-i-j);
+      for (unsigned int k=0; k<order_plus_one-i-j; ++k) {
+	_stat_Mo[i][j][k] = new orsa::Statistic<double>;
+     	// _stat_Vo[i][j][k] = new orsa::Statistic<double>;
+      }
+    }
+  }
+  
+  orsa::Vector v;
+  randomPointsInShape->reset();
+  while (randomPointsInShape->get(v)) {
+    const double density = massDistribution->density(v);
+    if (density > 0) {
+      v -= centerOfMass;
+      v = shapeToLocal*v;
+      //
+      _stat_M->insert(density);
+      //
+      for (unsigned int i=0; i<order_plus_one; ++i) {
+	for (unsigned int j=0; j<order_plus_one-i; ++j) {
+	  for (unsigned int k=0; k<order_plus_one-i-j; ++k) {
+	    _stat_Mo[i][j][k]->insert(density*
+				      int_pow(v.getX(),i)*
+				      int_pow(v.getY(),j)*
+				      int_pow(v.getZ(),k));
+	  }
+	}
+      }
+      
+    }
+  }
+  
+  /* Mo.resize(order_plus_one);
+     Mo_uncertainty.resize(order_plus_one);
+     for (unsigned int i=0; i<order_plus_one; ++i) {
+     Mo[i].resize(order_plus_one-i);
+     Mo_uncertainty[i].resize(order_plus_one-i);
+     for (unsigned int j=0; j<order_plus_one-i; ++j) {
+     Mo[i][j].resize(order_plus_one-i-j);
+     Mo_uncertainty[i][j].resize(order_plus_one-i-j);
+     }
+     }
+  */
+  
+  for (unsigned int i=0; i<order_plus_one; ++i) {
+    for (unsigned int j=0; j<order_plus_one-i; ++j) {
+      for (unsigned int k=0; k<order_plus_one-i-j; ++k) {
+	// Mo[i][j][k] = _stat_Mo[i][j][k]->sum() / _stat_M->sum();
+	// Mo_uncertainty[i][j][k] = _stat_Mo[i][j][k]->averageError();
+	//
+	// save
+	// pm->setM(Mo[i][j][k],i,j,k);
+	pm->setM(_stat_Mo[i][j][k]->sum()/_stat_M->sum(),
+		 i,j,k);
+	
+      }
+    }
+  }
+  
+  return pm;
+}

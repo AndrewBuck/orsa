@@ -53,12 +53,15 @@ namespace orsa {
   
   /* 
    * centerOfMass is in the coordinates used for the shape
-   * principalAxis is the rotation matrix from the shape system to the diagonal system
-   * inertialMatrix is diagonal if principalAxis is correct
+   * shapeToLocal is the rotation matrix from the shape system to the diagonal system ( = "local")
+   * inertialMatrix is diagonal if shapeToLocal and localToShape are correct
+   * "local" is the principal axis system
    * paulMoment is about the centerOfMass and in the principalAxis system
    *
    * usually, to compute these vars, a mass distribution is assumed,
    * or the data is otherwise obtained experimentally
+   *
+   * Again: "principal" == "diagonal" == "local" ref. sys.
    *	
    */
   class InertialBodyProperty : public BodyProperty {
@@ -66,14 +69,16 @@ namespace orsa {
     virtual double mass() const = 0;
     virtual const orsa::Shape * shape() const = 0;
     virtual orsa::Vector centerOfMass() const = 0;
-    virtual orsa::Matrix principalAxis() const = 0;
+    virtual orsa::Matrix shapeToLocal() const = 0;
+    virtual orsa::Matrix localToShape() const = 0;
     virtual orsa::Matrix inertiaMatrix() const = 0;
     virtual const orsa::PaulMoment * paulMoment() const = 0;
   public:
     virtual bool setMass(const double &) = 0;
     virtual bool setShape(const orsa::Shape *) = 0;
     virtual bool setCenterOfMass(const orsa::Vector &) = 0;
-    virtual bool setPrincipalAxis(const orsa::Matrix &) = 0;
+    virtual bool setShapeToLocal(const orsa::Matrix &) = 0;
+    virtual bool setLocalToShape(const orsa::Matrix &) = 0;
     virtual bool setInertiaMatrix(const orsa::Matrix &) = 0;
     virtual bool setPaulMoment(const orsa::PaulMoment *) = 0;
   public:
@@ -87,35 +92,40 @@ namespace orsa {
       _m(m),
       _s(0),
       _cm(orsa::Vector(0,0,0)),
-      _pa(orsa::Matrix::identity()),
+      _s2l(orsa::Matrix::identity()),
+      _l2s(orsa::Matrix::identity()),
       _I(orsa::Matrix::identity()),
       _pm(0) { }
   public:
     ConstantInertialBodyProperty(const double           & m,
 				 const orsa::Shape      * s,
 				 const orsa::Vector     & cm,
-				 const orsa::Matrix     & pa,
+				 const orsa::Matrix     & s2l,
+				 const orsa::Matrix     & l2s,
 				 const orsa::Matrix     & I,
 				 const orsa::PaulMoment * pm) :
       InertialBodyProperty(), 
       _m(m),
       _s(s),
       _cm(cm),
-      _pa(pa),
+      _s2l(s2l),
+      _l2s(l2s),
       _I(I),
       _pm(pm) { }
   protected:
     const double _m;
     osg::ref_ptr<const orsa::Shape> _s;
-    orsa::Vector _cm;
-    orsa::Matrix _pa;
-    orsa::Matrix _I;
+    const orsa::Vector _cm;
+    const orsa::Matrix _s2l;
+    const orsa::Matrix _l2s;
+    const orsa::Matrix _I;
     osg::ref_ptr<const orsa::PaulMoment> _pm;
   public:
     double mass() const { return _m; }
     const orsa::Shape * shape() const { return _s.get(); }
     orsa::Vector centerOfMass() const { return _cm; }
-    orsa::Matrix principalAxis() const { return _pa; }
+    orsa::Matrix shapeToLocal() const { return _s2l; }
+    orsa::Matrix localToShape() const { return _l2s; }
     orsa::Matrix inertiaMatrix() const { return _I; }
     const orsa::PaulMoment * paulMoment() const { return _pm.get(); }
   public:
@@ -131,7 +141,11 @@ namespace orsa {
       ORSA_ERROR("this method should not have been called, please check your code.");
       return false;
     }
-    bool setPrincipalAxis(const orsa::Matrix &) {
+    bool setShapeToLocal(const orsa::Matrix &) {
+      ORSA_ERROR("this method should not have been called, please check your code.");
+      return false;
+    }
+    bool setLocalToShape(const orsa::Matrix &) {
       ORSA_ERROR("this method should not have been called, please check your code.");
       return false;
     }

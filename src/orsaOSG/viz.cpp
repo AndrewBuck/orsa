@@ -53,9 +53,9 @@ public:
 public:
   BoundingBox computeBound(const osg::Drawable &) const  { 
     if (_b.get()) {
-      if (_b->getShape()) {
+      if (_b->getInitialConditions().inertial->shape()) {
 	// ORSA_DEBUG("symmetric BB success for body: %s",_b->getName().c_str());
-	return _b->getShape()->symmetricBoundingBox().getOSGBoundingBox();
+	return _b->getInitialConditions().inertial->shape()->symmetricBoundingBox().getOSGBoundingBox();
       }
     }
     return osg::BoundingBox();
@@ -422,10 +422,10 @@ osg::Group * Viz::createRoot() {
     */
     
     
-    if ((*_b_it)->getShape() != 0) {
+    if ((*_b_it)->getInitialConditions().inertial->shape() != 0) {
       
       // bad style for the moment...
-      switch ((*_b_it)->getShape()->getType()) {
+      switch ((*_b_it)->getInitialConditions().inertial->shape()->getType()) {
       case orsa::Shape::SHAPE_TRI:
 	{
 	  
@@ -441,7 +441,7 @@ osg::Group * Viz::createRoot() {
           // should use osg::TriangleMesh ??
     
           // ORSA_DEBUG("SHAPE_TRI...");
-          osg::ref_ptr<const orsa::TriShape> _ts = (const orsa::TriShape *) (*_b_it)->getShape();
+          osg::ref_ptr<const orsa::TriShape> _ts = (const orsa::TriShape *) (*_b_it)->getInitialConditions().inertial->shape();
 	  //
 	  const TriShape::VertexVector _vertex = _ts->getVertexVector();
 	  const TriShape::FaceVector   _face   = _ts->getFaceVector();
@@ -520,7 +520,7 @@ osg::Group * Viz::createRoot() {
 	  double a,b,c;
 	  
 	  {
-	    const orsa::EllipsoidShape * es = dynamic_cast<const orsa::EllipsoidShape * > ((*_b_it)->getShape());
+	    const orsa::EllipsoidShape * es = dynamic_cast<const orsa::EllipsoidShape * > ((*_b_it)->getInitialConditions().inertial->shape());
 	    if (!es) {
 	      ORSA_ERROR("problems...");
 	    }
@@ -606,7 +606,7 @@ osg::Group * Viz::createRoot() {
 	boxGeometry->setColorArray(colours);
 	boxGeometry->setColorBinding(osg::Geometry::BIND_OVERALL);
 	
-	const orsa::Box & boundingBox = (*_b_it)->getShape()->boundingBox();
+	const orsa::Box & boundingBox = (*_b_it)->getInitialConditions().inertial->shape()->boundingBox();
 	
 	osg::Vec3Array * coords = new osg::Vec3Array(24);
 	// x_min face
@@ -720,7 +720,7 @@ osg::Group * Viz::createRoot() {
       // no shape, just a point
       // ORSA_DEBUG("POINT...");
       
-      double radius = (*_b_it)->getRadius();
+      double radius = (*_b_it)->getInitialConditions().inertial->shape()->boundingRadius();
       if (radius == 0) {
 	radius = FromUnits(10.0,Unit::KM); // hmm...
       }

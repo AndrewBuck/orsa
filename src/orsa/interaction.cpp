@@ -12,8 +12,8 @@ using namespace orsa;
 Interaction::Interaction() : osg::Referenced(true) { 
   dummyPaulMoment = new PaulMoment(0);
   dummyPaulMoment->setM(1,0,0,0);
-  dummyPaulMoment->setCenterOfMass(orsa::Vector(0,0,0));
-  dummyPaulMoment->setInertiaMoment(orsa::Matrix::identity());
+  // dummyPaulMoment->setCenterOfMass(orsa::Vector(0,0,0));
+  // dummyPaulMoment->setInertiaMoment(orsa::Matrix::identity());
 }	
 
 bool Interaction::acceleration(InteractionVector & a,  
@@ -211,19 +211,22 @@ bool Interaction::acceleration(InteractionVector & a,
 	  return false;
 	}
 	
-	if (ref_b->getPaulMoment() || 
-	    b->getPaulMoment()) {
+	/* if (ref_b->getPaulMoment() || 
+	   b->getPaulMoment()) {
+	*/
+	//
+	if (ref_b_ibps.inertial->paulMoment() || b_ibps.inertial->paulMoment()) {
 	  
 	  // ORSA_DEBUG("--MARK--");
 	  
 	  osg::ref_ptr<const PaulMoment> ref_b_pm = 
-	    (ref_b->getPaulMoment()) ? 
-	    (ref_b->getPaulMoment()) :
+	    (ref_b_ibps.inertial->paulMoment()) ? 
+	    (ref_b_ibps.inertial->paulMoment()) :
 	    (dummyPaulMoment.get());
 	  
 	  osg::ref_ptr<const PaulMoment> b_pm = 
-	    (b->getPaulMoment()) ? 
-	    (b->getPaulMoment()) :
+	    (b_ibps.inertial->paulMoment()) ? 
+	    (b_ibps.inertial->paulMoment()) :
 	    (dummyPaulMoment.get());
 	  
 	  /* 
@@ -270,12 +273,14 @@ bool Interaction::acceleration(InteractionVector & a,
 	     orsa::print(t);
 	  */
 	  
-	  if (b->getRadius()+ref_b->getRadius() > R.length()) {
+	  // if (b->getRadius()+ref_b->getRadius() > R.length()) {
+	  //
+	  if (b_ibps.inertial->shape()->boundingRadius()+ref_b_ibps.inertial->shape()->boundingRadius() > R.length()) {
 	    
 	    ORSA_DEBUG("bodies too close: R<R1+R2, R=%g R1=%g R2=%g [km] [b1:%s] [b2:%s]",
 		       orsa::FromUnits(R.length(),orsa::Unit::KM,-1),
-		       orsa::FromUnits(b->getRadius(),orsa::Unit::KM,-1),
-		       orsa::FromUnits(ref_b->getRadius(),orsa::Unit::KM,-1),
+		       orsa::FromUnits(b_ibps.inertial->shape()->boundingRadius(),orsa::Unit::KM,-1),
+		       orsa::FromUnits(ref_b_ibps.inertial->shape()->boundingRadius(),orsa::Unit::KM,-1),
 		       b->getName().c_str(),
 		       ref_b->getName().c_str());
 	    ORSA_DEBUG("reverting to pointlike...");
@@ -476,8 +481,8 @@ bool Interaction::torque(InteractionVector & N,
       }
       
       osg::ref_ptr<const PaulMoment> ref_b_pm = 
-	(ref_b->getPaulMoment()) ? 
-	(ref_b->getPaulMoment()) :
+	(ref_b_ibps.inertial->paulMoment()) ? 
+	(ref_b_ibps.inertial->paulMoment()) :
 	(dummyPaulMoment.get());
       
       if (!bg->getInterpolatedMass(m_ref_b,ref_b,t)) {
@@ -558,12 +563,15 @@ bool Interaction::torque(InteractionVector & N,
 	  return false;
 	}
 	
-	if (ref_b->getPaulMoment() || 
-	    b->getPaulMoment()) {
+	/* if (ref_b->getPaulMoment() || 
+	   b->getPaulMoment()) {
+	*/
+	//
+	if (ref_b_ibps.inertial->paulMoment() || b_ibps.inertial->paulMoment()) {
 	  
 	  osg::ref_ptr<const PaulMoment> b_pm = 
-	    (b->getPaulMoment()) ? 
-	    (b->getPaulMoment()) :
+	    (b_ibps.inertial->paulMoment()) ? 
+	    (b_ibps.inertial->paulMoment()) :
 	    (dummyPaulMoment.get());
 	  
 	  if ( (b_ibps.translational.get() &&
