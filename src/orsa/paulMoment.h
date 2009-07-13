@@ -11,7 +11,6 @@
 #include <orsa/shape.h>
 #include <orsa/vector.h>
 #include <orsa/matrix.h>
-// #include <orsa/multipole.h>
 
 namespace orsa {
   

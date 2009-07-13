@@ -9,7 +9,6 @@
 #include <orsa/cache.h>
 #include <orsa/datetime.h>
 #include <orsa/debug.h>
-// #include <orsa/multipole.h>
 #include <orsa/paulMoment.h>
 #include <orsa/propulsion.h>
 #include <orsa/quaternion.h>
@@ -490,21 +489,7 @@ namespace orsa {
     }
   protected:
     osg::ref_ptr<const orsa::Shape> _shape;
-    
-    /* 
-       public:
-       inline virtual bool setMultipole(const orsa::Multipole * m) {
-       _multipole = m;
-       return true;
-       }
-       public:
-       inline virtual const orsa::Multipole * getMultipole() const {
-       return _multipole.get();
-       }
-       protected:
-       osg::ref_ptr<const orsa::Multipole> _multipole;
-    */
-    
+ 
   public:
     inline virtual bool setPaulMoment(const orsa::PaulMoment * m) {
       _paulMoment = m;

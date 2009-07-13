@@ -2,7 +2,6 @@
 
 #include <orsa/box.h>
 #include <orsa/double.h>
-#include <orsa/multipole.h>
 #include <orsa/legendre.h>
 #include <orsa/statistic.h>
 #include <orsa/unit.h>
