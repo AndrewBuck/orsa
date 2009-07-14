@@ -85,17 +85,60 @@ namespace orsa {
     virtual InertialBodyProperty * clone() const = 0;
   };
   
-  class ConstantInertialBodyProperty : public InertialBodyProperty {
+  class PointLikeConstantInertialBodyProperty : public InertialBodyProperty {
   public:
-    ConstantInertialBodyProperty(const double & m) :
-      InertialBodyProperty(), 
-      _m(m),
-      _s(0),
-      _cm(orsa::Vector(0,0,0)),
-      _s2l(orsa::Matrix::identity()),
-      _l2s(orsa::Matrix::identity()),
-      _I(orsa::Matrix::identity()),
-      _pm(0) { }
+    PointLikeConstantInertialBodyProperty(const double & m) : 
+      InertialBodyProperty(),
+      _m(m) { }
+  protected:
+    const double _m;
+    double mass() const { return _m; }
+    const orsa::Shape * shape() const { return 0; }
+    orsa::Vector centerOfMass() const { return orsa::Vector(0,0,0); }
+    orsa::Matrix shapeToLocal() const { return orsa::Matrix::identity(); }
+    orsa::Matrix localToShape() const { return orsa::Matrix::identity(); }
+    orsa::Matrix inertiaMatrix() const { return orsa::Matrix::identity(); }
+    const orsa::PaulMoment * paulMoment() const { return 0; }
+  public:
+    bool setMass(const double &) {
+      ORSA_ERROR("this method should not have been called, please check your code.");
+      return false;
+    }
+    bool setShape(const orsa::Shape *) {
+      ORSA_ERROR("this method should not have been called, please check your code.");
+      return false;
+    }
+    bool setCenterOfMass(const orsa::Vector &) {
+      ORSA_ERROR("this method should not have been called, please check your code.");
+      return false;
+    }
+    bool setShapeToLocal(const orsa::Matrix &) {
+      ORSA_ERROR("this method should not have been called, please check your code.");
+      return false;
+    }
+    bool setLocalToShape(const orsa::Matrix &) {
+      ORSA_ERROR("this method should not have been called, please check your code.");
+      return false;
+    }
+    bool setInertiaMatrix(const orsa::Matrix &) {
+      ORSA_ERROR("this method should not have been called, please check your code.");
+      return false;
+    }
+    bool setPaulMoment(const orsa::PaulMoment *) {
+      ORSA_ERROR("this method should not have been called, please check your code.");
+      return false;
+    }
+  public:
+    InertialBodyProperty * clone() const {
+      return new PointLikeConstantInertialBodyProperty(*this);
+    }
+  public:
+    BodyPropertyType type() const { return BP_CONSTANT; }
+  public:
+    bool update(const orsa::Time &) { return true; }
+  };
+  
+  class ConstantInertialBodyProperty : public InertialBodyProperty {
   public:
     ConstantInertialBodyProperty(const double           & m,
 				 const orsa::Shape      * s,

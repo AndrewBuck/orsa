@@ -175,7 +175,7 @@ void MainThread::run() {
       SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(sun->getName());
       // sbpvc->setBodyName(sun->getName());
       orsa::IBPS ibps;
-      ibps.inertial = new ConstantInertialBodyProperty(orsaSolarSystem::Data::MSun());
+      ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MSun());
       ibps.translational = sbpvc;
       sun->setInitialConditions(ibps);
     } else {
@@ -205,7 +205,7 @@ void MainThread::run() {
       SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(mercury->getName());
       // sbpvc->setBodyName(mercury->getName());
       orsa::IBPS ibps;
-      ibps.inertial = new ConstantInertialBodyProperty(orsaSolarSystem::Data::MMercury());
+      ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MMercury());
       ibps.translational = sbpvc;
       mercury->setInitialConditions(ibps);
       //
@@ -221,7 +221,7 @@ void MainThread::run() {
       SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(venus->getName());
       // sbpvc->setBodyName(venus->getName());
       orsa::IBPS ibps;
-      ibps.inertial = new ConstantInertialBodyProperty(orsaSolarSystem::Data::MVenus());
+      ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MVenus());
       ibps.translational = sbpvc;
       venus->setInitialConditions(ibps);
       //
@@ -237,7 +237,7 @@ void MainThread::run() {
       SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(earth->getName());
       // sbpvc->setBodyName(earth->getName());
       orsa::IBPS ibps;
-      ibps.inertial = new ConstantInertialBodyProperty(orsaSolarSystem::Data::MEarthMoon());
+      ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MEarthMoon());
       ibps.translational = sbpvc;
       earth->setInitialConditions(ibps);
       //
@@ -253,7 +253,7 @@ void MainThread::run() {
       SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(mars->getName());
       // sbpvc->setBodyName(mars->getName());
       orsa::IBPS ibps;
-      ibps.inertial = new ConstantInertialBodyProperty(orsaSolarSystem::Data::MMars());
+      ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MMars());
       ibps.translational = sbpvc;
       mars->setInitialConditions(ibps);
       //
@@ -270,7 +270,7 @@ void MainThread::run() {
       // sbpvc->setBodyName(jupiter->getName());
       orsa::IBPS ibps;
       ibps.translational = sbpvc;
-      ibps.inertial = new ConstantInertialBodyProperty(orsaSolarSystem::Data::MJupiter());
+      ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MJupiter());
       jupiter->setInitialConditions(ibps);
       //
       bg->addBody(jupiter);
@@ -286,7 +286,7 @@ void MainThread::run() {
       // sbpvc->setBodyName(saturn->getName());
       orsa::IBPS ibps;
       ibps.translational = sbpvc;
-      ibps.inertial = new ConstantInertialBodyProperty(orsaSolarSystem::Data::MSaturn());
+      ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MSaturn());
       saturn->setInitialConditions(ibps);
       //
       bg->addBody(saturn);
@@ -302,7 +302,7 @@ void MainThread::run() {
       // sbpvc->setBodyName(uranus->getName());
       orsa::IBPS ibps;
       ibps.translational = sbpvc;
-      ibps.inertial = new ConstantInertialBodyProperty(FromUnits(86.625e24,Unit::KG));
+      ibps.inertial = new PointLikeConstantInertialBodyProperty(FromUnits(86.625e24,Unit::KG));
       uranus->setInitialConditions(ibps);
       //
       bg->addBody(uranus);
@@ -318,7 +318,7 @@ void MainThread::run() {
       // sbpvc->setBodyName(neptune->getName());
       orsa::IBPS ibps;
       ibps.translational = sbpvc;
-      ibps.inertial = new ConstantInertialBodyProperty(orsaSolarSystem::Data::MNeptune());
+      ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MNeptune());
       neptune->setInitialConditions(ibps);
       //
       bg->addBody(neptune);
@@ -690,7 +690,7 @@ void MainThread::run() {
     //
     ibps.time = orbitEpoch.getRef();
     //
-    ibps.inertial = new ConstantInertialBodyProperty(0);
+    ibps.inertial = new PointLikeConstantInertialBodyProperty(0);
     //
     ibps.translational = new DynamicTranslationalBodyProperty;
     ibps.translational->setPosition(rOrbit);
