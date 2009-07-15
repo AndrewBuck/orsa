@@ -88,7 +88,7 @@ int main() {
     
     if (createTable) {
       // create results table
-      sql = "CREATE TABLE grid(z_a_min INTEGER, z_a_max INTEGER, z_e_min INTEGER, z_e_max INTEGER, z_i_min INTEGER, z_i_max INTEGER, z_H_min INTEGER, z_H_max INTEGER, efficiency_NEO REAL, efficiency_PHO REAL)";
+      sql = "CREATE TABLE grid(z_a_min INTEGER, z_a_max INTEGER, z_e_min INTEGER, z_e_max INTEGER, z_i_min INTEGER, z_i_max INTEGER, z_H_min INTEGER, z_H_max INTEGER, eta_NEO REAL, sigma_eta_NEO REAL, eta_PHO REAL, sigma_eta_PHO REAL)";
       rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
       //
       if (rc != SQLITE_OK) {
@@ -150,10 +150,12 @@ int main() {
       FILE * fp = boinc_fopen(resolvedFileName.c_str(),"r"); 
       if (fp) { 
 	char obscode[1024], epoch[1024];
-	if (2 != gmp_fscanf(fp,"%s %s",
+	double eta0, c, V0, w;
+	if (6 != gmp_fscanf(fp,"%s %s %lf %lf %lf %lf",
 			    obscode,
-			    epoch)) {
-	  ORSA_DEBUG("problems");
+			    epoch,
+			    &eta0,&c,&V0,&w)) {
+	  ORSA_DEBUG("problems...");
 	  boinc_finish(0); 
 	} 
 	fclose(fp);
@@ -161,10 +163,15 @@ int main() {
 	  ORSA_DEBUG("check possibly wrong obscode: [%s]",obscode);
 	  boinc_finish(0); 
 	}
-	// skyCoverage->nightStart = orsa::Time(mpz_class(nightStart));
-	// skyCoverage->nightStop  = orsa::Time(mpz_class(nightStop));
+	
 	skyCoverage->obscode = obscode;
 	skyCoverage->epoch   = orsa::Time(mpz_class(epoch));
+	
+	skyCoverage->eta0 = eta0;
+	skyCoverage->c    = c;
+	skyCoverage->V0   = V0;
+	skyCoverage->w    = w;
+	
       } else {
 	ORSA_DEBUG("cannot open observatory file");
 	boinc_finish(0);   
@@ -219,6 +226,9 @@ int main() {
   // MOON
   osg::ref_ptr<orsa::Body> moon  = SPICEBody("MOON",orsaSolarSystem::Data::MMoon());
   bg->addBody(moon.get());
+  
+  orsa::Orbit earthOrbit;
+  earthOrbit.compute(earth.get(),sun.get(),bg.get(),skyCoverage->epoch.getRef());
   
   int rs;
   //
@@ -399,12 +409,13 @@ int main() {
 			     grain_i_DEG*(z_i+z_i_delta),
 			     grain_H* z_H,
 			     grain_H*(z_H+z_H_delta),
-			     rnd.get());
+			     rnd.get(),
+			     earthOrbit);
 	  
 	  unsigned int count=0;
 	  unsigned int inField=0;
-	  osg::ref_ptr< orsa::Statistic<double> > efficiency_NEO = new orsa::Statistic<double>;
-	  osg::ref_ptr< orsa::Statistic<double> > efficiency_PHO = new orsa::Statistic<double>;
+	  osg::ref_ptr< orsa::Statistic<double> > eta_NEO = new orsa::Statistic<double>;
+	  osg::ref_ptr< orsa::Statistic<double> > eta_PHO = new orsa::Statistic<double>;
 	  for (unsigned int j=0; j<numGen; ++j) {
 	    
 	    orbit = orbitFactory->sample();
@@ -462,10 +473,12 @@ int main() {
 		 inField);
 	      */
 	      
-	      ORSA_DEBUG("a: %f [AU] e: %f i: %f [deg]",
-			 orsa::FromUnits(orbit->a,orsa::Unit::AU,-1),
-			 orbit->e,
-			 orsa::radToDeg()*orbit->i);
+	      /* 
+		 ORSA_DEBUG("a: %f [AU] e: %f i: %f [deg]",
+		 orsa::FromUnits(orbit->a,orsa::Unit::AU,-1),
+		 orbit->e,
+		 orsa::radToDeg()*orbit->i);
+	      */
 	      
 	      /* 
 		 if (orbit->isNEO()) {
@@ -493,10 +506,31 @@ int main() {
 		 }
 	      */
 	      
-	      efficiency_NEO->insert(1.0);
+	      //
+	      const orsa::Vector neo2obs    = observerPosition_epoch - orbitPosition_epoch;
+	      const orsa::Vector neo2sun    = sunPosition_epoch      - orbitPosition_epoch;
+	      const double       phaseAngle = acos((neo2obs.normalized())*(neo2sun.normalized()));
+	      // apparent magnitude
+	      const double V = apparentMagnitude(orbit->H,
+						 phaseAngle,
+						 neo2obs.length(),
+						 neo2sun.length());
+	      
+	      // efficiency
+	      const double eta = skyCoverage->eta_V(V,V_field);
+	      
+	      ORSA_DEBUG("a: %f [AU] e: %f i: %f [deg] H: %f V: %f eta: %e",
+			 orsa::FromUnits(orbit->a,orsa::Unit::AU,-1),
+			 orbit->e,
+			 orsa::radToDeg()*orbit->i,
+			 orbit->H,
+			 V,
+			 eta);
+	      
+	      eta_NEO->insert(eta);
 	      //
 	      if (orbit->isPHO()) {
-		efficiency_PHO->insert(1.0);
+		eta_PHO->insert(eta);
 	      }
 	      
 	      // if (boinc_is_standalone()) {
@@ -505,10 +539,10 @@ int main() {
 	      
 	    } else {
 	      
-	      efficiency_NEO->insert(0.0);
+	      eta_NEO->insert(0.0);
 	      //
 	      if (orbit->isPHO()) {
-		efficiency_PHO->insert(0.0);
+		eta_PHO->insert(0.0);
 	      }
 	      
 	    }
@@ -521,18 +555,29 @@ int main() {
 	    rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
 	    
 	    // save values in db
-	    double eff_NEO = (efficiency_NEO->entries() > 0) ? efficiency_NEO->average() : 0;
-	    double eff_PHO = (efficiency_PHO->entries() > 0) ? efficiency_PHO->average() : 0;
+	    double       good_eta_NEO = (eta_NEO->entries() > 0) ? eta_NEO->average()      : 0;
+	    double good_sigma_eta_NEO = (eta_NEO->entries() > 0) ? eta_NEO->averageError() : 0;
+	    double       good_eta_PHO = (eta_PHO->entries() > 0) ? eta_PHO->average()      : 0;
+	    double good_sigma_eta_PHO = (eta_PHO->entries() > 0) ? eta_PHO->averageError() : 0;
+	    //
+	    // ORSA_DEBUG("eta_NEO: %f +/- %f",eta_NEO->average(),eta_NEO->averageError());
+	    //
+#warning should use _bind_ sqlite commands for better floating point accuracy
 	    //
 	    char sql_line[1024];
 	    sprintf(sql_line,
-		    "INSERT INTO grid VALUES(%i,%i,%i,%i,%i,%i,%i,%i,%g,%g)",
+		    "INSERT INTO grid VALUES(%i,%i,%i,%i,%i,%i,%i,%i,%g,%g,%g,%g)",
 		    z_a,z_a+z_a_delta,
 		    z_e,z_e+z_e_delta,
 		    z_i,z_i+z_i_delta,
 		    z_H,z_H+z_H_delta,
-		    eff_NEO,
-		    eff_PHO);
+		    good_eta_NEO,
+		    good_sigma_eta_NEO,
+		    good_eta_PHO,
+		    good_sigma_eta_PHO);
+	    // ORSA_DEBUG("executing: [%s]",sql_line);
+	    // ORSA_DEBUG("eta_NEO->entries(): %Zi",eta_NEO->entries().get_mpz_t());
+	    // ORSA_DEBUG("eta_PHO->entries(): %Zi",eta_PHO->entries().get_mpz_t());
 	    // do {
 	    rc = sqlite3_exec(db,sql_line,NULL,NULL,&zErr);
 	    // if (rc==SQLITE_BUSY) {

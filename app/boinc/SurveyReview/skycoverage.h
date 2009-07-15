@@ -78,6 +78,24 @@ class SkyCoverage : public osg::Referenced {
   // orsa::Cache<orsa::Time>  halfObservingPeriod; // 1/2 of the duration of the observing night
   // orsa::Cache<orsa::Time>  nightStart, nightStop;  // epoch -/+ 1/2 observing period
   orsa::Cache<std::string> obscode;
+  
+  inline double eta_V(const double & V,
+		      const double & V_limit) const {
+    if (V<V0.getRef()) return eta0.getRef();
+    double retVal = (eta0.getRef()-c.getRef()*orsa::square(V-V0.getRef()))/(1+exp((V-V_limit)/w.getRef()));
+    if (retVal < orsa::epsilon()) retVal=0.0;
+    if (retVal > 1.0) retVal=1.0;
+    return retVal;
+  }
+  
+ public:
+  // coefficients for efficiency as function of apparent magnitude
+  // should include a function of the galactic latitude <-> background stars number density
+  orsa::Cache<double> eta0, c, V0, w;
+  
+ public:
+  // coefficients for efficiency as function of apparent velocity
+  
 };
 
 #endif // SURVEY_REVIEW_SKY_COVERAGE

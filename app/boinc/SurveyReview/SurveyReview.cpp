@@ -4,6 +4,12 @@
 #include <orsaSPICE/spiceBodyAttitudeCallback.h>
 #include <orsaSPICE/spiceBodyPosVelCallback.h>
 
+// globaly accessible proxy
+osg::ref_ptr<PhaseComponentProxy> phaseComponentProxy = new PhaseComponentProxy(0.01);
+
+// globaly accessible proxy
+osg::ref_ptr<Log10Proxy> log10Proxy = new Log10Proxy(0.01);
+
 orsa::Body * SPICEBody (const std::string  & bodyName,
 			const double & bodyMass) {
   
@@ -13,7 +19,7 @@ orsa::Body * SPICEBody (const std::string  & bodyName,
   
   osg::ref_ptr<orsaSPICE::SpiceBodyPosVelCallback> sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(bodyName);
   orsa::IBPS ibps;
-  ibps.inertial = new orsa::ConstantMassBodyProperty(bodyMass);
+  ibps.inertial = new orsa::PointLikeConstantInertialBodyProperty(bodyMass);
   ibps.translational = sbpvc.get();
   localBody->setInitialConditions(ibps);
   
@@ -67,14 +73,15 @@ bool OrbitID::isAmor() const {
 bool OrbitID::isPHO() const {
   
   // approximate elements
-  orsa::Orbit earthOrbit;
-  earthOrbit.mu = orsaSolarSystem::Data::GMSun();
-  earthOrbit.a  = FromUnits(1,orsa::Unit::AU);
-  earthOrbit.e  = 0.017;
-  earthOrbit.i                =   0.002*orsa::degToRad();
-  earthOrbit.omega_node       =   0.000*orsa::degToRad();
-  earthOrbit.omega_pericenter = 100.000*orsa::degToRad();
-  earthOrbit.M                =   0.000*orsa::degToRad(); // M does not matter when computing the MOID
+  /* orsa::Orbit earthOrbit;
+     earthOrbit.mu = orsaSolarSystem::Data::GMSun();
+     earthOrbit.a  = FromUnits(1,orsa::Unit::AU);
+     earthOrbit.e  = 0.017;
+     earthOrbit.i                =   0.002*orsa::degToRad();
+     earthOrbit.omega_node       =   0.000*orsa::degToRad();
+     earthOrbit.omega_pericenter = 100.000*orsa::degToRad();
+     earthOrbit.M                =   0.000*orsa::degToRad(); // M does not matter when computing the MOID
+  */
   
   double moid, M1, M2;
   if (!orsa::MOID(moid, 
@@ -95,8 +102,7 @@ bool OrbitID::isPHO() const {
 
 OrbitID * OrbitFactory::sample() const {
   
-  // OrbitID * orbit = new OrbitID(idCounter++,rnd->randomSeed);
-  OrbitID * orbit = new OrbitID(idCounter++);
+  OrbitID * orbit = new OrbitID(idCounter++,earthOrbit);
   
   orbit->a = FromUnits(a_AU_min+(a_AU_max-a_AU_min)*rnd->gsl_rng_uniform(),orsa::Unit::AU);  
   orbit->e = e_min+(e_max-e_min)*rnd->gsl_rng_uniform();

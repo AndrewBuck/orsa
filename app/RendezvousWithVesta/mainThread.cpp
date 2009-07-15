@@ -404,6 +404,9 @@ void MainThread::run() {
       orsa::print(shapeToLocal);
       orsa::print(localToShape);
       
+      // print out...
+      orsa::convert(paulMoment, FromUnits(300,orsa::Unit::KM));
+      
       ibps.inertial = new ConstantInertialBodyProperty(vestaMass.getRef(),
 						       shape.get(),
 						       centerOfMass,
