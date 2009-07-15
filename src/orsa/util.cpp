@@ -537,9 +537,6 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
 			inertiaMatrix,
 			inertiaMatrix);
     
-    // orsa::print(localToShape);
-    // orsa::print(inertiaMatrix);
-    
     // correct, in case some of the axes got reflected
     {
       const double rot_11 = (localToShape*orsa::Vector(1,0,0)*orsa::Vector(1,0,0) < 0) ? -1 : 1;
@@ -559,9 +556,6 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
     orsa::Matrix::invert(localToShape,shapeToLocal);
     // }
     
-    // orsa::print(localToShape);
-    // orsa::print(inertiaMatrix);
-    
     /* if (rotatedRun) break;
        rotatedRun = true;
     */
@@ -572,8 +566,12 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
 
 orsa::PaulMoment * orsa::computePaulMoment(const unsigned int order,
 					   const orsa::Matrix & shapeToLocal,
+<<<<<<< HEAD:src/orsa/util.cpp
 					   const orsa::Matrix & /* localToShape */,	
 					   const orsa::Vector & centerOfMass,
+=======
+					   const orsa::Matrix & /* localToShape */,					   const orsa::Vector & centerOfMass,
+>>>>>>> bfc174ed2458e003246ff796b80d0cd18ae452b7:src/orsa/util.cpp
 					   const orsa::RandomPointsInShape * randomPointsInShape,
 					   const orsa::MassDistribution * massDistribution) {
   
