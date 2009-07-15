@@ -26,7 +26,7 @@ double Paul::C_lmn(const int l,
 		 orsa::kronecker(n,0) );
   
   /* 
-     ORSA_DEBUG("C(%i,%i,%i) = %Fg",
+     ORSA_DEBUG("C(%i,%i,%i) = %g",
      l,m,n,
      retVal());
   */
@@ -267,7 +267,7 @@ double Paul::t_lmnLMN::trueGet(const int l,
   }
   //
   /* 
-     ORSA_DEBUG("get(%i,%i,%i,%i,%i,%i) = %Fg",
+     ORSA_DEBUG("get(%i,%i,%i,%i,%i,%i) = %g",
      l,m,n,L,M,N,
      _data[l][m][n][L][M][N].getRef());
   */
@@ -389,15 +389,15 @@ double Paul::gravitationalPotential(const orsa::PaulMoment * M1,
   IntPowCache nz_PC(nz);
   //
   if (0) {
-    ORSA_DEBUG("lx: %Fg",lx);
-    ORSA_DEBUG("ly: %Fg",ly);
-    ORSA_DEBUG("lz: %Fg",lz);
-    ORSA_DEBUG("mx: %Fg",mx);
-    ORSA_DEBUG("my: %Fg",my);
-    ORSA_DEBUG("mz: %Fg",mz);
-    ORSA_DEBUG("nx: %Fg",nx);
-    ORSA_DEBUG("ny: %Fg",ny);
-    ORSA_DEBUG("nz: %Fg",nz);
+    ORSA_DEBUG("lx: %g",lx);
+    ORSA_DEBUG("ly: %g",ly);
+    ORSA_DEBUG("lz: %g",lz);
+    ORSA_DEBUG("mx: %g",mx);
+    ORSA_DEBUG("my: %g",my);
+    ORSA_DEBUG("mz: %g",mz);
+    ORSA_DEBUG("nx: %g",nx);
+    ORSA_DEBUG("ny: %g",ny);
+    ORSA_DEBUG("nz: %g",nz);
   }
   
   const double & csi  = R.getX();
@@ -510,7 +510,7 @@ double Paul::gravitationalPotential(const orsa::PaulMoment * M1,
 			    factorial(i2) * factorial(j2) * factorial(k2)).get_d();
 		
 		if (fabs(term*1.0e6) > fabs(outerSum)) {
-		  ORSA_DEBUG("[%02i][%02i][%02i][%02i][%02i][%02i]   outerSum: %14.6Fe   term: %14.6Fe",
+		  ORSA_DEBUG("[%02i][%02i][%02i][%02i][%02i][%02i]   outerSum: %14.6e   term: %14.6e",
 			     i1,j1,k1,i2,j2,k2,
 			     outerSum,
 			     term);
@@ -529,7 +529,7 @@ double Paul::gravitationalPotential(const orsa::PaulMoment * M1,
   const double U = outerSum;
   
   /* 
-     ORSA_DEBUG("Paul U: %.20Fe",
+     ORSA_DEBUG("Paul U: %.20e",
      U());
   */
   
@@ -604,15 +604,15 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
   IntPowCache nz_PC(nz);
   //
   if (0) {
-    ORSA_DEBUG("lx: %Fg",lx);
-    ORSA_DEBUG("ly: %Fg",ly);
-    ORSA_DEBUG("lz: %Fg",lz);
-    ORSA_DEBUG("mx: %Fg",mx);
-    ORSA_DEBUG("my: %Fg",my);
-    ORSA_DEBUG("mz: %Fg",mz);
-    ORSA_DEBUG("nx: %Fg",nx);
-    ORSA_DEBUG("ny: %Fg",ny);
-    ORSA_DEBUG("nz: %Fg",nz);
+    ORSA_DEBUG("lx: %g",lx);
+    ORSA_DEBUG("ly: %g",ly);
+    ORSA_DEBUG("lz: %g",lz);
+    ORSA_DEBUG("mx: %g",mx);
+    ORSA_DEBUG("my: %g",my);
+    ORSA_DEBUG("mz: %g",mz);
+    ORSA_DEBUG("nx: %g",nx);
+    ORSA_DEBUG("ny: %g",ny);
+    ORSA_DEBUG("nz: %g",nz);
   }
   
   const double & csi  = R.getX();
@@ -807,7 +807,7 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 			  factorial(i2) * factorial(j2) * factorial(k2)).get_d();
 	      
 	      /* 
-		 ORSA_DEBUG("commonFactor: %+18.12Fe",
+		 ORSA_DEBUG("commonFactor: %+18.12e",
 		 commonFactor());
 	      */
 	      
@@ -816,7 +816,7 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 	      Fz += innerFz * commonFactor;
 	      
 	      if (0) {
-		ORSA_DEBUG("[%02i][%02i][%02i][%02i][%02i][%02i]   F: %20.12Fe %20.12Fe %20.12Fe",
+		ORSA_DEBUG("[%02i][%02i][%02i][%02i][%02i][%02i]   F: %20.12e %20.12e %20.12e",
 			   i1,j1,k1,i2,j2,k2,
 			   Fx,
 			   Fy,
@@ -832,9 +832,9 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
   }
   
   /* 
-     ORSA_DEBUG("Paul Fx: %.20Fe",Fx());
-     ORSA_DEBUG("Paul Fy: %.20Fe",Fy());
-     ORSA_DEBUG("Paul Fz: %.20Fe",Fz());
+     ORSA_DEBUG("Paul Fx: %.20e",Fx());
+     ORSA_DEBUG("Paul Fy: %.20e",Fy());
+     ORSA_DEBUG("Paul Fz: %.20e",Fz());
   */
   
   // rotate back, capital X,Y,Z
@@ -845,12 +845,12 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
   const orsa::Vector F(-FX,-FY,-FZ);
   
   /* 
-     ORSA_DEBUG("Paul F.X: %.20Fe",F.getX());
-     ORSA_DEBUG("Paul F.Y: %.20Fe",F.getY());
-     ORSA_DEBUG("Paul F.Z: %.20Fe",F.getZ());
+     ORSA_DEBUG("Paul F.X: %.20e",F.getX());
+     ORSA_DEBUG("Paul F.Y: %.20e",F.getY());
+     ORSA_DEBUG("Paul F.Z: %.20e",F.getZ());
   */
   //
-  // ORSA_DEBUG("Paul Force: %.20Fe",F.length());
+  // ORSA_DEBUG("Paul Force: %.20e",F.length());
   
   return F;
 }
@@ -917,15 +917,15 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
   IntPowCache nz_PC(nz);
   //
   if (1) {
-    ORSA_DEBUG("lx: %Fg",lx());
-    ORSA_DEBUG("ly: %Fg",ly());
-    ORSA_DEBUG("lz: %Fg",lz());
-    ORSA_DEBUG("mx: %Fg",mx());
-    ORSA_DEBUG("my: %Fg",my());
-    ORSA_DEBUG("mz: %Fg",mz());
-    ORSA_DEBUG("nx: %Fg",nx());
-    ORSA_DEBUG("ny: %Fg",ny());
-    ORSA_DEBUG("nz: %Fg",nz());
+    ORSA_DEBUG("lx: %g",lx());
+    ORSA_DEBUG("ly: %g",ly());
+    ORSA_DEBUG("lz: %g",lz());
+    ORSA_DEBUG("mx: %g",mx());
+    ORSA_DEBUG("my: %g",my());
+    ORSA_DEBUG("mz: %g",mz());
+    ORSA_DEBUG("nx: %g",nx());
+    ORSA_DEBUG("ny: %g",ny());
+    ORSA_DEBUG("nz: %g",nz());
   }
   
   const double & csi  = R.getX();
@@ -1072,7 +1072,7 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 	      Fz += innerFz * commonFactor;
 	      
 	      if (1) {
-		ORSA_DEBUG("[%02i][%02i][%02i][%02i][%02i][%02i]   F: %20.12Fe %20.12Fe %20.12Fe",
+		ORSA_DEBUG("[%02i][%02i][%02i][%02i][%02i][%02i]   F: %20.12e %20.12e %20.12e",
 			   i1,j1,k1,i2,j2,k2,
 			   Fx(),
 			   Fy(),
@@ -1087,9 +1087,9 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
     }
   }
   
-  ORSA_DEBUG("Paul Fx: %.20Fe",Fx());
-  ORSA_DEBUG("Paul Fy: %.20Fe",Fy());
-  ORSA_DEBUG("Paul Fz: %.20Fe",Fz());
+  ORSA_DEBUG("Paul Fx: %.20e",Fx());
+  ORSA_DEBUG("Paul Fy: %.20e",Fy());
+  ORSA_DEBUG("Paul Fz: %.20e",Fz());
   
   // rotate back, capital X,Y,Z
   const double FX = l11*Fx + m11*Fy + n11*Fz;
@@ -1098,9 +1098,9 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
   
   const orsa::Vector F(-FX,-FY,-FZ);
   
-  ORSA_DEBUG("Paul F.X: %.20Fe",F.getX());
-  ORSA_DEBUG("Paul F.Y: %.20Fe",F.getY());
-  ORSA_DEBUG("Paul F.Z: %.20Fe",F.getZ());
+  ORSA_DEBUG("Paul F.X: %.20e",F.getX());
+  ORSA_DEBUG("Paul F.Y: %.20e",F.getY());
+  ORSA_DEBUG("Paul F.Z: %.20e",F.getZ());
   
   return F;
 }
@@ -1166,15 +1166,15 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
   IntPowCache nz_PC(nz);
   //
   if (0) {
-    ORSA_DEBUG("lx: %Fg",lx);
-    ORSA_DEBUG("ly: %Fg",ly);
-    ORSA_DEBUG("lz: %Fg",lz);
-    ORSA_DEBUG("mx: %Fg",mx);
-    ORSA_DEBUG("my: %Fg",my);
-    ORSA_DEBUG("mz: %Fg",mz);
-    ORSA_DEBUG("nx: %Fg",nx);
-    ORSA_DEBUG("ny: %Fg",ny);
-    ORSA_DEBUG("nz: %Fg",nz);
+    ORSA_DEBUG("lx: %g",lx);
+    ORSA_DEBUG("ly: %g",ly);
+    ORSA_DEBUG("lz: %g",lz);
+    ORSA_DEBUG("mx: %g",mx);
+    ORSA_DEBUG("my: %g",my);
+    ORSA_DEBUG("mz: %g",mz);
+    ORSA_DEBUG("nx: %g",nx);
+    ORSA_DEBUG("ny: %g",ny);
+    ORSA_DEBUG("nz: %g",nz);
   }
   
   const double & csi  = R.getX();
@@ -1338,15 +1338,15 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 			  factorial(i2) * factorial(j2) * factorial(k2)).get_d();
 	      
 	      /* 
-		 ORSA_DEBUG("commonFactor: %Fe",commonFactor());
+		 ORSA_DEBUG("commonFactor: %e",commonFactor());
 		 
-		 ORSA_DEBUG("innerFx: %Fe",innerFx());
-		 ORSA_DEBUG("innerFy: %Fe",innerFy());
-		 ORSA_DEBUG("innerFz: %Fe",innerFz());
+		 ORSA_DEBUG("innerFx: %e",innerFx());
+		 ORSA_DEBUG("innerFy: %e",innerFy());
+		 ORSA_DEBUG("innerFz: %e",innerFz());
 		 
-		 ORSA_DEBUG("M1->M(i1+1,j1,k1): %Fe",M1->M(i1+1,j1,k1));
-		 ORSA_DEBUG("M1->M(i1,j1+1,k1): %Fe",M1->M(i1,j1+1,k1));
-		 ORSA_DEBUG("M1->M(i1,j1,k1+1): %Fe",M1->M(i1,j1,k1+1));
+		 ORSA_DEBUG("M1->M(i1+1,j1,k1): %e",M1->M(i1+1,j1,k1));
+		 ORSA_DEBUG("M1->M(i1,j1+1,k1): %e",M1->M(i1,j1+1,k1));
+		 ORSA_DEBUG("M1->M(i1,j1,k1+1): %e",M1->M(i1,j1,k1+1));
 	      */
 	      
 	      Tx += commonFactor * (M1->M(i1,j1+1,k1)*innerFz - M1->M(i1,j1,k1+1)*innerFy);
@@ -1354,7 +1354,7 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 	      Tz += commonFactor * (M1->M(i1+1,j1,k1)*innerFy - M1->M(i1,j1+1,k1)*innerFx);
 	      
 	      if (0) {
-		ORSA_DEBUG("[%02i][%02i][%02i][%02i][%02i][%02i]   T: %20.12Fe %20.12Fe %20.12Fe",
+		ORSA_DEBUG("[%02i][%02i][%02i][%02i][%02i][%02i]   T: %20.12e %20.12e %20.12e",
 			   i1,j1,k1,i2,j2,k2,
 			   Tx,
 			   Ty,
@@ -1370,9 +1370,9 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
   }
   
   /* 
-     ORSA_DEBUG("Paul Tx: %.20Fe",Tx());
-     ORSA_DEBUG("Paul Ty: %.20Fe",Ty());
-     ORSA_DEBUG("Paul Tz: %.20Fe",Tz());
+     ORSA_DEBUG("Paul Tx: %.20e",Tx());
+     ORSA_DEBUG("Paul Ty: %.20e",Ty());
+     ORSA_DEBUG("Paul Tz: %.20e",Tz());
   */
   
   // rotate back, capital X,Y,Z
@@ -1382,9 +1382,9 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
   
   const orsa::Vector T(-TX,-TY,-TZ);
   
-  ORSA_DEBUG("Paul T.X: %.20Fe",T.getX());
-  ORSA_DEBUG("Paul T.Y: %.20Fe",T.getY());
-  ORSA_DEBUG("Paul T.Z: %.20Fe",T.getZ());
+  ORSA_DEBUG("Paul T.X: %.20e",T.getX());
+  ORSA_DEBUG("Paul T.Y: %.20e",T.getY());
+  ORSA_DEBUG("Paul T.Z: %.20e",T.getZ());
   
   return T;
 }
