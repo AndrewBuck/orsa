@@ -355,9 +355,6 @@ void orsa::principalAxis(orsa::Matrix & genericToPrincipal,
 			 gsl_matrix_get(evec,1,0),gsl_matrix_get(evec,1,1),gsl_matrix_get(evec,1,2),
 			 gsl_matrix_get(evec,2,0),gsl_matrix_get(evec,2,1),gsl_matrix_get(evec,2,2));
   
-  // force det=1
-  // genericToPrincipal /= genericToPrincipal.determinant();
-  
   gsl_vector_free (eval);
   gsl_matrix_free (evec);
 }
@@ -414,28 +411,28 @@ double orsa::volume(const orsa::RandomPointsInShape * randomPointsInShape) {
 orsa::Vector orsa::centerOfMass(const orsa::RandomPointsInShape * randomPointsInShape,
 				const orsa::MassDistribution * massDistribution) {
   
-  osg::ref_ptr<orsa::Statistic<double> > stat_M   = new orsa::Statistic<double>;
+  // osg::ref_ptr<orsa::Statistic<double> > stat_M   = new orsa::Statistic<double>;
   //
-  osg::ref_ptr<orsa::Statistic<double> > stat_CMx = new orsa::Statistic<double>;
-  osg::ref_ptr<orsa::Statistic<double> > stat_CMy = new orsa::Statistic<double>;
-  osg::ref_ptr<orsa::Statistic<double> > stat_CMz = new orsa::Statistic<double>;
+  osg::ref_ptr<orsa::WeightedStatistic<double> > stat_CMx = new orsa::WeightedStatistic<double>;
+  osg::ref_ptr<orsa::WeightedStatistic<double> > stat_CMy = new orsa::WeightedStatistic<double>;
+  osg::ref_ptr<orsa::WeightedStatistic<double> > stat_CMz = new orsa::WeightedStatistic<double>;
   
   orsa::Vector v;
   randomPointsInShape->reset();
   while (randomPointsInShape->get(v)) {
     const double density = massDistribution->density(v);
     if (density > 0) {
-      stat_M->insert(density);
+      // stat_M->insert(density);
       //
-      stat_CMx->insert(density*v.getX());
-      stat_CMy->insert(density*v.getY());
-      stat_CMz->insert(density*v.getZ());
+      stat_CMx->insert(v.getX(),density);
+      stat_CMy->insert(v.getY(),density);
+      stat_CMz->insert(v.getZ(),density);
     }
   }
   
-  const orsa::Vector center_of_mass(stat_CMx->sum()/stat_M->sum(),
-				    stat_CMy->sum()/stat_M->sum(),
-				    stat_CMz->sum()/stat_M->sum());
+  const orsa::Vector center_of_mass(stat_CMx->average(),
+				    stat_CMy->average(),
+				    stat_CMz->average());
   
   if (1) {
     // debug output
@@ -466,9 +463,11 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
   shapeToLocal = orsa::Matrix::identity();
   localToShape = orsa::Matrix::identity();
   // two runs, one not rotated, one rotated
-  bool rotatedRun = false;
-  while (1) {
-    
+  /* bool rotatedRun = false;
+     while (1) {
+  */
+  // only one run now...
+  {
     osg::ref_ptr<orsa::Statistic<double> > stat_Ixx = new orsa::Statistic<double>;
     osg::ref_ptr<orsa::Statistic<double> > stat_Iyy = new orsa::Statistic<double>;
     osg::ref_ptr<orsa::Statistic<double> > stat_Izz = new orsa::Statistic<double>;
@@ -504,45 +503,48 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
 		      stat_Iyz->average(),
 		      stat_Izz->average());
     
-    if (1) {
-      // debug output    
-      ORSA_DEBUG("rotated: %i",rotatedRun);
-      //
-      ORSA_DEBUG("Ixx:  %14.6e +/- %14.6e",
-		 double(stat_Ixx->average()),
-		 double(stat_Ixx->averageError()));
-      ORSA_DEBUG("Iyy:  %14.6e +/- %14.6e",
-		 double(stat_Iyy->average()),
-		 double(stat_Iyy->averageError()));
-      ORSA_DEBUG("Izz:  %14.6e +/- %14.6e",
-		 double(stat_Izz->average()),
-		 double(stat_Izz->averageError()));
-      //
-      ORSA_DEBUG("Ixy:  %14.6e +/- %14.6e",
-		 double(stat_Ixy->average()),
-		 double(stat_Ixy->averageError()));
-      ORSA_DEBUG("Ixz:  %14.6e +/- %14.6e",
-		 double(stat_Ixz->average()),
-		 double(stat_Ixz->averageError()));
-      ORSA_DEBUG("Iyz:  %14.6e +/- %14.6e",
-		 double(stat_Iyz->average()),
-		 double(stat_Iyz->averageError()));
-    }
+    /* 
+       if (1) {
+       // debug output    
+       ORSA_DEBUG("rotated: %i",rotatedRun);
+       //
+       ORSA_DEBUG("Ixx:  %14.6e +/- %14.6e",
+       double(stat_Ixx->average()),
+       double(stat_Ixx->averageError()));
+       ORSA_DEBUG("Iyy:  %14.6e +/- %14.6e",
+       double(stat_Iyy->average()),
+       double(stat_Iyy->averageError()));
+       ORSA_DEBUG("Izz:  %14.6e +/- %14.6e",
+       double(stat_Izz->average()),
+       double(stat_Izz->averageError()));
+       //
+       ORSA_DEBUG("Ixy:  %14.6e +/- %14.6e",
+       double(stat_Ixy->average()),
+       double(stat_Ixy->averageError()));
+       ORSA_DEBUG("Ixz:  %14.6e +/- %14.6e",
+       double(stat_Ixz->average()),
+       double(stat_Ixz->averageError()));
+       ORSA_DEBUG("Iyz:  %14.6e +/- %14.6e",
+       double(stat_Iyz->average()),
+       double(stat_Iyz->averageError()));
+       }
+    */
     
 #warning invert??
     ORSA_DEBUG("invert??");
-    if (!rotatedRun) {
-      orsa::principalAxis(localToShape,
-			  inertiaMatrix,
-			  inertiaMatrix);
-      orsa::Matrix::invert(localToShape,shapeToLocal);
-    }
+    // if (!rotatedRun) {
+    orsa::principalAxis(localToShape,
+			inertiaMatrix,
+			inertiaMatrix);
+    orsa::Matrix::invert(localToShape,shapeToLocal);
+    // }
     
-#warning check largest along z, smallest along x
-    ORSA_DEBUG("principal axis: check largest I along z, smallest along x");
+    // #warning check largest along z, smallest along x
+    // ORSA_DEBUG("principal axis: check largest I along z, smallest along x");
     
-    if (rotatedRun) break;
-    rotatedRun = true;
+    /* if (rotatedRun) break;
+       rotatedRun = true;
+    */
   }
   
 }
@@ -551,7 +553,7 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
 
 orsa::PaulMoment * orsa::computePaulMoment(const unsigned int order,
 					   const orsa::Matrix & shapeToLocal,
-					   const orsa::Matrix & localToShape,
+					   const orsa::Matrix & /* localToShape */,
 					   const orsa::Vector & centerOfMass,
 					   const orsa::RandomPointsInShape * randomPointsInShape,
 					   const orsa::MassDistribution * massDistribution) {
@@ -559,75 +561,55 @@ orsa::PaulMoment * orsa::computePaulMoment(const unsigned int order,
   orsa::PaulMoment * pm = new orsa::PaulMoment(order);
   
   const unsigned int order_plus_one = order+1;
-  //
-  osg::ref_ptr<orsa::Statistic<double> > _stat_M = new orsa::Statistic<double>;
-  //
-  std::vector< std::vector< std::vector< osg::ref_ptr< orsa::Statistic<double> > > > > _stat_Mo(order_plus_one);
-  //
-  // std::vector< std::vector< std::vector< osg::ref_ptr< orsa::Statistic<double> > > > > _stat_Vo(order_plus_one);
-  //
-  _stat_Mo.resize(order_plus_one);
-  // _stat_Vo.resize(order_plus_one);
-  for (unsigned int i=0; i<order_plus_one; ++i) {
-    _stat_Mo[i].resize(order_plus_one-i);
-    // _stat_Vo[i].resize(order_plus_one-i);
-    for (unsigned int j=0; j<order_plus_one-i; ++j) {
-      _stat_Mo[i][j].resize(order_plus_one-i-j);
-      // _stat_Vo[i][j].resize(order_plus_one-i-j);
-      for (unsigned int k=0; k<order_plus_one-i-j; ++k) {
-	_stat_Mo[i][j][k] = new orsa::Statistic<double>;
-     	// _stat_Vo[i][j][k] = new orsa::Statistic<double>;
-      }
-    }
-  }
+  
+  osg::ref_ptr< orsa::WeightedStatistic<double> > stat = new orsa::WeightedStatistic<double>;
   
   orsa::Vector v;
-  randomPointsInShape->reset();
-  while (randomPointsInShape->get(v)) {
-    const double density = massDistribution->density(v);
-    if (density > 0) {
-      v -= centerOfMass;
-      v = shapeToLocal*v;
-      //
-      _stat_M->insert(density);
-      //
-      for (unsigned int i=0; i<order_plus_one; ++i) {
-	for (unsigned int j=0; j<order_plus_one-i; ++j) {
-	  for (unsigned int k=0; k<order_plus_one-i-j; ++k) {
-	    _stat_Mo[i][j][k]->insert(density*
-				      int_pow(v.getX(),i)*
-				      int_pow(v.getY(),j)*
-				      int_pow(v.getZ(),k));
+  
+  for (unsigned int sum=0; sum<order_plus_one; ++sum) {
+    for (unsigned int i=0; i<order_plus_one; ++i) {
+      for (unsigned int j=0; j<order_plus_one; ++j) {
+	for (unsigned int k=0; k<order_plus_one; ++k) {
+	  if (i+j+k==sum) {
+	    
+	    stat->reset();
+	    
+	    randomPointsInShape->reset();
+	    while (randomPointsInShape->get(v)) {
+	      const double density = massDistribution->density(v);
+	      if (density > 0) {
+		v -= centerOfMass;
+		v = shapeToLocal*v;
+		stat->insert(int_pow(v.getX(),i)*
+			     int_pow(v.getY(),j)*
+			     int_pow(v.getZ(),k),
+			     density);
+	      }
+	    }
+	    
+	    // save!
+	    pm->setM(stat->average(),i,j,k);
+	    pm->setM_uncertainty(stat->averageError(),i,j,k);
+	    
+	    if (1) {
+	      // debug output
+	      const double  M = stat->average();
+	      const double dM = stat->averageError();
+	      //
+	      const double largest = std::max(fabs(M),fabs(dM));
+	      //
+	      const int    p10 = floor(log10(largest));
+	      const double d10 = exp10(p10);
+	      //
+	      const double  M10 =  M/d10;
+	      const double dM10 = dM/d10;
+	      //
+	      ORSA_DEBUG("M[%i][%i][%i] = (%+f +/- %f) x 10^%i",
+			 i,j,k,M10,dM10,p10);
+	    }
+	    
 	  }
 	}
-      }
-      
-    }
-  }
-  
-  /* Mo.resize(order_plus_one);
-     Mo_uncertainty.resize(order_plus_one);
-     for (unsigned int i=0; i<order_plus_one; ++i) {
-     Mo[i].resize(order_plus_one-i);
-     Mo_uncertainty[i].resize(order_plus_one-i);
-     for (unsigned int j=0; j<order_plus_one-i; ++j) {
-     Mo[i][j].resize(order_plus_one-i-j);
-     Mo_uncertainty[i][j].resize(order_plus_one-i-j);
-     }
-     }
-  */
-  
-  for (unsigned int i=0; i<order_plus_one; ++i) {
-    for (unsigned int j=0; j<order_plus_one-i; ++j) {
-      for (unsigned int k=0; k<order_plus_one-i-j; ++k) {
-	// Mo[i][j][k] = _stat_Mo[i][j][k]->sum() / _stat_M->sum();
-	// Mo_uncertainty[i][j][k] = _stat_Mo[i][j][k]->averageError();
-	//
-	// save
-	// pm->setM(Mo[i][j][k],i,j,k);
-	pm->setM(_stat_Mo[i][j][k]->sum()/_stat_M->sum(),
-		 i,j,k);
-	
       }
     }
   }

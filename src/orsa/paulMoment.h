@@ -24,32 +24,11 @@ namespace orsa {
     virtual ~PaulMoment() { } 
     
   public:
-    const double M (const int i,
-		    const int j, 
-		    const int k) const {
-      if (i<0) { ORSA_ERROR("negative index: i=%i",i); return 0; }
-      if (j<0) { ORSA_ERROR("negative index: j=%i",j); return 0; }
-      if (k<0) { ORSA_ERROR("negative index: k=%i",k); return 0; }
-      //
-      if (i+j+k > order) { ORSA_ERROR("index out of bound"); return 0; }
-      //
-      return _M[i][j][k];
-    }
-    
+    const double M (const int i, const int j, const int k) const;
+    const double M_uncertainty (const int i, const int j, const int k) const;
   public:
-    void setM (const double & val,
-	       const int i, 
-	       const int j, 
-	       const int k) {
-      if (i<0) { ORSA_ERROR("negative index: i=%i",i); return; }
-      if (j<0) { ORSA_ERROR("negative index: j=%i",j); return; }
-      if (k<0) { ORSA_ERROR("negative index: k=%i",k); return; }
-      //
-      if (i+j+k > order) { ORSA_ERROR("index out of bound"); return; }
-      //
-      _M[i][j][k] = val;
-    }
-    
+    void setM (const double & val, const int i, const int j, const int k);
+    void setM_uncertainty (const double & val, const int i, const int j, const int k);
   protected:
     std::vector< std::vector< std::vector<double> > > _M, _M_uncertainty;
   public:

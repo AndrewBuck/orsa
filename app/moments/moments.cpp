@@ -52,7 +52,14 @@ public:
     MassConcentrations::const_iterator it = mcs.begin();
     while (it != mcs.end()) {
       if ((v-(*it).position).lengthSquared() < orsa::square((*it).radius)) {
-	rho += (*it).mass / (4*orsa::pi()*orsa::cube((*it).radius)/3);
+	// rho += (*it).mass / (4*orsa::pi()*orsa::cube((*it).radius)/3);
+        const double delta_rho = (*it).mass / orsa::cube((*it).radius);
+	if (delta_rho < 0) {
+	  ORSA_ERROR("delta_rho: %g",delta_rho);
+	  orsa::print(v);
+	  exit(1);
+	} 
+	rho += delta_rho;
       }
       ++it;
     }
@@ -72,8 +79,6 @@ void test_body(const double R,
 	       const MassConcentrations & mcs) {
   
   print(mcs);
-  
-  // osg::ref_ptr<PaulMoment> pm = new PaulMoment(4);
   
   osg::ref_ptr<EllipsoidShape> vestaShapeEllipsoid = new EllipsoidShape(R,R,R);
   
@@ -105,16 +110,12 @@ void test_body(const double R,
   // pm->setShape(s.get());
   osg::ref_ptr<orsa::Shape> shape = s.get();
   
-  const unsigned int _n_points = 100000000;
-  //
-  const unsigned int _random_seed = 85719;
-  
   // pm->computeUsingShape(_n_points,_random_seed);
   // const orsa::Matrix I = pm->getInertiaMoment();
   
-  const unsigned int order = 2;
-  const unsigned int N = 10000;
-  const int randomSeed = 95231;
+  const unsigned int order = 8;
+  const unsigned int N = 100000;
+  const int randomSeed = 777921;
   //
   double volumeAgain;
   orsa::Vector centerOfMass;
@@ -134,6 +135,10 @@ void test_body(const double R,
 				 N,
 				 randomSeed);
   
+  orsa::print(shapeToLocal);
+  orsa::print(localToShape);
+  orsa::print(inertiaMatrix);
+  
   // print out...
   orsa::convert(paulMoment, R);
   
@@ -145,9 +150,11 @@ int main() {
   
   const double totalMass = orsa::FromUnits(1e22,orsa::Unit::KG);
   
-  const unsigned int numMassConcentrations = 10;
+  const unsigned int numMassConcentrations = 16;
   
-  osg::ref_ptr<orsa::RNG> rng = new orsa::RNG(521031);
+  const double minRadius = orsa::FromUnits(100,orsa::Unit::KM);
+  
+  osg::ref_ptr<orsa::RNG> rng = new orsa::RNG(5210331);
   
   MassConcentrations mcs;
   //
@@ -159,10 +166,16 @@ int main() {
 	orsa::Vector(R*(2*rng->gsl_rng_uniform()-1),
 		     R*(2*rng->gsl_rng_uniform()-1),
 		     R*(2*rng->gsl_rng_uniform()-1));
-    } while (mc.position.lengthSquared() > R*R);
+    } while (mc.position.lengthSquared() > orsa::square(R-minRadius));
     const double maxRadius = R-mc.position.length();
-    mc.radius = maxRadius*rng->gsl_rng_uniform();
+    //
+    mc.radius = minRadius + (maxRadius-minRadius)*rng->gsl_rng_uniform();
+    // mc.radius = maxRadius;
+    // mc.radius = minRadius;
+    //
     mc.mass = totalMass/numMassConcentrations;
+    //
+    orsa::print(mc.radius);
     //
     mcs.push_back(mc);
   }

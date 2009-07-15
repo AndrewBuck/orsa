@@ -19,6 +19,14 @@ orsaQt::DebugWidget::DebugWidget() : QWidget() {
   _te = new QTextEdit(this);
   _te->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
   //
+  {
+    // fixed font
+    QFont font = _te->currentFont();
+    font.setFamily("fixed");
+    font.setFixedPitch(true);
+    _te->setCurrentFont(font);
+  }
+  //
   vlay->addWidget(_te);
   
   QHBoxLayout * hbl = new QHBoxLayout;

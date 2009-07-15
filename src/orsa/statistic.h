@@ -10,8 +10,6 @@
 
 namespace orsa {
   
-  // add min() and max() to the Statistic class...
-  
   template <class T> class Statistic : public osg::Referenced {
   public:
     Statistic() : Referenced(true) {
@@ -73,6 +71,89 @@ namespace orsa {
     T _s, _s2;
     mpz_class _n;
   };
+  
+  // http://en.wikipedia.org/wiki/Weighted_mean
+  template <class T> class WeightedStatistic : public osg::Referenced {
+  public:
+    WeightedStatistic() : Referenced(true) {
+      reset();
+    }
+  protected:
+    ~WeightedStatistic() { }
+    
+  public:
+    void reset() {
+      _vw.clear();
+    }
+  public:
+    void insert(const T & val,
+		const T & weight) {
+      if (weight < 0) {
+	ORSA_DEBUG("problems: negative weight...");
+      } else {
+	VW vw;
+	vw.v = val;
+	vw.w = weight;
+	_vw.push_back(vw);
+      }
+    }
+  public:
+    T average() const {
+      T _s = 0;
+      T _w = 0;
+      for (unsigned int k=0; k<_vw.size(); ++k) {
+	_s += _vw[k].v*_vw[k].w;
+	_w += _vw[k].w;
+      }
+      return (_s/_w);
+    }
+ public:
+    T variance() const {
+      if (_vw.size() > 1) {
+	const T _a = average();
+	T _w = 0;
+	for (unsigned int k=0; k<_vw.size(); ++k) {
+	  _w += _vw[k].w;
+	}
+	T _s2 = 0;
+	T _w2 = 0;
+	for (unsigned int k=0; k<_vw.size(); ++k) {
+	  const T _va = _vw[k].v - _a;
+	  const T _norm_w = _vw[k].w/_w;
+	  _s2 += _norm_w*_va*_va;
+	  _w2 += _norm_w*_norm_w;
+	}
+	_s2 *= 1/(1-_w2);
+	return _s2;
+      } else {
+	return 0;
+      }
+    }
+  public:
+    T standardDeviation() const {
+      return (sqrt(variance()));
+    }
+  public:
+    T averageError() const {
+      if (_vw.size() > 0) {
+	return sqrt(variance()/_vw.size());
+      } else {
+	return 0;
+      }
+    }
+  public:
+    const mpz_class & entries() const {
+      return _vw.size();
+    }
+   protected:
+    class VW { 
+    public:
+      T v,w;
+    };
+ protected:
+    std::vector<VW> _vw;
+  };
+  
   
   template <class T> class RunningStatistic : public osg::Referenced {
   public:
