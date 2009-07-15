@@ -566,12 +566,8 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
 
 orsa::PaulMoment * orsa::computePaulMoment(const unsigned int order,
 					   const orsa::Matrix & shapeToLocal,
-<<<<<<< HEAD:src/orsa/util.cpp
 					   const orsa::Matrix & /* localToShape */,	
 					   const orsa::Vector & centerOfMass,
-=======
-					   const orsa::Matrix & /* localToShape */,					   const orsa::Vector & centerOfMass,
->>>>>>> bfc174ed2458e003246ff796b80d0cd18ae452b7:src/orsa/util.cpp
 					   const orsa::RandomPointsInShape * randomPointsInShape,
 					   const orsa::MassDistribution * massDistribution) {
   
