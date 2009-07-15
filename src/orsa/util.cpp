@@ -536,11 +536,31 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
     orsa::principalAxis(localToShape,
 			inertiaMatrix,
 			inertiaMatrix);
+    
+    // orsa::print(localToShape);
+    // orsa::print(inertiaMatrix);
+    
+    // correct, in case some of the axes got reflected
+    {
+      const double rot_11 = (localToShape*orsa::Vector(1,0,0)*orsa::Vector(1,0,0) < 0) ? -1 : 1;
+      const double rot_22 = (localToShape*orsa::Vector(0,1,0)*orsa::Vector(0,1,0) < 0) ? -1 : 1;
+      const double rot_33 = (localToShape*orsa::Vector(0,0,1)*orsa::Vector(0,0,1) < 0) ? -1 : 1;
+      const orsa::Matrix rot(rot_11,0,0,
+			     0,rot_22,0,
+			     0,0,rot_33);
+      // orsa::print(rot);
+      //
+      localToShape  = rot*localToShape;
+      //
+      // this is not really needed, inertiaMatrix is diagonal anyway
+      // inertiaMatrix = rot*inertiaMatrix*rot; // one should me the transposed of rot, but it is symmetric anyway
+    }
+    //
     orsa::Matrix::invert(localToShape,shapeToLocal);
     // }
     
-    // #warning check largest along z, smallest along x
-    // ORSA_DEBUG("principal axis: check largest I along z, smallest along x");
+    // orsa::print(localToShape);
+    // orsa::print(inertiaMatrix);
     
     /* if (rotatedRun) break;
        rotatedRun = true;
@@ -550,10 +570,9 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
 }
 
 
-
 orsa::PaulMoment * orsa::computePaulMoment(const unsigned int order,
 					   const orsa::Matrix & shapeToLocal,
-					   const orsa::Matrix & /* localToShape */,
+					   const orsa::Matrix & /* localToShape */,	
 					   const orsa::Vector & centerOfMass,
 					   const orsa::RandomPointsInShape * randomPointsInShape,
 					   const orsa::MassDistribution * massDistribution) {
