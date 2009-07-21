@@ -63,7 +63,6 @@ namespace orsaSPICE {
     // seconds since J2000
     static double SPICETime(const orsa::Time & t);
     
-    // attitude rotations, same standards as in the Attitude class
   public:
     orsa::Matrix localToGlobal(const std::string & local,
 			       const orsa::Time  & ephemerisTime);

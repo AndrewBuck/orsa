@@ -11,8 +11,8 @@
 #include <orsaSolarSystem/datetime.h>
 
 #include <orsaSPICE/spice.h>
-#include <orsaSPICE/spiceBodyPosVelCallback.h>
-// #include <orsaSPICE/spiceBodyInterpolatedPosVelCallback.h>
+#include <orsaSPICE/spiceBodyTranslationalCallback.h>
+// #include <orsaSPICE/spiceBodyInterpolatedTranslationalCallback.h>
 
 #include <errno.h>
 
@@ -172,20 +172,20 @@ void MainThread::run() {
     */
     //
     if (accurateSPICE) {
-      SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(sun->getName());
-      // sbpvc->setBodyName(sun->getName());
+      SpiceBodyTranslationalCallback * sbtc = new SpiceBodyTranslationalCallback(sun->getName());
+      // sbtc->setBodyName(sun->getName());
       orsa::IBPS ibps;
       ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MSun());
-      ibps.translational = sbpvc;
+      ibps.translational = sbtc;
       sun->setInitialConditions(ibps);
     } else {
       /* 
-	 SpiceBodyInterpolatedPosVelCallback * sbipvc =
-	 new SpiceBodyInterpolatedPosVelCallback(sun->getName(),
+	 SpiceBodyInterpolatedTranslationalCallback * sbipvc =
+	 new SpiceBodyInterpolatedTranslationalCallback(sun->getName(),
 	 orbitEpoch.getRef(),
 	 orbitEpoch.getRef()+runDuration.getRef(),
 	 samplingPeriod);
-	 sun->setBodyPosVelCallback(sbipvc);
+	 sun->setBodyTranslationalCallback(sbipvc);
       */
     }
     // }
@@ -202,11 +202,11 @@ void MainThread::run() {
       mercury->setName("MERCURY BARYCENTER");
       // mercury->setMass(FromUnits(0.33022e24,Unit::KG));
       //
-      SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(mercury->getName());
-      // sbpvc->setBodyName(mercury->getName());
+      SpiceBodyTranslationalCallback * sbtc = new SpiceBodyTranslationalCallback(mercury->getName());
+      // sbtc->setBodyName(mercury->getName());
       orsa::IBPS ibps;
       ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MMercury());
-      ibps.translational = sbpvc;
+      ibps.translational = sbtc;
       mercury->setInitialConditions(ibps);
       //
       bg->addBody(mercury);
@@ -218,11 +218,11 @@ void MainThread::run() {
       venus->setName("VENUS BARYCENTER");
       // venus->setMass(FromUnits(4.8690e24,Unit::KG));
       //
-      SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(venus->getName());
-      // sbpvc->setBodyName(venus->getName());
+      SpiceBodyTranslationalCallback * sbtc = new SpiceBodyTranslationalCallback(venus->getName());
+      // sbtc->setBodyName(venus->getName());
       orsa::IBPS ibps;
       ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MVenus());
-      ibps.translational = sbpvc;
+      ibps.translational = sbtc;
       venus->setInitialConditions(ibps);
       //
       bg->addBody(venus);
@@ -234,11 +234,11 @@ void MainThread::run() {
       earth->setName("EARTH BARYCENTER");
       // earth->setMass(FromUnits(5.9742e24,Unit::KG));
       //
-      SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(earth->getName());
-      // sbpvc->setBodyName(earth->getName());
+      SpiceBodyTranslationalCallback * sbtc = new SpiceBodyTranslationalCallback(earth->getName());
+      // sbtc->setBodyName(earth->getName());
       orsa::IBPS ibps;
       ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MEarthMoon());
-      ibps.translational = sbpvc;
+      ibps.translational = sbtc;
       earth->setInitialConditions(ibps);
       //
       bg->addBody(earth);
@@ -250,11 +250,11 @@ void MainThread::run() {
       mars->setName("MARS BARYCENTER");
       // mars->setMass(FromUnits(0.64191e24,Unit::KG));
       //
-      SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(mars->getName());
-      // sbpvc->setBodyName(mars->getName());
+      SpiceBodyTranslationalCallback * sbtc = new SpiceBodyTranslationalCallback(mars->getName());
+      // sbtc->setBodyName(mars->getName());
       orsa::IBPS ibps;
       ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MMars());
-      ibps.translational = sbpvc;
+      ibps.translational = sbtc;
       mars->setInitialConditions(ibps);
       //
       bg->addBody(mars);
@@ -266,10 +266,10 @@ void MainThread::run() {
       jupiter->setName("JUPITER BARYCENTER");
       // jupiter->setMass(FromUnits(1898.8e24,Unit::KG));
       //
-      SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(jupiter->getName());
-      // sbpvc->setBodyName(jupiter->getName());
+      SpiceBodyTranslationalCallback * sbtc = new SpiceBodyTranslationalCallback(jupiter->getName());
+      // sbtc->setBodyName(jupiter->getName());
       orsa::IBPS ibps;
-      ibps.translational = sbpvc;
+      ibps.translational = sbtc;
       ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MJupiter());
       jupiter->setInitialConditions(ibps);
       //
@@ -282,10 +282,10 @@ void MainThread::run() {
       saturn->setName("SATURN BARYCENTER");
       // saturn->setMass(FromUnits(568.50e24,Unit::KG));
       //
-      SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(saturn->getName());
-      // sbpvc->setBodyName(saturn->getName());
+      SpiceBodyTranslationalCallback * sbtc = new SpiceBodyTranslationalCallback(saturn->getName());
+      // sbtc->setBodyName(saturn->getName());
       orsa::IBPS ibps;
-      ibps.translational = sbpvc;
+      ibps.translational = sbtc;
       ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MSaturn());
       saturn->setInitialConditions(ibps);
       //
@@ -298,10 +298,10 @@ void MainThread::run() {
       uranus->setName("URANUS BARYCENTER");
       // uranus->setMass(FromUnits(86.625e24,Unit::KG));
       //
-      SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(uranus->getName());
-      // sbpvc->setBodyName(uranus->getName());
+      SpiceBodyTranslationalCallback * sbtc = new SpiceBodyTranslationalCallback(uranus->getName());
+      // sbtc->setBodyName(uranus->getName());
       orsa::IBPS ibps;
-      ibps.translational = sbpvc;
+      ibps.translational = sbtc;
       ibps.inertial = new PointLikeConstantInertialBodyProperty(FromUnits(86.625e24,Unit::KG));
       uranus->setInitialConditions(ibps);
       //
@@ -314,10 +314,10 @@ void MainThread::run() {
       neptune->setName("NEPTUNE BARYCENTER");
       // neptune->setMass(FromUnits(102.78e24,Unit::KG));
       //
-      SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(neptune->getName());
-      // sbpvc->setBodyName(neptune->getName());
+      SpiceBodyTranslationalCallback * sbtc = new SpiceBodyTranslationalCallback(neptune->getName());
+      // sbtc->setBodyName(neptune->getName());
       orsa::IBPS ibps;
-      ibps.translational = sbpvc;
+      ibps.translational = sbtc;
       ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MNeptune());
       neptune->setInitialConditions(ibps);
       //
@@ -332,9 +332,9 @@ void MainThread::run() {
     
     if (accurateSPICE) {
       
-      osg::ref_ptr<SpiceBodyPosVelCallback> sbpvc = new SpiceBodyPosVelCallback(vesta->getName());
+      osg::ref_ptr<SpiceBodyTranslationalCallback> sbtc = new SpiceBodyTranslationalCallback(vesta->getName());
       //
-      // sbpvc->setBodyName(vesta->getName());
+      // sbtc->setBodyName(vesta->getName());
       //
       orsa::IBPS ibps;
       
@@ -345,7 +345,8 @@ void MainThread::run() {
 				   FromUnits(227,Unit::KM));
       } else if (vestaShapeModel.getRef() == ComboShapeModel::smt_thomas) {
 	osg::ref_ptr<VestaShape> vestaShapeThomas = new VestaShape;
-	if (!vestaShapeThomas->read("vesta_thomas.dat")) {
+	// if (!vestaShapeThomas->read("vesta_thomas.dat")) {
+	if (!vestaShapeThomas->read("hektor.tab")) {
 	  ORSA_ERROR("problems encountered while reading shape file...");
 	}
 	shape = vestaShapeThomas.get();
@@ -415,7 +416,7 @@ void MainThread::run() {
 						       inertiaMatrix,
 						       paulMoment);
       
-      ibps.translational = sbpvc.get();
+      ibps.translational = sbtc.get();
       
       ibps.rotational = new orsaSolarSystem::ConstantZRotationEcliptic_RotationalBodyProperty(J2000(),
 											      292.0*degToRad(),
@@ -426,12 +427,12 @@ void MainThread::run() {
       
     } else {
       /* 
-	 SpiceBodyInterpolatedPosVelCallback * sbipvc =
-	 new SpiceBodyInterpolatedPosVelCallback(vesta->getName(),
+	 SpiceBodyInterpolatedTranslationalCallback * sbipvc =
+	 new SpiceBodyInterpolatedTranslationalCallback(vesta->getName(),
 	 orbitEpoch.getRef(),
 	 orbitEpoch.getRef()+runDuration.getRef(),
 	 samplingPeriod);
-	 vesta->setBodyPosVelCallback(sbipvc);
+	 vesta->setBodyTranslationalCallback(sbipvc);
       */
     }
     
@@ -894,21 +895,21 @@ void MainThread::run() {
 	// dawnSPICE->setMass(0);
 	//
 	if (accurateSPICE) {
-	  SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(dawnSPICE->getName());
+	  SpiceBodyTranslationalCallback * sbtc = new SpiceBodyTranslationalCallback(dawnSPICE->getName());
 	  //
-	  // sbpvc->setBodyName(dawnSPICE->getName());
+	  // sbtc->setBodyName(dawnSPICE->getName());
 	  // 
 	  orsa::IBPS ibps;
-	  ibps.translational = sbpvc;
+	  ibps.translational = sbtc;
 	  dawnSPICE->setInitialConditions(ibps);
 	} else {
 	  /* 
-	     SpiceBodyInterpolatedPosVelCallback * sbipvc =
-	     new SpiceBodyInterpolatedPosVelCallback(dawnSPICE->getName(),
+	     SpiceBodyInterpolatedTranslationalCallback * sbipvc =
+	     new SpiceBodyInterpolatedTranslationalCallback(dawnSPICE->getName(),
 	     orbitEpoch.getRef(),
 	     orbitEpoch.getRef()+runDuration.getRef(),
 	     samplingPeriod);
-	     dawnSPICE->setBodyPosVelCallback(sbipvc);
+	     dawnSPICE->setBodyTranslationalCallback(sbipvc);
 	  */
 	}
 

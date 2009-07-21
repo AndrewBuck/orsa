@@ -14,7 +14,7 @@
 #include <orsaSolarSystem/obleq.h>
 
 #include <orsaSPICE/spice.h>
-#include <orsaSPICE/spiceBodyPosVelCallback.h>
+#include <orsaSPICE/spiceBodyTranslationalCallback.h>
 
 namespace orsaSolarSystem {
   
@@ -172,11 +172,11 @@ namespace orsaSolarSystem {
 	{
 	  sun->setName("SUN");
 	  sun->isLightSource = true;
-	  orsaSPICE::SpiceBodyPosVelCallback * sbpvc = 
-	    new orsaSPICE::SpiceBodyPosVelCallback(sun->getName());
+	  orsaSPICE::SpiceBodyTranslationalCallback * sbtc = 
+	    new orsaSPICE::SpiceBodyTranslationalCallback(sun->getName());
 	  orsa::IBPS ibps;
 	  ibps.inertial = new orsa::PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MSun());
-	  ibps.translational = sbpvc;
+	  ibps.translational = sbtc;
 	  sun->setInitialConditions(ibps);
 	  //
 	  bg->addBody(sun.get());
@@ -206,11 +206,11 @@ namespace orsaSolarSystem {
 	    mercury->setName("MERCURY BARYCENTER");
 	    // mercury->setMass(FromUnits(0.33022e24,Unit::KG));
 	    //
-	    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(mercury->getName());
-	    // sbpvc->setBodyName(mercury->getName());
+	    orsaSPICE::SpiceBodyTranslationalCallback * sbtc = new orsaSPICE::SpiceBodyTranslationalCallback(mercury->getName());
+	    // sbtc->setBodyName(mercury->getName());
 	    orsa::IBPS ibps;
 	    ibps.inertial = new orsa::PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MMercury());
-	    ibps.translational = sbpvc;
+	    ibps.translational = sbtc;
 	    mercury->setInitialConditions(ibps);
 	    //
 	    bg->addBody(mercury);
@@ -222,11 +222,11 @@ namespace orsaSolarSystem {
 	    venus->setName("VENUS BARYCENTER");
 	    // venus->setMass(FromUnits(4.8690e24,Unit::KG));
 	    //
-	    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(venus->getName());
-	    // sbpvc->setBodyName(venus->getName());
+	    orsaSPICE::SpiceBodyTranslationalCallback * sbtc = new orsaSPICE::SpiceBodyTranslationalCallback(venus->getName());
+	    // sbtc->setBodyName(venus->getName());
 	    orsa::IBPS ibps;
 	    ibps.inertial = new orsa::PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MVenus());
-	    ibps.translational = sbpvc;
+	    ibps.translational = sbtc;
 	    venus->setInitialConditions(ibps);
 	    //
 	    bg->addBody(venus);
@@ -238,11 +238,11 @@ namespace orsaSolarSystem {
 	    earth->setName("EARTH");
 	    // earth->setMass(FromUnits(5.9742e24,Unit::KG));
 	    //
-	    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(earth->getName());
-	    // sbpvc->setBodyName(earth->getName());
+	    orsaSPICE::SpiceBodyTranslationalCallback * sbtc = new orsaSPICE::SpiceBodyTranslationalCallback(earth->getName());
+	    // sbtc->setBodyName(earth->getName());
 	    orsa::IBPS ibps;
 	    ibps.inertial = new orsa::PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MEarth());
-	    ibps.translational = sbpvc;
+	    ibps.translational = sbtc;
 	    earth->setInitialConditions(ibps);
 	    //
 	    bg->addBody(earth);
@@ -253,10 +253,10 @@ namespace orsaSolarSystem {
 	    //
 	    moon->setName("MOON");
 	    //
-	    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(moon->getName());
+	    orsaSPICE::SpiceBodyTranslationalCallback * sbtc = new orsaSPICE::SpiceBodyTranslationalCallback(moon->getName());
 	    orsa::IBPS ibps;
 	    ibps.inertial = new orsa::PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MMoon());
-	    ibps.translational = sbpvc;
+	    ibps.translational = sbtc;
 	    moon->setInitialConditions(ibps);
 	    //
 	    bg->addBody(moon);
@@ -268,11 +268,11 @@ namespace orsaSolarSystem {
 	    mars->setName("MARS BARYCENTER");
 	    // mars->setMass(FromUnits(0.64191e24,Unit::KG));
 	    //
-	    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(mars->getName());
-	    // sbpvc->setBodyName(mars->getName());
+	    orsaSPICE::SpiceBodyTranslationalCallback * sbtc = new orsaSPICE::SpiceBodyTranslationalCallback(mars->getName());
+	    // sbtc->setBodyName(mars->getName());
 	    orsa::IBPS ibps;
 	    ibps.inertial = new orsa::PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MMars());
-	    ibps.translational = sbpvc;
+	    ibps.translational = sbtc;
 	    mars->setInitialConditions(ibps);
 	    //
 	    bg->addBody(mars);
@@ -284,10 +284,10 @@ namespace orsaSolarSystem {
 	    jupiter->setName("JUPITER BARYCENTER");
 	    // jupiter->setMass(FromUnits(1898.8e24,Unit::KG));
 	    //
-	    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(jupiter->getName());
-	    // sbpvc->setBodyName(jupiter->getName());
+	    orsaSPICE::SpiceBodyTranslationalCallback * sbtc = new orsaSPICE::SpiceBodyTranslationalCallback(jupiter->getName());
+	    // sbtc->setBodyName(jupiter->getName());
 	    orsa::IBPS ibps;
-	    ibps.translational = sbpvc;
+	    ibps.translational = sbtc;
 	    ibps.inertial = new orsa::PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MJupiter());
 	    jupiter->setInitialConditions(ibps);
 	    //
@@ -300,10 +300,10 @@ namespace orsaSolarSystem {
 	    saturn->setName("SATURN BARYCENTER");
 	    // saturn->setMass(FromUnits(568.50e24,Unit::KG));
 	    //
-	    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(saturn->getName());
-	    // sbpvc->setBodyName(saturn->getName());
+	    orsaSPICE::SpiceBodyTranslationalCallback * sbtc = new orsaSPICE::SpiceBodyTranslationalCallback(saturn->getName());
+	    // sbtc->setBodyName(saturn->getName());
 	    orsa::IBPS ibps;
-	    ibps.translational = sbpvc;
+	    ibps.translational = sbtc;
 	    ibps.inertial = new orsa::PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MSaturn());
 	    saturn->setInitialConditions(ibps);
 	    //
@@ -316,10 +316,10 @@ namespace orsaSolarSystem {
 	    uranus->setName("URANUS BARYCENTER");
 	    // uranus->setMass(FromUnits(86.625e24,Unit::KG));
 	    //
-	    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(uranus->getName());
-	    // sbpvc->setBodyName(uranus->getName());
+	    orsaSPICE::SpiceBodyTranslationalCallback * sbtc = new orsaSPICE::SpiceBodyTranslationalCallback(uranus->getName());
+	    // sbtc->setBodyName(uranus->getName());
 	    orsa::IBPS ibps;
-	    ibps.translational = sbpvc;
+	    ibps.translational = sbtc;
 	    ibps.inertial = new orsa::PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MUranus());
 	    uranus->setInitialConditions(ibps);
 	    //
@@ -332,10 +332,10 @@ namespace orsaSolarSystem {
 	    neptune->setName("NEPTUNE BARYCENTER");
 	    // neptune->setMass(FromUnits(102.78e24,Unit::KG));
 	    //
-	    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(neptune->getName());
-	    // sbpvc->setBodyName(neptune->getName());
+	    orsaSPICE::SpiceBodyTranslationalCallback * sbtc = new orsaSPICE::SpiceBodyTranslationalCallback(neptune->getName());
+	    // sbtc->setBodyName(neptune->getName());
 	    orsa::IBPS ibps;
-	    ibps.translational = sbpvc;
+	    ibps.translational = sbtc;
 	    ibps.inertial = new orsa::PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MNeptune());
 	    neptune->setInitialConditions(ibps);
 	    //
@@ -489,11 +489,11 @@ namespace orsaSolarSystem {
 	{
 	  sun->setName("SUN");
 	  sun->isLightSource = true;
-	  orsaSPICE::SpiceBodyPosVelCallback * sbpvc = 
-	    new orsaSPICE::SpiceBodyPosVelCallback(sun->getName());
+	  orsaSPICE::SpiceBodyTranslationalCallback * sbtc = 
+	    new orsaSPICE::SpiceBodyTranslationalCallback(sun->getName());
 	  orsa::IBPS ibps;
 	  ibps.inertial = new orsa::PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MSun());
-	  ibps.translational = sbpvc;
+	  ibps.translational = sbtc;
 	  sun->setInitialConditions(ibps);
 	  //
 	  bg->addBody(sun.get());

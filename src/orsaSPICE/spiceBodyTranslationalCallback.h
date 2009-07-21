@@ -1,21 +1,21 @@
-#ifndef _ORSA_SPICE_SPICE_BODY_POS_VEL_CALLBACK_
-#define _ORSA_SPICE_SPICE_BODY_POS_VEL_CALLBACK_
+#ifndef _ORSA_SPICE_SPICE_BODY_TRANSLATIONAL_CALLBACK_
+#define _ORSA_SPICE_SPICE_BODY_TRANSLATIONAL_CALLBACK_
 
 #include <orsa/body.h>
 
 namespace orsaSPICE {
   
-  class SpiceBodyPosVelCallback : public orsa::PrecomputedTranslationalBodyProperty {
+  class SpiceBodyTranslationalCallback : public orsa::PrecomputedTranslationalBodyProperty {
   public:    
-    SpiceBodyPosVelCallback(const std::string & name);
+    SpiceBodyTranslationalCallback(const std::string & name);
   public:
-    SpiceBodyPosVelCallback(const SpiceBodyPosVelCallback & sbpvc);
+    SpiceBodyTranslationalCallback(const SpiceBodyTranslationalCallback & sbtc);
   public:
     orsa::Vector position() const;
     orsa::Vector velocity() const;
   public:
     orsa::TranslationalBodyProperty * clone() const {
-      return new SpiceBodyPosVelCallback(*this);
+      return new SpiceBodyTranslationalCallback(*this);
     }
   public:
     bool update(const orsa::Time &);
@@ -29,4 +29,4 @@ namespace orsaSPICE {
   
 }; // namespace orsaSPICE
 
-#endif // _ORSA_SPICE_SPICE_BODY_POS_VEL_CALLBACK_
+#endif // _ORSA_SPICE_SPICE_BODY_TRANSLATIONAL_CALLBACK_

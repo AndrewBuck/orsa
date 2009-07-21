@@ -1,31 +1,31 @@
-#include <orsaSPICE/spiceBodyPosVelCallback.h>
+#include <orsaSPICE/spiceBodyTranslationalCallback.h>
 
 #include <orsaSPICE/spice.h>
 
 using namespace orsa;
 using namespace orsaSPICE;
 
-SpiceBodyPosVelCallback::SpiceBodyPosVelCallback(const std::string & name) : 
+SpiceBodyTranslationalCallback::SpiceBodyTranslationalCallback(const std::string & name) : 
   orsa::PrecomputedTranslationalBodyProperty(),
   _name(name) { }
 
 
-SpiceBodyPosVelCallback::SpiceBodyPosVelCallback(const SpiceBodyPosVelCallback & sbpvc) :
+SpiceBodyTranslationalCallback::SpiceBodyTranslationalCallback(const SpiceBodyTranslationalCallback & sbtc) :
   orsa::PrecomputedTranslationalBodyProperty(),
-  _name(sbpvc._name) { 
+  _name(sbtc._name) { 
   // copying these members is necessary, otherwise the 'cache' never gets really used
-  if (sbpvc._previousTime.isSet()) {
-    _position     = sbpvc._position.getRef();
-    _velocity     = sbpvc._velocity.getRef();
-    _previousTime = sbpvc._previousTime.getRef();
+  if (sbtc._previousTime.isSet()) {
+    _position     = sbtc._position.getRef();
+    _velocity     = sbtc._velocity.getRef();
+    _previousTime = sbtc._previousTime.getRef();
   }
 }
 
-orsa::Vector SpiceBodyPosVelCallback::position() const { return _position.getRef(); }
+orsa::Vector SpiceBodyTranslationalCallback::position() const { return _position.getRef(); }
 
-orsa::Vector SpiceBodyPosVelCallback::velocity() const { return _velocity.getRef(); }
+orsa::Vector SpiceBodyTranslationalCallback::velocity() const { return _velocity.getRef(); }
 
-bool SpiceBodyPosVelCallback::update(const orsa::Time & t) {
+bool SpiceBodyTranslationalCallback::update(const orsa::Time & t) {
   
   /* 
      ORSA_DEBUG("--MARK--  pt.set: %i  this: 0x%x  t: %Zi  [%s]",
