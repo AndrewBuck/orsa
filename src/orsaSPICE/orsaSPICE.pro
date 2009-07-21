@@ -31,11 +31,7 @@ win32 {
 }
 
 HEADERS = spice.h \
-          spiceBodyAttitudeCallback.h \
-          spiceBodyInterpolatedPosVelCallback.h \
           spiceBodyPosVelCallback.h
 
 SOURCES = spice.cpp \
-          spiceBodyAttitudeCallback.cpp \
-          spiceBodyInterpolatedPosVelCallback.cpp \
           spiceBodyPosVelCallback.cpp
