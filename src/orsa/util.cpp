@@ -234,13 +234,18 @@ orsa::Matrix orsa::QuaternionToMatrix (const orsa::Quaternion & q) {
   const double q3 = v.getZ();
   
   // Eq. (7.7) book by J.B. Kuipers on Quaternions
-  return orsa::Matrix(2*q0*q0-1+2*q1*q1,   2*q1*q2-2*q0*q3, 2*q1*q3+2*q0*q2,
-		      2*q1*q2+2*q0*q3,   2*q0*q0-1+2*q2*q2, 2*q2*q3-2*q0*q1,
-		      2*q1*q3-2*q0*q2,     2*q2*q3+2*q0*q1, 2*q0*q0-1+2*q3*q3);
+  return orsa::Matrix(2*q0*q0-1+2*q1*q1,   2*q1*q2+2*q0*q3, 2*q1*q3-2*q0*q2,
+		      2*q1*q2-2*q0*q3,   2*q0*q0-1+2*q2*q2, 2*q2*q3+2*q0*q1,
+		      2*q1*q3+2*q0*q2,     2*q2*q3-2*q0*q1, 2*q0*q0-1+2*q3*q3);
 }
 
 orsa::Quaternion orsa::MatrixToQuaternion (const orsa::Matrix & m) {
   //! assumes that m is a rotation matrix, with det(m)=1;
+  
+  if (fabs(m.determinant()-1) > 3*orsa::epsilon()) {
+    ORSA_DEBUG("call with a rotation matrix only: |det(m)-1| = %g",fabs(m.determinant()-1));
+    return orsa::Quaternion();
+  }
   
   // From Sec. 7.9 of Quaternions book bu J.B. Kuipers
   
@@ -265,10 +270,7 @@ orsa::Matrix orsa::localToGlobal(const orsa::Body       * b,
   orsa::IBPS ibps;
   if (bg->getInterpolatedIBPS(ibps, b, t)) { 
     if (ibps.rotational.get()) {
-      const orsa::Matrix m = QuaternionToMatrix(ibps.rotational.get()->getQ());
-      orsa::Matrix m_tr;
-      orsa::Matrix::transpose(m, m_tr);
-      return m_tr;
+      return QuaternionToMatrix(ibps.rotational.get()->getQ());
     } else {
       // ORSA_DEBUG("problems... body: [%s]",b->getName().c_str());
       return orsa::Matrix::identity();
@@ -291,7 +293,10 @@ orsa::Matrix orsa::globalToLocal(const orsa::Body       * b,
   orsa::IBPS ibps;
   if (bg->getInterpolatedIBPS(ibps, b, t)) { 
     if (ibps.rotational.get()) {
-      return QuaternionToMatrix(ibps.rotational.get()->getQ());
+      const orsa::Matrix m = QuaternionToMatrix(ibps.rotational.get()->getQ());
+      orsa::Matrix m_tr;
+      orsa::Matrix::transpose(m, m_tr);
+      return m_tr;
     } else {
       // ORSA_DEBUG("problems... body: [%s]",b->getName().c_str());
       return orsa::Matrix::identity();
@@ -368,6 +373,15 @@ RandomPointsInShape::RandomPointsInShape(const orsa::Shape * s,
   in.clear();
   in.resize(N);
   const Box boundingBox = shape->boundingBox();
+  //
+  {
+    //debug
+    ORSA_DEBUG("box: %f x %f x %f [km]",
+	       orsa::FromUnits(boundingBox.getXMax()-boundingBox.getXMin(),orsa::Unit::KM,-1),
+	       orsa::FromUnits(boundingBox.getYMax()-boundingBox.getYMin(),orsa::Unit::KM,-1),
+	       orsa::FromUnits(boundingBox.getZMax()-boundingBox.getZMin(),orsa::Unit::KM,-1));
+  }
+  //
   counter = 0;
   while (counter < N) {
     in[counter] = shape->isInside(__randomVectorUtil(rng.get(),boundingBox));
