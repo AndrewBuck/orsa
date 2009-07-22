@@ -17,8 +17,6 @@ namespace orsa {
   
   class PaulMoment : public osg::Referenced {
   public:
-    // PaulMoment();
-  public:
     PaulMoment(const unsigned int order);
   protected:
     virtual ~PaulMoment() { } 
@@ -36,8 +34,21 @@ namespace orsa {
   };
   
   // utility, just printing out values for now
-  void convert(const PaulMoment * const pm,
-	       const double     & R0);
+  void convert(std::vector< std::vector<double> > & C,
+	       std::vector< std::vector<double> > & S,
+	       std::vector< std::vector<double> > & norm_C,
+	       std::vector< std::vector<double> > & norm_S,
+	       std::vector<double> & J,
+	       const PaulMoment * const pm,
+	       const double     & R0,
+	       const bool         verbose=false);
+  
+  // tries to find a set of PaulMoments that matches the normalized C and S
+  // the order of pm must be <= the order of norm_C and norm_S
+  bool solve(PaulMoment * pm,
+	     std::vector< std::vector<double> > & norm_C,
+	     std::vector< std::vector<double> > & norm_S,
+	     const double     & R0);
   
 }; // namespace orsa
 

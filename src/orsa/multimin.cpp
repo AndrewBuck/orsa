@@ -366,7 +366,7 @@ void Multimin::df_gsl(const gsl_vector * parameters,
   
   for (unsigned int k=0; k<_par->size(); ++k) {
     
-    ORSA_DEBUG("df[%03i]...",k);
+    // ORSA_DEBUG("df[%03i]...",k);
     
     // deep copies of the reference _par
     (*(par_mm.get())) = (*(_par.get()));
@@ -492,6 +492,10 @@ bool Multimin::run_nmsimplex(const unsigned int maxIter,
     //
     // ORSA_DEBUG("itaration status = %s",gsl_strerror(it_status));
     
+    // if (it_status == GSL_ENOPROG) break;
+    
+    // ORSA_DEBUG("s->size: %g",s->size);
+    
     cv_status = gsl_multimin_test_size(s->size, epsAbs);
     //
     /* 
@@ -507,13 +511,11 @@ bool Multimin::run_nmsimplex(const unsigned int maxIter,
     //
     // ORSA_DEBUG("convergence status = %s", gsl_strerror(cv_status));
     
-    // ORSA_DEBUG("iter: %i",iter);
-    
     if (0) {
       // debug only
       ORSA_DEBUG("iter: %i",iter);
       for (unsigned int k=0; k<_par->size(); ++k) {
-	ORSA_DEBUG("par[%03i] = \"%s\" = %+18.8f",
+	ORSA_DEBUG("par[%03i] = \"%s\" = %+24.15e",
 		   k,
 		   _par->name(k).c_str(),
 		   _par->get(k));
@@ -610,28 +612,37 @@ bool Multimin::run_conjugate_fr(const unsigned int maxIter,
   do {
     ++iter;
     
+    ORSA_DEBUG("iter: %i",iter);
+    
+    if (0) {
+      // debug only
+      ORSA_DEBUG("iter: %i",iter);
+      for (unsigned int k=0; k<_par->size(); ++k) {
+	ORSA_DEBUG("par[%03i] = \"%s\" = %+24.16e",
+		   k,
+		   _par->name(k).c_str(),
+		   _par->get(k));
+      }
+    }
+    
+    {
+      //debug
+      for (unsigned int k=0; k<1; ++k) {
+	ORSA_DEBUG("gradient[%i] = %e",k,gsl_vector_get(s->gradient,k));
+      }
+    }
+    
     it_status = gsl_multimin_fdfminimizer_iterate(s);
     //
     ORSA_DEBUG("itaration status = %s",gsl_strerror(it_status));
+    
+    // if (it_status == GSL_ENOPROG) break;
     
     // cv_status = gsl_multimin_test_size(s->size, epsAbs);
     //
     cv_status = gsl_multimin_test_gradient(s->gradient, epsAbs); 
     
     ORSA_DEBUG("convergence status = %s", gsl_strerror(cv_status));
-    
-    ORSA_DEBUG("iter: %i",iter);
-    
-    if (1) {
-      // debug only
-      ORSA_DEBUG("iter: %i",iter);
-      for (unsigned int k=0; k<_par->size(); ++k) {
-	ORSA_DEBUG("par[%03i] = \"%s\" = %+18.8f",
-		   k,
-		   _par->name(k).c_str(),
-		   _par->get(k));
-      }
-    }
     
     if (0) {
       if (logFile.isSet()) {
