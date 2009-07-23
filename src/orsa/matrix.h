@@ -15,26 +15,26 @@ namespace orsa {
   public:
     Matrix();
     Matrix(const Matrix &);
-    Matrix(const double m11, 
-	   const double m12,
-	   const double m13,
-	   const double m21,
-	   const double m22,
-	   const double m23,
-	   const double m31,
-	   const double m32,
-	   const double m33);
+    Matrix(const double & m11, 
+	   const double & m12,
+	   const double & m13,
+	   const double & m21,
+	   const double & m22,
+	   const double & m23,
+	   const double & m31,
+	   const double & m32,
+	   const double & m33);
     
   public:
-    void set(const double m11, 
-	     const double m12,
-	     const double m13,
-	     const double m21,
-	     const double m22,
-	     const double m23,
-	     const double m31,
-	     const double m32,
-	     const double m33); 
+    void set(const double & m11, 
+	     const double & m12,
+	     const double & m13,
+	     const double & m21,
+	     const double & m22,
+	     const double & m23,
+	     const double & m31,
+	     const double & m32,
+	     const double & m33); 
 
     void get(double & m11, 
 	     double & m12,
@@ -46,6 +46,17 @@ namespace orsa {
 	     double & m32,
 	     double & m33) const;
 
+  public:
+    void setM11(const double & x) { m11=x; }
+    void setM12(const double & x) { m12=x; }
+    void setM13(const double & x) { m13=x; }
+    void setM21(const double & x) { m21=x; }
+    void setM22(const double & x) { m22=x; }
+    void setM23(const double & x) { m23=x; }
+    void setM31(const double & x) { m31=x; }
+    void setM32(const double & x) { m32=x; }
+    void setM33(const double & x) { m33=x; }
+    
   public:
     const double & getM11() const { return m11; }
     const double & getM12() const { return m12; }

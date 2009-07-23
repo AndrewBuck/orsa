@@ -25,15 +25,15 @@ Matrix::Matrix(const Matrix & m) {
   m33 = m.m33;
 }
 
-Matrix::Matrix(const double _m11, 
-	       const double _m12,
-	       const double _m13,
-	       const double _m21,
-	       const double _m22,
-	       const double _m23,
-	       const double _m31,
-	       const double _m32,
-	       const double _m33) {
+Matrix::Matrix(const double & _m11, 
+	       const double & _m12,
+	       const double & _m13,
+	       const double & _m21,
+	       const double & _m22,
+	       const double & _m23,
+	       const double & _m31,
+	       const double & _m32,
+	       const double & _m33) {
   m11 = _m11;
   m12 = _m12;
   m13 = _m13;
@@ -45,15 +45,15 @@ Matrix::Matrix(const double _m11,
   m33 = _m33;
 }
 
-void Matrix::set(const double _m11, 
-		 const double _m12,
-		 const double _m13,
-		 const double _m21,
-		 const double _m22,
-		 const double _m23,
-		 const double _m31,
-		 const double _m32,
-		 const double _m33) {
+void Matrix::set(const double & _m11, 
+		 const double & _m12,
+		 const double & _m13,
+		 const double & _m21,
+		 const double & _m22,
+		 const double & _m23,
+		 const double & _m31,
+		 const double & _m32,
+		 const double & _m33) {
   m11 = _m11;
   m12 = _m12;
   m13 = _m13;
