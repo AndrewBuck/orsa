@@ -645,8 +645,7 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 	      
 	      if (M2->M(i2,j2,k2) == 0) continue;
 	      
-	      /* 
-		 ORSA_DEBUG("i1: %i   j1: %i   k1: %i   i2: %i   j2: %i   k2: %i",
+	      /* ORSA_DEBUG("i1: %i   j1: %i   k1: %i   i2: %i   j2: %i   k2: %i",
 		 i1,j1,k1,i2,j2,k2);
 	      */
 	      

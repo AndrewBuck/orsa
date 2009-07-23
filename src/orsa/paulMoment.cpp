@@ -104,10 +104,10 @@ void orsa::convert(std::vector< std::vector<double> > & C,
   norm_S.resize(order+1);
   //
   for (unsigned int l=0; l<=order; ++l) {
-    C[l].resize(order+1);
-    S[l].resize(order+1);
-    norm_C[l].resize(order+1);
-    norm_S[l].resize(order+1);
+    C[l].resize(l+1);
+    S[l].resize(l+1);
+    norm_C[l].resize(l+1);
+    norm_S[l].resize(l+1);
   }
   //
   J.resize(order+1);
