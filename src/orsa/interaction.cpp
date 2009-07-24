@@ -52,6 +52,8 @@ bool Interaction::acceleration(InteractionVector & a,
       
       const orsa::Body * ref_b = bl[j].get();
       
+      // ORSA_DEBUG("ref_b is [%s]",ref_b->getName().c_str());
+      
       if (ref_b->getInitialConditions().translational.get()) {
 	if (!(ref_b->getInitialConditions().translational->dynamic())) {
 	  continue;
@@ -173,6 +175,8 @@ bool Interaction::acceleration(InteractionVector & a,
       for (unsigned int k=0; k<j; ++k) {
 	
 	const orsa::Body * b = bl[k].get();
+	
+	// ORSA_DEBUG("b is [%s]",b->getName().c_str());
 	
 	if (!bg->getInterpolatedMass(m_b,b,t)) {
 	  ORSA_DEBUG("problems...");
@@ -310,6 +314,9 @@ bool Interaction::acceleration(InteractionVector & a,
 	      a[j] += orsa::Unit::G() * m_b     * accTerm;
 	      a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
 	    } else {
+	     
+	      // ORSA_DEBUG("--MARK--");
+	      
 	      const orsa::Vector accTerm = _d;
 	      // a[(*ref_b_it).get()] += (*b_it)->getMu()     * accTerm;
 	      // a[    (*b_it).get()] -= (*ref_b_it)->getMu() * accTerm;
@@ -319,7 +326,13 @@ bool Interaction::acceleration(InteractionVector & a,
 	      a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
 	    }	
 	    
+	    /* ORSA_DEBUG("--tmp--");
+	       orsa::print(a[j]);
+	    */
+	    
 	  } else {
+	    
+	    // ORSA_DEBUG("--MARK--");
 	    
 	    const orsa::Vector accTerm =
 	      Paul::gravitationalForce(ref_b_pm.get(),
@@ -330,6 +343,10 @@ bool Interaction::acceleration(InteractionVector & a,
 	    
 	    a[j] += orsa::Unit::G() * m_b     * accTerm;
 	    a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
+	    
+	    /* ORSA_DEBUG("--tmp--");
+	       orsa::print(a[j]);
+	    */
 	    
 	  }
 	  
@@ -348,39 +365,39 @@ bool Interaction::acceleration(InteractionVector & a,
 	  
 	  const double _l = _d.length();
 	  
-	  /* 
-	     if (_l > epsilon()) {
-	  */
-	  
-	  _d /= (_l*_l*_l);
-	  
-	  if (ref_b->betaSun == b) {
-	    const orsa::Vector accTerm = (1 - ref_b->beta.getRef()) * _d;
-	    // a[(*ref_b_it).get()] += (*b_it)->getMu()     * accTerm;
-	    // a[    (*b_it).get()] -= (*ref_b_it)->getMu() * accTerm;
-	    // a_ref_b += b->getMu()     * accTerm;
-	    // a_b     -= ref_b->getMu() * accTerm;
-	    a[j] += orsa::Unit::G() * m_b     * accTerm;
-	    a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
+	  if (_l > epsilon()) {
+	    
+	    _d /= (_l*_l*_l);
+	    
+	    if (ref_b->betaSun == b) {
+	      const orsa::Vector accTerm = (1 - ref_b->beta.getRef()) * _d;
+	      // a[(*ref_b_it).get()] += (*b_it)->getMu()     * accTerm;
+	      // a[    (*b_it).get()] -= (*ref_b_it)->getMu() * accTerm;
+	      // a_ref_b += b->getMu()     * accTerm;
+	      // a_b     -= ref_b->getMu() * accTerm;
+	      a[j] += orsa::Unit::G() * m_b     * accTerm;
+	      a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
+	    } else {
+	      const orsa::Vector accTerm = _d;
+	      // a[(*ref_b_it).get()] += (*b_it)->getMu()     * accTerm;
+	      // a[    (*b_it).get()] -= (*ref_b_it)->getMu() * accTerm;
+	      // a_ref_b += b->getMu()     * accTerm;
+	      // a_b     -= ref_b->getMu() * accTerm;
+	      a[j] += orsa::Unit::G() * m_b     * accTerm;
+	      a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
+	    }
+	    
+	    /* ORSA_DEBUG("--tmp--");
+	       orsa::print(a[j]);
+	    */
+	    
 	  } else {
-	    const orsa::Vector accTerm = _d;
-	    // a[(*ref_b_it).get()] += (*b_it)->getMu()     * accTerm;
-	    // a[    (*b_it).get()] -= (*ref_b_it)->getMu() * accTerm;
-	    // a_ref_b += b->getMu()     * accTerm;
-	    // a_b     -= ref_b->getMu() * accTerm;
-	    a[j] += orsa::Unit::G() * m_b     * accTerm;
-	    a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
+	    
+	    ORSA_WARNING("skipping: zero distance between bodies [%s] and [%s]",
+			 ref_b->getName().c_str(),
+			 b->getName().c_str());
+	    
 	  }
-	  
-	  /* 
-	     } else {
-	     
-	     ORSA_WARNING("skipping: zero distance between bodies [%s] and [%s]",
-	     ref_b->getName().c_str(),
-	     b->getName().c_str());
-	     
-	     }
-	  */
 	  
 	  /* 
 	     } else {
@@ -402,7 +419,16 @@ bool Interaction::acceleration(InteractionVector & a,
 	if (m_ref_b < orsa::epsilon()) {
 	  ORSA_DEBUG("Propulsion problems: non-positive mass...");
 	} else {
+	  /* ORSA_DEBUG("adding propulsion thrust for body [%s]",bl[j]->getName().c_str());
+	     print(j);
+	     print(a[j]);
+	     print(thrust);
+	     print(m_ref_b);
+	  */
+	  
 	  a[j] += thrust / m_ref_b;
+	  
+	  // print(a[j]);
 	}
 	
       }
