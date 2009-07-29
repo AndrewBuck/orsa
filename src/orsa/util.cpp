@@ -242,7 +242,7 @@ orsa::Matrix orsa::QuaternionToMatrix (const orsa::Quaternion & q) {
 orsa::Quaternion orsa::MatrixToQuaternion (const orsa::Matrix & m) {
   //! assumes that m is a rotation matrix, with det(m)=1;
   
-  if (fabs(m.determinant()-1) > 3*orsa::epsilon()) {
+  if (fabs(m.determinant()-1) > 6*orsa::epsilon()) {
     ORSA_DEBUG("call with a rotation matrix only: |det(m)-1| = %g",fabs(m.determinant()-1));
     return orsa::Quaternion();
   }
