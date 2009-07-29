@@ -344,8 +344,40 @@ bool Interaction::acceleration(InteractionVector & a,
 	    a[j] += orsa::Unit::G() * m_b     * accTerm;
 	    a[k] -= orsa::Unit::G() * m_ref_b * accTerm;
 	    
-	    /* ORSA_DEBUG("--tmp--");
-	       orsa::print(a[j]);
+	    /* 
+	       {
+	       ORSA_DEBUG("--tmp--");
+	       orsa::print(Paul::gravitationalPotential(ref_b_pm.get(),
+	       ref_b_g2l,
+	       b_pm.get(),
+	       b_g2l,
+	       R));
+	       orsa::print(Paul::gravitationalPotential(b_pm.get(),
+	       b_g2l,
+	       ref_b_pm.get(),
+	       ref_b_g2l,
+	       -R));
+	       orsa::print(Paul::gravitationalForce(ref_b_pm.get(),
+	       ref_b_g2l,
+	       b_pm.get(),
+	       b_g2l,
+	       R));
+	       orsa::print(Paul::gravitationalForce(b_pm.get(),
+	       b_g2l,
+	       ref_b_pm.get(),
+	       ref_b_g2l,
+	       -R));
+	       orsa::print(Paul::gravitationalTorque(ref_b_pm.get(),
+	       ref_b_g2l,
+	       b_pm.get(),
+	       b_g2l,
+	       R));
+	       orsa::print(Paul::gravitationalTorque(b_pm.get(),
+	       b_g2l,
+	       ref_b_pm.get(),
+	       ref_b_g2l,
+	       -R));
+	       }
 	    */
 	    
 	  }

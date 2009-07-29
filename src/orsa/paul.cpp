@@ -11,25 +11,16 @@ using namespace orsa;
 double Paul::C_lmn(const int l,
 			 const int m,
 			 const int n) {
-  if ( (l==0) &&
-       (m==0) &&
-       (n==0) ) { 
-    ORSA_ERROR("singular C value...");
-    return 0;
-  }
+  /* if ( (l==0) &&
+     (m==0) &&
+     (n==0) ) { 
+     ORSA_ERROR("singular C value...");
+     return 0;
+     }
+  */
   
   const double retVal = 
-    1 / 
-    double(3.0 - 
-		 orsa::kronecker(l,0) - 
-		 orsa::kronecker(m,0) - 
-		 orsa::kronecker(n,0) );
-  
-  /* 
-     ORSA_DEBUG("C(%i,%i,%i) = %g",
-     l,m,n,
-     retVal());
-  */
+    1.0 / (3.0 - orsa::kronecker(l,0) - orsa::kronecker(m,0) - orsa::kronecker(n,0) );
   
   return retVal;
 }
@@ -54,11 +45,11 @@ Paul::t_lmnLMN::~t_lmnLMN() {
 }
 
 double Paul::t_lmnLMN::get(const int l,
-				 const int m,
-				 const int n,
-				 const int L,
-				 const int M,
-				 const int N) const {
+			   const int m,
+			   const int n,
+			   const int L,
+			   const int M,
+			   const int N) const {
   
   /* 
      ORSA_DEBUG("called get(%i,%i,%i,%i,%i,%i)",
@@ -98,16 +89,6 @@ double Paul::t_lmnLMN::get(const int l,
     return 0;
   }
   
-  /* 
-     int ls,ms,ns;
-     sort(ls,ms,ns,l,m,n);
-     
-     int Ls,Ms,Ns;
-     sort(Ls,Ms,Ns,L,M,N);
-     
-     return trueGet(ls,ms,ns,Ls,Ms,Ns);
-  */
-  
   return trueGet(l,m,n,L,M,N);
 }
 
@@ -121,65 +102,6 @@ double Paul::t_lmnLMN::trueGet(const int l,
   /* 
      ORSA_DEBUG("called trueGet(%i,%i,%i,%i,%i,%i)",
      l,m,n,L,M,N);
-  */
-  
-  /* 
-     if ( (l==0) &&
-     (m==0) &&
-     (n==0) &&
-     (L==0) &&
-     (M==0) &&
-     (N==0) ) { 
-     // ORSA_DEBUG("--MARK-- 0,0,0");
-     return 1;
-     }
-     
-     if ( (l==0) &&
-     (m==0) &&
-     (n==0) ) {
-     return 0;
-     }	
-  */
-  
-  /* 
-     if ( (l==0) &&
-     (m==0) &&
-     (n==0) ) {
-     if ( (L==0) &&
-     (M==0) &&
-     (N==0) ) {
-     return 1;
-     } else {
-     return 0;
-     }	
-     }
-  */
-  
-  /* 
-     if ( ((l+L)%2) ||
-     ((m+M)%2) ||
-     ((n+N)%2) ) {
-     return 0;
-     }
-  */
-  
-  /* 
-     if ( (l<0) ||
-     (m<0) ||
-     (n<0) ||
-     (L<0) ||
-     (M<0) ||
-     (N<0) ) {
-     return 0;
-     }
-  */
-  
-  /* 
-     if ( (L>l) || 
-     (M>m) || 
-     (N>n) ) {
-     return 0;
-     }   
   */
   
   // prepare the data container
@@ -306,34 +228,36 @@ void Paul::t_lmnLMN::resize(const size_t order) const {
   }
 }
 
-void Paul::t_lmnLMN::sort(int & l_out,
-			  int & m_out,
-			  int & n_out,
-			  const int l_in,
-			  const int m_in,
-			  const int n_in) const {
-  // this is not efficient, should use some kind of sort3() algorithm...
-  std::vector<int> v;
-  v.push_back(l_in);
-  v.push_back(m_in);
-  v.push_back(n_in);
-  std::sort(v.begin(),v.end());
-  l_out = v[0];
-  m_out = v[1];
-  n_out = v[2];
-  
-  /* 
-     ORSA_DEBUG("in: (%i,%i,%i)   out: (%i,%i,%i)",
-     l_in,m_in,n_in,
-     l_out,m_out,n_out);
-  */
-}
+/* 
+   void Paul::t_lmnLMN::sort(int & l_out,
+   int & m_out,
+   int & n_out,
+   const int l_in,
+   const int m_in,
+   const int n_in) const {
+   // this is not efficient, should use some kind of sort3() algorithm...
+   std::vector<int> v;
+   v.push_back(l_in);
+   v.push_back(m_in);
+   v.push_back(n_in);
+   std::sort(v.begin(),v.end());
+   l_out = v[0];
+   m_out = v[1];
+   n_out = v[2];
+   }
+*/
 
 double Paul::gravitationalPotential(const orsa::PaulMoment * M1,
-					  const orsa::Matrix     & A1_g2l,
-					  const orsa::PaulMoment * M2,
-					  const orsa::Matrix     & A2_g2l,
-					  const orsa::Vector     & R) {
+				    const orsa::Matrix     & A1_g2l,
+				    const orsa::PaulMoment * M2,
+				    const orsa::Matrix     & A2_g2l,
+				    const orsa::Vector     & R) {
+  
+  // little trick, big speed-up
+  if (M1->order < M2->order) {
+    // no sign change
+    return (Paul::gravitationalPotential(M2,A2_g2l,M1,A1_g2l,-R));
+  }
   
   // const double oneOverR = 1/R.length();
   //  
@@ -543,6 +467,11 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 				      const orsa::Matrix     & A2_g2l,
 				      const orsa::Vector     & R) {
   
+  // little trick, big speed-up
+  if (M1->order < M2->order) {
+    return (-Paul::gravitationalForce(M2,A2_g2l,M1,A1_g2l,-R));
+  }
+  
   /* 
      ORSA_DEBUG("M1: %x",M1);
      ORSA_DEBUG("M2: %x",M2);
@@ -645,7 +574,8 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 	      
 	      if (M2->M(i2,j2,k2) == 0) continue;
 	      
-	      /* ORSA_DEBUG("i1: %i   j1: %i   k1: %i   i2: %i   j2: %i   k2: %i",
+	      /* 
+		 ORSA_DEBUG("i1: %i   j1: %i   k1: %i   i2: %i   j2: %i   k2: %i",
 		 i1,j1,k1,i2,j2,k2);
 	      */
 	      
@@ -1111,6 +1041,8 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
 				       const orsa::Matrix     & A2_g2l,
 				       const orsa::Vector     & R) {
   
+  // no speed-up trick for the torque :-(
+  
   // const double oneOverR = 1/R.length();
   //  
   IntPowCache oneOverR_PC(1/R.length());
@@ -1381,9 +1313,11 @@ orsa::Vector Paul::gravitationalTorque(const orsa::PaulMoment * M1,
   
   const orsa::Vector T(-TX,-TY,-TZ);
   
-  ORSA_DEBUG("Paul T.X: %.20e",T.getX());
-  ORSA_DEBUG("Paul T.Y: %.20e",T.getY());
-  ORSA_DEBUG("Paul T.Z: %.20e",T.getZ());
+  /* 
+     ORSA_DEBUG("Paul T.X: %.20e",T.getX());
+     ORSA_DEBUG("Paul T.Y: %.20e",T.getY());
+     ORSA_DEBUG("Paul T.Z: %.20e",T.getZ());
+  */
   
   return T;
 }

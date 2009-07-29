@@ -36,34 +36,48 @@ PaulMoment::PaulMoment(const unsigned int n) : osg::Referenced(true), order(n) {
 const double PaulMoment::M (const int i,
 			    const int j, 
 			    const int k) const {
-  if ( (i<0) || (j<0) || (k<0) || (i+j+k > (int)order) ) { ORSA_ERROR("index out of range"); return 0; }
-  return _M[i][j][k];
+  if ( (i<0) || (j<0) || (k<0) || (i+j+k > (int)order) ) { 
+    // ORSA_ERROR("index out of range [i:%i;j:%i;k:%i]",i,j,k);
+    return 0; 
+  } else {
+    return _M[i][j][k];
+  }
 }
 
 const double PaulMoment::M_uncertainty (const int i,
 					const int j, 
 					const int k) const {
-  if ( (i<0) || (j<0) || (k<0) || (i+j+k > (int)order) ) { ORSA_ERROR("index out of range"); return 0; }
-  return _M_uncertainty[i][j][k];
+  if ( (i<0) || (j<0) || (k<0) || (i+j+k > (int)order) ) { 
+    // ORSA_ERROR("index out of range [i:%i;j:%i;k:%i]",i,j,k);
+    return 0;
+  } else {
+    return _M_uncertainty[i][j][k];
+  }
 }
 
 void PaulMoment::setM (const double & val,
 		       const int i, 
 		       const int j, 
 		       const int k) {
-  if ( (i<0) || (j<0) || (k<0) || (i+j+k > (int)order) ) { ORSA_ERROR("index out of range"); return; }
-  _M[i][j][k] = val;
+  if ( (i<0) || (j<0) || (k<0) || (i+j+k > (int)order) ) {
+    ORSA_ERROR("index out of range [i:%i;j:%i;k:%i]",i,j,k);
+    return;
+  } else {
+    _M[i][j][k] = val;
+  }
 }
 
 void PaulMoment::setM_uncertainty (const double & val,
 				   const int i, 
 				   const int j, 
 				   const int k) {
-  if ( (i<0) || (j<0) || (k<0) || (i+j+k > (int)order) ) { ORSA_ERROR("index out of range"); return; }
-  _M_uncertainty[i][j][k] = val;
+  if ( (i<0) || (j<0) || (k<0) || (i+j+k > (int)order) ) { 
+    ORSA_ERROR("index out of range [i:%i;j:%i;k:%i]",i,j,k);
+    return;
+  } else {
+    _M_uncertainty[i][j][k] = val;
+  }
 }
-
-
 
 
 /***/
