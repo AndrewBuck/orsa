@@ -103,7 +103,8 @@ namespace orsa {
     mutable bool doAbort;
     
   public:
-    unsigned int progressiveCleaningSteps;
+    orsa::Cache<unsigned int> progressiveCleaningSteps;
+    orsa::Cache<bool>         keepOnlyLastStep;
   };
   
 } // namespace orsa

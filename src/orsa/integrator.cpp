@@ -324,96 +324,86 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
       */
       //
       
-#warning "restore this functionality, and also introduce a new one to limit local storage..."
-      if (0) if (progressiveCleaningSteps > 0) {
-	if ((stat->entries() % progressiveCleaningSteps) == 0) {
-	  
-	  // ORSA_DEBUG("progressive cleaning...");
-	  
-	  // ORSA_DEBUG("remove all tmp TRVs...");
+      if (progressiveCleaningSteps.isSet()) {
+	if (progressiveCleaningSteps.getRef() > 0) {
+	  if ((stat->entries() % progressiveCleaningSteps.getRef()) == 0) {
+	    BodyGroup::BodyList::const_iterator _b_it = bg->getBodyList().begin();
+	    while (_b_it != bg->getBodyList().end()) { 
+	      if (!((*_b_it)->getInitialConditions().dynamic())) { 
+		++_b_it;
+		continue;
+	      }
+	      orsa::BodyGroup::BodyInterval * _b_interval = bg->getBodyInterval((*_b_it).get());
+	      orsa::BodyGroup::BodyInterval::DataType & _b_interval_data = _b_interval->getData();
+	      orsa::BodyGroup::BodyInterval::DataType::iterator _b_interval_data_it = _b_interval_data.begin();
+	      while (_b_interval_data_it != _b_interval_data.end()) {
+		/* ORSA_DEBUG("testing: body [%s]   t: %f   [tmp: %i]   this: %x   end: %x",
+		   (*_b_it)->getName().c_str(),
+		   (*_b_interval_data_it).time.getRef().get_d(),
+		   (*_b_interval_data_it).tmp,
+		   (&(*_b_interval_data_it)),
+		   (&(*(_b_interval_data.end()))));
+		*/
+		if ((*_b_interval_data_it).tmp==true) {
+		  _b_interval_data_it = _b_interval_data.erase(_b_interval_data_it);
+		} else {
+		  ++_b_interval_data_it;
+		}
+	      }     
+	      // IMPORTANT!
+	      _b_interval->update();
+	      ++_b_it;
+	    }
+	  }
+	}
+      }
+
+      if (keepOnlyLastStep.isSet()) {
+	if (keepOnlyLastStep.getRef()) {
 	  BodyGroup::BodyList::const_iterator _b_it = bg->getBodyList().begin();
 	  while (_b_it != bg->getBodyList().end()) { 
-	    /* 
-	       if ((*_b_it)->getBodyPosVelCallback() != 0) {
-	       // ORSA_DEBUG("skipping body [%s]",(*_b_it)->getName().c_str());
-	       ++_b_it;
-	       continue;
-	       }
-	    */
-	    //
-	    if (!((*_b_it)->getInitialConditions().translational->dynamic())) { 
+	    if (!((*_b_it)->getInitialConditions().dynamic())) { 
 	      ++_b_it;
 	      continue;
 	    }
-	    
-	    // orsa::Interval<BodyGroup::TRV> * _b_interval = bg->getBodyInterval((*_b_it).get());
 	    orsa::BodyGroup::BodyInterval * _b_interval = bg->getBodyInterval((*_b_it).get());
-	    // orsa::Interval<BodyGroup::TRV>::DataType & _b_interval_data = _b_interval->getData();
 	    orsa::BodyGroup::BodyInterval::DataType & _b_interval_data = _b_interval->getData();
-	    //
-	    // orsa::Interval<BodyGroup::TRV>::DataType::iterator _b_interval_data_it = _b_interval_data.begin();
 	    orsa::BodyGroup::BodyInterval::DataType::iterator _b_interval_data_it = _b_interval_data.begin();
 	    while (_b_interval_data_it != _b_interval_data.end()) {
-	      
-	      /* 
-		 ORSA_DEBUG("testing: body [%s]   t: %f   [tmp: %i]   this: %x   end: %x",
+	      /* ORSA_DEBUG("testing: body [%s]   t: %f   [tmp: %i]   this: %x   end: %x",
 		 (*_b_it)->getName().c_str(),
 		 (*_b_interval_data_it).time.getRef().get_d(),
 		 (*_b_interval_data_it).tmp,
 		 (&(*_b_interval_data_it)),
 		 (&(*(_b_interval_data.end()))));
 	      */
-	      
-	      if ((*_b_interval_data_it).tmp==true) {
+	      if ((*_b_interval_data_it).time.getRef()!=t) {
 		_b_interval_data_it = _b_interval_data.erase(_b_interval_data_it);
-		// ORSA_DEBUG("removed...");
+		// ORSA_DEBUG("removed");
 	      } else {
 		++_b_interval_data_it;
+		// ORSA_DEBUG("kept...");
 	      }
 	    }     
 	    // IMPORTANT!
 	    _b_interval->update();
-	    
 	    ++_b_it;
-	  }
-	  
+	  }	  
 	}
-      }    
-      //
+      }
+      
       rs->insert(call_dt.get_d());
+      //
       if (rs->isFull()) {
-	/* 
-	   ORSA_DEBUG("running average dt: %f +/- %f [day]",
-	   FromUnits(rs->average(),Unit::DAY,-1)(),
-	   FromUnits(rs->averageError(),Unit::DAY,-1)());
-	*/
-	//
 	/* ORSA_DEBUG("radt: %f %f %f",
 	   FromUnits(t.get_d(),Unit::DAY,-1),
 	   FromUnits(rs->average(),Unit::SECOND,-1),
 	   FromUnits(rs->averageError(),Unit::SECOND,-1));
 	*/
-	/* 
-	   {
-	   // debug
-	   BodyGroup::BodyList::iterator _b_it = bg->getBodyList().begin();
-	   while (_b_it != bg->getBodyList().end()) {
-	   if ((*_b_it)->getBodyPosVelCallback() != 0) {
-	   ++_b_it;
-	   continue;
-	   }
-	   ORSA_DEBUG("b: [%s]   interval size: %i",
-	   (*_b_it)->getName().c_str(),
-	   bg->getBodyInterval((*_b_it).get())->size());
-	   ++_b_it;
-	   }
-	   }	
-	*/
-	
       }
+      
     } else {
       // last call was rejected...
-      // ORSA_DEBUG("rej...");
     }
     
     if ((t+next_dt-tEnd)*sign.getRef() > zeroTime) {
@@ -441,41 +431,20 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
 	++bl_it;
       }
     }
-    
   }
   
-  // remove all tmp TRVs
-  if (1) {
-    // ORSA_DEBUG("remove all tmp TRVs...");
+  {
     BodyGroup::BodyList::const_iterator _b_it = bg->getBodyList().begin();
     while (_b_it != bg->getBodyList().end()) { 
-      /* 
-	 if ((*_b_it)->getBodyPosVelCallback() != 0) {
-	 // ORSA_DEBUG("skipping body [%s]",(*_b_it)->getName().c_str());
-	 ++_b_it;
-	 continue;
-	 }
-      */
-      //
-      if (!((*_b_it)->getInitialConditions().translational->dynamic())) { 
+      if (!((*_b_it)->getInitialConditions().dynamic())) { 
 	++_b_it;
 	continue;
       }
-      
-      /* 
-	 orsa::Interval<BodyGroup::TRV> * _b_interval = bg->getBodyInterval((*_b_it).get());
-	 orsa::Interval<BodyGroup::TRV>::DataType & _b_interval_data = _b_interval->getData();
-	 //
-	 orsa::Interval<BodyGroup::TRV>::DataType::iterator _b_interval_data_it = _b_interval_data.begin();
-      */
-      //
       orsa::BodyGroup::BodyInterval * _b_interval = bg->getBodyInterval((*_b_it).get());
       orsa::BodyGroup::BodyInterval::DataType & _b_interval_data = _b_interval->getData();
       orsa::BodyGroup::BodyInterval::DataType::iterator _b_interval_data_it = _b_interval_data.begin();
-      //
       while (_b_interval_data_it != _b_interval_data.end()) {
-	/* 
-	   ORSA_DEBUG("testing: body [%s]   t: %f   [tmp: %i]   this: %x   end: %x",
+	/* ORSA_DEBUG("testing: body [%s]   t: %f   [tmp: %i]   this: %x   end: %x",
 	   (*_b_it)->getName().c_str(),
 	   (*_b_interval_data_it).t.get_d(),
 	   (*_b_interval_data_it).tmp,
@@ -484,51 +453,15 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
 	*/
 	if ((*_b_interval_data_it).tmp==true) {
 	  _b_interval_data_it = _b_interval_data.erase(_b_interval_data_it);
-	  // ORSA_DEBUG("removed...");
 	} else {
 	  ++_b_interval_data_it;
 	}
       }     
       // IMPORTANT!
-      // ORSA_DEBUG("calling update...");
       _b_interval->update();
-      // ORSA_DEBUG("done...");
-      
       ++_b_it;
     }
   }
-  
-  /* 
-     if (1) {
-     // debug
-     BodyGroup::BodyList::iterator _b_it = bg->getBodyList().begin();
-     while (_b_it != bg->getBodyList().end()) { 
-     orsa::BodyGroup::BodyInterval * _b_interval = bg->getBodyInterval((*_b_it).get());
-     orsa::BodyGroup::BodyInterval::DataType & _b_interval_data = _b_interval->getData();
-     orsa::BodyGroup::BodyInterval::DataType::iterator _b_interval_data_it = _b_interval_data.begin();
-     unsigned int counter=0;
-     while (_b_interval_data_it != _b_interval_data.end()) {
-     
-     ++counter;
-     
-     if ((*_b_interval_data_it).rotational->dynamic()) {
-     ORSA_DEBUG("[%05i/%05i] [%s] dyn: %i time: %.6f phi: %f theta: %f psi: %f",
-     counter,
-     (*_b_interval).size(),
-     (*_b_it)->getName().c_str(),
-     (*_b_interval_data_it).rotational->dynamic(),
-     (*_b_interval_data_it).time.getRef().get_d(),
-     (*_b_interval_data_it).rotational->getPhi(),
-     (*_b_interval_data_it).rotational->getTheta(),
-     (*_b_interval_data_it).rotational->getPsi());
-     } 
-     
-     ++_b_interval_data_it;
-     }
-     ++_b_it;	
-     }
-     }
-  */
   
   return ret_val;
 }
