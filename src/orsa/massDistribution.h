@@ -26,14 +26,15 @@ namespace orsa {
     }
   };
   
-  // add parameter for center of mass position
   // all in "shape" coordinates
   class SphericalCorePlusMantleMassDistribution : public MassDistribution {
   public:
-    SphericalCorePlusMantleMassDistribution(const double & coreRadius,
+    SphericalCorePlusMantleMassDistribution(const orsa::Vector & coreCenter,
+					    const double & coreRadius,
 					    const double & coreDensity,
 					    const double & mantleDensity) :
       MassDistribution(),
+      C0(coreCenter),
       R2(coreRadius*coreRadius),
       dC(coreDensity),
       dM(mantleDensity) { }
@@ -41,16 +42,17 @@ namespace orsa {
     ~SphericalCorePlusMantleMassDistribution() { }
   public:
     double density(const Vector & v) const {
-      if (v.lengthSquared() > R2) {
+      if ((v-C0).lengthSquared() > R2) {
 	return dM;
       } else {
 	return dC;
       }
     }
   protected:
+    const orsa::Vector C0;
     const double R2, dC, dM;
   };
-   
+  
 }; // namespace orsa
 
 #endif // _ORSA_MASS_DISTRIBUTION_H_
