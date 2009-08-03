@@ -43,23 +43,25 @@ class VestaShape : public orsa::TriShape {
       // if (s_type == "v") {
       ++count_v;
       if (count_v <= nv) {
-	sscanf(line,"%lf %lf %lf",&x,&y,&z);
-	// x = FromUnits(x,Unit::KM);
-	// y = FromUnits(y,Unit::KM);
-	// z = FromUnits(z,Unit::KM);
-	_vertex.push_back(Vector(FromUnits(x,Unit::KM),
-				 FromUnits(y,Unit::KM),
-				 FromUnits(z,Unit::KM)));
+	if (3 == sscanf(line,"%lf %lf %lf",&x,&y,&z)) {
+	  // x = FromUnits(x,Unit::KM);
+	  // y = FromUnits(y,Unit::KM);
+	  // z = FromUnits(z,Unit::KM);
+	  _vertex.push_back(Vector(FromUnits(x,Unit::KM),
+				   FromUnits(y,Unit::KM),
+				   FromUnits(z,Unit::KM)));
+	}
       } else {
-	sscanf(line,"%i %i %i",&i,&j,&k);
-	// this is needed sometimes...
-	// a flag fould be useful
-	// --i; --j; --k; // 1,2,3... to 0,1,2...
-	if ((i != j) && (j != k)) _face.push_back(TriIndex(i,j,k));
-	else {
-	  ORSA_ERROR("repeated indexes...");
-	  return false;
-	}	
+	if (3 == sscanf(line,"%i %i %i",&i,&j,&k)) {
+	  // this is needed sometimes...
+	  // a flag fould be useful
+	  // --i; --j; --k; // 1,2,3... to 0,1,2...
+	  if ((i != j) && (j != k)) _face.push_back(TriIndex(i,j,k));
+	  else {
+	    ORSA_ERROR("repeated indexes...");
+	    return false;
+	  }	
+	}
       } 
     }
     // post-read check: vertex numbering starting from 0?

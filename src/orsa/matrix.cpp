@@ -527,3 +527,16 @@ Matrix Matrix::operator * (const Matrix & rhs) const {
    v.getX()*m.getM13()+v.getY()*m.getM23()+v.getZ()*m.getM33());
    }
 */
+
+bool orsa::operator == (const orsa::Matrix & a, const orsa::Matrix & b) {
+  if (a.getM11() != b.getM11()) return false;
+  if (a.getM12() != b.getM12()) return false;
+  if (a.getM13() != b.getM13()) return false;
+  if (a.getM21() != b.getM21()) return false;
+  if (a.getM22() != b.getM22()) return false;
+  if (a.getM23() != b.getM23()) return false;
+  if (a.getM31() != b.getM31()) return false;
+  if (a.getM32() != b.getM32()) return false;
+  if (a.getM33() != b.getM33()) return false;
+  return true;
+}

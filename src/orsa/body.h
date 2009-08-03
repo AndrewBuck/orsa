@@ -14,7 +14,7 @@
 #include <orsa/quaternion.h>
 // #include <orsa/reference_frame.h>
 #include <orsa/vector.h>
-// #include <orsa/print.h>
+#include <orsa/print.h>
 #include <orsa/shape.h>
 
 #include <string>
@@ -51,23 +51,117 @@ namespace orsa {
   
   /***/
   
+  /*
+   * Three reference systems:
+   * - global: the global, inertial frame; all coordinates are referred to global unless states otherwise
+   * -  local: the frame of a body, where inertia matrix and PaulMoment are defined, and where the center of mass is always in (0,0,0)
+   * -  shape: the frame where the shape model is defined, usually offset and rotated with respect to "local"
+   *
+   * To transform between "local" and "shape", a translation and a rotation are needed in general
+   * rotation given by shapeToLocal and localToShape matrixes
+   * translation by the centerOfMass vector
+   *
+   *
+   */
+  
   /* 
    * centerOfMass is in the coordinates used for the shape
    * shapeToLocal is the rotation matrix from the shape system to the diagonal system ( = "local")
    * inertialMatrix is diagonal if shapeToLocal and localToShape are correct
-   * "local" is the principal axis system
    * paulMoment is about the centerOfMass and in the principalAxis system
    *
-   * usually, to compute these vars, a mass distribution is assumed,
+   * Usually, to compute these vars, a mass distribution is assumed,
    * or the data is otherwise obtained experimentally
-   *
-   * Again: "principal" == "diagonal" == "local" ref. sys.
-   *	
+   * 
    */
+  
+  class LocalShapeData : public osg::Referenced {
+  public:
+    LocalShapeData() : osg::Referenced(true) { }
+ public:
+    LocalShapeData(const LocalShapeData & data) : osg::Referenced(true) {
+      localShape    = data.localShape;
+      originalShape = data.originalShape;
+      cm            = data.cm;
+      s2l           = data.s2l;
+    }
+  public:
+    const LocalShapeData & operator = (const LocalShapeData & data) {
+      localShape    = data.localShape;
+      originalShape = data.originalShape;
+      cm            = data.cm;
+      s2l           = data.s2l;
+      return (*this);
+    }
+  protected:
+    ~LocalShapeData() { } 
+  public: 
+    osg::ref_ptr<const orsa::Shape> localShape;
+  public:
+    osg::ref_ptr<const orsa::Shape> originalShape;
+    orsa::Vector cm;
+    orsa::Matrix s2l;
+  };
+  
+  class LocalShapeCache : public osg::Referenced {
+  public:
+    LocalShapeCache() : osg::Referenced(true) { }
+  public:
+    LocalShapeCache(const LocalShapeCache & cache) : osg::Referenced(true) {
+      data = cache.data;
+    }
+  public:
+    const LocalShapeCache & operator = (const LocalShapeCache & cache) {
+      data = cache.data;
+      return (*this);
+    }
+  protected:
+    ~LocalShapeCache() { }
+  public:
+    osg::ref_ptr<LocalShapeData> data;
+  };
+  
   class InertialBodyProperty : public BodyProperty {
   public:
+    InertialBodyProperty() : BodyProperty() {
+      // ORSA_DEBUG("creating object: %x",this);
+      // IMPORTANT, each IPB needs one od this, to pass cached computations along
+      ls_cache = new LocalShapeCache;
+    }
+  public:
+    InertialBodyProperty(const InertialBodyProperty & ibp) : BodyProperty(ibp) {
+      // ORSA_DEBUG("creating object: %x copy of %x",this,&ibp);
+      ls_cache = ibp.ls_cache;
+      // ORSA_DEBUG("ls_cache: %x",ls_cache.get());
+    }
+  public:
+    const InertialBodyProperty & operator = (const InertialBodyProperty & ibp) {
+      ls_cache = ibp.ls_cache;
+      // ORSA_DEBUG("ls_cache: %x",ls_cache.get());
+      return (*this);
+    }
+  protected:
+    ~InertialBodyProperty() {
+      // ORSA_DEBUG("destroying object: %x",this);
+    }
+  public:
+    /* public: 
+       InertialBodyProperty() : BodyProperty() {
+       // ORSA_DEBUG("EMPTY CONSTRUCTOR");
+       }
+       public:
+       InertialBodyProperty(const InertialBodyProperty & ibp) : BodyProperty() {
+       // ORSA_DEBUG("COPY CONSTRUCTOR");
+       // need to write explicitly this constructor to copy local members
+       local_shape = ibp.local_shape;
+       ls_prev_s   = ibp.ls_prev_s;
+       ls_prev_cm  = ibp.ls_prev_cm;
+       ls_prev_s2l = ibp.ls_prev_s2l;
+       }
+    */
+  public:
     virtual double mass() const = 0;
-    virtual const orsa::Shape * shape() const = 0;
+    virtual const orsa::Shape * originalShape() const = 0;
     virtual orsa::Vector centerOfMass() const = 0;
     virtual orsa::Matrix shapeToLocal() const = 0;
     virtual orsa::Matrix localToShape() const = 0;
@@ -75,25 +169,42 @@ namespace orsa {
     virtual const orsa::PaulMoment * paulMoment() const = 0;
   public:
     virtual bool setMass(const double &) = 0;
-    virtual bool setShape(const orsa::Shape *) = 0;
+    virtual bool setOriginalShape(const orsa::Shape *) = 0;
     virtual bool setCenterOfMass(const orsa::Vector &) = 0;
     virtual bool setShapeToLocal(const orsa::Matrix &) = 0;
     virtual bool setLocalToShape(const orsa::Matrix &) = 0;
     virtual bool setInertiaMatrix(const orsa::Matrix &) = 0;
     virtual bool setPaulMoment(const orsa::PaulMoment *) = 0;
   public:
+    // the shape, transformed into "local" coordinates
+    virtual const orsa::Shape * localShape() const;
+  protected:
+    mutable osg::ref_ptr<LocalShapeCache> ls_cache;
+  public:
     virtual InertialBodyProperty * clone() const = 0;
   };
+  
+  // NOTE: in general, copy operators "operator =" of non-const IBP must copy "ls_cache" along. 
   
   class PointLikeConstantInertialBodyProperty : public InertialBodyProperty {
   public:
     PointLikeConstantInertialBodyProperty(const double & m) : 
       InertialBodyProperty(),
       _m(m) { }
+  public:
+    PointLikeConstantInertialBodyProperty(const PointLikeConstantInertialBodyProperty & ibp) : 
+      InertialBodyProperty(ibp),
+      _m(ibp._m) { }
+  public:
+    const PointLikeConstantInertialBodyProperty & operator = (const PointLikeConstantInertialBodyProperty &) {
+      ORSA_ERROR("this class is not supposed to change...");
+      return (*this);
+    }
   protected:
     const double _m;
+  protected:
     double mass() const { return _m; }
-    const orsa::Shape * shape() const { return 0; }
+    const orsa::Shape * originalShape() const { return 0; }
     orsa::Vector centerOfMass() const { return orsa::Vector(0,0,0); }
     orsa::Matrix shapeToLocal() const { return orsa::Matrix::identity(); }
     orsa::Matrix localToShape() const { return orsa::Matrix::identity(); }
@@ -104,7 +215,7 @@ namespace orsa {
       ORSA_ERROR("this method should not have been called, please check your code.");
       return false;
     }
-    bool setShape(const orsa::Shape *) {
+    bool setOriginalShape(const orsa::Shape *) {
       ORSA_ERROR("this method should not have been called, please check your code.");
       return false;
     }
@@ -155,6 +266,21 @@ namespace orsa {
       _l2s(l2s),
       _I(I),
       _pm(pm) { }
+  public:
+    ConstantInertialBodyProperty(const ConstantInertialBodyProperty & ibp) :
+      InertialBodyProperty(ibp), 
+      _m(ibp._m),
+      _s(ibp._s),
+      _cm(ibp._cm),
+      _s2l(ibp._s2l),
+      _l2s(ibp._l2s),
+      _I(ibp._I),
+      _pm(ibp._pm) { }
+  public:
+    ConstantInertialBodyProperty & operator = (const ConstantInertialBodyProperty &) {
+      ORSA_ERROR("this class is not supposed to change...");
+      return (*this);
+    }
   protected:
     const double _m;
     osg::ref_ptr<const orsa::Shape> _s;
@@ -165,7 +291,7 @@ namespace orsa {
     osg::ref_ptr<const orsa::PaulMoment> _pm;
   public:
     double mass() const { return _m; }
-    const orsa::Shape * shape() const { return _s.get(); }
+    const orsa::Shape * originalShape() const { return _s.get(); }
     orsa::Vector centerOfMass() const { return _cm; }
     orsa::Matrix shapeToLocal() const { return _s2l; }
     orsa::Matrix localToShape() const { return _l2s; }
@@ -176,7 +302,7 @@ namespace orsa {
       ORSA_ERROR("this method should not have been called, please check your code.");
       return false;
     }
-    bool setShape(const orsa::Shape *) {
+    bool setOriginalShape(const orsa::Shape *) {
       ORSA_ERROR("this method should not have been called, please check your code.");
       return false;
     }

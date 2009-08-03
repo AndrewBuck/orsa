@@ -171,6 +171,12 @@ namespace orsa {
      Vector operator * (const Vector &, const Matrix &);
   */
   
+  bool operator == (const orsa::Matrix & a, const orsa::Matrix & b);
+  
+  inline bool operator != (const orsa::Matrix & a, const orsa::Matrix & b) {
+    return !(a==b);
+  }
+  
 } // namespace orsa
 
 #endif // _ORSA_MATRIX_

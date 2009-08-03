@@ -277,8 +277,8 @@ bool Interaction::acceleration(InteractionVector & a,
 	     orsa::print(t);
 	  */
 	  
-	  const double     b_radius =     b_ibps.inertial->shape() ?     b_ibps.inertial->shape()->boundingRadius() : 0;
-	  const double ref_b_radius = ref_b_ibps.inertial->shape() ? ref_b_ibps.inertial->shape()->boundingRadius() : 0;
+	  const double     b_radius =     b_ibps.inertial->localShape() ?     b_ibps.inertial->localShape()->boundingRadius() : 0;
+	  const double ref_b_radius = ref_b_ibps.inertial->localShape() ? ref_b_ibps.inertial->localShape()->boundingRadius() : 0;
 	  
 	  // if (b->getRadius()+ref_b->getRadius() > R.length()) {
 	  //

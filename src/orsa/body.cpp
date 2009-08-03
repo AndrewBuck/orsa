@@ -5,6 +5,83 @@
 
 using namespace orsa;
 
+const orsa::Shape * InertialBodyProperty::localShape() const {
+  
+  if (originalShape() == 0) return 0;
+  
+  /* ORSA_DEBUG("%x",ls_cache.get());
+     if (ls_cache.get()) {
+     ORSA_DEBUG("%x",ls_cache->data.get());
+     }
+  */
+  
+  if (ls_cache.get() != 0) {
+    if (ls_cache->data.get() != 0) {
+      bool valid=true;
+      //
+      if (ls_cache->data->originalShape.get() != originalShape()) valid=false;
+      if (ls_cache->data->cm                  != centerOfMass())  valid=false;
+      if (ls_cache->data->s2l                 != shapeToLocal())  valid=false;
+      //
+      if (valid) {
+	// ORSA_DEBUG("cached");
+	return ls_cache->data->localShape.get();
+      }
+    } 
+  }
+  
+  // OK, old local_shape not valid, need to compute a new one
+  
+  // ORSA_DEBUG("not-cached");
+  
+  // this should never been neded, defeats the purpose of having a cache
+  // ls_cache = new LocalShapeCache;
+  
+  ls_cache->data = new LocalShapeData;
+  
+  ls_cache->data->originalShape = originalShape();
+  ls_cache->data->cm            = centerOfMass();
+  ls_cache->data->s2l           = shapeToLocal();
+  
+  const orsa::Vector cm  = centerOfMass();
+  const orsa::Matrix s2l = shapeToLocal();
+  
+  // bad style for the moment...
+  switch (originalShape()->getType()) {
+  case orsa::Shape::SHAPE_TRI:
+    {
+      osg::ref_ptr<const orsa::TriShape> ts = (const orsa::TriShape *) originalShape();
+      
+      const TriShape::VertexVector ts_vertex = ts->getVertexVector();
+      const TriShape::FaceVector   ts_face   = ts->getFaceVector();
+      
+      TriShape::VertexVector local_vertex;
+      
+      local_vertex.resize(ts_vertex.size());
+      
+      for (unsigned int j=0; j<ts_vertex.size(); ++j) {
+	local_vertex[j] = s2l*(ts_vertex[j]-cm);
+      }
+      
+      TriShape::FaceVector local_face = ts_face;
+      
+      ls_cache->data->localShape = new orsa::TriShape(local_vertex,local_face);
+    }
+    break;
+  case orsa::Shape::SHAPE_ELLIPSOID:
+    {
+      ORSA_DEBUG("CODE NEEDED!!");
+    }
+    break;
+  default:
+    ORSA_WARNING("switch case not handled yet...");
+    break;
+  }
+  
+  return ls_cache->data->localShape.get();
+}
+
+
 // IBPS 
 
 IBPS::IBPS() {
@@ -23,27 +100,37 @@ IBPS::IBPS(const IBPS & ibps) {
   */
   
   if (ibps.time.isSet()) time = ibps.time.getRef();
-  /* 
-     if (ibps.dynamic()) {
-     // time = ibps.time.getRef();
-     // ORSA_DEBUG("copy constructor, time: %.6f",time.getRef().get_d());
-     }  
-  */
+  
   if (ibps.inertial.get()) {
-    inertial = ibps.inertial->clone();
+    if (ibps.inertial->dynamic()) {
+      inertial = ibps.inertial->clone();
+    } else {
+      inertial = ibps.inertial;
+    }
   } else {
     inertial = 0;
   }
+  
   if (ibps.translational.get()) {
-    translational = ibps.translational->clone();
+    if (ibps.translational->dynamic()) {
+      translational = ibps.translational->clone();
+    } else {
+      translational = ibps.translational;
+    }
   } else {
     translational = 0;
   }
+  
   if (ibps.rotational.get()) {
-    rotational = ibps.rotational->clone();
+    if (ibps.rotational->dynamic()) {
+      rotational = ibps.rotational->clone();
+    } else {
+      rotational = ibps.rotational;
+    }
   } else {
     rotational = 0;
   }
+  
   tmp = ibps.tmp;
   
   /* ORSA_DEBUG(" --LEAVING-- %x.translational.get(): %x   %x.translational.get(): %x",

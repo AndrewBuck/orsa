@@ -125,11 +125,11 @@ bool TriShape::_updateCache() const {
   //
   if (!_symmetricBoundingBox.isSet()) {
     const double xL = std::max(fabs(_boundingBox.getXMin()),
-				     fabs(_boundingBox.getXMax()));
+			       fabs(_boundingBox.getXMax()));
     const double yL = std::max(fabs(_boundingBox.getYMin()),
-				     fabs(_boundingBox.getYMax()));
+			       fabs(_boundingBox.getYMax()));
     const double zL = std::max(fabs(_boundingBox.getZMin()),
-				     fabs(_boundingBox.getZMax()));
+			       fabs(_boundingBox.getZMax()));
     _symmetricBoundingBox.set(-xL,xL,-yL,yL,-zL,zL);
   }
   //

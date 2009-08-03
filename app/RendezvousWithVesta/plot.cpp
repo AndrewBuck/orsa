@@ -34,9 +34,7 @@ void PlotFillThread::run() {
   
   if (vesta.get() && dawn.get()) {
     
-#warning remember to use c.m. and princ. axis rotation!!
-    
-    osg::ref_ptr<const orsa::Shape> vesta_shape = vesta->getInitialConditions().inertial->shape();
+    osg::ref_ptr<const orsa::Shape> vesta_shape = vesta->getInitialConditions().inertial->localShape();
     
     /* 
        osg::ref_ptr<const orsa::Attitude> vesta_attitude = 

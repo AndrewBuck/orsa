@@ -345,8 +345,7 @@ void MainThread::run() {
 				   FromUnits(227,Unit::KM));
       } else if (vestaShapeModel.getRef() == ComboShapeModel::smt_thomas) {
 	osg::ref_ptr<VestaShape> vestaShapeThomas = new VestaShape;
-	// if (!vestaShapeThomas->read("vesta_thomas.dat")) {
-	if (!vestaShapeThomas->read("hektor.tab")) {
+	if (!vestaShapeThomas->read("vesta_thomas.dat")) {
 	  ORSA_ERROR("problems encountered while reading shape file...");
 	}
 	shape = vestaShapeThomas.get();
@@ -363,14 +362,20 @@ void MainThread::run() {
 	ComboMassDistribution::MassDistributionType mdt = 
 	  vestaMassDistribution.getRef();
 	if (mdt == ComboMassDistribution::mdt_core) {
-	  const double   coreDensity = FromUnits(FromUnits(6,Unit::GRAM),Unit::CM,-3);
-	  const double mantleDensity = FromUnits(FromUnits(3,Unit::GRAM),Unit::CM,-3);
+	  
+	  const orsa::Vector coreCenter = orsa::Vector(orsa::FromUnits(  25.0,orsa::Unit::KM),
+						       orsa::FromUnits(   0.0,orsa::Unit::KM),
+						       orsa::FromUnits(   0.0,orsa::Unit::KM));
+	  //
+	  const double   coreDensity = FromUnits(FromUnits(8.0,Unit::GRAM),Unit::CM,-3);
+	  const double mantleDensity = FromUnits(FromUnits(3.0,Unit::GRAM),Unit::CM,-3);
 	  //
 	  const double    coreRadius = cbrt((3.0/(4.0*pi()))*volume*(meanDensity-mantleDensity)/(coreDensity-mantleDensity));
 	  //
 	  ORSA_DEBUG("core radius: %f km",FromUnits(coreRadius,Unit::KM,-1));
 	  //
-	  massDistribution = new orsa::SphericalCorePlusMantleMassDistribution(coreRadius,
+	  massDistribution = new orsa::SphericalCorePlusMantleMassDistribution(coreCenter,
+									       coreRadius,
 									       coreDensity,
 									       mantleDensity);
 	  
@@ -381,7 +386,7 @@ void MainThread::run() {
       }
       //
       const unsigned int order = 4;
-      const unsigned int N = 100000;
+      const unsigned int N = 10000;
       const int randomSeed = 95231;
       //
       double volume;
@@ -406,7 +411,11 @@ void MainThread::run() {
       orsa::print(localToShape);
       
       // print out...
-      orsa::convert(paulMoment, FromUnits(300,orsa::Unit::KM));
+      std::vector< std::vector<double> > C, S, norm_C, norm_S;
+      std::vector<double> J;
+      orsa::convert(C, S, norm_C, norm_S, J,
+		    paulMoment, 
+		    FromUnits(300,orsa::Unit::KM));
       
       ibps.inertial = new ConstantInertialBodyProperty(vestaMass.getRef(),
 						       shape.get(),
@@ -1009,7 +1018,7 @@ void MainThread::run() {
 		    );
       }
       
-      osg::ref_ptr<const orsa::Shape> vesta_shape = vesta->getInitialConditions().inertial->shape();
+      osg::ref_ptr<const orsa::Shape> vesta_shape = vesta->getInitialConditions().inertial->localShape();
       
       Vector rDAWN,  vDAWN;
       Vector rVesta, vVesta;

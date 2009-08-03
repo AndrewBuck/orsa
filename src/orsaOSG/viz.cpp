@@ -1,5 +1,6 @@
 #include <orsaOSG/viz.h>
 
+#include <osg/BlendFunc>
 #include <osg/Depth>
 #include <osg/Geode>
 #include <osg/Geometry>
@@ -37,27 +38,28 @@ using namespace osg;
 using namespace orsa;
 using namespace orsaOSG;
 
-#warning remember to offset and rotate shape model, using BIPS::inertial::centerofMass and shapeToLocal matrix
-
 // by using this callback, we prevent the "erroneous" oscillation of asymmetric Bodies rotating quickly
 class BodySymmetricBoundingBoxCallback : public Drawable::ComputeBoundingBoxCallback {
 public:
   BodySymmetricBoundingBoxCallback(const orsa::Body * b) :
     ComputeBoundingBoxCallback(),
-    _b(b) {
-    /* 
-       if (_b.get()) {
-       ORSA_DEBUG("callback set for body %s",
-       _b->getName().c_str());
-       }
-    */
-  }	
+    _b(b) { }	
 public:
   BoundingBox computeBound(const osg::Drawable &) const  { 
     if (_b.get()) {
-      if (_b->getInitialConditions().inertial->shape()) {
-	// ORSA_DEBUG("symmetric BB success for body: %s",_b->getName().c_str());
-	return _b->getInitialConditions().inertial->shape()->symmetricBoundingBox().getOSGBoundingBox();
+      if (_b->getInitialConditions().inertial->localShape()) {
+	const orsa::Box sb = _b->getInitialConditions().inertial->localShape()->symmetricBoundingBox();
+	// extend using center-of-mass components (could simply offset, but then would not be symmetric anymore)
+	// no rotations here...
+	const orsa::Vector cm  = _b->getInitialConditions().inertial->centerOfMass();
+       	const orsa::Box lb = 
+	  orsa::Box(sb.getXMin()-fabs(cm.getX()),
+		    sb.getXMax()+fabs(cm.getX()),
+		    sb.getYMin()-fabs(cm.getY()),
+		    sb.getYMax()+fabs(cm.getY()),
+		    sb.getZMin()-fabs(cm.getZ()),
+		    sb.getZMax()+fabs(cm.getZ()));		    
+	return lb.getOSGBoundingBox();
       }
     }
     return osg::BoundingBox();
@@ -424,26 +426,26 @@ osg::Group * Viz::createRoot() {
     */
     
     
-    if ((*_b_it)->getInitialConditions().inertial->shape() != 0) {
+    if ((*_b_it)->getInitialConditions().inertial->localShape() != 0) {
       
       // bad style for the moment...
-      switch ((*_b_it)->getInitialConditions().inertial->shape()->getType()) {
+      switch ((*_b_it)->getInitialConditions().inertial->localShape()->getType()) {
       case orsa::Shape::SHAPE_TRI:
 	{
 	  
-    osg::Geode * bodyGeode = new osg::Geode;
-    
-    // bodyGeode->setName((*_b_it)->getName());
-    
-    // create a container that makes the body drawable
-    osg::Geometry * bodyGeometry = new osg::Geometry;
-    
-    bodyGeometry->setComputeBoundingBoxCallback(new BodySymmetricBoundingBoxCallback((*_b_it).get()));
-    
+	  osg::Geode * bodyGeode = new osg::Geode;
+	  
+	  // bodyGeode->setName((*_b_it)->getName());
+	  
+	  // create a container that makes the body drawable
+	  osg::Geometry * bodyGeometry = new osg::Geometry;
+	  
+	  bodyGeometry->setComputeBoundingBoxCallback(new BodySymmetricBoundingBoxCallback((*_b_it).get()));
+	  
           // should use osg::TriangleMesh ??
-    
+	  
           // ORSA_DEBUG("SHAPE_TRI...");
-          osg::ref_ptr<const orsa::TriShape> _ts = (const orsa::TriShape *) (*_b_it)->getInitialConditions().inertial->shape();
+	  osg::ref_ptr<const orsa::TriShape> _ts = (const orsa::TriShape *) (*_b_it)->getInitialConditions().inertial->localShape();
 	  //
 	  const TriShape::VertexVector _vertex = _ts->getVertexVector();
 	  const TriShape::FaceVector   _face   = _ts->getFaceVector();
@@ -511,7 +513,7 @@ osg::Group * Viz::createRoot() {
 	  bodyGeometry->getOrCreateStateSet()->setMode(GL_LIGHTING,osg::StateAttribute::ON);
 	  //
 	  bodyGeode->addDrawable(bodyGeometry);
-	 
+	  
 	  bodyGroup->addChild(bodyGeode);
 	  
 	}	
@@ -522,7 +524,7 @@ osg::Group * Viz::createRoot() {
 	  double a,b,c;
 	  
 	  {
-	    const orsa::EllipsoidShape * es = dynamic_cast<const orsa::EllipsoidShape * > ((*_b_it)->getInitialConditions().inertial->shape());
+	    const orsa::EllipsoidShape * es = dynamic_cast<const orsa::EllipsoidShape * > ((*_b_it)->getInitialConditions().inertial->localShape());
 	    if (!es) {
 	      ORSA_ERROR("problems...");
 	    }
@@ -531,15 +533,15 @@ osg::Group * Viz::createRoot() {
 	  
 	  PositionAttitudeTransform * pat = new PositionAttitudeTransform;
 	  //
-	  pat->setScale(osg::Vec3d(a,
-				   b,
-				   c));
+	  pat->setScale(osg::Vec3d(a,b,c));
+	  
+	  ORSA_DEBUG("make sure localShape is rotated and offset correctly! (is that even possible?)");
 	  
 	  osg::ShapeDrawable * shape = 
 	    new osg::ShapeDrawable(new osg::Sphere(osg::Vec3d(0,0,0),1.0));
 	  
 	  shape->getOrCreateStateSet()->setMode(GL_LIGHTING,osg::StateAttribute::ON);
-	  shape->getOrCreateStateSet()->setMode( GL_RESCALE_NORMAL, osg::StateAttribute::ON );
+	  shape->getOrCreateStateSet()->setMode(GL_RESCALE_NORMAL,osg::StateAttribute::ON );
 	  
 	  osg::Geode * bodyGeode = new osg::Geode;
 	  //
@@ -601,6 +603,9 @@ osg::Group * Viz::createRoot() {
       
       // bounding box 
       if (1) {
+	
+	// NOTE: plot the symmetric box as well??
+	
 	osg::Geometry * boxGeometry = new osg::Geometry();
 	
 	osg::Vec4Array * colours = new osg::Vec4Array(1);
@@ -608,7 +613,7 @@ osg::Group * Viz::createRoot() {
 	boxGeometry->setColorArray(colours);
 	boxGeometry->setColorBinding(osg::Geometry::BIND_OVERALL);
 	
-	const orsa::Box & boundingBox = (*_b_it)->getInitialConditions().inertial->shape()->boundingBox();
+	const orsa::Box & boundingBox = (*_b_it)->getInitialConditions().inertial->localShape()->boundingBox();
 	
 	osg::Vec3Array * coords = new osg::Vec3Array(24);
 	// x_min face
@@ -723,9 +728,9 @@ osg::Group * Viz::createRoot() {
       // ORSA_DEBUG("POINT...");
       
       // double radius = (*_b_it)->getInitialConditions().inertial->shape()->boundingRadius();
-      double radius = (*_b_it)->getInitialConditions().inertial->shape() ? (*_b_it)->getInitialConditions().inertial->shape()->boundingRadius() : 0;
+      double radius = (*_b_it)->getInitialConditions().inertial->localShape() ? (*_b_it)->getInitialConditions().inertial->localShape()->boundingRadius() : 0;
       if (radius == 0) {
-	radius = FromUnits(10.0,Unit::KM); // hmm...
+	radius = FromUnits(100,Unit::METER); // hmm...
       }
       
       osg::ShapeDrawable* shape = new osg::ShapeDrawable(new osg::Sphere(osg::Vec3d(0,0,0),
@@ -828,6 +833,53 @@ osg::Group * Viz::createRoot() {
 	 orbitGeode->addDrawable(unitOffsetCircleSegment[s]);
 	 }
       */
+      
+      orbitGeode->getOrCreateStateSet()->setAttributeAndModes(new osg::LineWidth(1.0),
+							      osg::StateAttribute::ON);
+      
+      // anti aliasing?
+
+      /* 
+	 OLD CODE in ORSA 0.7
+	 glEnable(GL_LINE_SMOOTH);
+	 //
+	 glEnable(GL_BLEND);
+      	 //
+	 glBlendFunc(GL_SRC_ALPHA,GL_ONE);
+	 //
+	 glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
+	 glDepthMask(GL_FALSE);
+      */
+      //
+      orbitGeode->getOrCreateStateSet()->setMode(GL_LINE_SMOOTH, 
+						 osg::StateAttribute::ON);
+      // Enable blending, select transparent bin.
+      orbitGeode->getOrCreateStateSet()->setMode(GL_BLEND, 
+						 osg::StateAttribute::ON);
+      orbitGeode->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+      
+      // Enable depth test so that an opaque polygon will occlude a transparent one behind it.
+      // orbitGeode->getOrCreateStateSet()->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON );
+      
+      // Conversely, disable writing to depth buffer so that
+      // a transparent polygon will allow polygons behind it to shine thru.
+      // OSG renders transparent polygons after opaque ones.
+      {
+	osg::Depth * depth = new osg::Depth;
+	depth->setWriteMask( false );
+	orbitGeode->getOrCreateStateSet()->setAttributeAndModes( depth, osg::StateAttribute::ON );
+      }
+      
+      {
+	osg::BlendFunc * bf = new
+	  osg::BlendFunc(osg::BlendFunc::SRC_ALPHA,
+			 osg::BlendFunc::ONE);
+	orbitGeode->getOrCreateStateSet()->setAttributeAndModes(bf);
+      }
+      
+      // Disable conflicting modes.
+      orbitGeode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
+      
       
       // orbitGeode->setComputeBoundingSphereCallback(new OrbitComputeBoundingSphereCallback);
       

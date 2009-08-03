@@ -151,7 +151,7 @@ void TrackFillThread::run() {
 	
 	if (_groundTrack) {
 	  
-	  if (_ref_b->getInitialConditions().inertial->shape()) {
+	  if (_ref_b->getInitialConditions().inertial->localShape()) {
 	    
 	    /* 
 	       const orsa::Vector dr_local = (_ref_b->getAttitude()) ? 
@@ -167,11 +167,11 @@ void TrackFillThread::run() {
 	    const orsa::Matrix g2l = orsa::globalToLocal(_ref_b.get(),_bg.get(),t);
 	    const orsa::Vector dr_local = g2l * dr;
 	    
-	    if (_ref_b->getInitialConditions().inertial->shape()->rayIntersection(intersectionPoint,
-										  intersectionNormal,
-										  dr_local,
-										  (-dr_local).normalized(),
-										  false)) {
+	    if (_ref_b->getInitialConditions().inertial->localShape()->rayIntersection(intersectionPoint,
+										       intersectionNormal,
+										       dr_local,
+										       (-dr_local).normalized(),
+										       false)) {
 	      
 	      tmpTrackElement.t = t;
 	      //

@@ -118,44 +118,6 @@ namespace orsa {
   
   class TriShape : public orsa::Shape {
   public:
-    TriShape() : Shape() {
-      _init();
-    }
-  private:
-    void _init() {
-      _old_closest_vertex_index = 0; 
-    }
-  protected:
-    ~TriShape() { }
-    
-  public:
-    const ShapeType getType() const {
-      return SHAPE_TRI;
-    }
-    
-    /* 
-       public:
-       class TriIndex {
-       public:
-       TriIndex(const mpz_class & i, 
-       const mpz_class & j, 
-       const mpz_class & k) : 
-       _i(i), 
-       _j(j),
-       _k(k) { }
-       
-       public:
-       const mpz_class & i() const { return _i; }
-       public:
-       const mpz_class & j() const { return _j; }
-       public:
-       const mpz_class & k() const { return _k; }
-       protected:
-       const mpz_class _i, _j, _k;
-       };
-    */
-    //
-  public:
     class TriIndex {
       /* 
 	 public:
@@ -180,6 +142,32 @@ namespace orsa {
     protected:
       unsigned int _i, _j, _k;
     };
+  public:
+    typedef std::vector<orsa::Vector> VertexVector;
+    typedef std::vector<TriIndex> FaceVector;
+  public:
+    TriShape() : Shape() {
+      _init();
+    }
+  public:
+    TriShape(const VertexVector & v,
+	     const FaceVector   & f) : 
+      Shape(),
+      _vertex(v),
+      _face(f) {
+      _init();
+    }
+  private:
+    void _init() {
+      _old_closest_vertex_index = 0; 
+    }
+  protected:
+    ~TriShape() { }
+    
+  public:
+    const ShapeType getType() const {
+      return SHAPE_TRI;
+    }
     
   protected:
     bool _updateCache() const;
@@ -216,8 +204,6 @@ namespace orsa {
     // reference points inside model, used by _isInside_useLineMethod
     mutable std::vector<Vector> _ref;
     
-  public:
-    typedef std::vector<orsa::Vector> VertexVector;
   protected:   
     VertexVector _vertex;
   public:
@@ -225,8 +211,6 @@ namespace orsa {
       return _vertex;
     }
     
-  public:
-    typedef std::vector<TriIndex> FaceVector;
   protected:    
     FaceVector _face;
   public:
