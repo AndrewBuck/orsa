@@ -1,0 +1,42 @@
+NEAR data files, provided by James Miller.
+
+* ASTATT.BPC 
+
+Is the Eros Attitude SPICE file. This trajectory is the final fit of NEAR data for the 35 km orbit in the summer of 2000.  It starts on July 3, 2000 and runs for about 30 days.
+
+
+* ASTEPH.BSP 
+
+Is the Eros Ephemeris SPICE file. This trajectory is the final fit of NEAR data for the 35 km orbit in the summer of 2000.  It starts on July 3, 2000 and runs for about 30 days.
+
+
+
+* gr_069.dat  
+
+A gravity file (same format as gre_004) obtained by integrating the shape model
+
+
+* GRE_004.dat   
+
+A gravity file determined from radiometric and optical data that represents the best gravity field I have.
+
+The format is
+                         degree    flag1   flag2
+                         volume, density,mass                Km^3,specific gravity, Kg
+                         GM, R0
+                         Ixx, Iyy, Izz
+                         Ixy,Iyz,Ixz
+                         C00, C10, C11
+                         S11, C20, C21,
+                         S21, C22, S22,
+                         C30, C31, etc
+
+
+* SCEPH.BSP  
+
+NEAR spacecraft ephemeris.
+
+* SHAPE4.DAT
+ 
+A shape file determined by fitting LIDAR data with optical and Doppler data
+This file contains vertice number and vertices followed by tringular plates.
