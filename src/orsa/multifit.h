@@ -284,10 +284,12 @@ namespace orsa {
     
   protected:
     virtual void singleIterationDone(const gsl_multifit_fdfsolver *) const { }
+    virtual void singleIterationDone(const orsa::MultifitParameters *) const { }
     
   protected:
     // called only if converged with GSL_SUCCESS
     virtual void success(const gsl_multifit_fdfsolver *) const { }
+    virtual void success(const orsa::MultifitParameters *) const { }
     
   public:
     void setMultifitParameters(orsa::MultifitParameters *);

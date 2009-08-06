@@ -34,6 +34,7 @@ namespace orsa {
     
   public:
     void clear();
+    void clearIntegration(const bool restoreInitialConditions=true);
     
   public:
     bool addBody(const Body *);
@@ -151,8 +152,8 @@ namespace orsa {
     // orsa::Interval<TRV> * getBodyInterval(const orsa::Body *);
   public:
     const BodyInterval * getBodyInterval(const orsa::Body *) const;
-  public:
     BodyInterval * getBodyInterval(const orsa::Body *);
+    // BodyInterval * getBodyInterval(const orsa::Body *);
     /* 
        inline orsa::Interval<TRV> * getBodyInterval(osg::ref_ptr<const orsa::Body> b) {
        return getBodyInterval(b.get());

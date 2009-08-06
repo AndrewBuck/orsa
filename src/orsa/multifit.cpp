@@ -547,7 +547,6 @@ int Multifit::f_gsl (const gsl_vector * parameters,
   
   for(unsigned int k=0; k<_par->size(); ++k) {
     _par->set(k,gsl_vector_get(parameters,k));
-    _par->setInRange(k);
   }
   
   const orsa::MultifitData * data = (orsa::MultifitData *) dataPoints;
@@ -591,7 +590,6 @@ int Multifit::df_gsl (const gsl_vector * v,
   
   for(unsigned int k=0; k<_par->size(); ++k) {
     _par->set(k,gsl_vector_get(v,k));
-    _par->setInRange(k);
   }
   
   const orsa::MultifitData * data = (orsa::MultifitData *) dataPoints;
@@ -620,7 +618,6 @@ int Multifit::fdf_gsl (const gsl_vector * v,
   
   for(unsigned int k=0; k<_par->size(); ++k) {
     _par->set(k,gsl_vector_get(v,k));
-    _par->setInRange(k);
   }
   
   const orsa::MultifitData * data = (orsa::MultifitData *) dataPoints;
@@ -763,7 +760,6 @@ bool Multifit::run() {
       
       for (unsigned int k=0; k<_par->size(); ++k) {
 	_par->set(k, gsl_vector_get(s->x,k));
-	_par->setInRange(k);
       }
       
       for (unsigned int k=0; k<_par->size(); ++k) {
@@ -807,7 +803,6 @@ bool Multifit::run() {
     
     for (unsigned int k=0; k<_par->size(); ++k) {
       _par->set(k, gsl_vector_get(s->x,k));
-      _par->setInRange(k);
     }
     
     /* 
@@ -832,17 +827,18 @@ bool Multifit::run() {
        }
     */
     
-    singleIterationDone(s);  
+    singleIterationDone(s); 
+    singleIterationDone(_par.get());  
     
   } while (((cv_status == GSL_CONTINUE) || (it_status == GSL_CONTINUE)) && (iter < local_max_iter));
   
   if (cv_status == GSL_SUCCESS) {
     success(s);
+    success(_par.get());
   }	
   
   for (unsigned int k=0; k<_par->size(); ++k) {
     _par->set(k, gsl_vector_get(s->x,k));
-    _par->setInRange(k);
   }
   
   // covariance matrix here...

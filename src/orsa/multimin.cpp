@@ -545,6 +545,10 @@ bool Multimin::run_nmsimplex(const unsigned int maxIter,
     
   } while (((cv_status == GSL_CONTINUE) || (it_status == GSL_CONTINUE)) && (iter < local_max_iter));
   
+  if (cv_status == GSL_SUCCESS) {
+    success(_par.get());
+  }	
+  
   // ORSA_DEBUG("total iterations: %i",iter);
   
   for (unsigned int k=0; k<_par->size(); ++k) {
@@ -666,6 +670,10 @@ bool Multimin::run_conjugate_fr(const unsigned int maxIter,
     }
     
   } while (((cv_status == GSL_CONTINUE) || (it_status == GSL_CONTINUE)) && (iter < local_max_iter));
+  
+  if (cv_status == GSL_SUCCESS) {
+    success(_par.get());
+  }	
   
   for (unsigned int k=0; k<_par->size(); ++k) {
     _par->set(k, gsl_vector_get(s->x,k));

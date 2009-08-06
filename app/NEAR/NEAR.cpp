@@ -291,7 +291,7 @@ orsa::BodyGroup * run() {
       // eros_mu = 446450.77751572; /* MKS */
       
       // reduce order
-      const unsigned int max_order=8;
+      const unsigned int max_order=4;
       if (order > max_order) {
 	order = max_order;
       }
@@ -390,12 +390,36 @@ orsa::BodyGroup * run() {
     bg->addBody(clone.get());
   }
   
-  const orsa::Time duration = orsa::Time(0,1,0,0,0);
+  const double integrationAccuracy = 1.0e-6;
+  
+  {
+    // multimin to find initial conditions for CLONE that better match NEAR in the long term
+    const orsa::Time fitDuration = orsa::Time(0,0,10,0,0);
+    orsa::Vector r,v;
+    if (!betterInitialConditions(r,
+				 v,
+				 t0,
+				 fitDuration,
+				 integrationAccuracy,
+				 near.get(),
+				 clone.get(),
+				 bg)) {
+      ORSA_DEBUG("problems...");
+      exit(0);
+    }
+    
+    orsa::IBPS ibps = clone->getInitialConditions();
+    ibps.translational->setPosition(r);
+    ibps.translational->setVelocity(v);
+    clone->setInitialConditions(ibps);
+  }
+  
+  const orsa::Time duration = orsa::Time(10,0,0,0,0);
   const orsa::Time samplingPeriod = orsa::Time(0,0,0,10,0);  
   
   // osg::ref_ptr<orsa::IntegratorRadau> radau = new orsa::IntegratorRadau; 
   osg::ref_ptr<CustomIntegrator> radau = new CustomIntegrator(t0);
-  radau->_accuracy = 1e-6;
+  radau->_accuracy = integrationAccuracy;
   radau->keepOnlyLastStep = true;
   // first call to output function
   // radau->singleStepDone(bg,t0,orsa::Time(0),orsa::Time(0));

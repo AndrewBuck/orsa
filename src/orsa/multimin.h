@@ -217,6 +217,10 @@ namespace orsa {
   protected:
     virtual void singleIterationDone(const orsa::MultiminParameters *) const { }
     
+  protected:
+    // called only if converged with GSL_SUCCESS
+    virtual void success(const orsa::MultiminParameters *) const { }
+    
   public:
     void setMultiminParameters(orsa::MultiminParameters *);
   public:

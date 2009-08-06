@@ -25,7 +25,17 @@ void BodyGroup::clear() {
   _name.clear();
   _b_list.clear();
   _b_interval.clear();
-  // cachedLargestBodyID.reset();
+}
+
+void BodyGroup::clearIntegration(const bool restoreInitialConditions) {
+  BodyList::const_iterator it = _b_list.begin();
+  while (it != _b_list.end()) {
+    getBodyInterval(*it)->reset();
+    if (restoreInitialConditions) {
+      getBodyInterval(*it)->insert((*it)->getInitialConditions());
+    }
+    ++it;
+  }
 }
 
 bool BodyGroup::setName(const std::string & s) {
@@ -131,6 +141,7 @@ bool BodyGroup::insertIBPS(const orsa::IBPS & ibps,
 			   const orsa::Body * b,
 			   const bool         replace) {
   return getBodyInterval(b)->insert(ibps,replace);
+  // return _b_interval[b]->insert(ibps,replace);
 }
 
 bool BodyGroup::getIBPS(orsa::IBPS       & ibps,
@@ -148,6 +159,9 @@ bool BodyGroup::getIBPS(orsa::IBPS       & ibps,
     IBPS ibps1, ibps2;
     // orsa::Interval<BodyGroup::TRV> * _b_interval = getBodyInterval(b);
     osg::ref_ptr<const orsa::BodyGroup::BodyInterval> bi = getBodyInterval(b);
+    if (bi.get() == 0) {
+      return false;
+    }
     // trv.t = t;
     ibps.time = t;
     // if (_b_interval->getSubInterval(trv, _trv1, _trv2)) {
