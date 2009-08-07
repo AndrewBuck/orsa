@@ -291,7 +291,7 @@ orsa::BodyGroup * run() {
       // eros_mu = 446450.77751572; /* MKS */
       
       // reduce order
-      const unsigned int max_order=4;
+      const unsigned int max_order=6;
       if (order > max_order) {
 	order = max_order;
       }
@@ -392,7 +392,7 @@ orsa::BodyGroup * run() {
   
   const double integrationAccuracy = 1.0e-6;
   
-  {
+  if (0) {
     // multimin to find initial conditions for CLONE that better match NEAR in the long term
     const orsa::Time fitDuration = orsa::Time(0,0,10,0,0);
     orsa::Vector r,v;
@@ -414,11 +414,39 @@ orsa::BodyGroup * run() {
     clone->setInitialConditions(ibps);
   }
   
-  const orsa::Time duration = orsa::Time(10,0,0,0,0);
+  if (1) {
+    // multimin to find an Eros mass that produces better match between NEAR and CLONE
+    const orsa::Time fitDuration = orsa::Time(0,1,0,0,0);
+    double erosMass;
+    if (!betterErosMass(erosMass,
+			t0,
+			fitDuration,
+			integrationAccuracy,
+			eros.get(),
+			near.get(),
+			clone.get(),
+			bg)) {
+      ORSA_DEBUG("problems...");
+      exit(0);
+    }
+    
+    orsa::IBPS ibps = eros->getInitialConditions();
+    osg::ref_ptr<orsa::ConstantInertialBodyProperty> inertial = new
+      orsa::ConstantInertialBodyProperty(erosMass,
+					 ibps.inertial->originalShape(),
+					 ibps.inertial->centerOfMass(),
+					 ibps.inertial->shapeToLocal(),
+					 ibps.inertial->localToShape(),
+					 ibps.inertial->inertiaMatrix(),
+					 ibps.inertial->paulMoment());
+    ibps.inertial = inertial.get();
+    eros->setInitialConditions(ibps);
+  }
+  
+  const orsa::Time duration = orsa::Time(2,0,0,0,0);
   const orsa::Time samplingPeriod = orsa::Time(0,0,0,10,0);  
   
-  // osg::ref_ptr<orsa::IntegratorRadau> radau = new orsa::IntegratorRadau; 
-  osg::ref_ptr<CustomIntegrator> radau = new CustomIntegrator(t0);
+  osg::ref_ptr<CustomIntegrator> radau = new CustomIntegrator(t0,true);
   radau->_accuracy = integrationAccuracy;
   radau->keepOnlyLastStep = true;
   // first call to output function
