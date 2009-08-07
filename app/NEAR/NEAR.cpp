@@ -291,7 +291,7 @@ orsa::BodyGroup * run() {
       // eros_mu = 446450.77751572; /* MKS */
       
       // reduce order
-      const unsigned int max_order=2;
+      const unsigned int max_order=8;
       if (order > max_order) {
 	order = max_order;
       }
@@ -324,7 +324,19 @@ orsa::BodyGroup * run() {
       //  
       const orsa::Matrix inertiaMatrix = orsa::Matrix::identity();
       
-      ibps.inertial = new ConstantInertialBodyProperty(eros_mu/orsa::Unit::G(),
+      ORSA_DEBUG("forcing different mass, obtained from multimin");
+      const double erosMass = orsa::FromUnits(6.711206129253e+15,orsa::Unit::KG); // MKS
+      
+      /* ibps.inertial = new ConstantInertialBodyProperty(eros_mu/orsa::Unit::G(),
+	 shape.get(),
+	 centerOfMass,
+	 shapeToLocal,
+	 localToShape,
+	 inertiaMatrix,
+	 paulMoment.get());
+      */
+      //
+      ibps.inertial = new ConstantInertialBodyProperty(erosMass,
 						       shape.get(),
 						       centerOfMass,
 						       shapeToLocal,
@@ -380,13 +392,13 @@ orsa::BodyGroup * run() {
     
     clone->setInitialConditions(ibps);
     
-    // propulsion
-    /* clone->propulsion = new SolarRadiationPressure(CLONE_mass,
-       bg,
-       sun.get(),
-       clone.get());
-    */
-    
+    // value obtained using multimin over 1 day
+    const double solarRadiationPressure_B = 4.082177664398e+01; // MKS, kg/m^2
+    clone->propulsion = new SolarRadiationPressure(CLONE_mass,
+						   solarRadiationPressure_B,
+						   bg,
+						   sun.get(),
+						   clone.get());
     bg->addBody(clone.get());
   }
   
@@ -414,7 +426,7 @@ orsa::BodyGroup * run() {
     clone->setInitialConditions(ibps);
   }
   
-  if (1) {
+  if (0) {
     // multimin to find an Eros mass that produces better match between NEAR and CLONE
     const orsa::Time fitDuration = orsa::Time(1,0,0,0,0);
     double erosMass;

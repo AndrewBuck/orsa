@@ -148,7 +148,7 @@ class CustomIntegrator : public orsa::IntegratorRadau {
     clone_velocity -= eros_velocity;
     
     // global dr
-    const orsa::Vector dr = near_position - clone_position;
+    const orsa::Vector dr = clone_position - near_position;
     //
     const orsa::Vector u_r = near_position.normalized();
     const orsa::Vector u_v = near_velocity.normalized();
@@ -169,7 +169,7 @@ class CustomIntegrator : public orsa::IntegratorRadau {
     orsa::Orbit clone_orbit;
     clone_orbit.compute(clone_position,clone_velocity,eros_mu);
     
-    ORSA_DEBUG("STEPDONE: %f %e %e %e %e %e %e %e %e %e %e %e",
+    ORSA_DEBUG("STEPDONE: %f %e %e %e %e %e %e %e %e %e %e %e %e %e %e",
 	       (t-t0).get_d(),
 	       near_position.length(),
 	       clone_position.length(),
@@ -181,9 +181,12 @@ class CustomIntegrator : public orsa::IntegratorRadau {
 	       near_orbit.i*orsa::radToDeg(),
 	       clone_orbit.a,
 	       clone_orbit.e,
-	       clone_orbit.i*orsa::radToDeg());
+	       clone_orbit.i*orsa::radToDeg(),
+	       (clone_orbit.a-near_orbit.a)/near_orbit.a,
+	       (clone_orbit.e-near_orbit.e)/near_orbit.e,
+	       (clone_orbit.i-near_orbit.i)/near_orbit.i);
   }
-
+  
 };
 
 // initial conditions multimin
