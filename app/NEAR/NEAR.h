@@ -9,6 +9,68 @@
 #include <orsa/multimin.h>
 #include <orsa/util.h>
 
+// for a constant mass body
+class SolarRadiationPressure : public orsa::Propulsion {
+ public:
+  SolarRadiationPressure(const double     & bodyMass_in,
+			 const double     & B_in,
+			 orsa::BodyGroup  * bg_in,
+			 const orsa::Body * sun_in,
+			 const orsa::Body * body_in) :
+    orsa::Propulsion(),
+    bodyMass(bodyMass_in),
+    B(B_in),
+    bg(bg_in),
+    sun(sun_in),
+    body(body_in) {
+  }
+ protected:
+  const double bodyMass;
+  const double B;
+  osg::ref_ptr<orsa::BodyGroup> bg;
+  osg::ref_ptr<const orsa::Body> sun;
+  osg::ref_ptr<const orsa::Body> body;
+ public:
+  orsa::Vector getThrust(const orsa::Time & t) const {
+    // compute it once only, use forever...
+    // if (!thrust.isSet()) {
+    {
+      orsa::Vector rSun;
+      if (!bg->getInterpolatedPosition(rSun,sun.get(),t)) {
+	ORSA_DEBUG("problems...");
+      }	
+      // orsa::print(rSun);
+      orsa::Vector rBody;
+      if (!bg->getInterpolatedPosition(rBody,body.get(),t)) {
+	ORSA_DEBUG("problems...");
+      }	
+      // orsa::print(rBody);
+      // Scheeres (1999) formalism
+      const orsa::Vector   s2b = (rBody-rSun);
+      // orsa::print(s2b);
+      const orsa::Vector u_s2b = s2b.normalized();
+      const double G1 = orsa::FromUnits(orsa::FromUnits(orsa::FromUnits(orsa::FromUnits(1.0e8,orsa::Unit::KG),orsa::Unit::KM,3),orsa::Unit::SECOND,-2),orsa::Unit::METER,-2);
+      
+      // now B is an external parameter
+      // const double B  = orsa::FromUnits(487.0,orsa::Unit::KG)/orsa::FromUnits(10.0,orsa::Unit::METER,2); // Spacecraft mass to projected area ratio
+      
+      const double R  = s2b.length();
+      const double acc = G1/(B*R*R);
+      // ORSA_DEBUG("acc: %g",acc);
+      const orsa::Vector thrust = (bodyMass*acc*u_s2b);
+      return thrust;
+    }
+    // return thrust.getRef();
+  }
+ protected:
+  // mutable orsa::Cache<orsa::Vector> thrust;
+ public:
+  bool nextEventTime(orsa::Time      &,
+		     const mpz_class &) const {
+    return false; // always ON
+  }
+};
+
 orsa::BodyGroup * run();
 
 bool processGravityFile(unsigned int & order,
@@ -27,6 +89,7 @@ class CustomIntegrator : public orsa::IntegratorRadau {
  protected:
   const orsa::Time t0;
   const bool verbose;
+  mutable orsa::Cache<orsa::Time> lastOutput;
  public:
   void singleStepDone(orsa::BodyGroup  * bg,
 		      const orsa::Time & call_t,
@@ -36,6 +99,26 @@ class CustomIntegrator : public orsa::IntegratorRadau {
     if (!verbose) return;
     
     const orsa::Time t = call_t+call_dt;
+    
+    const orsa::Time minOutputInterval = orsa::Time(0,0,1,0,0);
+    bool print=false;
+    if (lastOutput.isSet()) {
+      if (t>lastOutput.getRef()) {
+	if ((t-lastOutput.getRef())>minOutputInterval) {
+	  print=true;
+	}
+      } else {
+	if ((lastOutput.getRef()-t)>minOutputInterval) {
+	  print=true;
+	}
+      }
+    } else {
+      print=true;
+    }
+    
+    if (!print) return;
+    
+    lastOutput=t;
     
     const orsa::Body * eros  = bg->getBody("EROS");
     const orsa::Body * near  = bg->getBody("NEAR");
@@ -217,7 +300,7 @@ inline bool betterInitialConditions(orsa::Vector     & r,
   //
   multimin->setMultiminParameters(par.get());
   //
-  multimin->run_nmsimplex(1024,1.0e-3);
+  multimin->run_nmsimplex(256,1.0e-3);
   
   r.set(par->get("rx"),
 	par->get("ry"),
@@ -242,9 +325,10 @@ class ErosMassMultimin : public orsa::Multimin {
   orsa::Cache<orsa::Time>        t0;
   orsa::Cache<orsa::Time>        duration;
   orsa::Cache<double>            accuracy;
+  osg::ref_ptr<const orsa::Body> sun;
   osg::ref_ptr<orsa::Body>       eros;
   osg::ref_ptr<const orsa::Body> near;
-  osg::ref_ptr<const orsa::Body> clone;
+  osg::ref_ptr<orsa::Body>       clone;
   osg::ref_ptr<orsa::BodyGroup>  bg;
  public:
   double fun(const orsa::MultiminParameters * par) const {
@@ -252,6 +336,8 @@ class ErosMassMultimin : public orsa::Multimin {
     bg->clearIntegration();
     
     const double erosMass = par->get("erosMass");
+    
+    const double solarRadiationPressure_B = par->get("solarRadiationPressure_B");
     
     orsa::IBPS ibps = eros->getInitialConditions();
     osg::ref_ptr<orsa::ConstantInertialBodyProperty> inertial = new
@@ -264,6 +350,14 @@ class ErosMassMultimin : public orsa::Multimin {
 					 ibps.inertial->paulMoment());
     ibps.inertial = inertial.get();
     eros->setInitialConditions(ibps);
+
+    double cloneMass;
+    bg->getInterpolatedMass(cloneMass,clone.get(),t0.getRef());
+    clone->propulsion = new SolarRadiationPressure(cloneMass,
+						   solarRadiationPressure_B,
+						   bg,
+						   sun.get(),
+						   clone.get());
     
     osg::ref_ptr<CustomIntegrator> radau = new CustomIntegrator(t0.getRef(),false);
     radau->_accuracy = accuracy;
@@ -312,28 +406,36 @@ class ErosMassMultimin : public orsa::Multimin {
 };
 
 inline bool betterErosMass(double           & mass,
+			   double           & solarRadiationPressure_B,
 			   const orsa::Time & t0,
 			   const orsa::Time & duration,
-			   const double     & accuracy,   
+			   const double     & accuracy, 
+			   const orsa::Body * sun,  
 			   orsa::Body       * eros,
 			   const orsa::Body * near,
-			   const orsa::Body * clone,
+			   orsa::Body       * clone,
 			   orsa::BodyGroup  * bg) {
   
+  // initial values
   bg->getInterpolatedMass(mass,eros,t0);
+  solarRadiationPressure_B = 
+    orsa::FromUnits(487.0,orsa::Unit::KG)/orsa::FromUnits(10.0,orsa::Unit::METER,2); // Spacecraft mass to projected area ratio
   
   // mass uncertainty
   const double dm = 0.01*mass;
+  const double dB = 0.25*solarRadiationPressure_B;
   
   osg::ref_ptr<orsa::MultiminParameters> par = new orsa::MultiminParameters;
   //
   par->insert("erosMass",mass,dm);
+  par->insert("solarRadiationPressure_B",solarRadiationPressure_B,dB);
   
   osg::ref_ptr<ErosMassMultimin> multimin = new ErosMassMultimin;
   //
   multimin->t0       = t0;
   multimin->duration = duration;
   multimin->accuracy = accuracy;
+  multimin->sun      = sun;
   multimin->eros     = eros;
   multimin->near     = near;
   multimin->clone    = clone;
@@ -341,67 +443,14 @@ inline bool betterErosMass(double           & mass,
   //
   multimin->setMultiminParameters(par.get());
   //
-  multimin->run_nmsimplex(1024,1.0e-3);
+  multimin->run_nmsimplex(64,1.0e-3);
   
   mass = par->get("erosMass");
+  solarRadiationPressure_B = par->get("solarRadiationPressure_B");
   
   bg->clearIntegration();
   
   return true;
 }
-
-// for a constant mass body
-class SolarRadiationPressure : public orsa::Propulsion {
- public:
-  SolarRadiationPressure(const double     & bodyMass_in,
-			 orsa::BodyGroup  * bg_in,
-			 const orsa::Body * sun_in,
-			 const orsa::Body * body_in) :
-    orsa::Propulsion(),
-    bodyMass(bodyMass_in),
-    bg(bg_in),
-    sun(sun_in),
-    body(body_in) {
-  }
- protected:
-  const double bodyMass;
-  osg::ref_ptr<orsa::BodyGroup> bg;
-  osg::ref_ptr<const orsa::Body> sun;
-  osg::ref_ptr<const orsa::Body> body;
- public:
-  orsa::Vector getThrust(const orsa::Time & t) const {
-    // compute it once only, use forever...
-    if (!thrust.isSet()) {
-      orsa::Vector rSun;
-      if (!bg->getInterpolatedPosition(rSun,sun.get(),t)) {
-	ORSA_DEBUG("problems...");
-      }	
-      // orsa::print(rSun);
-      orsa::Vector rBody;
-      if (!bg->getInterpolatedPosition(rBody,body.get(),t)) {
-	ORSA_DEBUG("problems...");
-      }	
-      // orsa::print(rBody);
-      // Scheeres (1999) formalism
-      const orsa::Vector   s2b = (rBody-rSun);
-      orsa::print(s2b);
-      const orsa::Vector u_s2b = s2b.normalized();
-      const double G1 = orsa::FromUnits(orsa::FromUnits(orsa::FromUnits(orsa::FromUnits(1.0e8,orsa::Unit::KG),orsa::Unit::KM,3),orsa::Unit::SECOND,-2),orsa::Unit::METER,-2);
-      const double B  = orsa::FromUnits(487.0,orsa::Unit::KG)/orsa::FromUnits(10.0,orsa::Unit::METER,2); // Spacecraft mass to projected area ratio
-      const double R  = s2b.length();
-      const double acc = G1/(B*R*R);
-      ORSA_DEBUG("acc: %g",acc);
-      thrust = (bodyMass*acc*u_s2b);
-    }
-    return thrust.getRef();
-  }
- protected:
-  mutable orsa::Cache<orsa::Vector> thrust;
- public:
-  bool nextEventTime(orsa::Time      &,
-		     const mpz_class &) const {
-    return false; // always ON
-  }
-};
 
 #endif // _NEAR_H_

@@ -291,7 +291,7 @@ orsa::BodyGroup * run() {
       // eros_mu = 446450.77751572; /* MKS */
       
       // reduce order
-      const unsigned int max_order=6;
+      const unsigned int max_order=2;
       if (order > max_order) {
 	order = max_order;
       }
@@ -361,7 +361,7 @@ orsa::BodyGroup * run() {
   {
     clone->setName("CLONE");
     
-    // dummy, positive mass, needed by SolarRadiationPressure (that is implemented as a propulstion...)
+    // dummy, positive mass, needed by SolarRadiationPressure (that is implemented as a propulsion...)
     const double CLONE_mass = orsa::FromUnits(1,orsa::Unit::KG);
     
     orsa::IBPS ibps;
@@ -416,12 +416,15 @@ orsa::BodyGroup * run() {
   
   if (1) {
     // multimin to find an Eros mass that produces better match between NEAR and CLONE
-    const orsa::Time fitDuration = orsa::Time(0,1,0,0,0);
+    const orsa::Time fitDuration = orsa::Time(1,0,0,0,0);
     double erosMass;
+    double solarRadiationPressure_B;
     if (!betterErosMass(erosMass,
+			solarRadiationPressure_B,
 			t0,
 			fitDuration,
 			integrationAccuracy,
+			sun.get(),
 			eros.get(),
 			near.get(),
 			clone.get(),
@@ -429,6 +432,12 @@ orsa::BodyGroup * run() {
       ORSA_DEBUG("problems...");
       exit(0);
     }
+    
+    // solution
+    ORSA_DEBUG("------------------------------------------------");
+    ORSA_DEBUG("final erosMass................: %+16.12e",erosMass);
+    ORSA_DEBUG("final solarRadiationPressure_B: %+16.12e",solarRadiationPressure_B);
+    ORSA_DEBUG("------------------------------------------------");
     
     orsa::IBPS ibps = eros->getInitialConditions();
     osg::ref_ptr<orsa::ConstantInertialBodyProperty> inertial = new
@@ -441,9 +450,18 @@ orsa::BodyGroup * run() {
 					 ibps.inertial->paulMoment());
     ibps.inertial = inertial.get();
     eros->setInitialConditions(ibps);
+    
+    double cloneMass;
+    bg->getInterpolatedMass(cloneMass,clone.get(),t0);
+    clone->propulsion = new SolarRadiationPressure(cloneMass,
+						   solarRadiationPressure_B,
+						   bg,
+						   sun.get(),
+						   clone.get());
+    
   }
   
-  const orsa::Time duration = orsa::Time(2,0,0,0,0);
+  const orsa::Time duration = orsa::Time(10,0,0,0,0);
   const orsa::Time samplingPeriod = orsa::Time(0,0,0,10,0);  
   
   osg::ref_ptr<CustomIntegrator> radau = new CustomIntegrator(t0,true);
