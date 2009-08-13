@@ -25,7 +25,7 @@ unix:!macx {
 }
 
 macx {
-        LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -lOpenThreads -losg
+        LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -lOpenThreads -losg -losgGA -losgText -losgViewer
 }
 
 win32 {
