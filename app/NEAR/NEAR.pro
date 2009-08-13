@@ -24,6 +24,13 @@ unix:!macx {
 	}
 }
 
+macx {
+	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -losg -losgText -losgGA -losgViewer -lOpenThreads -losg
+	!isEmpty(USE_TBB_BASE) {
+		LIBS += -ltbb -ltbbmalloc
+	}
+}
+
 HEADERS += NEAR.h   viz.h   shape.h 
 SOURCES += NEAR.cpp main.cpp
 
