@@ -363,7 +363,7 @@ void MainThread::run() {
 	  vestaMassDistribution.getRef();
 	if (mdt == ComboMassDistribution::mdt_core) {
 	  
-	  const orsa::Vector coreCenter = orsa::Vector(orsa::FromUnits(  25.0,orsa::Unit::KM),
+	  const orsa::Vector coreCenter = orsa::Vector(orsa::FromUnits(  50.0,orsa::Unit::KM),
 						       orsa::FromUnits(   0.0,orsa::Unit::KM),
 						       orsa::FromUnits(   0.0,orsa::Unit::KM));
 	  //
@@ -410,12 +410,43 @@ void MainThread::run() {
       orsa::print(shapeToLocal);
       orsa::print(localToShape);
       
-      // print out...
-      std::vector< std::vector<double> > C, S, norm_C, norm_S;
-      std::vector<double> J;
-      orsa::convert(C, S, norm_C, norm_S, J,
-		    paulMoment, 
-		    FromUnits(300,orsa::Unit::KM));
+      if (1) {
+	// print out...
+	std::vector< std::vector<double> > C, S, norm_C, norm_S;
+	std::vector<double> J;
+	orsa::convert(C, S, norm_C, norm_S, J,
+		      paulMoment, 
+		      FromUnits(300,orsa::Unit::KM));
+	/* for (unsigned int l=0; l<=order; ++l) {
+	   for (unsigned int m=0; m<=l; ++m) {
+	   // LaTeX Tabular style
+	   ORSA_DEBUG("%i & %i & $%+10.0f$ & $%+10.0f$ \\",l,m,1e6*norm_C[l][m],1e6*norm_S[l][m]);
+	   }
+	   }
+	   for (unsigned int l=2; l<=order; ++l) {
+	   // J_l is minus C_l0, where C_l0 is not normalized
+	   ORSA_DEBUG("J_%i = $%+10.0f$",l,-(1e6*C[l][0]));
+	   }
+	*/
+	ORSA_DEBUG("$x_{0}$  & $%+9.3f$ \\\\",orsa::FromUnits(centerOfMass.getX(),orsa::Unit::KM,-1));
+	ORSA_DEBUG("$y_{0}$  & $%+9.3f$ \\\\",orsa::FromUnits(centerOfMass.getY(),orsa::Unit::KM,-1));
+	ORSA_DEBUG("$z_{0}$  & $%+9.3f$ \\\\",orsa::FromUnits(centerOfMass.getZ(),orsa::Unit::KM,-1));
+	ORSA_DEBUG("\\hline");
+	for (unsigned int l=2; l<=order; ++l) {
+	  // J_l is minus C_l0, where C_l0 is not normalized
+	  ORSA_DEBUG("$J_{%i}$  & $%+9.6f$ \\\\",l,-C[l][0]);
+	}
+	ORSA_DEBUG("\\hline");
+	for (unsigned int l=2; l<=order; ++l) {
+	  for (unsigned int m=0; m<=l; ++m) {
+	    // LaTeX Tabular style
+	    ORSA_DEBUG("$C_{%i%i}$ & $%+9.6f$ \\\\",l,m,norm_C[l][m]);
+	    if (m!=0) {
+	      ORSA_DEBUG("$S_{%i%i}$ & $%+9.6f$ \\\\",l,m,norm_S[l][m]);
+	    }
+	  }
+	}
+      }
       
       ibps.inertial = new ConstantInertialBodyProperty(vestaMass.getRef(),
 						       shape.get(),
