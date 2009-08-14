@@ -25,7 +25,7 @@ unix:!macx {
 }
 
 macx {
-	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -losg -losgText -losgGA -losgViewer -lOpenThreads -losg
+	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -losg -losgText -losgGA -losgViewer -lOpenThreads -losg -losgDB -losgUtil
 	!isEmpty(USE_TBB_BASE) {
 		LIBS += -ltbb -ltbbmalloc
 	}

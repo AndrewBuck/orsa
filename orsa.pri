@@ -77,7 +77,7 @@ unix:!macx {
 macx {
 	CONFIG += x86 # x86 ppc
 
-	QMAKE_MAC_SDK = /Developer/SDKs/MacOSX10.4u.sdk
+	QMAKE_MAC_SDK = /Developer/SDKs/MacOSX10.5.sdk
 
         KERNEL_NAME   = $$system(uname -s)
         HARDWARE_NAME = $$system(uname -p)
@@ -85,14 +85,14 @@ macx {
 
 	DIR_SEP = "/"
 
-        QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.4
-        QMAKE_LFLAGS += -undefined dynamic_lookup 
+        QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.5
+#       QMAKE_LFLAGS += -undefined dynamic_lookup 
 
-	QMAKE_CXXFLAGS += -mmacosx-version-min=10.4
-	QMAKE_LFLAGS   += -mmacosx-version-min=10.4 
+	QMAKE_CXXFLAGS += -mmacosx-version-min=10.5
+	QMAKE_LFLAGS   += -mmacosx-version-min=10.5 
 
-	QMAKE_CXXFLAGS_DEBUG += -pg
-	QMAKE_LFLAGS_DEBUG   += -pg
+#	QMAKE_CXXFLAGS_DEBUG += -pg
+#	QMAKE_LFLAGS_DEBUG   += -pg
 }
 win32 {
 	PLATFORM_NAME = "win32"
