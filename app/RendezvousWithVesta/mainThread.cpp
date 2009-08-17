@@ -35,7 +35,7 @@ CustomIntegrator::CustomIntegrator(const MainThread * mt) :
   IntegratorRadau(),
   mainThread(mt) {
   // ORSA_DEBUG("update accuracy!");
-  _accuracy = 1.0e-4;
+  _accuracy = 1.0e-6;
   connect(this,
 	  SIGNAL(progress(int)),
 	  mainThread,
@@ -354,42 +354,65 @@ void MainThread::run() {
       }
       // mass dist.
       osg::ref_ptr<orsa::MassDistribution> massDistribution;
-      {
-	const double totalMass = vestaMass.getRef();
-	// UPDATE this when changing shape...
-	const double volume = FromUnits(7.9e7,Unit::KM,3); 
-	const double meanDensity = totalMass/volume;
-	ComboMassDistribution::MassDistributionType mdt = 
-	  vestaMassDistribution.getRef();
-	if (mdt == ComboMassDistribution::mdt_core) {
-	  
-	  const orsa::Vector coreCenter = orsa::Vector(orsa::FromUnits(  50.0,orsa::Unit::KM),
-						       orsa::FromUnits(   0.0,orsa::Unit::KM),
-						       orsa::FromUnits(   0.0,orsa::Unit::KM));
-	  //
-	  const double   coreDensity = FromUnits(FromUnits(8.0,Unit::GRAM),Unit::CM,-3);
-	  const double mantleDensity = FromUnits(FromUnits(3.0,Unit::GRAM),Unit::CM,-3);
-	  //
-	  const double    coreRadius = cbrt((3.0/(4.0*pi()))*volume*(meanDensity-mantleDensity)/(coreDensity-mantleDensity));
-	  //
-	  ORSA_DEBUG("core radius: %f km",FromUnits(coreRadius,Unit::KM,-1));
-	  //
-	  massDistribution = new orsa::SphericalCorePlusMantleMassDistribution(coreCenter,
-									       coreRadius,
-									       coreDensity,
-									       mantleDensity);
-	  
-	} else {
-	  massDistribution = new orsa::UniformMassDistribution;
-	}
-	
-      }
+      
+      ComboMassDistribution::MassDistributionType mdt = 
+	vestaMassDistribution.getRef();
+      
+      /* const orsa::Vector coreCenter = 
+	 (mdt == ComboMassDistribution::mdt_core) ?
+	 orsa::Vector(orsa::FromUnits(-0.071,orsa::Unit::KM),
+	 orsa::FromUnits(-1.067,orsa::Unit::KM),
+	 orsa::FromUnits( 8.487,orsa::Unit::KM)) :	
+	 orsa::Vector(0,0,0);
+      */
       //
+      const orsa::Vector coreCenter = 
+	(mdt == ComboMassDistribution::mdt_core) ?
+	orsa::Vector(orsa::FromUnits(-0.071 + 50.0,orsa::Unit::KM),
+		     orsa::FromUnits(-1.067,orsa::Unit::KM),
+		     orsa::FromUnits( 8.487,orsa::Unit::KM)) :	
+	orsa::Vector(0,0,0);
+      
+      const double totalMass = vestaMass.getRef();
+      
+      // UPDATE this when changing shape...
+      double volume = FromUnits(7.875e7,Unit::KM,3); 
+      
+      const double meanDensity = totalMass/volume;
+      
+      const double   coreDensity =
+	(mdt == ComboMassDistribution::mdt_core) ?
+	FromUnits(FromUnits(7.9,Unit::GRAM),Unit::CM,-3) :
+	meanDensity;
+      
+      const double mantleDensity =
+	(mdt == ComboMassDistribution::mdt_core) ?
+	FromUnits(FromUnits(3.12,Unit::GRAM),Unit::CM,-3) :
+	meanDensity;
+       
+      const double    coreRadius =
+	(mdt == ComboMassDistribution::mdt_core) ?
+	cbrt((3.0/(4.0*pi()))*volume*(meanDensity-mantleDensity)/(coreDensity-mantleDensity)) :
+	0.0;
+      
+      ORSA_DEBUG("core radius: %f km",FromUnits(coreRadius,Unit::KM,-1));
+      
+      if (mdt == ComboMassDistribution::mdt_core) {
+	massDistribution = new orsa::SphericalCorePlusMantleMassDistribution(coreCenter,
+									     coreRadius,
+									     coreDensity,
+									     mantleDensity);
+      } else {
+	massDistribution = new orsa::UniformMassDistribution;
+      }
+      
+      
       const unsigned int order = 4;
       const unsigned int N = 10000;
       const int randomSeed = 95231;
       //
-      double volume;
+#warning fix the problem of computing volume after it is actually needed...
+      // double volume;
       orsa::Vector centerOfMass;
       orsa::Matrix shapeToLocal;
       orsa::Matrix localToShape;
@@ -407,6 +430,8 @@ void MainThread::run() {
 				     N,
 				     randomSeed);
       
+      ORSA_DEBUG("volume: %g",volume);
+      
       orsa::print(shapeToLocal);
       orsa::print(localToShape);
       
@@ -417,32 +442,30 @@ void MainThread::run() {
 	orsa::convert(C, S, norm_C, norm_S, J,
 		      paulMoment, 
 		      FromUnits(300,orsa::Unit::KM));
-	/* for (unsigned int l=0; l<=order; ++l) {
-	   for (unsigned int m=0; m<=l; ++m) {
-	   // LaTeX Tabular style
-	   ORSA_DEBUG("%i & %i & $%+10.0f$ & $%+10.0f$ \\",l,m,1e6*norm_C[l][m],1e6*norm_S[l][m]);
-	   }
-	   }
-	   for (unsigned int l=2; l<=order; ++l) {
-	   // J_l is minus C_l0, where C_l0 is not normalized
-	   ORSA_DEBUG("J_%i = $%+10.0f$",l,-(1e6*C[l][0]));
-	   }
-	*/
-	ORSA_DEBUG("$x_{0}$  & $%+9.3f$ \\\\",orsa::FromUnits(centerOfMass.getX(),orsa::Unit::KM,-1));
-	ORSA_DEBUG("$y_{0}$  & $%+9.3f$ \\\\",orsa::FromUnits(centerOfMass.getY(),orsa::Unit::KM,-1));
-	ORSA_DEBUG("$z_{0}$  & $%+9.3f$ \\\\",orsa::FromUnits(centerOfMass.getZ(),orsa::Unit::KM,-1));
+	
+	ORSA_DEBUG("$\\rho_{m}$ & $%9.3f$ \\\\",orsa::FromUnits(orsa::FromUnits(mantleDensity,orsa::Unit::GRAM,-1),orsa::Unit::CM,3));
+	ORSA_DEBUG("$\\rho_{c}$ & $%9.3f$ \\\\",orsa::FromUnits(orsa::FromUnits(  coreDensity,orsa::Unit::GRAM,-1),orsa::Unit::CM,3));
+	ORSA_DEBUG("$R_{c}$    & $%9.3f$ \\\\",orsa::FromUnits(coreRadius,orsa::Unit::KM,-1));
+	ORSA_DEBUG("\%\\hline");
+	ORSA_DEBUG("$x_{c}$    & $%+9.3f$ \\\\",orsa::FromUnits(coreCenter.getX(),orsa::Unit::KM,-1));
+	ORSA_DEBUG("$y_{c}$    & $%+9.3f$ \\\\",orsa::FromUnits(coreCenter.getY(),orsa::Unit::KM,-1));
+	ORSA_DEBUG("$z_{c}$    & $%+9.3f$ \\\\",orsa::FromUnits(coreCenter.getZ(),orsa::Unit::KM,-1));
 	ORSA_DEBUG("\\hline");
+	ORSA_DEBUG("$x_{0}$    & $%+9.3f$ \\\\",orsa::FromUnits(centerOfMass.getX(),orsa::Unit::KM,-1));
+	ORSA_DEBUG("$y_{0}$    & $%+9.3f$ \\\\",orsa::FromUnits(centerOfMass.getY(),orsa::Unit::KM,-1));
+	ORSA_DEBUG("$z_{0}$    & $%+9.3f$ \\\\",orsa::FromUnits(centerOfMass.getZ(),orsa::Unit::KM,-1));
+	ORSA_DEBUG("\%\\hline");
 	for (unsigned int l=2; l<=order; ++l) {
 	  // J_l is minus C_l0, where C_l0 is not normalized
-	  ORSA_DEBUG("$J_{%i}$  & $%+9.6f$ \\\\",l,-C[l][0]);
+	  ORSA_DEBUG("$J_{%i}$    & $%+9.6f$ \\\\",l,-C[l][0]);
 	}
-	ORSA_DEBUG("\\hline");
+	ORSA_DEBUG("\%\\hline");
 	for (unsigned int l=2; l<=order; ++l) {
 	  for (unsigned int m=0; m<=l; ++m) {
 	    // LaTeX Tabular style
-	    ORSA_DEBUG("$C_{%i%i}$ & $%+9.6f$ \\\\",l,m,norm_C[l][m]);
+	    ORSA_DEBUG("$C_{%i%i}$   & $%+9.6f$ \\\\",l,m,norm_C[l][m]);
 	    if (m!=0) {
-	      ORSA_DEBUG("$S_{%i%i}$ & $%+9.6f$ \\\\",l,m,norm_S[l][m]);
+	      ORSA_DEBUG("$S_{%i%i}$   & $%+9.6f$ \\\\",l,m,norm_S[l][m]);
 	    }
 	  }
 	}
