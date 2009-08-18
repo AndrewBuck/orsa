@@ -493,12 +493,11 @@ orsa::BodyGroup * run() {
     // SRP
     ORSA_DEBUG("**** SRP ****");
     const double solarRadiationPressure_B = 25.0; // MKS, kg/m^2
-    /* dawn->propulsion = new SolarRadiationPressure(dawn_mass,
-       solarRadiationPressure_B,
-       bg,
-       sun.get(),
-       dawn.get());
-    */
+    dawn->propulsion = new SolarRadiationPressure(dawn_mass,
+						  solarRadiationPressure_B,
+						  bg,
+						  sun.get(),
+						  dawn.get());
     
     // test
     // ORSA_DEBUG("========= DAWN time: %.6f",ibps.time.getRef().get_d());
