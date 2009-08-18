@@ -341,7 +341,7 @@ RendezvousWithVestaWidget::RendezvousWithVestaWidget() : QWidget(0) {
 
 void RendezvousWithVestaWidget::reset() {
 
-  lineVestaMass->setText("2.71e20");
+  lineVestaMass->setText("2.685041251213e20");
   comboMassDistribution->setCurrentIndex((int)ComboMassDistribution::mdt_uniform);
   comboShapeModel->setCurrentIndex((int)ComboShapeModel::smt_thomas);
   // lineVestaPeriod->setText("5.3424");
