@@ -53,6 +53,39 @@ namespace orsa {
     const double R2, dC, dM;
   };
   
+  // all in "shape" coordinates
+  class MultipleSphericalFragmentsPlusMantleMassDistribution : public MassDistribution {
+  public:
+    class VRD {
+    public:
+      orsa::Vector v; // fragment center
+      double       r; // fragment radius
+      double       d; // fragment density
+    };
+  public:
+    MultipleSphericalFragmentsPlusMantleMassDistribution(const std::vector<VRD> & vrd_in,
+							 const double & mantleDensity) :
+      MassDistribution(),
+      vrd(vrd_in),
+      dM(mantleDensity) { }
+  protected:
+    ~MultipleSphericalFragmentsPlusMantleMassDistribution() { }
+  public:
+    double density(const Vector & v) const {
+      std::vector<VRD>::const_iterator it = vrd.begin();
+      while (it != vrd.end()) {
+	if (((*it).v-v).lengthSquared() < orsa::square((*it).r)) {
+	  return (*it).d;
+	} 
+	++it;
+      }
+      return dM;
+    }
+  protected:
+    const std::vector<VRD> vrd;
+    const double dM;
+  };
+  
 }; // namespace orsa
 
 #endif // _ORSA_MASS_DISTRIBUTION_H_
