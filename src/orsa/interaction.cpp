@@ -428,7 +428,10 @@ bool Interaction::acceleration(InteractionVector & a,
 	    ORSA_WARNING("skipping: zero distance between bodies [%s] and [%s]",
 			 ref_b->getName().c_str(),
 			 b->getName().c_str());
-	    
+	    ORSA_DEBUG("[%s] position:",b->getName().c_str());
+	    orsa::print(b_ibps.translational->position());
+	    ORSA_DEBUG("[%s] position:",ref_b->getName().c_str());
+	    orsa::print(ref_b_ibps.translational->position());
 	  }
 	  
 	  /* 
