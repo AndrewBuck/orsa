@@ -207,8 +207,8 @@ class CustomIntegrator : public orsa::IntegratorRadau {
       precNodeTime = t;
       //
       ORSA_DEBUG(
-		 /*    1      2      3     4      5      6      7      8      9     10     11     12     13     14      15     16     17     18 */
-		 "%15.5f %14.3f %12.6f %8.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %12.6f %12.6f %+12.9e %12.6f %12.6f %12.6f\n",
+		 /*    1      2      3     4      5      6      7      8      9     10     11     12     13     14      15     16     17     18     19 */
+		 "%15.5f %14.3f %12.6f %8.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %12.6f %12.6f %+12.9e %12.6f %12.6f %12.6f\n",
 		 orsaSolarSystem::timeToJulian(t),
 		 FromUnits((t-t0).get_d(),orsa::Unit::SECOND,-1),
 		 FromUnits(orbit_norot.a,orsa::Unit::KM,-1),
@@ -217,6 +217,7 @@ class CustomIntegrator : public orsa::IntegratorRadau {
 		 orsa::radToDeg()*orbit_norot.omega_node,
 		 orsa::radToDeg()*orbit_norot.omega_pericenter,  
 		 orsa::radToDeg()*orbit_norot.M,
+		 orsa::FromUnits(orbit_norot.period(),orsa::Unit::HOUR,-1),
 		 orsa::radToDeg()*orbitPhaseAngle,
 		 orsa::radToDeg()*realPhaseAngle,
 		 orsa::radToDeg()*latitude,

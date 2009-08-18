@@ -421,7 +421,7 @@ bool TriShape::rayIntersection(orsa::Vector & intersectionPoint,
 			       const orsa::Vector & u,
 			       const bool fullLine) const {
   for (unsigned int j=0; j<_face.size(); ++j) {
-    // ORSA_DEBUG("considering face %i / %i",j,_face.size())
+    // ORSA_DEBUG("considering face %i / %i",j,_face.size());
     const TriIndex & t = _face[j];
     if (rayIntersectsTriangle(intersectionPoint,
 			      P,

@@ -236,7 +236,7 @@ orsa::BodyGroup * run() {
       FromUnits(FromUnits(3.12,Unit::GRAM),Unit::CM,-3);
     
     orsa::Vector coreCenter = 
-      orsa::Vector(orsa::FromUnits(-0.071 + 50.0,orsa::Unit::KM),
+      orsa::Vector(orsa::FromUnits(-0.071,orsa::Unit::KM),
 		   orsa::FromUnits(-1.067,orsa::Unit::KM),
 		   orsa::FromUnits( 8.487,orsa::Unit::KM));
     
@@ -247,7 +247,7 @@ orsa::BodyGroup * run() {
     double    coreRadius =
       cbrt((3.0/(4.0*pi()))*volume*(meanDensity-mantleDensity)/(coreDensity-mantleDensity));
     
-    if (1) {
+    if (0) {
       
       // CORE + MANTLE
       
@@ -262,8 +262,9 @@ orsa::BodyGroup * run() {
       
       double coreVolume = 4*orsa::pi()/3.0*orsa::cube(coreRadius);
       
-      const double fragmentRadius = orsa::FromUnits(10.0,orsa::Unit::KM);
-      const double fragmentVolume = 4*orsa::pi()/3.0*orsa::cube(fragmentRadius);
+      const double fragmentRadius  = orsa::FromUnits(10.0,orsa::Unit::KM);
+      const double fragmentVolume  = 4*orsa::pi()/3.0*orsa::cube(fragmentRadius);
+      const double fragmentDensity = coreDensity;
       
       coreVolume -= 8*fragmentVolume;
       
@@ -271,8 +272,53 @@ orsa::BodyGroup * run() {
       coreRadius =
 	cbrt((3.0/(4.0*pi()))*coreVolume);
       
-#warning COMPLETE HERE!
-      // use MultipleSphericalFragmentsPlusMantleMassDistribution
+      std::vector<orsa::MultipleSphericalFragmentsPlusMantleMassDistribution::VRD> data;
+      
+      orsa::MultipleSphericalFragmentsPlusMantleMassDistribution::VRD vrd;
+      
+      // first the core
+      vrd.v = coreCenter;
+      vrd.r = coreRadius;
+      vrd.d = coreDensity;
+      data.push_back(vrd);
+      //
+      // now the fragments
+      const unsigned int nfrag=8;
+      const double delta_phi = orsa::twopi()/nfrag;
+      // eps to avoid grid alignments
+      const double eps_phi = 0.1*orsa::degToRad();
+      for (unsigned int k=0; k<nfrag; ++k) {
+	const orsa::Vector P = 
+	  orsa::FromUnits(1000.0,orsa::Unit::KM) * 
+	  orsa::Vector(cos(k*delta_phi+eps_phi),
+		       sin(k*delta_phi+eps_phi),
+		       0.01);
+	orsa::Vector intersectionPoint;
+	orsa::Vector normal;
+	if (!shape->rayIntersection(intersectionPoint,
+				    normal,
+				    P,
+				    (-P).normalized(),
+				    false)) {
+	  ORSA_DEBUG("problems...");
+	} 
+	const double l = intersectionPoint.length();
+	vrd.v = intersectionPoint.normalized()*(l-1.01*fragmentRadius);
+	vrd.r = fragmentRadius;
+	vrd.d = fragmentDensity;
+	data.push_back(vrd);
+	
+	// debug
+	ORSA_DEBUG("=========");
+	orsa::print(k);
+   	orsa::print(P);
+   	orsa::print(intersectionPoint);
+   	orsa::print(vrd.v);
+    	orsa::print(vrd.r);
+    	orsa::print(vrd.d);
+      }
+      
+      massDistribution = new orsa::MultipleSphericalFragmentsPlusMantleMassDistribution(data,mantleDensity);
       
     } else {
       
@@ -289,7 +335,7 @@ orsa::BodyGroup * run() {
     }
     
     const unsigned int order = 4;
-    const unsigned int N = 10000;
+    const unsigned int N = 100000000;
     const int randomSeed = 95231;
     //
 #warning fix the problem of computing volume after it is actually needed...
@@ -527,7 +573,7 @@ orsa::BodyGroup * run() {
   }
   
   
-  const double integrationAccuracy = 1.0e-6;
+  const double integrationAccuracy = 1.0e-9;
   
   const orsa::Time duration = orsa::Time(0,1,0,0,0);
   const orsa::Time samplingPeriod = orsa::Time(0,0,0,10,0);  
