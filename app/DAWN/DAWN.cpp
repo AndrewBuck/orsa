@@ -258,6 +258,22 @@ orsa::BodyGroup * run() {
 									   coreRadius,
 									   coreDensity,
 									   mantleDensity);
+    } else if (0) {
+      
+      double coreVolume = 4*orsa::pi()/3.0*orsa::cube(coreRadius);
+      
+      const double fragmentRadius = orsa::FromUnits(10.0,orsa::Unit::KM);
+      const double fragmentVolume = 4*orsa::pi()/3.0*orsa::cube(fragmentRadius);
+      
+      coreVolume -= 8*fragmentVolume;
+      
+      // updated core radius
+      coreRadius =
+	cbrt((3.0/(4.0*pi()))*coreVolume);
+      
+#warning COMPLETE HERE!
+      // use MultipleSphericalFragmentsPlusMantleMassDistribution
+      
     } else {
       
       // Uniform mass distribution
@@ -295,7 +311,7 @@ orsa::BodyGroup * run() {
 				   N,
 				   randomSeed);
     
-    ORSA_DEBUG("volume: %g",volume);
+    ORSA_DEBUG("volume: %.12e",volume);
     
     orsa::print(shapeToLocal);
     orsa::print(localToShape);
