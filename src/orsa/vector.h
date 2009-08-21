@@ -117,24 +117,7 @@ namespace orsa {
     }
     
     // metrics
-    /* 
-       double length() const {
-       return sqrt( (_x*_x) +
-       (_y*_y) +
-       (_z*_z) );
-       }
-    */
-    //
-    const double & length() const;
-    
-    /* 
-       double lengthSquared() const {
-       return ( (_x*_x) +
-       (_y*_y) +
-       (_z*_z) );
-       }
-    */
-    //    
+    const double & length() const;    
     const double & lengthSquared() const;
     
     double manhattanLength() const {
