@@ -135,7 +135,6 @@ bool orsa::matrixToEulerAngles(double       & psi,
   
   // const orsa::Matrix l2g = localToGlobal(t);
   
-  // const double sinTheta = sqrt(1-int_pow(m.getM33(),2));
   const double cosTheta = m.getM33();
   
   // if (fabs(sinTheta) > epsilon()) {
@@ -249,7 +248,19 @@ orsa::Quaternion orsa::MatrixToQuaternion (const orsa::Matrix & m) {
   
   // From Sec. 7.9 of Quaternions book bu J.B. Kuipers
   
-  const double q0 = sqrt(m.getM11()+m.getM22()+m.getM33()+1)/2;
+  // const double q0 = sqrt(m.getM11()+m.getM22()+m.getM33()+1)/2;
+  //
+  // prevent sqrt() of negative
+  double tmp_q0;
+  const double m3p1 = m.getM11()+m.getM22()+m.getM33()+1;
+  if (m3p1 >= 0) {
+    tmp_q0 = sqrt(m3p1)/2;
+  } else {
+    ORSA_DEBUG("catched sqrt() of negative argument: sqrt(%g)",m3p1);
+    tmp_q0 = 0;
+  }
+  //
+  const double q0 = tmp_q0;
   
   const double q1 = (m.getM23()-m.getM32())/(4*q0);
   const double q2 = (m.getM31()-m.getM13())/(4*q0);
@@ -309,6 +320,10 @@ orsa::Matrix orsa::globalToLocal(const orsa::Body       * b,
 
 double orsa::asteroidDiameter(const double & p, 
 			      const double & H) {
+  if (p<0) {
+    ORSA_ERROR("negative albedo");
+    return 0;
+  }
   return orsa::FromUnits(1329,orsa::Unit::KM)*pow(10,-0.2*H)/sqrt(p);
 }
 
@@ -546,7 +561,6 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
     
 #warning invert??
     ORSA_DEBUG("invert??");
-    // if (!rotatedRun) {
     orsa::principalAxis(localToShape,
 			inertiaMatrix,
 			inertiaMatrix);
@@ -564,15 +578,11 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
       localToShape  = rot*localToShape;
       //
       // this is not really needed, inertiaMatrix is diagonal anyway
-      // inertiaMatrix = rot*inertiaMatrix*rot; // one should me the transposed of rot, but it is symmetric anyway
+      // inertiaMatrix = rot*inertiaMatrix*rot; // one should be the transposed of rot, but it is symmetric anyway
     }
     //
     orsa::Matrix::invert(localToShape,shapeToLocal);
-    // }
     
-    /* if (rotatedRun) break;
-       rotatedRun = true;
-    */
   }
   
 }

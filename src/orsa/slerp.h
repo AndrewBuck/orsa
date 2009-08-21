@@ -40,6 +40,7 @@ namespace orsa {
       // update derived vars
       _period = (_t1 - _t0).get_d();
       //
+      if (fabs(_q0.getVector()*_q1.getVector()) > 1) { ORSA_ERROR("acos() argument larger than 1 or smaller than -1"); }
       _Omega = acos(_q0.getVector()*_q1.getVector());
       //
       // _oneOverSinOmega = 1/sin(_Omega);

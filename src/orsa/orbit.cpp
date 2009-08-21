@@ -288,6 +288,7 @@ bool Orbit::compute(const orsa::Vector & relative_position,
       tmpf = (a+r)/(a*e);
       if (tmpf < 1) tmpf = 1;
       
+      if (tmpf+sqrt(tmpf*tmpf-1)<0) { ORSA_ERROR("log of negative!"); }
       capf = log(tmpf+sqrt(tmpf*tmpf-1));
       
       if (vdotr < 0) capf = -capf;
@@ -304,6 +305,7 @@ bool Orbit::compute(const orsa::Vector & relative_position,
       w = acos(2*tmpf/r - 1);
       if (vdotr < 0) w = twopi() - w;
       tmpf = (a+r)/(a*e);
+      if (tmpf+sqrt(tmpf*tmpf-1)<0) { ORSA_ERROR("log of negative!"); }
       capf = log(tmpf+sqrt(tmpf*tmpf-1));
     }
     
@@ -489,9 +491,11 @@ bool Orbit::relativePosVel(Vector & relativePosition, Vector & relativeVelocity)
     // begin with a guess proposed by Danby	
     if (local_M < 0) {
       tmp = -2*local_M/e + 1.8;
+      if (tmp<0) { ORSA_ERROR("log of negative!"); }
       x = -log(tmp);
     } else {
       tmp = +2*local_M/e + 1.8;
+      if (tmp<0) { ORSA_ERROR("log of negative!"); }
       x =  log(tmp);
     }
     
