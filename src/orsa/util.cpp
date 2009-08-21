@@ -618,23 +618,24 @@ orsa::PaulMoment * orsa::computePaulMoment(const unsigned int order,
 	    pm->setM(stat->average(),i,j,k);
 	    pm->setM_uncertainty(stat->averageError(),i,j,k);
 	    
-	    if (1) {
-	      // debug output
-	      const double  M = stat->average();
-	      const double dM = stat->averageError();
-	      //
-	      const double largest = std::max(fabs(M),fabs(dM));
-	      //
-	      const int    p10 = floor(log10(largest));
-	      const double d10 = exp10(p10);
-	      //
-	      const double  M10 =  M/d10;
-	      const double dM10 = dM/d10;
-	      //
-	      ORSA_DEBUG("M[%i][%i][%i] = (%+f +/- %f) x 10^%i",
-			 i,j,k,M10,dM10,p10);
-	    }
-	    
+	    /* 
+	       if (1) {
+	       // debug output
+	       const double  M = stat->average();
+	       const double dM = stat->averageError();
+	       //
+	       const double largest = std::max(fabs(M),fabs(dM));
+	       //
+	       const int    p10 = floor(log10(largest));
+	       const double d10 = exp10(p10);
+	       //
+	       const double  M10 =  M/d10;
+	       const double dM10 = dM/d10;
+	       //
+	       ORSA_DEBUG("M[%i][%i][%i] = (%+f +/- %f) x 10^%i",
+	       i,j,k,M10,dM10,p10);
+	       }
+	    */
 	  }
 	}
       }
