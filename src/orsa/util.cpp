@@ -559,29 +559,27 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
        }
     */
     
-#warning invert??
-    ORSA_DEBUG("invert??");
-    orsa::principalAxis(localToShape,
+    orsa::principalAxis(shapeToLocal,
 			inertiaMatrix,
 			inertiaMatrix);
     
     // correct, in case some of the axes got reflected
     {
-      const double rot_11 = (localToShape*orsa::Vector(1,0,0)*orsa::Vector(1,0,0) < 0) ? -1 : 1;
-      const double rot_22 = (localToShape*orsa::Vector(0,1,0)*orsa::Vector(0,1,0) < 0) ? -1 : 1;
-      const double rot_33 = (localToShape*orsa::Vector(0,0,1)*orsa::Vector(0,0,1) < 0) ? -1 : 1;
+      const double rot_11 = (shapeToLocal*orsa::Vector(1,0,0)*orsa::Vector(1,0,0) < 0) ? -1 : 1;
+      const double rot_22 = (shapeToLocal*orsa::Vector(0,1,0)*orsa::Vector(0,1,0) < 0) ? -1 : 1;
+      const double rot_33 = (shapeToLocal*orsa::Vector(0,0,1)*orsa::Vector(0,0,1) < 0) ? -1 : 1;
       const orsa::Matrix rot(rot_11,0,0,
 			     0,rot_22,0,
 			     0,0,rot_33);
       // orsa::print(rot);
       //
-      localToShape  = rot*localToShape;
+      shapeToLocal = rot*shapeToLocal;
       //
       // this is not really needed, inertiaMatrix is diagonal anyway
       // inertiaMatrix = rot*inertiaMatrix*rot; // one should be the transposed of rot, but it is symmetric anyway
     }
     //
-    orsa::Matrix::invert(localToShape,shapeToLocal);
+    orsa::Matrix::invert(shapeToLocal,localToShape);
     
   }
   
