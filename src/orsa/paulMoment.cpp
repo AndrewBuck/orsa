@@ -33,9 +33,9 @@ PaulMoment::PaulMoment(const unsigned int n) : osg::Referenced(true), order(n) {
   }
 }
 
-const double PaulMoment::M (const int i,
-			    const int j, 
-			    const int k) const {
+double PaulMoment::M (const int i,
+		      const int j, 
+		      const int k) const {
   if ( (i<0) || (j<0) || (k<0) || (i+j+k > (int)order) ) { 
     // ORSA_ERROR("index out of range [i:%i;j:%i;k:%i]",i,j,k);
     return 0; 
@@ -44,9 +44,9 @@ const double PaulMoment::M (const int i,
   }
 }
 
-const double PaulMoment::M_uncertainty (const int i,
-					const int j, 
-					const int k) const {
+double PaulMoment::M_uncertainty (const int i,
+				  const int j, 
+				  const int k) const {
   if ( (i<0) || (j<0) || (k<0) || (i+j+k > (int)order) ) { 
     // ORSA_ERROR("index out of range [i:%i;j:%i;k:%i]",i,j,k);
     return 0;

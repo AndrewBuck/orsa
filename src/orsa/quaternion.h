@@ -80,11 +80,11 @@ namespace orsa {
     
     // length
   public:
-    const double length() const {
+    double length() const {
       return sqrt(lengthSquared());
     }
   public:
-    const double lengthSquared() const {
+    double lengthSquared() const {
       return (_s*_s + _v.lengthSquared());
     }
     

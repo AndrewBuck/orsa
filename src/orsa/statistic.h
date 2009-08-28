@@ -180,7 +180,7 @@ namespace orsa {
       _dirty = true;
     }
   public:
-    const size_t getLength() const {
+    size_t getLength() const {
       return _v.size();
     } 
     
@@ -200,12 +200,12 @@ namespace orsa {
     }
     
   public:
-    const size_t size() const {
+    size_t size() const {
       _checkDirty();
       return (size_t)(_stat->entries().get_ui());
     }  
   public:
-    const bool isFull() const {
+    bool isFull() const {
       _checkDirty();
       return (size()==_v.size());
     } 

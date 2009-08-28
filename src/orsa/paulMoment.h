@@ -22,8 +22,8 @@ namespace orsa {
     virtual ~PaulMoment() { } 
     
   public:
-    const double M (const int i, const int j, const int k) const;
-    const double M_uncertainty (const int i, const int j, const int k) const;
+    double M (const int i, const int j, const int k) const;
+    double M_uncertainty (const int i, const int j, const int k) const;
   public:
     void setM (const double & val, const int i, const int j, const int k);
     void setM_uncertainty (const double & val, const int i, const int j, const int k);

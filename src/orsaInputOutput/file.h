@@ -9,6 +9,7 @@
 #include <string>
 
 #include <errno.h>
+#include <string.h>
 
 #include <orsa/cache.h>
 #include <orsa/debug.h>

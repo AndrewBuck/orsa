@@ -28,7 +28,7 @@ namespace orsa {
       SHAPE_ELLIPSOID
     };
   public:
-    virtual const ShapeType getType() const = 0;
+    virtual ShapeType getType() const = 0;
     
     /* 
        public:
@@ -134,11 +134,11 @@ namespace orsa {
 	_j(j),
 	_k(k) { }
     public:
-      const unsigned int i() const { return _i; }
+      unsigned int i() const { return _i; }
     public:
-      const unsigned int j() const { return _j; }
+      unsigned int j() const { return _j; }
     public:
-      const unsigned int k() const { return _k; }
+      unsigned int k() const { return _k; }
     protected:
       unsigned int _i, _j, _k;
     };
@@ -165,7 +165,7 @@ namespace orsa {
     ~TriShape() { }
     
   public:
-    const ShapeType getType() const {
+    ShapeType getType() const {
       return SHAPE_TRI;
     }
     
@@ -267,7 +267,7 @@ namespace orsa {
     ~LatLonShape() { }
     
   public:
-    const ShapeType getType() const {
+    ShapeType getType() const {
       return SHAPE_LATLON;
     }
     
@@ -325,7 +325,7 @@ namespace orsa {
     ~EllipsoidShape() { }
     
   public:
-    const ShapeType getType() const {
+    ShapeType getType() const {
       return SHAPE_ELLIPSOID;
     }
     

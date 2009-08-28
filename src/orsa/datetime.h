@@ -97,29 +97,29 @@ namespace orsa {
     }
 
   public:
-    inline const bool operator < (const Time & rhs) const {
+    inline bool operator < (const Time & rhs) const {
       return (_mu_sec < rhs._mu_sec);
     }
   public:
-    inline const bool operator <= (const Time & rhs) const {
+    inline bool operator <= (const Time & rhs) const {
       return (_mu_sec <= rhs._mu_sec);
     }
-    inline const bool operator > (const Time & rhs) const {
+    inline bool operator > (const Time & rhs) const {
       return (_mu_sec > rhs._mu_sec);
     }
   public:
-    inline const bool operator >= (const Time & rhs) const {
+    inline bool operator >= (const Time & rhs) const {
       return (_mu_sec >= rhs._mu_sec);
     }
   public:
-    inline const bool operator == (const Time & rhs) const {
+    inline bool operator == (const Time & rhs) const {
       return (_mu_sec == rhs._mu_sec);
     }
   public:
-    inline const bool operator != (const Time & rhs) const {
+    inline bool operator != (const Time & rhs) const {
       return (_mu_sec != rhs._mu_sec);
     }
-
+    
   protected:
     mpz_class _mu_sec;
   };

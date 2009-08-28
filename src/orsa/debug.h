@@ -55,7 +55,7 @@ namespace orsa {
 	return head;
       }
     public:
-      const bool headIsSet() const {
+      bool headIsSet() const {
 	return headSet;
       }
     protected:
@@ -72,7 +72,7 @@ namespace orsa {
 	return body;
       }
     public:
-      const bool bodyIsSet() const {
+      bool bodyIsSet() const {
 	return bodySet;
       }
     protected:

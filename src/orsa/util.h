@@ -52,7 +52,7 @@ namespace orsa {
        }
     */
     //
-    inline const double get(const int p) const {      
+    inline double get(const int p) const {      
       if (_data[p].isSet()) {
 	return _data[p].getRef();
       } else {
