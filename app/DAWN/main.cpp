@@ -8,6 +8,8 @@ int main(int argc, char ** argv) {
   //
   orsa::Debug::instance()->initTimer();
   
+  ORSA_DEBUG("process ID: %i",getpid());
+  
   osg::ref_ptr<orsa::BodyGroup> bg = run();
   
   if (!bg.get()) {

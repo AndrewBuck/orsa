@@ -216,122 +216,230 @@ orsa::BodyGroup * run() {
     //
     orsa::IBPS ibps;
     
-    osg::ref_ptr<orsa::Shape> shape;
+    enum SCENARIO {UNIFORM,
+		   CM0,
+		   CMX10,
+		   CMX20,
+		   CMX30,
+		   CMX40,
+		   CMX50,
+		   CMZ,
+		   CFM0,
+		   CFMZ};
+    
+    // choose one
+    const SCENARIO scenario = UNIFORM;
+    
     osg::ref_ptr<VestaShape> vestaShapeThomas = new VestaShape;
     if (!vestaShapeThomas->read("vesta_thomas.dat")) {
       ORSA_ERROR("problems encountered while reading shape file...");
     }
-    shape = vestaShapeThomas.get();
+    
+    osg::ref_ptr<orsa::Shape> shape = vestaShapeThomas.get();
     
     // mass dist.
     osg::ref_ptr<orsa::MassDistribution> massDistribution;
     
     // UPDATE this when changing shape...
-    double volume = FromUnits(7.875e7,Unit::KM,3); 
+    // double volume = FromUnits(7.875e7,Unit::KM,3); 
+    double volume = 7.871695441361e+16; // m^3
     
+    // default value
     double   coreDensity =
       FromUnits(FromUnits(7.9,Unit::GRAM),Unit::CM,-3);
     
+    // default value
     double mantleDensity =
       FromUnits(FromUnits(3.12,Unit::GRAM),Unit::CM,-3);
-    
-    orsa::Vector coreCenter = 
-      orsa::Vector(orsa::FromUnits(-0.071,orsa::Unit::KM),
-		   orsa::FromUnits(-1.067,orsa::Unit::KM),
-		   orsa::FromUnits( 8.487,orsa::Unit::KM));
     
     const double totalMass = vestaMass;
     
     const double meanDensity = totalMass/volume;
     
+    const orsa::Vector CZ = 
+      orsa::Vector(orsa::FromUnits( 0.107,orsa::Unit::KM),
+		   orsa::FromUnits(-1.145,orsa::Unit::KM),
+		   orsa::FromUnits( 8.503,orsa::Unit::KM));
+    
+    orsa::Vector coreCenter;
+    
     double    coreRadius =
       cbrt((3.0/(4.0*pi()))*volume*(meanDensity-mantleDensity)/(coreDensity-mantleDensity));
     
-    if (0) {
-      
-      // CORE + MANTLE
-      
-      ORSA_DEBUG("core radius: %f km",FromUnits(coreRadius,Unit::KM,-1));
-      
-      // Choose one:
+    switch (scenario) {
+    case UNIFORM:
+      ORSA_DEBUG("SCENARIO: UNIFORM");
+      coreDensity = mantleDensity = meanDensity;
+      coreCenter  = orsa::Vector(0,0,0);
+      coreRadius  = 0.0;
+      massDistribution = new orsa::UniformMassDistribution;
+      break;
+    case CM0:	
+      ORSA_DEBUG("SCENARIO: CM0");
+      coreCenter       = orsa::Vector(0,0,0);
       massDistribution = new orsa::SphericalCorePlusMantleMassDistribution(coreCenter,
 									   coreRadius,
 									   coreDensity,
 									   mantleDensity);
-    } else if (0) {
+      break;
+    case CMX10:
+      ORSA_DEBUG("SCENARIO: CMX10");
+      coreCenter       = orsa::Vector(orsa::FromUnits(10.0,orsa::Unit::KM),0,0);
+      massDistribution = new orsa::SphericalCorePlusMantleMassDistribution(coreCenter,
+									   coreRadius,
+									   coreDensity,
+									   mantleDensity);
+      break;
+    case CMX20:
+      ORSA_DEBUG("SCENARIO: CMX20");
+      coreCenter       = orsa::Vector(orsa::FromUnits(20.0,orsa::Unit::KM),0,0);
+      massDistribution = new orsa::SphericalCorePlusMantleMassDistribution(coreCenter,
+									   coreRadius,
+									   coreDensity,
+									   mantleDensity);
       
-      double coreVolume = 4*orsa::pi()/3.0*orsa::cube(coreRadius);
+      break;
+    case CMX30:
+      ORSA_DEBUG("SCENARIO: CMX30");
+      coreCenter       = orsa::Vector(orsa::FromUnits(30.0,orsa::Unit::KM),0,0);
+      massDistribution = new orsa::SphericalCorePlusMantleMassDistribution(coreCenter,
+									   coreRadius,
+									   coreDensity,
+									   mantleDensity);
       
-      const double fragmentRadius  = orsa::FromUnits(10.0,orsa::Unit::KM);
-      const double fragmentVolume  = 4*orsa::pi()/3.0*orsa::cube(fragmentRadius);
-      const double fragmentDensity = coreDensity;
+      break;
+    case CMX40:
+      ORSA_DEBUG("SCENARIO: CMX40");
+      coreCenter       = orsa::Vector(orsa::FromUnits(40.0,orsa::Unit::KM),0,0);
+      massDistribution = new orsa::SphericalCorePlusMantleMassDistribution(coreCenter,
+									   coreRadius,
+									   coreDensity,
+									   mantleDensity);
       
-      coreVolume -= 8*fragmentVolume;
+      break;
+    case CMX50:
+      ORSA_DEBUG("SCENARIO: CMX50");
+      coreCenter       = orsa::Vector(orsa::FromUnits(50.0,orsa::Unit::KM),0,0);
+      massDistribution = new orsa::SphericalCorePlusMantleMassDistribution(coreCenter,
+									   coreRadius,
+									   coreDensity,
+									   mantleDensity);
       
-      // updated core radius
-      coreRadius =
-	cbrt((3.0/(4.0*pi()))*coreVolume);
-      
-      std::vector<orsa::MultipleSphericalFragmentsPlusMantleMassDistribution::VRD> data;
-      
-      orsa::MultipleSphericalFragmentsPlusMantleMassDistribution::VRD vrd;
-      
-      // first the core
-      vrd.v = coreCenter;
-      vrd.r = coreRadius;
-      vrd.d = coreDensity;
-      data.push_back(vrd);
-      //
-      // now the fragments
-      const unsigned int nfrag=8;
-      const double delta_phi = orsa::twopi()/nfrag;
-      // eps to avoid grid alignments
-      const double eps_phi = 0.1*orsa::degToRad();
-      for (unsigned int k=0; k<nfrag; ++k) {
-	const orsa::Vector P = 
-	  orsa::FromUnits(1000.0,orsa::Unit::KM) * 
-	  orsa::Vector(cos(k*delta_phi+eps_phi),
-		       sin(k*delta_phi+eps_phi),
-		       0.01);
-	orsa::Vector intersectionPoint;
-	orsa::Vector normal;
-	if (!shape->rayIntersection(intersectionPoint,
-				    normal,
-				    P,
-				    (-P).normalized(),
-				    false)) {
-	  ORSA_DEBUG("problems...");
-	} 
-	const double l = intersectionPoint.length();
-	vrd.v = intersectionPoint.normalized()*(l-1.01*fragmentRadius);
-	vrd.r = fragmentRadius;
-	vrd.d = fragmentDensity;
+      break;
+    case CMZ:
+      ORSA_DEBUG("SCENARIO: CMZ");
+      coreCenter       = CZ;
+      massDistribution = new orsa::SphericalCorePlusMantleMassDistribution(coreCenter,
+									   coreRadius,
+									   coreDensity,
+									   mantleDensity);
+      break;
+    case CFM0:
+      ORSA_DEBUG("SCENARIO: CFM0");
+      {
+	coreCenter       = orsa::Vector(0,0,0);
+	//
+	double coreVolume = 4*orsa::pi()/3.0*orsa::cube(coreRadius);
+	const double fragmentRadius  = orsa::FromUnits(10.0,orsa::Unit::KM);
+	const double fragmentVolume  = 4*orsa::pi()/3.0*orsa::cube(fragmentRadius);
+	const double fragmentDensity = coreDensity;
+	coreVolume -= 8*fragmentVolume;
+	// updated core radius
+	coreRadius =
+	  cbrt((3.0/(4.0*pi()))*coreVolume);
+	//
+	std::vector<orsa::MultipleSphericalFragmentsPlusMantleMassDistribution::VRD> data;
+	//
+	orsa::MultipleSphericalFragmentsPlusMantleMassDistribution::VRD vrd;
+	//
+	// first the core
+	vrd.v = coreCenter;
+	vrd.r = coreRadius;
+	vrd.d = coreDensity;
 	data.push_back(vrd);
-	
-	// debug
-	ORSA_DEBUG("=========");
-	orsa::print(k);
-   	orsa::print(P);
-   	orsa::print(intersectionPoint);
-   	orsa::print(vrd.v);
-    	orsa::print(vrd.r);
-    	orsa::print(vrd.d);
+	//
+	// now the fragments
+	const unsigned int nfrag=8;
+	const double delta_phi = orsa::twopi()/nfrag;
+	// eps to avoid grid alignments
+	const double eps_phi = 0.1*orsa::degToRad();
+	for (unsigned int k=0; k<nfrag; ++k) {
+	  const orsa::Vector P = 
+	    orsa::FromUnits(1000.0,orsa::Unit::KM) * 
+	    orsa::Vector(cos(k*delta_phi+eps_phi),
+			 sin(k*delta_phi+eps_phi),
+			 0.01);
+	  orsa::Vector intersectionPoint;
+	  orsa::Vector normal;
+	  if (!shape->rayIntersection(intersectionPoint,
+				      normal,
+				      P,
+				      (-P).normalized(),
+				      false)) {
+	    ORSA_DEBUG("problems...");
+	  } 
+	  const double l = intersectionPoint.length();
+	  vrd.v = intersectionPoint.normalized()*(l-1.01*fragmentRadius);
+	  vrd.r = fragmentRadius;
+	  vrd.d = fragmentDensity;
+	  data.push_back(vrd);
+	}
+	massDistribution = new orsa::MultipleSphericalFragmentsPlusMantleMassDistribution(data,mantleDensity);
+	break;
       }
-      
-      massDistribution = new orsa::MultipleSphericalFragmentsPlusMantleMassDistribution(data,mantleDensity);
-      
-    } else {
-      
-      // Uniform mass distribution
-      
-      coreDensity = mantleDensity = meanDensity;
-      
-      coreCenter = orsa::Vector(0,0,0);
-      
-      coreRadius = 0.0;
-      
-      massDistribution = new orsa::UniformMassDistribution;
-      
+    case CFMZ:
+      ORSA_DEBUG("SCENARIO: CFMZ");
+      {
+	coreCenter       = CZ;  
+	//
+	double coreVolume = 4*orsa::pi()/3.0*orsa::cube(coreRadius);
+	const double fragmentRadius  = orsa::FromUnits(10.0,orsa::Unit::KM);
+	const double fragmentVolume  = 4*orsa::pi()/3.0*orsa::cube(fragmentRadius);
+	const double fragmentDensity = coreDensity;
+	coreVolume -= 8*fragmentVolume;
+	// updated core radius
+	coreRadius =
+	  cbrt((3.0/(4.0*pi()))*coreVolume);
+	//
+	std::vector<orsa::MultipleSphericalFragmentsPlusMantleMassDistribution::VRD> data;
+	//
+	orsa::MultipleSphericalFragmentsPlusMantleMassDistribution::VRD vrd;
+	//
+	// first the core
+	vrd.v = coreCenter;
+	vrd.r = coreRadius;
+	vrd.d = coreDensity;
+	data.push_back(vrd);
+	//
+	// now the fragments
+	const unsigned int nfrag=8;
+	const double delta_phi = orsa::twopi()/nfrag;
+	// eps to avoid grid alignments
+	const double eps_phi = 0.1*orsa::degToRad();
+	for (unsigned int k=0; k<nfrag; ++k) {
+	  const orsa::Vector P = 
+	    orsa::FromUnits(1000.0,orsa::Unit::KM) * 
+	    orsa::Vector(cos(k*delta_phi+eps_phi),
+			 sin(k*delta_phi+eps_phi),
+			 0.01);
+	  orsa::Vector intersectionPoint;
+	  orsa::Vector normal;
+	  if (!shape->rayIntersection(intersectionPoint,
+				      normal,
+				      P,
+				      (-P).normalized(),
+				      false)) {
+	    ORSA_DEBUG("problems...");
+	  } 
+	  const double l = intersectionPoint.length();
+	  vrd.v = intersectionPoint.normalized()*(l-1.01*fragmentRadius);
+	  vrd.r = fragmentRadius;
+	  vrd.d = fragmentDensity;
+	  data.push_back(vrd);
+	}
+	massDistribution = new orsa::MultipleSphericalFragmentsPlusMantleMassDistribution(data,mantleDensity);
+	break;
+      }
     }
     
     const unsigned int order = 4;
@@ -372,7 +480,7 @@ orsa::BodyGroup * run() {
       
       ORSA_DEBUG("$\\rho_{m}$ & $%9.3f$ \\\\",orsa::FromUnits(orsa::FromUnits(mantleDensity,orsa::Unit::GRAM,-1),orsa::Unit::CM,3));
       ORSA_DEBUG("$\\rho_{c}$ & $%9.3f$ \\\\",orsa::FromUnits(orsa::FromUnits(  coreDensity,orsa::Unit::GRAM,-1),orsa::Unit::CM,3));
-      ORSA_DEBUG("$R_{c}$    & $%9.3f$ \\\\",orsa::FromUnits(coreRadius,orsa::Unit::KM,-1));
+      ORSA_DEBUG("$R_{c}$    & $%9.3f$ \\\\", orsa::FromUnits(coreRadius,orsa::Unit::KM,-1));
       ORSA_DEBUG("\%\\hline");
       ORSA_DEBUG("$x_{c}$    & $%+9.3f$ \\\\",orsa::FromUnits(coreCenter.getX(),orsa::Unit::KM,-1));
       ORSA_DEBUG("$y_{c}$    & $%+9.3f$ \\\\",orsa::FromUnits(coreCenter.getY(),orsa::Unit::KM,-1));
@@ -482,7 +590,9 @@ orsa::BodyGroup * run() {
     orsa::Vector rOrbit, vOrbit;
     orbit.relativePosVel(rOrbit,vOrbit);
     
-    ORSA_DEBUG("rOrbit: %.20e",rOrbit.length());
+    orsa::print(orbit);
+    
+    // ORSA_DEBUG("rOrbit: %.20e",rOrbit.length());
     
     // ORSA_DEBUG("rotate for attitude! (and phase?)");
     {
@@ -499,7 +609,7 @@ orsa::BodyGroup * run() {
       rOrbit = l2g * rOrbit;
       vOrbit = l2g * vOrbit;
 
-      ORSA_DEBUG("rOrbit: %.20e",rOrbit.length());
+      // ORSA_DEBUG("rOrbit: %.20e",rOrbit.length());
     }
     
     {
@@ -575,7 +685,7 @@ orsa::BodyGroup * run() {
   
   const double integrationAccuracy = 1.0e-9;
   
-  const orsa::Time duration = orsa::Time(0,1,0,0,0);
+  const orsa::Time duration = orsa::Time(40,0,0,0,0);
   const orsa::Time samplingPeriod = orsa::Time(0,0,0,10,0);  
   
   orsa::Time dummyTime(0);
