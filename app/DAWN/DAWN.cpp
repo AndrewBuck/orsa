@@ -55,7 +55,7 @@ orsa::BodyGroup * run() {
 							    0,
 							    0,
 							    0);
-  const double orbitRadius      = orsa::FromUnits(950.0,orsa::Unit::KM);
+  const double orbitRadius      = orsa::FromUnits(400.0,orsa::Unit::KM);
   const double orbitInclination = orsa::degToRad()*90.0;
   const double orbitPhase       = orsa::degToRad()*60.0;
   
@@ -242,7 +242,7 @@ orsa::BodyGroup * run() {
     
     // UPDATE this when changing shape...
     // double volume = FromUnits(7.875e7,Unit::KM,3); 
-    double volume = 7.871695441361e+16; // m^3
+    double volume = FromUnits(7.871695441361e7,Unit::KM,3);
     
     // default value
     double   coreDensity =
@@ -442,9 +442,9 @@ orsa::BodyGroup * run() {
       }
     }
     
-    const unsigned int order = 4;
-    const unsigned int N = 100000000;
-    const int randomSeed = 95231;
+    const unsigned int order = 8;
+    const unsigned int     N = 100000000;
+    const int     randomSeed = 95231;
     //
 #warning fix the problem of computing volume after it is actually needed...
     // double volume;
@@ -581,11 +581,11 @@ orsa::BodyGroup * run() {
     //
     orbit.mu = orsa::Unit::G() * vestaMass;
     orbit.a  = orbitRadius;
-    orbit.e  = 0;
+    orbit.e  = 0.0;
     orbit.i  = orbitInclination;
     orbit.omega_node       = alpha;
-    orbit.omega_pericenter = 0;
-    orbit.M                = 0;
+    orbit.omega_pericenter = 0.0;
+    orbit.M                = 0.0;
     //
     orsa::Vector rOrbit, vOrbit;
     orbit.relativePosVel(rOrbit,vOrbit);
