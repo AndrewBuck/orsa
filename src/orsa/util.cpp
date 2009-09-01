@@ -170,54 +170,6 @@ bool orsa::matrixToEulerAngles(double       & psi,
     
   }
   
-  if (0) {
-    
-    ORSA_DEBUG("psi..: %f",  psi);
-    ORSA_DEBUG("theta: %f",theta);
-    ORSA_DEBUG("phi..: %f",  phi);
-    
-    orsa::Matrix m = orsa::Matrix::identity();
-    //
-    m.rotZ(phi);
-    m.rotX(theta);
-    m.rotZ(psi);
-    
-    const orsa::Matrix dm = m-m;
-    
-    ORSA_DEBUG("m: %f %f %f %f %f %f %f %f %f",
-	       m.getM11(),
-	       m.getM12(),
-	       m.getM13(),
-	       m.getM21(),
-	       m.getM22(),
-	       m.getM23(),
-	       m.getM31(),
-	       m.getM32(),
-	       m.getM33());
-    
-    ORSA_DEBUG("m: %f %f %f %f %f %f %f %f %f",
-	       m.getM11(),
-	       m.getM12(),
-	       m.getM13(),
-	       m.getM21(),
-	       m.getM22(),
-	       m.getM23(),
-	       m.getM31(),
-	       m.getM32(),
-	       m.getM33());
-    
-    ORSA_DEBUG("dm: %f %f %f %f %f %f %f %f %f",
-	       dm.getM11(),
-	       dm.getM12(),
-	       dm.getM13(),
-	       dm.getM21(),
-	       dm.getM22(),
-	       dm.getM23(),
-	       dm.getM31(),
-	       dm.getM32(),
-	       dm.getM33());
-  }
-  
   return true;
 }	
 
