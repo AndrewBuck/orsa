@@ -2,8 +2,8 @@
 # when using VERSION, libs on win32 are called liborsa1 instead of liborsa
 # VERSION = 1.0.0
 
-CONFIG += thread debug warn_on
-#CONFIG += thread release warn_on
+#CONFIG += thread debug warn_on
+CONFIG += thread release warn_on
 
 # enable this to build static libs, useful to create binaries for BOINC
 #CONFIG += staticlib
