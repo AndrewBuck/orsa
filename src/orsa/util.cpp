@@ -367,13 +367,13 @@ void orsa::principalAxis(orsa::Matrix & genericToPrincipal,
   gsl_eigen_symmv_sort (eval, evec, 
 			GSL_EIGEN_SORT_ABS_ASC);
   
-  principalInertiaMatrix.set(gsl_vector_get(eval,0),0,0,
-			     0,gsl_vector_get(eval,1),0,
-			     0,0,gsl_vector_get(eval,2));
+  const orsa::Matrix principalToGeneric(gsl_matrix_get(evec,0,0),gsl_matrix_get(evec,0,1),gsl_matrix_get(evec,0,2),
+					gsl_matrix_get(evec,1,0),gsl_matrix_get(evec,1,1),gsl_matrix_get(evec,1,2),
+					gsl_matrix_get(evec,2,0),gsl_matrix_get(evec,2,1),gsl_matrix_get(evec,2,2));
   
-  genericToPrincipal.set(gsl_matrix_get(evec,0,0),gsl_matrix_get(evec,0,1),gsl_matrix_get(evec,0,2),
-			 gsl_matrix_get(evec,1,0),gsl_matrix_get(evec,1,1),gsl_matrix_get(evec,1,2),
-			 gsl_matrix_get(evec,2,0),gsl_matrix_get(evec,2,1),gsl_matrix_get(evec,2,2));
+  orsa::Matrix::transpose(principalToGeneric,genericToPrincipal);
+  
+  principalInertiaMatrix = genericToPrincipal*I*principalToGeneric;
   
   gsl_vector_free (eval);
   gsl_matrix_free (evec);
@@ -489,14 +489,14 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
 				     const orsa::RandomPointsInShape * randomPointsInShape,
 				     const orsa::MassDistribution * massDistribution) {
   
-  shapeToLocal = orsa::Matrix::identity();
-  localToShape = orsa::Matrix::identity();
-  // two runs, one not rotated, one rotated
-  /* bool rotatedRun = false;
+  /* shapeToLocal = orsa::Matrix::identity();
+     localToShape = orsa::Matrix::identity();
+     // two runs, one not rotated, one rotated, to check if the matrices work as expected
+     bool rotatedRun = false;
      while (1) {
   */
-  // only one run now...
-  {
+  
+  { 
     osg::ref_ptr<orsa::Statistic<double> > stat_Ixx = new orsa::Statistic<double>;
     osg::ref_ptr<orsa::Statistic<double> > stat_Iyy = new orsa::Statistic<double>;
     osg::ref_ptr<orsa::Statistic<double> > stat_Izz = new orsa::Statistic<double>;
@@ -510,7 +510,7 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
       const double density = massDistribution->density(v);
       if (density > 0) {
 	v -= centerOfMass;
-	v = shapeToLocal*v;
+	// v = shapeToLocal*v; // NO! don't rotate here, or if rotate, make sure shapeToLocal is initialized as Matrix::identity()
 	//
 	stat_Ixx->insert(density*(v.getY()*v.getY()+v.getZ()*v.getZ()));
 	stat_Iyy->insert(density*(v.getX()*v.getX()+v.getZ()*v.getZ()));
@@ -532,55 +532,35 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
 		      stat_Iyz->average(),
 		      stat_Izz->average());
     
-    /* 
-       if (1) {
-       // debug output    
-       ORSA_DEBUG("rotated: %i",rotatedRun);
-       //
-       ORSA_DEBUG("Ixx:  %14.6e +/- %14.6e",
-       double(stat_Ixx->average()),
-       double(stat_Ixx->averageError()));
-       ORSA_DEBUG("Iyy:  %14.6e +/- %14.6e",
-       double(stat_Iyy->average()),
-       double(stat_Iyy->averageError()));
-       ORSA_DEBUG("Izz:  %14.6e +/- %14.6e",
-       double(stat_Izz->average()),
-       double(stat_Izz->averageError()));
-       //
-       ORSA_DEBUG("Ixy:  %14.6e +/- %14.6e",
-       double(stat_Ixy->average()),
-       double(stat_Ixy->averageError()));
-       ORSA_DEBUG("Ixz:  %14.6e +/- %14.6e",
-       double(stat_Ixz->average()),
-       double(stat_Ixz->averageError()));
-       ORSA_DEBUG("Iyz:  %14.6e +/- %14.6e",
-       double(stat_Iyz->average()),
-       double(stat_Iyz->averageError()));
-       }
-    */
-    
     orsa::principalAxis(shapeToLocal,
 			inertiaMatrix,
 			inertiaMatrix);
     
     // correct, in case some of the axes got reflected
     {
-      const double rot_11 = (shapeToLocal*orsa::Vector(1,0,0)*orsa::Vector(1,0,0) < 0) ? -1 : 1;
-      const double rot_22 = (shapeToLocal*orsa::Vector(0,1,0)*orsa::Vector(0,1,0) < 0) ? -1 : 1;
-      const double rot_33 = (shapeToLocal*orsa::Vector(0,0,1)*orsa::Vector(0,0,1) < 0) ? -1 : 1;
+      const double rot_11 = ((shapeToLocal*orsa::Vector(1,0,0))*orsa::Vector(1,0,0) < 0) ? -1 : 1;
+      const double rot_22 = ((shapeToLocal*orsa::Vector(0,1,0))*orsa::Vector(0,1,0) < 0) ? -1 : 1;
+      const double rot_33 = ((shapeToLocal*orsa::Vector(0,0,1))*orsa::Vector(0,0,1) < 0) ? -1 : 1;
       const orsa::Matrix rot(rot_11,0,0,
 			     0,rot_22,0,
 			     0,0,rot_33);
-      // orsa::print(rot);
-      //
       shapeToLocal = rot*shapeToLocal;
-      //
-      // this is not really needed, inertiaMatrix is diagonal anyway
-      // inertiaMatrix = rot*inertiaMatrix*rot; // one should be the transposed of rot, but it is symmetric anyway
     }
-    //
+    
+    // update localToShape as well
     orsa::Matrix::invert(shapeToLocal,localToShape);
     
+    // verify
+    /* orsa::print(shapeToLocal);
+       orsa::print(inertiaMatrix);
+    */
+    
+    /* if (rotatedRun) {
+       break;
+       } else {
+       rotatedRun=true;
+       }
+    */
   }
   
 }
