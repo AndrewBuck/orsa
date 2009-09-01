@@ -441,13 +441,6 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
 				     const orsa::RandomPointsInShape * randomPointsInShape,
 				     const orsa::MassDistribution * massDistribution) {
   
-  /* shapeToLocal = orsa::Matrix::identity();
-     localToShape = orsa::Matrix::identity();
-     // two runs, one not rotated, one rotated, to check if the matrices work as expected
-     bool rotatedRun = false;
-     while (1) {
-  */
-  
   { 
     osg::ref_ptr<orsa::Statistic<double> > stat_Ixx = new orsa::Statistic<double>;
     osg::ref_ptr<orsa::Statistic<double> > stat_Iyy = new orsa::Statistic<double>;
@@ -462,7 +455,7 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
       const double density = massDistribution->density(v);
       if (density > 0) {
 	v -= centerOfMass;
-	// v = shapeToLocal*v; // NO! don't rotate here, or if rotate, make sure shapeToLocal is initialized as Matrix::identity()
+	// no rotation here, work in shape coordinates
 	//
 	stat_Ixx->insert(density*(v.getY()*v.getY()+v.getZ()*v.getZ()));
 	stat_Iyy->insert(density*(v.getX()*v.getX()+v.getZ()*v.getZ()));
@@ -500,19 +493,8 @@ void orsa::diagonalizedInertiaMatrix(orsa::Matrix & shapeToLocal,
     }
     
     // update localToShape as well
-    orsa::Matrix::invert(shapeToLocal,localToShape);
+    orsa::Matrix::transpose(shapeToLocal,localToShape);
     
-    // verify
-    /* orsa::print(shapeToLocal);
-       orsa::print(inertiaMatrix);
-    */
-    
-    /* if (rotatedRun) {
-       break;
-       } else {
-       rotatedRun=true;
-       }
-    */
   }
   
 }
