@@ -26,6 +26,18 @@ namespace orsa {
     ~Vector() { }
     
   public:
+    // copy operator
+    Vector & operator = (const Vector & v) {
+      _x = v._x;
+      _y = v._y;
+      _z = v._z;
+      //
+      _l  = v._l;
+      _l2 = v._l2; 
+      return (*this);
+    }
+    
+  public:
     inline const double & getX() const { return _x; }
     inline const double & getY() const { return _y; }
     inline const double & getZ() const { return _z; }
