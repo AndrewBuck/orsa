@@ -530,8 +530,8 @@ orsa::BodyGroup * run() {
     orbit.e  = 0.0;
     orbit.i  = orbitInclination;
     orbit.omega_node       = alpha;
-    orbit.omega_pericenter = 0.0;
-    orbit.M                = 0.0;
+    orbit.omega_pericenter =   0.0*orsa::degToRad();
+    orbit.M                =   0.0*orsa::degToRad();
     //
     orsa::Vector rOrbit, vOrbit;
     orbit.relativePosVel(rOrbit,vOrbit);
