@@ -17,11 +17,19 @@ namespace orsa {
   public:
     Vector() { }
   public:
-    Vector(const Vector & v) : _x(v._x), _y(v._y), _z(v._z), _l(v._l), _l2(v._l2) { }
+    Vector(const Vector & v) : _x(v._x), _y(v._y), _z(v._z), _l(v._l), _l2(v._l2) { 
+      crashIfNaN(_x);
+      crashIfNaN(_y);
+      crashIfNaN(_z);
+    }
   public:	
     Vector(const double & x, 
 	   const double & y, 
-	   const double & z) : _x(x), _y(y), _z(z) { }
+	   const double & z) : _x(x), _y(y), _z(z) {
+      crashIfNaN(_x);
+      crashIfNaN(_y);
+      crashIfNaN(_z);
+    }
   public:     
     ~Vector() { }
     
@@ -42,9 +50,9 @@ namespace orsa {
     inline const double & getY() const { return _y; }
     inline const double & getZ() const { return _z; }
   public:    
-    inline void setX(const double & x) { _x = x; _reset_cache(); }
-    inline void setY(const double & y) { _y = y; _reset_cache(); }
-    inline void setZ(const double & z) { _z = z; _reset_cache(); }    
+    inline void setX(const double & x) { _x = x; crashIfNaN(_x); _reset_cache(); }
+    inline void setY(const double & y) { _y = y; crashIfNaN(_y); _reset_cache(); }
+    inline void setZ(const double & z) { _z = z; crashIfNaN(_z); _reset_cache(); }    
   public:
     osg::Vec3f getVec3f() const;
     osg::Vec3d getVec3d() const;
@@ -67,6 +75,7 @@ namespace orsa {
     }
     
     Vector & operator *= (const double & f) {
+      crashIfNaN(f);
       _x *= f;
       _y *= f;
       _z *= f;
@@ -75,6 +84,7 @@ namespace orsa {
     }
     
     Vector & operator /= (const double & f) {
+      crashIfNaN(f);
       _x /= f;
       _y /= f;
       _z /= f;
@@ -125,6 +135,11 @@ namespace orsa {
       _x = x;
       _y = y;
       _z = z;
+      //
+      crashIfNaN(_x);
+      crashIfNaN(_y);
+      crashIfNaN(_z);
+      //
       _reset_cache(); 
     }
     
@@ -205,12 +220,14 @@ namespace orsa {
   }
   
   inline Vector operator * (const Vector & v, const double & f) {
+    crashIfNaN(f);
     Vector p(v);
     p *=f;
     return p;
   }
   
   inline Vector operator / (const Vector & v, const double & f) {
+    crashIfNaN(f);
     Vector p(v);
     p /=f;
     return p;

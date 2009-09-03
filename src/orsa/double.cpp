@@ -192,3 +192,10 @@ double orsa::pochhammer(const double & a, const mpz_class & n) {
   }
   return _result;
 }
+
+void orsa::crashIfNaN(const double & x) {
+  if (x!=x) {
+    ORSA_ERROR("NaN detected, time to die!");
+    double * q = 0; q[2000000000] = 0; // voluntary segfault, useful for debugging purposes ;-)
+  }
+}

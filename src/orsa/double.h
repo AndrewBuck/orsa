@@ -57,6 +57,8 @@ namespace orsa {
   double pochhammer(const double    & a, 
 		    const mpz_class & n);
   
+  void crashIfNaN(const double & x);
+  
 } // namespace orsa
 
 #endif // _ORSA_DOUBLE_
