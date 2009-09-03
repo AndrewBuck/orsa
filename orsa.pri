@@ -54,25 +54,11 @@ unix:!macx {
 
 	DIR_SEP = "/"
 
-	contains (HARDWARE_NAME, x86_64) {
-#		QMAKE_CXXFLAGS_RELEASE += -mtune=opteron
-#		QMAKE_LFLAGS_RELEASE   += -mtune=opteron
-	} else {
-#		QMAKE_CXXFLAGS_RELEASE += -mtune=athlon-xp
-#		QMAKE_LFLAGS_RELEASE   += -mtune=athlon-xp
+	QMAKE_CXXFLAGS_RELEASE += -g -ggdb
+	QMAKE_LFLAGS_RELEASE   += -g -ggdb
 
-#		QMAKE_CXXFLAGS_RELEASE += -mtune=prescott
-#		QMAKE_LFLAGS_RELEASE   += -mtune=prescott
-
-#		QMAKE_CXXFLAGS_RELEASE += -mtune=native
-#		QMAKE_LFLAGS_RELEASE   += -mtune=native
-
-#		QMAKE_CXXFLAGS_RELEASE += -mtune=native -march=native 
-#		QMAKE_LFLAGS_RELEASE   += -mtune=native -march=native 
-	}
-
-	QMAKE_CXXFLAGS_DEBUG += -pg -O2 -ffinite-math-only -fsignaling-nans -ftrapping-math
-	QMAKE_LFLAGS_DEBUG   += -pg -O2 -ffinite-math-only -fsignaling-nans -ftrapping-math
+	QMAKE_CXXFLAGS_DEBUG += -pg -ggdb
+	QMAKE_LFLAGS_DEBUG   += -pg -ggdb
 }
 macx {
 	CONFIG += x86 # x86 ppc
