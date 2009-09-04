@@ -465,19 +465,26 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 				      const orsa::Matrix     & A1_g2l,
 				      const orsa::PaulMoment * M2,
 				      const orsa::Matrix     & A2_g2l,
-				      const orsa::Vector     & R) {
+				      const orsa::Vector     & R,
+				      const bool               thisIsRepeatedCall) {
   
   // little trick, big speed-up
   if (M1->order < M2->order) {
-    return (-Paul::gravitationalForce(M2,A2_g2l,M1,A1_g2l,-R));
+    return (-Paul::gravitationalForce(M2,A2_g2l,M1,A1_g2l,-R,thisIsRepeatedCall));
   }
   
-  /* 
-     ORSA_DEBUG("M1: %x",M1);
-     ORSA_DEBUG("M2: %x",M2);
-     ORSA_DEBUG("A1: %x",A1);
-     ORSA_DEBUG("A2: %x",A2);
-  */
+  if (thisIsRepeatedCall) {
+    ORSA_DEBUG("--call-beginning--");
+  }
+  
+  if (thisIsRepeatedCall) {
+    ORSA_DEBUG("M1: %x",M1);
+    orsa::print(A1_g2l);
+    ORSA_DEBUG("M2: %x",M2);
+    orsa::print(A2_g2l);
+    ORSA_DEBUG("R:");
+    orsa::print(R);
+  }
   
   // const double oneOverR = 1/R.length();
   //  
@@ -532,7 +539,7 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
   IntPowCache mz_PC(mz);
   IntPowCache nz_PC(nz);
   //
-  if (0) {
+  if (thisIsRepeatedCall) {
     ORSA_DEBUG("lx: %g",lx);
     ORSA_DEBUG("ly: %g",ly);
     ORSA_DEBUG("lz: %g",lz);
@@ -556,6 +563,15 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
   IntPowCache eta1_PC(eta1);
   IntPowCache zeta1_PC(zeta1);
   
+  if (thisIsRepeatedCall) {
+    ORSA_DEBUG(" csi1:");
+    orsa::print( csi1);
+    ORSA_DEBUG(" eta1:");
+    orsa::print( eta1);
+    ORSA_DEBUG("zeta1:");
+    orsa::print(zeta1);
+  }
+  
   // double outerSum = 0;
   //
   double Fx = 0;
@@ -574,10 +590,10 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 	      
 	      if (M2->M(i2,j2,k2) == 0) continue;
 	      
-	      /* 
-		 ORSA_DEBUG("i1: %i   j1: %i   k1: %i   i2: %i   j2: %i   k2: %i",
-		 i1,j1,k1,i2,j2,k2);
-	      */
+	      if (thisIsRepeatedCall) {
+		ORSA_DEBUG("i1: %i   j1: %i   k1: %i   i2: %i   j2: %i   k2: %i",
+			   i1,j1,k1,i2,j2,k2);
+	      }
 	      
 	      // double innerSum = 0;
 	      //
@@ -593,25 +609,19 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 		      for (unsigned int j4=0; j4<=j3; ++j4) {
 			for (unsigned int k4=0; k4<=k3; ++k4) {
 			  
-			  /* 
-			     ORSA_DEBUG("i3: %i   j3: %i   k3: %i   i4: %i   j4: %i   k4: %i",
-			     i3,j3,k3,i4,j4,k4);
-			  */
+			  if (thisIsRepeatedCall) {
+			    ORSA_DEBUG("i3: %i   j3: %i   k3: %i   i4: %i   j4: %i   k4: %i",
+				       i3,j3,k3,i4,j4,k4);
+			  }
 			  
 			  const unsigned int i5 = i1 + i4 + j4 + k4;
 			  const unsigned int j5 = j1 + i3 - i4 + j3 - j4 + k3 - k4;
 			  const unsigned int k5 = k1 + i2 - i3 + j2 - j3 + k2 - k3;
 			  
-			  /* 
-			     ORSA_DEBUG("i5: %i",i5);
-			     ORSA_DEBUG("j5: %i",j5);
-			     ORSA_DEBUG("k5: %i",k5);
-			  */
-			  
-			  /* 
-			     ORSA_DEBUG("i5: %i   j5: %i   k5: %i",
-			     i5,j5,k5);
-			  */
+			  if (thisIsRepeatedCall) {
+			    ORSA_DEBUG("i5: %i   j5: %i   k5: %i",
+				       i5,j5,k5);
+			  }
 			  
 			  // double fiveSum = 0;
 			  //
@@ -699,10 +709,10 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 			    ly_PC.get(j4) * my_PC.get(j3-j4) * ny_PC.get(j2-j3) *
 			    lz_PC.get(k4) * mz_PC.get(k3-k4) * nz_PC.get(k2-k3);
 			  
-			  /* 
-			     ORSA_DEBUG("commonInnerFactor: %+12.6f",
-			     commonInnerFactor());
-			  */
+			  if (thisIsRepeatedCall) {
+			    ORSA_DEBUG("commonInnerFactor: %+12.6f",
+				       commonInnerFactor);
+			  }
 			  
 			  innerFx += fiveSumFx * commonInnerFactor;
 			  innerFy += fiveSumFy * commonInnerFactor;
@@ -716,17 +726,6 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 		}
 	      }
 	      
-	      /* 
-		 outerSum += 
-		 innerSum * 
-		 orsa::power_sign(i1+j1+k1) *
-		 M1->M(i1,j1,k1) * 
-		 M2->M(i2,j2,k2) *
-		 oneOverR_PC.get(i1+j1+k1+i2+j2+k2+1) / 
-		 double( factorial(i1) * factorial(j1) * factorial(k1) *
-		 factorial(i2) * factorial(j2) * factorial(k2) );
-	      */
-	      
 	      const double commonFactor = 
 		orsa::power_sign(i1+j1+k1) *
 		M1->M(i1,j1,k1) * 
@@ -735,16 +734,16 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 		mpz_class(factorial(i1) * factorial(j1) * factorial(k1) *
 			  factorial(i2) * factorial(j2) * factorial(k2)).get_d();
 	      
-	      /* 
-		 ORSA_DEBUG("commonFactor: %+18.12e",
-		 commonFactor());
-	      */
+	      if (thisIsRepeatedCall) {
+		ORSA_DEBUG("commonFactor: %+18.12e",
+			   commonFactor);
+	      }
 	      
 	      Fx += innerFx * commonFactor;
 	      Fy += innerFy * commonFactor;
 	      Fz += innerFz * commonFactor;
 	      
-	      if (0) {
+	      if (thisIsRepeatedCall) {
 		ORSA_DEBUG("[%02i][%02i][%02i][%02i][%02i][%02i]   F: %20.12e %20.12e %20.12e",
 			   i1,j1,k1,i2,j2,k2,
 			   Fx,
@@ -760,26 +759,47 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
     }
   }
   
-  /* 
-     ORSA_DEBUG("Paul Fx: %.20e",Fx());
-     ORSA_DEBUG("Paul Fy: %.20e",Fy());
-     ORSA_DEBUG("Paul Fz: %.20e",Fz());
-  */
+  if (thisIsRepeatedCall) {
+    ORSA_DEBUG("Paul Fx: %.20e",Fx);
+    ORSA_DEBUG("Paul Fy: %.20e",Fy);
+    ORSA_DEBUG("Paul Fz: %.20e",Fz);
+  }
   
   // rotate back, capital X,Y,Z
   const double FX = l11*Fx + m11*Fy + n11*Fz;
   const double FY = l21*Fx + m21*Fy + n21*Fz;
   const double FZ = l31*Fx + m31*Fy + n31*Fz;
+
+  if (thisIsRepeatedCall) {
+    ORSA_DEBUG("FX: %g",FX);
+    ORSA_DEBUG("FY: %g",FY);
+    ORSA_DEBUG("FZ: %g",FZ);
+  }
   
   const orsa::Vector F(-FX,-FY,-FZ);
   
-  /* 
-     ORSA_DEBUG("Paul F.X: %.20e",F.getX());
-     ORSA_DEBUG("Paul F.Y: %.20e",F.getY());
-     ORSA_DEBUG("Paul F.Z: %.20e",F.getZ());
-  */
-  //
-  // ORSA_DEBUG("Paul Force: %.20e",F.length());
+  if (thisIsRepeatedCall) {
+    ORSA_DEBUG("Paul F:");
+    orsa::print(F);
+  }
+  
+  // look for NaNs
+  if ( (FX!=FX) || 
+       (FY!=FY) || 
+       (FZ!=FZ) ) {
+    //
+    if (thisIsRepeatedCall) {
+      ORSA_ERROR("NaN detected, time to die!");
+      double * q = 0; q[2000000000] = 0; // voluntary segfault, useful for debugging purposes ;-)
+    } else {
+      // thisIsRepeatedCall true
+      Paul::gravitationalForce(M1,A1_g2l,M2,A2_g2l,R,true);
+    }
+  }
+  
+  if (thisIsRepeatedCall) {
+    ORSA_DEBUG("--leaving--");
+  }
   
   return F;
 }

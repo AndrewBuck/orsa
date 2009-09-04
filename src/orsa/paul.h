@@ -24,7 +24,8 @@ namespace orsa {
 					   const orsa::Matrix     & A1_g2l,
 					   const orsa::PaulMoment * M2,
 					   const orsa::Matrix     & A2_g2l,
-					   const orsa::Vector     & R);
+					   const orsa::Vector     & R,
+					   const bool               thisIsRepeatedCall=false);
     
   public:
     static orsa::Vector gravitationalTorque(const orsa::PaulMoment * M1,
