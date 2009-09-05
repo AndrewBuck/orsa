@@ -486,6 +486,11 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
     orsa::print(R);
   }
   
+  if (R.length() == 0) {
+    ORSA_DEBUG("zero distance, returning null force");
+    return orsa::Vector(0,0,0);
+  }
+  
   // const double oneOverR = 1/R.length();
   //  
   IntPowCache oneOverR_PC(1/R.length());
@@ -559,8 +564,8 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
   const double eta1  = m11*csi + m21*eta + m31*zeta;
   const double zeta1 = n11*csi + n21*eta + n31*zeta;
   //
-  IntPowCache csi1_PC(csi1);
-  IntPowCache eta1_PC(eta1);
+  IntPowCache  csi1_PC( csi1);
+  IntPowCache  eta1_PC( eta1);
   IntPowCache zeta1_PC(zeta1);
   
   if (thisIsRepeatedCall) {
@@ -623,8 +628,6 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
 				       i5,j5,k5);
 			  }
 			  
-			  // double fiveSum = 0;
-			  //
 			  double fiveSumFx = 0;
 			  double fiveSumFy = 0;
 			  double fiveSumFz = 0;
