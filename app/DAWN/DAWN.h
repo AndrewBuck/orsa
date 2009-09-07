@@ -9,6 +9,51 @@
 #include <orsa/multimin.h>
 #include <orsa/util.h>
 
+#include <algorithm>
+#include <string>
+
+enum SCENARIO {U,
+	       C0,
+	       CX10,
+	       CX20,
+	       CX30,
+	       CX40,
+	       CX50,
+	       CZ,
+	       C0F20};
+
+inline SCENARIO s2S(std::string s) {
+  std::transform(s.begin(), s.end(), s.begin(), ::toupper);
+  //
+  if (s=="U")     return U;
+  if (s=="C0")    return C0;
+  if (s=="CX10")  return CX10;
+  if (s=="CX20")  return CX20;
+  if (s=="CX30")  return CX30;
+  if (s=="CX40")  return CX40;
+  if (s=="CX50")  return CX50;
+  if (s=="CZ")    return CZ;
+  if (s=="C0F20") return C0F20; 
+  //
+  ORSA_DEBUG("problem: could not recognize scenario %s, using U",s.c_str());
+  return U;
+}
+
+inline std::string S2s (const SCENARIO S) {
+  switch (S) {
+  case U:     return "U";     break;
+  case C0:    return "C0";    break;
+  case CX10:  return "CX10";  break;
+  case CX20:  return "CX20";  break;
+  case CX30:  return "CX30";  break;
+  case CX40:  return "CX40";  break;
+  case CX50:  return "CX50";  break;
+  case CZ:    return "CZ";    break;
+  case C0F20: return "C0F20"; break;
+  default:    return "undefined"; break;
+  }
+}
+
 // for a constant mass body
 class SolarRadiationPressure : public orsa::Propulsion {
  public:
@@ -71,7 +116,8 @@ class SolarRadiationPressure : public orsa::Propulsion {
   }
 };
 
-orsa::BodyGroup * run();
+orsa::BodyGroup * run(const double orbitRadius,
+		      const SCENARIO scenario);
 
 class CustomIntegrator : public orsa::IntegratorRadau {
  public:

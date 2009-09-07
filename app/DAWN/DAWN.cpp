@@ -22,7 +22,8 @@ using namespace orsa;
 using namespace orsaSolarSystem;
 using namespace orsaSPICE;
 
-orsa::BodyGroup * run() {
+orsa::BodyGroup * run(const double orbitRadius,
+		      const SCENARIO scenario) {
   
   const orsa::Time t0 = gregorTime(2012,
 				   1,
@@ -55,7 +56,8 @@ orsa::BodyGroup * run() {
 							    0,
 							    0,
 							    0);
-  const double orbitRadius      = orsa::FromUnits(400.0,orsa::Unit::KM);
+  
+  // const double orbitRadius      = orsa::FromUnits(400.0,orsa::Unit::KM);
   const double orbitInclination = orsa::degToRad()*90.0;
   const double orbitPhase       = orsa::degToRad()*60.0;
   
@@ -215,19 +217,6 @@ orsa::BodyGroup * run() {
     // sbtc->setBodyName(vesta->getName());
     //
     orsa::IBPS ibps;
-    
-    enum SCENARIO {U,
-		   C0,
-		   CX10,
-		   CX20,
-		   CX30,
-		   CX40,
-		   CX50,
-		   CZ,
-		   C0F20};
-    
-    // choose one
-    const SCENARIO scenario = U;
     
     osg::ref_ptr<VestaShape> vestaShapeThomas = new VestaShape;
     if (!vestaShapeThomas->read("vesta_thomas.dat")) {
