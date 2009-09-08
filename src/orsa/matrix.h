@@ -47,15 +47,15 @@ namespace orsa {
 	     double & m33) const;
 
   public:
-    void setM11(const double & x) { m11=x; }
-    void setM12(const double & x) { m12=x; }
-    void setM13(const double & x) { m13=x; }
-    void setM21(const double & x) { m21=x; }
-    void setM22(const double & x) { m22=x; }
-    void setM23(const double & x) { m23=x; }
-    void setM31(const double & x) { m31=x; }
-    void setM32(const double & x) { m32=x; }
-    void setM33(const double & x) { m33=x; }
+    void setM11(const double & x) { m11=x; crashIfNaN(x); }
+    void setM12(const double & x) { m12=x; crashIfNaN(x); }
+    void setM13(const double & x) { m13=x; crashIfNaN(x); }
+    void setM21(const double & x) { m21=x; crashIfNaN(x); }
+    void setM22(const double & x) { m22=x; crashIfNaN(x); }
+    void setM23(const double & x) { m23=x; crashIfNaN(x); }
+    void setM31(const double & x) { m31=x; crashIfNaN(x); }
+    void setM32(const double & x) { m32=x; crashIfNaN(x); }
+    void setM33(const double & x) { m33=x; crashIfNaN(x); }
     
   public:
     const double & getM11() const { return m11; }
@@ -111,31 +111,9 @@ namespace orsa {
     Matrix operator - (const Matrix &) const;
     Matrix operator * (const Matrix &) const;
     
-    /* 
-       friend Matrix operator + (const Matrix &, const Matrix &);
-       friend Matrix operator - (const Matrix &, const Matrix &);
-       friend Matrix operator * (const Matrix &, const Matrix &);
-       friend Vector operator * (const Matrix &, const Vector &);
-       friend Vector operator * (const Vector &, const Matrix &);
-    */
-    
-    // friend Matrix operator * (const double  , const Matrix &);
-    // friend Matrix operator * (const Matrix &, const double  );
-    // friend Vector operator * (const Matrix &, const Vector &);
-    // friend Vector operator * (const Vector &, const Matrix &);
-    
-  public:
-    // util...
-    // void print() const;
-    
   protected:
     double m11,m12,m13,m21,m22,m23,m31,m32,m33;
   };
-  
-  // Matrix operator * (const double &, const Matrix &);
-  // Matrix operator * (const Matrix &, const double &);
-  // Vector operator * (const Matrix &, const Vector &);
-  // Vector operator * (const Vector &, const Matrix &);
   
   inline Matrix operator * (const double & f, const Matrix & m) {
     Matrix q(m);
@@ -160,16 +138,6 @@ namespace orsa {
 		   v.getX()*m.getM12()+v.getY()*m.getM22()+v.getZ()*m.getM32(),
 		   v.getX()*m.getM13()+v.getY()*m.getM23()+v.getZ()*m.getM33());
   }
-  
-  /* 
-     Matrix operator + (const Matrix &, const Matrix &);
-     Matrix operator - (const Matrix &, const Matrix &);
-     Matrix operator * (const double  , const Matrix &);
-     Matrix operator * (const Matrix &, const double  );
-     Matrix operator * (const Matrix &, const Matrix &);
-     Vector operator * (const Matrix &, const Vector &);
-     Vector operator * (const Vector &, const Matrix &);
-  */
   
   bool operator == (const orsa::Matrix & a, const orsa::Matrix & b);
   

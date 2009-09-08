@@ -11,23 +11,23 @@ namespace orsa {
   public:
     Quaternion() : _s(0), _v(0,0,0) { }
   public:
-    Quaternion(const orsa::Vector & v) : _s(0), _v(v) { }
+    Quaternion(const orsa::Vector & v) : _s(0), _v(v) { crashIfNaN(_s); }
   public:
     Quaternion(const double & s,
-	       const orsa::Vector & v) : _s(s), _v(v) { }
+	       const orsa::Vector & v) : _s(s), _v(v) { crashIfNaN(_s); }
   public:
     virtual ~Quaternion() { }
     
   public:
-    inline const double & getScalar() const { return _s; }
+    inline const double       & getScalar() const { return _s; }
     inline const orsa::Vector & getVector() const { return _v; }
     
   public:
-    inline void setScalar(const double & s) { _s += s; }
+    inline void setScalar(const double & s) { _s += s; crashIfNaN(_s); }
     inline void setVector(const orsa::Vector & v) { _v += v; }
     inline void set(const double & s,
 		    const orsa::Vector & v) { 
-      _s = s;
+      _s = s; crashIfNaN(_s);
       _v = v;
     }
     
@@ -46,17 +46,19 @@ namespace orsa {
     }
   public:
     inline Quaternion & operator *= (const double & f) {
+      crashIfNaN(f);
       _s *= f;
       _v *= f;
       return *this;
     }
   public:
     inline Quaternion & operator /= (const double & f) {
+      crashIfNaN(f);
       _s /= f;
       _v /= f;
       return *this;
     }
-
+    
     // sign
   public:
     inline Quaternion operator + () const { return Quaternion( _s, _v); }
@@ -89,7 +91,7 @@ namespace orsa {
     }
     
   protected:
-    double _s; // scalar component
+    double       _s; // scalar component
     orsa::Vector _v; // vector component
   };
   
