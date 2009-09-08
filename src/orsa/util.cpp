@@ -179,7 +179,7 @@ orsa::Matrix orsa::QuaternionToMatrix (const orsa::Quaternion & q) {
   const double       s = q.getScalar();
   const orsa::Vector v = q.getVector();
   
-  chashIfNaN(s);
+  crashIfNaN(s);
   
   const double q0 = s;
   const double q1 = v.getX();
