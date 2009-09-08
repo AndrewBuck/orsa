@@ -47,84 +47,35 @@ const double & Vector::lengthSquared() const {
   }
 }
 
-bool Vector::isZero() const {
-  return (lengthSquared() < (epsilon()*epsilon()));
-}
-
 // normalization
 Vector Vector::normalized() const {
-  if (isZero()) {
-    return Vector(0,0,0);
-  } else {
+  if (length() > 0) {
     const double _one_over_l = 1/length();
     return Vector(_x*_one_over_l,
 		  _y*_one_over_l,
 		  _z*_one_over_l);
-  }  
+  } else {
+    ORSA_DEBUG("cannot normalize zero vector, time to die!");
+    double * q = 0; q[2000000000] = 0; // voluntary segfault, useful for debugging purposes ;-)
+    // placeholder, to keep compiler happy
+    return (*this);
+  }
 }
 
-/* 
-   Vector & Vector::normalize() {
-   ORSA_DEBUG("rewrite Vector::normalize() for double!!");
-   double l = length();
-   if (l > (std::numeric_limits<double>::min() * 1.0e3)) {
-   _x /= l;
-   _y /= l;
-   _z /= l;
-   } else {
-   _z = 0.0;
-   _y = 0.0;
-   _z = 0.0;
-   }
-   _reset_cache(); 
-   return *this;
-   }
-*/
-
 Vector & Vector::normalize() {
-  if (isZero()) {
-    _x = _y = _z = 0;
-  } else {
+  if (length() > 0) {
     const double _one_over_l = 1/length();
+    crashIfNaN(_one_over_l);
     _x *= _one_over_l;
     _y *= _one_over_l;
     _z *= _one_over_l;
-  }
+  } else {
+    ORSA_DEBUG("cannot normalize zero vector, time to die!");
+    double * q = 0; q[2000000000] = 0; // voluntary segfault, useful for debugging purposes ;-)
+  } 
   _reset_cache(); 
   return *this;
 }
-
-/* 
-   Vector operator + (const Vector & u, const Vector & v) {
-   return Vector(u._x+v._x,
-   u._y+v._y,
-   u._z+v._z);
-   }
-*/
-
-/* 
-   Vector operator - (const Vector & u, const Vector & v) {
-   return Vector(u._x-v._x,
-   u._y-v._y,
-   u._z-v._z);
-   }
-*/
-
-/* 
-   Vector externalProduct (const Vector & lhs, const Vector & rhs) {
-   return Vector (lhs._y*rhs._z-lhs._z*rhs._y,
-   lhs._z*rhs._x-lhs._x*rhs._z,
-   lhs._x*rhs._y-lhs._y*rhs._x); 
-   }
-*/
-
-/* 
-   double operator * (const Vector & u, const Vector & v) {
-   return (u._x*v._x+
-   u._y*v._y+
-   u._z*v._z);
-   }  
-*/
 
 bool orsa::operator == (const Vector & v1, const Vector & v2) {
   if (v1.getX() != v2.getX()) return false;

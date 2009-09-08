@@ -20,10 +20,7 @@ ConstantZRotationEcliptic_RotationalBodyProperty::ConstantZRotationEcliptic_Rota
   _phi0(phi0),
   _omega(omega),
   _lambda(lambda),
-  _beta(beta) { 
-  // ORSA_DEBUG("NOTE: check lambda and beta definitions!");
-  // ORSA_DEBUG("constructing %x",this);
-}
+  _beta(beta) { }
 
 ConstantZRotationEcliptic_RotationalBodyProperty::ConstantZRotationEcliptic_RotationalBodyProperty(const ConstantZRotationEcliptic_RotationalBodyProperty & bp) : 
   orsa::PrecomputedRotationalBodyProperty(),
@@ -41,22 +38,6 @@ ConstantZRotationEcliptic_RotationalBodyProperty::ConstantZRotationEcliptic_Rota
 
 bool ConstantZRotationEcliptic_RotationalBodyProperty::update(const orsa::Time & t) {
   
-  // ORSA_DEBUG("--- UPDATE called ---");
-  // orsa::print(t);
-  
-  /* 
-     if (_previousTime.isSet()) {
-     ORSA_DEBUG("this: %x   t: %Zi   prev.t: %Zi !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
-     this,
-     t.getMuSec().get_mpz_t(),
-     _previousTime.getRef().getMuSec().get_mpz_t());
-     } else {
-     ORSA_DEBUG("this: %x   t: %Zi   prev.t: not set",
-     this,
-     t.getMuSec().get_mpz_t());
-     }
-  */
-  
   if (_previousTime.isSet()) {
     if (_previousTime.getRef() == t) {
       // ORSA_DEBUG("cached...");
@@ -66,8 +47,6 @@ bool ConstantZRotationEcliptic_RotationalBodyProperty::update(const orsa::Time &
   
   _previousTime = t;
   
-  // const double _phi = _phi0 + _omega*(t-_t0).get_d();
-  // 
   const double _phi = fmod(_phi0 + _omega*(t-_t0).get_d(), orsa::twopi());
   
   Matrix _m = Matrix::identity();
@@ -80,21 +59,7 @@ bool ConstantZRotationEcliptic_RotationalBodyProperty::update(const orsa::Time &
   
   _q = MatrixToQuaternion(_m);
   
-  // debug
-  // orsa::print(_q.getRef());
-  
-#warning "test this definition for omegaVector"
   _omegaVector = _omega * (_m*orsa::Vector(0,0,1)).normalized();
-  
-  // ORSA_DEBUG("following: omegaVector...");
-  // print(_omegaVector.getRef());
-  
-  /* 
-     ORSA_DEBUG("phi: %Fg   t: %Zi   prev.t: %Zi",
-     _phi(),
-     t.getMuSec().get_mpz_t(),
-     _previousTime.getRef().getMuSec().get_mpz_t());
-  */
   
   return true;
 }
@@ -126,7 +91,7 @@ bool ConstantZRotationEquatorial_RotationalBodyProperty::update(const orsa::Time
   
   _previousTime = t;
   
-  const double _phi = _phi0 + _omega*(t-_t0).get_d();
+  const double _phi = fmod(_phi0 + _omega*(t-_t0).get_d(), orsa::twopi());
   
   Matrix _m = Matrix::identity();
   
@@ -136,13 +101,10 @@ bool ConstantZRotationEquatorial_RotationalBodyProperty::update(const orsa::Time
   
   _m.rotZ(_alpha);
   
-#warning "check this!!"
-  // _m.rotX(-orsaSolarSystem::obleqJ2000());
   _m = orsaSolarSystem::equatorialToEcliptic()*_m;
   
   _q = MatrixToQuaternion(_m);
   
-#warning "test this definition for omegaVector"
   _omegaVector = _omega * (_m*orsa::Vector(0,0,1)).normalized();
   
   return true;

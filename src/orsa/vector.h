@@ -85,6 +85,10 @@ namespace orsa {
     
     Vector & operator /= (const double & f) {
       crashIfNaN(f);
+      if (f==0) { 
+	ORSA_DEBUG("catched attempt of divide by zero, time to die!");
+        double * q = 0; q[2000000000] = 0; // voluntary segfault, useful for debugging purposes ;-)
+      }
       _x /= f;
       _y /= f;
       _z /= f;
@@ -117,20 +121,6 @@ namespace orsa {
 		    _z*rhs._z);
     }
     
-    // rotation
-    /* 
-       Vector & rotate (const double, const double, const double);
-    */
-    
-    // set
-    /* 
-       inline void set(Vector v) {
-       _x = v._x;
-       _y = v._y;
-       _z = v._z;
-       }
-    */
-    
     inline void set(const double & x, const double & y, const double & z) {
       _x = x;
       _y = y;
@@ -152,14 +142,6 @@ namespace orsa {
     }
     //
     // double manhattanLength() const;    
-    
-    /* 
-       inline bool isZero() const {
-       return (LengthSquared() < (std::numeric_limits<double>::min() * 1.0e3));
-       }
-    */
-    //
-    bool isZero() const;
     
     // normalization
     /* inline Vector normalized() const {
@@ -215,80 +197,30 @@ namespace orsa {
   
   inline Vector operator * (const double & f, const Vector & v) {
     Vector p(v);
-    p *=f;
+    p *= f;
     return p;
   }
   
   inline Vector operator * (const Vector & v, const double & f) {
     crashIfNaN(f);
     Vector p(v);
-    p *=f;
+    p *= f;
     return p;
   }
   
   inline Vector operator / (const Vector & v, const double & f) {
     crashIfNaN(f);
     Vector p(v);
-    p /=f;
+    p /= f;
     return p;
   }
-  
-  /*  
-      inline Vector operator + (const Vector & u, const Vector & v) {
-      return Vector(u._x+v._x,
-      u._y+v._y,
-      u._z+v._z);
-      }
-  */
-  //
-  // Vector operator + (const Vector &, const Vector &);
-  
-  /* 
-     inline Vector operator - (const Vector & u, const Vector & v) {
-     return Vector(u._x-v._x,
-     u._y-v._y,
-     u._z-v._z);
-     }
-  */
-  //
-  // Vector operator - (const Vector &, const Vector &);
   
   inline Vector externalProduct (const Vector & lhs, const Vector & rhs) {
     return Vector (lhs.getY()*rhs.getZ()-lhs.getZ()*rhs.getY(),
 		   lhs.getZ()*rhs.getX()-lhs.getX()*rhs.getZ(),
 		   lhs.getX()*rhs.getY()-lhs.getY()*rhs.getX()); 
   }
-  //
-  // Vector externalProduct (const Vector &, const Vector &);
   
-  /* 
-     Vector Cross (const Vector& u, const Vector& v) {
-     return Vector (u.y*v.z-u.z*v.y,
-     u.z*v.x-u.x*v.z,
-     u.x*v.y-u.y*v.x); 
-     }
-  */
-  
-  // scalar product
-  /* 
-     double operator * (const Vector & u, const Vector & v) {
-     return (u._x*v._x+
-     u._y*v._y+
-     u._z*v._z);
-     }  
-  */
-  //
-  // double operator * (const Vector &, const Vector &);
-  
-  /* 
-     bool operator == (const Vector & v1, const Vector & v2) {
-     if (v1._x != v2._x) return false;
-     if (v1._y != v2._y) return false;
-     if (v1._z != v2._z) return false;
-     return true;
-     }
-  */
-  //
   bool operator == (const Vector &, const Vector &);
   
   inline bool operator != (const Vector & v1, const Vector & v2) {
