@@ -117,7 +117,8 @@ class SolarRadiationPressure : public orsa::Propulsion {
 };
 
 orsa::BodyGroup * run(const double orbitRadius,
-		      const SCENARIO scenario);
+		      const SCENARIO scenario,
+		      const orsa::Time duration);
 
 class CustomIntegrator : public orsa::IntegratorRadau {
  public:

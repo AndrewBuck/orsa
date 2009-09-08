@@ -23,7 +23,8 @@ using namespace orsaSolarSystem;
 using namespace orsaSPICE;
 
 orsa::BodyGroup * run(const double orbitRadius,
-		      const SCENARIO scenario) {
+		      const SCENARIO scenario,
+		      const orsa::Time duration) {
   
   const orsa::Time t0 = gregorTime(2012,
 				   1,
@@ -620,7 +621,7 @@ orsa::BodyGroup * run(const double orbitRadius,
   
   const double integrationAccuracy = 1.0e-9;
   
-  const orsa::Time duration = orsa::Time(40,0,0,0,0);
+  // const orsa::Time duration = orsa::Time(40,0,0,0,0);
   const orsa::Time samplingPeriod = orsa::Time(0,0,0,10,0);  
   
   orsa::Time dummyTime(0);

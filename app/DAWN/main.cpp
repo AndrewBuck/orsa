@@ -2,8 +2,8 @@
 
 int main(int argc, char ** argv) {
   
-  if (argc != 3) {
-    ORSA_DEBUG("Usage: %s <orbitRadius_km> <SCENARIO>",argv[0]);
+  if (argc != 4) {
+    ORSA_DEBUG("Usage: %s <orbitRadius_km> <SCENARIO> <duration_days>",argv[0]);
     exit(0);
   }
   
@@ -19,9 +19,12 @@ int main(int argc, char ** argv) {
   
   const SCENARIO scenario = s2S(argv[2]);
   
+  const orsa::Time duration(atoi(argv[3]),0,0,0,0);
+  
   osg::ref_ptr<orsa::BodyGroup> bg =
     run(orbitRadius,
-	scenario);
+	scenario,
+	duration);
   
   if (!bg.get()) {
     exit(0);
