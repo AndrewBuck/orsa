@@ -336,46 +336,8 @@ namespace orsa {
     bool update(const orsa::Time &) { return true; }
   };
   
-
-  // two notes: 1) is this used anywhere? 2) is clone() needed?
-  /* class PrecomputedInertialBodyProperty : public InertialBodyProperty {
-     public:
-     BodyPropertyType type() const { return BP_PRECOMPUTED; }
-     public:
-     bool setMass(const double &) {
-     ORSA_ERROR("this method should not have been called, please check your code.");
-     return false;
-     }
-     };
-  */
-  
-  
-  // used anywhere yet?
-  /* class DynamicInertialBodyProperty : public InertialBodyProperty {
-     public:
-     BodyPropertyType type() const { return BP_DYNAMIC; }
-     public:
-     bool update(const orsa::Time &) { return true; }
-     public:
-     double mass() const {
-     return _mass.getRef();
-     }
-     public:
-     bool setMass(const double & m) {
-     _mass = m;
-     return true;
-     }
-     public:
-     InertialBodyProperty * clone() const {
-     return new DynamicInertialBodyProperty(*this);
-     }
-     protected:
-     orsa::Cache<double> _mass;
-     };
-  */
-  
   /***/
-
+  
   class TranslationalBodyProperty : public BodyProperty {
   public:
     virtual orsa::Vector position() const = 0;
@@ -406,6 +368,10 @@ namespace orsa {
     bool setVelocity(const orsa::Vector &) {
       ORSA_ERROR("this method should not have been called, please check your code.");
       return false;
+    }
+  public:
+    TranslationalBodyProperty * clone() const {
+      return (TranslationalBodyProperty *) this;
     }
   };
   
@@ -510,6 +476,10 @@ namespace orsa {
 		     const orsa::Vector     &) {
       ORSA_ERROR("this method should not have been called, please check your code.");
       return false;
+    }
+  public:
+    RotationalBodyProperty * clone() const {
+      return (RotationalBodyProperty *) this;
     }
   };
   

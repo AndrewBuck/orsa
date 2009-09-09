@@ -14,10 +14,6 @@ namespace orsaSPICE {
     orsa::Vector position() const;
     orsa::Vector velocity() const;
   public:
-    orsa::TranslationalBodyProperty * clone() const {
-      return new SpiceBodyTranslationalCallback(*this);
-    }
-  public:
     bool update(const orsa::Time &);
   protected:
     const std::string _name;

@@ -17,10 +17,6 @@ namespace orsaSPICE {
     orsa::Quaternion getQ() const;
     orsa::Vector     getOmega() const;
   public:
-    orsa::RotationalBodyProperty * clone() const {
-      return new SpiceBodyRotationalCallback(*this);
-    }
-  public:
     bool update(const orsa::Time &);
   protected:
     const std::string _name;

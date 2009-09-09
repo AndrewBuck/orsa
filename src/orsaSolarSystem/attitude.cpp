@@ -31,10 +31,7 @@ ConstantZRotationEcliptic_RotationalBodyProperty::ConstantZRotationEcliptic_Rota
   _beta(bp._beta),
   _q(bp._q),
   _omegaVector(bp._omegaVector),
-  _previousTime(bp._previousTime) {
-  // ORSA_DEBUG("copy-constructor: %x copy of %x",this,&bp);
-  // ORSA_DEBUG("orig: %i   copy: %i",bp._previousTime.isSet(),_previousTime.isSet());
-}
+  _previousTime(bp._previousTime) { }
 
 bool ConstantZRotationEcliptic_RotationalBodyProperty::update(const orsa::Time & t) {
   
@@ -76,9 +73,7 @@ ConstantZRotationEquatorial_RotationalBodyProperty::ConstantZRotationEquatorial_
   _phi0(phi0),
   _omega(omega),
   _alpha(alpha),
-  _delta(delta) { 
-  // ORSA_DEBUG("NOTE: check alpha and delta definitions!");
-}
+  _delta(delta) { }
 
 bool ConstantZRotationEquatorial_RotationalBodyProperty::update(const orsa::Time & t) {
   
