@@ -196,32 +196,33 @@ orsa::Matrix orsa::QuaternionToMatrix (const orsa::Quaternion & q) {
 }
 
 orsa::Quaternion orsa::MatrixToQuaternion (const orsa::Matrix & m) {
-  //! assumes that m is a rotation matrix, with det(m)=1;
   
   if (fabs(m.determinant()-1) > 6*orsa::epsilon()) {
-    ORSA_DEBUG("call with a rotation matrix only: |det(m)-1| = %g",fabs(m.determinant()-1));
+    ORSA_DEBUG("problem: call with a rotation matrix only: |det(m)-1| = %g",fabs(m.determinant()-1));
     return orsa::Quaternion();
   }
   
-  // From Sec. 7.9 of Quaternions book bu J.B. Kuipers
+  // code discussion at http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
+  // first, the magnitude
+  double q0 = 0.5*sqrt(std::max(0.0,1+m.getM11()+m.getM22()+m.getM33()));
+  double q1 = 0.5*sqrt(std::max(0.0,1+m.getM11()-m.getM22()-m.getM33()));
+  double q2 = 0.5*sqrt(std::max(0.0,1-m.getM11()+m.getM22()-m.getM33()));
+  double q3 = 0.5*sqrt(std::max(0.0,1-m.getM11()-m.getM22()+m.getM33()));
+  // then the sign
+  q1 = copysign(q1,m.getM23()-m.getM32());
+  q2 = copysign(q2,m.getM31()-m.getM13());
+  q3 = copysign(q3,m.getM12()-m.getM21());
   
-  // const double q0 = sqrt(m.getM11()+m.getM22()+m.getM33()+1)/2;
-  //
-  // prevent sqrt() of negative
-  double tmp_q0;
-  const double m3p1 = m.getM11()+m.getM22()+m.getM33()+1;
-  if (m3p1 >= 0) {
-    tmp_q0 = sqrt(m3p1)/2;
-  } else {
-    ORSA_DEBUG("catched sqrt() of negative argument: sqrt(%g)",m3p1);
-    tmp_q0 = 0;
+  if (0) {
+    // debug: compare new code with old one
+    const double old_q1 = (m.getM23()-m.getM32())/(4*q0);
+    const double old_q2 = (m.getM31()-m.getM13())/(4*q0);
+    const double old_q3 = (m.getM12()-m.getM21())/(4*q0);
+    ORSA_DEBUG("dq1/q1 = %+e   dq2/q2 = %+e   dq3/q3 = %+e",
+	       (q1-old_q1)/fabs(q1),
+	       (q2-old_q2)/fabs(q2),
+	       (q3-old_q3)/fabs(q3));
   }
-  //
-  const double q0 = tmp_q0;
-  
-  const double q1 = (m.getM23()-m.getM32())/(4*q0);
-  const double q2 = (m.getM31()-m.getM13())/(4*q0);
-  const double q3 = (m.getM12()-m.getM21())/(4*q0);
   
   return orsa::Quaternion(q0, orsa::Vector(q1,q2,q3));
 }
