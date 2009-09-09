@@ -101,6 +101,14 @@ namespace orsa {
 	       orsa::FromUnits(o.mu/G,orsa::Unit::KG,-1));
   }
   
+  template <typename T> void print(const orsa::Cache<T> & c) {
+    ORSA_DEBUG("cache set: %i   address: %x",c.isSet(),&c);
+    if (c.isSet()) {
+      ORSA_DEBUG("cache val: ");
+      orsa::print(c.getRef());
+    }
+  }
+  
 } // namespace orsa
 
 #endif // _ORSA_PRINT_
