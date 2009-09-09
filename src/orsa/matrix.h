@@ -47,15 +47,15 @@ namespace orsa {
 	     double & m33) const;
 
   public:
-    void setM11(const double & x) { m11=x; crashIfNaN(x); }
-    void setM12(const double & x) { m12=x; crashIfNaN(x); }
-    void setM13(const double & x) { m13=x; crashIfNaN(x); }
-    void setM21(const double & x) { m21=x; crashIfNaN(x); }
-    void setM22(const double & x) { m22=x; crashIfNaN(x); }
-    void setM23(const double & x) { m23=x; crashIfNaN(x); }
-    void setM31(const double & x) { m31=x; crashIfNaN(x); }
-    void setM32(const double & x) { m32=x; crashIfNaN(x); }
-    void setM33(const double & x) { m33=x; crashIfNaN(x); }
+    void setM11(const double & x) { m11=x; check(); }
+    void setM12(const double & x) { m12=x; check(); }
+    void setM13(const double & x) { m13=x; check(); }
+    void setM21(const double & x) { m21=x; check(); }
+    void setM22(const double & x) { m22=x; check(); }
+    void setM23(const double & x) { m23=x; check(); }
+    void setM31(const double & x) { m31=x; check(); }
+    void setM32(const double & x) { m32=x; check(); }
+    void setM33(const double & x) { m33=x; check(); }
     
   public:
     const double & getM11() const { return m11; }
@@ -110,6 +110,9 @@ namespace orsa {
     Matrix operator + (const Matrix &) const;
     Matrix operator - (const Matrix &) const;
     Matrix operator * (const Matrix &) const;
+    
+  protected:
+    void check() const;
     
   protected:
     double m11,m12,m13,m21,m22,m23,m31,m32,m33;

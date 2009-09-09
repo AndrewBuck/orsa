@@ -31,7 +31,7 @@ void Debug::initTimer() {
     ORSA_DEBUG("problems in orsa::Debug::initTimer()...");
   }
 #else
-  ORSA_DEBUG("timer not available");
+  // ORSA_DEBUG("timer not available");
 #endif
 }
 

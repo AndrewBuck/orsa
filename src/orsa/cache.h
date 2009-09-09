@@ -9,6 +9,8 @@
 #include <orsa/debug.h>
 #endif
 
+#include <orsa/crash.h>
+
 namespace orsa {
   
   //! Instead of Cache, this class should be called something like GetSetVariable...
@@ -29,22 +31,22 @@ namespace orsa {
   public:
     T get() const { 
       if (!_set) {
-	ORSA_ERROR("returning unset value");
-	double * q = 0; q[2000000000] = 0; // voluntary segfault, useful for debugging purposes ;-)
+       	ORSA_ERROR("returning unset value");
+	orsa::crash();
       }
       return _val; 
     }
     const T & getRef() const {
       if (!_set) {
 	ORSA_ERROR("returning unset value");
-	double * q = 0; q[2000000000] = 0; // voluntary segfault, useful for debugging purposes ;-)
+	orsa::crash();
       }
       return _val;
     } 
     const T * getPtr() const {
       if (!_set) {
 	ORSA_ERROR("returning unset value");
-	double * q = 0; q[2000000000] = 0; // voluntary segfault, useful for debugging purposes ;-)
+	orsa::crash();
       }
       return & _val;
     }

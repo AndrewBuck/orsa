@@ -179,12 +179,15 @@ orsa::Matrix orsa::QuaternionToMatrix (const orsa::Quaternion & q) {
   const double       s = q.getScalar();
   const orsa::Vector v = q.getVector();
   
-  crashIfNaN(s);
-  
   const double q0 = s;
   const double q1 = v.getX();
   const double q2 = v.getY();
   const double q3 = v.getZ();
+  
+  orsa::check(q0);
+  orsa::check(q1);
+  orsa::check(q2);
+  orsa::check(q3);
   
   // Eq. (7.7) book by J.B. Kuipers on Quaternions
   return orsa::Matrix(2*q0*q0-1+2*q1*q1,   2*q1*q2+2*q0*q3, 2*q1*q3-2*q0*q2,

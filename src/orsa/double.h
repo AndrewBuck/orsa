@@ -57,7 +57,8 @@ namespace orsa {
   double pochhammer(const double    & a, 
 		    const mpz_class & n);
   
-  void crashIfNaN(const double & x);
+  // call orsa::crash() if x is not finite (+-Inf or NaN), useful for debugging
+  void check(const double & x);
   
 } // namespace orsa
 

@@ -18,17 +18,13 @@ namespace orsa {
     Vector() { }
   public:
     Vector(const Vector & v) : _x(v._x), _y(v._y), _z(v._z), _l(v._l), _l2(v._l2) { 
-      crashIfNaN(_x);
-      crashIfNaN(_y);
-      crashIfNaN(_z);
+      check();
     }
   public:	
     Vector(const double & x, 
 	   const double & y, 
 	   const double & z) : _x(x), _y(y), _z(z) {
-      crashIfNaN(_x);
-      crashIfNaN(_y);
-      crashIfNaN(_z);
+      check();
     }
   public:     
     ~Vector() { }
@@ -50,9 +46,9 @@ namespace orsa {
     inline const double & getY() const { return _y; }
     inline const double & getZ() const { return _z; }
   public:    
-    inline void setX(const double & x) { _x = x; crashIfNaN(_x); _reset_cache(); }
-    inline void setY(const double & y) { _y = y; crashIfNaN(_y); _reset_cache(); }
-    inline void setZ(const double & z) { _z = z; crashIfNaN(_z); _reset_cache(); }    
+    inline void setX(const double & x) { _x = x; check(); _reset_cache(); }
+    inline void setY(const double & y) { _y = y; check(); _reset_cache(); }
+    inline void setZ(const double & z) { _z = z; check(); _reset_cache(); }    
   public:
     osg::Vec3f getVec3f() const;
     osg::Vec3d getVec3d() const;
@@ -75,7 +71,7 @@ namespace orsa {
     }
     
     Vector & operator *= (const double & f) {
-      crashIfNaN(f);
+      orsa::check(f);
       _x *= f;
       _y *= f;
       _z *= f;
@@ -84,10 +80,10 @@ namespace orsa {
     }
     
     Vector & operator /= (const double & f) {
-      crashIfNaN(f);
+      orsa::check(f);
       if (f==0) { 
-	ORSA_DEBUG("catched attempt of divide by zero, time to die!");
-        double * q = 0; q[2000000000] = 0; // voluntary segfault, useful for debugging purposes ;-)
+	ORSA_DEBUG("catched attempt of divide by zero");
+       	orsa::crash();
       }
       _x /= f;
       _y /= f;
@@ -126,9 +122,7 @@ namespace orsa {
       _y = y;
       _z = z;
       //
-      crashIfNaN(_x);
-      crashIfNaN(_y);
-      crashIfNaN(_z);
+      check();
       //
       _reset_cache(); 
     }
@@ -175,6 +169,9 @@ namespace orsa {
     Vector & normalize();
     
   protected:
+    void check() const;
+    
+  protected:
     double _x, _y, _z;
     
     // cache
@@ -202,14 +199,14 @@ namespace orsa {
   }
   
   inline Vector operator * (const Vector & v, const double & f) {
-    crashIfNaN(f);
+    orsa::check(f);
     Vector p(v);
     p *= f;
     return p;
   }
   
   inline Vector operator / (const Vector & v, const double & f) {
-    crashIfNaN(f);
+    orsa::check(f);
     Vector p(v);
     p /= f;
     return p;

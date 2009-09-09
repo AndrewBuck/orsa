@@ -20,3 +20,10 @@ Quaternion Quaternion::operator * (const Quaternion & rhs) const {
   return Quaternion(_s*rhs._s - _v*rhs._v,
 		    _s*rhs._v + rhs._s*_v + orsa::externalProduct(_v,rhs._v));
 }
+
+void Quaternion::check() const {
+  orsa::check(_s);
+  orsa::check(_v.getX());
+  orsa::check(_v.getY());
+  orsa::check(_v.getZ());
+}

@@ -792,8 +792,7 @@ orsa::Vector Paul::gravitationalForce(const orsa::PaulMoment * M1,
        (FZ!=FZ) ) {
     //
     if (thisIsRepeatedCall) {
-      ORSA_ERROR("NaN detected, time to die!");
-      double * q = 0; q[2000000000] = 0; // voluntary segfault, useful for debugging purposes ;-)
+      orsa::crash();
     } else {
       // thisIsRepeatedCall true
       Paul::gravitationalForce(M1,A1_g2l,M2,A2_g2l,R,true);

@@ -34,15 +34,17 @@ Matrix::Matrix(const double & _m11,
 	       const double & _m31,
 	       const double & _m32,
 	       const double & _m33) {
-  m11 = _m11; crashIfNaN(m11);
-  m12 = _m12; crashIfNaN(m12);
-  m13 = _m13; crashIfNaN(m13);
-  m21 = _m21; crashIfNaN(m21);
-  m22 = _m22; crashIfNaN(m22);
-  m23 = _m23; crashIfNaN(m23);
-  m31 = _m31; crashIfNaN(m31);
-  m32 = _m32; crashIfNaN(m32);
-  m33 = _m33; crashIfNaN(m33);
+  m11 = _m11;
+  m12 = _m12;
+  m13 = _m13;
+  m21 = _m21;
+  m22 = _m22;
+  m23 = _m23;
+  m31 = _m31;
+  m32 = _m32;
+  m33 = _m33;
+  //
+  check();
 }
 
 void Matrix::set(const double & _m11, 
@@ -54,15 +56,17 @@ void Matrix::set(const double & _m11,
 		 const double & _m31,
 		 const double & _m32,
 		 const double & _m33) {
-  m11 = _m11; crashIfNaN(m11);
-  m12 = _m12; crashIfNaN(m12);
-  m13 = _m13; crashIfNaN(m13);
-  m21 = _m21; crashIfNaN(m21);
-  m22 = _m22; crashIfNaN(m22);
-  m23 = _m23; crashIfNaN(m23);
-  m31 = _m31; crashIfNaN(m31);
-  m32 = _m32; crashIfNaN(m32);
-  m33 = _m33; crashIfNaN(m33);
+  m11 = _m11;
+  m12 = _m12;
+  m13 = _m13;
+  m21 = _m21;
+  m22 = _m22;
+  m23 = _m23;
+  m31 = _m31;
+  m32 = _m32;
+  m33 = _m33;
+  //
+  check();
 }
 
 void Matrix::get(double & _m11, 
@@ -514,19 +518,17 @@ Matrix Matrix::operator * (const Matrix & rhs) const {
 		m31*rhs.m13+m32*rhs.m23+m33*rhs.m33);
 }
 
-/* 
-   Vector operator * (const Matrix & m, const Vector & v) {
-   return Vector (m.getM11()*v.getX()+m.getM12()*v.getY()+m.getM13()*v.getZ(),
-   m.getM21()*v.getX()+m.getM22()*v.getY()+m.getM23()*v.getZ(),
-   m.getM31()*v.getX()+m.getM32()*v.getY()+m.getM33()*v.getZ());
-   }
-   
-   Vector operator * (const Vector & v, const Matrix & m) {
-   return Vector (v.getX()*m.getM11()+v.getY()*m.getM21()+v.getZ()*m.getM31(),
-   v.getX()*m.getM12()+v.getY()*m.getM22()+v.getZ()*m.getM32(),
-   v.getX()*m.getM13()+v.getY()*m.getM23()+v.getZ()*m.getM33());
-   }
-*/
+void Matrix::check() const {
+  orsa::check(m11);
+  orsa::check(m12);
+  orsa::check(m13);
+  orsa::check(m21);
+  orsa::check(m22);
+  orsa::check(m23);
+  orsa::check(m31);
+  orsa::check(m32);
+  orsa::check(m33); 
+}
 
 bool orsa::operator == (const orsa::Matrix & a, const orsa::Matrix & b) {
   if (a.getM11() != b.getM11()) return false;

@@ -31,6 +31,7 @@ HEADERS = angle.h \
           box.h \
           cache.h \
           covariance.h \
+          crash.h \
           datetime.h \
           debug.h \
           double.h \
@@ -68,6 +69,7 @@ SOURCES = angle.cpp \
 #          borderies.cpp \
           box.cpp \ 
           covariance.cpp \
+          crash.cpp \
 #          datetime.cpp \
           debug.cpp \
           double.cpp \

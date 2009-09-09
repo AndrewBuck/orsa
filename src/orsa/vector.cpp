@@ -56,7 +56,7 @@ Vector Vector::normalized() const {
 		  _z*_one_over_l);
   } else {
     ORSA_DEBUG("cannot normalize zero vector, time to die!");
-    double * q = 0; q[2000000000] = 0; // voluntary segfault, useful for debugging purposes ;-)
+    orsa::crash();
     // placeholder, to keep compiler happy
     return (*this);
   }
@@ -65,16 +65,21 @@ Vector Vector::normalized() const {
 Vector & Vector::normalize() {
   if (length() > 0) {
     const double _one_over_l = 1/length();
-    crashIfNaN(_one_over_l);
     _x *= _one_over_l;
     _y *= _one_over_l;
     _z *= _one_over_l;
+    check();
   } else {
-    ORSA_DEBUG("cannot normalize zero vector, time to die!");
-    double * q = 0; q[2000000000] = 0; // voluntary segfault, useful for debugging purposes ;-)
+    orsa::crash();
   } 
   _reset_cache(); 
   return *this;
+}
+
+void Vector::check() const {
+  orsa::check(_x);
+  orsa::check(_y);
+  orsa::check(_z);
 }
 
 bool orsa::operator == (const Vector & v1, const Vector & v2) {
