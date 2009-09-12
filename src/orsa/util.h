@@ -73,7 +73,7 @@ namespace orsa {
     mutable std::map <int, orsa::Cache<double> > _data;
   };
   
-  bool eulerAnglesToMatrix(orsa::Matrix       & m,
+  bool eulerAnglesToMatrix(orsa::Matrix & m,
 			   const double & psi,
 			   const double & theta,
 			   const double & phi);
