@@ -2,8 +2,9 @@
 #include <orsa/unit.h>
 
 #include <stdio.h>
-#include <stdlib.h> 
-
+#include <stdlib.h>
+ 
+#include <algorithm>
 #include <vector>
 
 #include <fftw3.h>
@@ -76,7 +77,8 @@ class FFTPowerSpectrum : public std::vector<FFTPowerSpectrumBaseElement> {
 void FFT(FFTPowerSpectrum & FFTps,
        	 const FFTDataStream & data_stream,
 	 const bool Hanning=false,
-	 const bool HiRes=false) {
+	 const bool HiRes=false,
+	 const int resample=4) {
   
   const unsigned int size = data_stream.size();
   
@@ -92,7 +94,6 @@ void FFT(FFTPowerSpectrum & FFTps,
     }
     
     // high resoultion spectrum
-    int resample = 16;
     FFTPowerSpectrumBaseElement tps;
     FFTps.resize(0);
     for (unsigned int l=0;l<(size/2+1)*resample;l++) {
@@ -108,8 +109,6 @@ void FFT(FFTPowerSpectrum & FFTps,
     free(in); 
     
   } else {
-    
-#warning todo: replace "size" with "N"
     
     fftw_complex *in, *out;
     
@@ -154,107 +153,242 @@ void FFT(FFTPowerSpectrum & FFTps,
 class DataElement {
 public:
   double t;
+  //
   double a;
   double e;
   double i;
   double node;
   double peri;
   double M;
+  //
+  double R;
 };
 
-/* class FourierElement {
-   public:
-   double t;
-   double re;
-   double im;
-   };
-*/
 
 int main(int argc, char **argv) {
   
-  if (argc != 2) {
-    ORSA_DEBUG("Usage: %s <DAWN-extracted-output-file>");
+  if (argc == 1) {
+    ORSA_DEBUG("Usage: %s <DAWN-extracted-output-file(s)>");
     exit(0);
   }
   
-  std::vector<DataElement> data;
+  int fileID = 1;
   
-  
-  {
-    // read file
+  while (fileID < argc) {
     
-    FILE * fp = fopen(argv[1],"r");
+    std::vector<DataElement> data;
     
-    if (!fp) {
-      ORSA_DEBUG("cannot open input file: [%s]",argv[1]);
-      exit(0);
-    }
+    char filename[1024];
     
-    char line[1024];
-    
-    while (fgets(line,1024,fp)) {
-      DataElement row;
-      sscanf(line,"%*s %*s %*s %lf %lf %lf %lf %lf %lf %lf",
-	     &row.t,
-	     &row.a,
-	     &row.e,
-	     &row.i,
-	     &row.node,
-	     &row.peri,
-	     &row.M);
-      // convert units
-      row.t = orsa::FromUnits(row.t,orsa::Unit::SECOND);
-      row.a = orsa::FromUnits(row.a,orsa::Unit::KM);
-      // row.e is fine
-      row.i    *= orsa::degToRad();
-      row.node *= orsa::degToRad();
-      row.peri *= orsa::degToRad();
-      row.M    *= orsa::degToRad();
+    {
+      // read file
       
-      data.push_back(row);
+      FILE * fp = fopen(argv[fileID],"r");
+      
+      if (!fp) {
+	ORSA_DEBUG("cannot open input file: [%s]",argv[fileID]);
+	exit(0);
+      }
+      
+      ORSA_DEBUG("working on file [%s]",argv[fileID]);
+      
+      char line[1024];
+      
+      while (fgets(line,1024,fp)) {
+	DataElement row;
+	//           1   2   3   4   5   6   7   8   9   10  11  12  13  14  15  16
+	sscanf(line,"%*s %*s %*s %lf %lf %lf %lf %lf %lf %lf %*s %*s %*s %*s %*s %lf",
+	       &row.t,
+	       &row.a,
+	       &row.e,
+	       &row.i,
+	       &row.node,
+	       &row.peri,
+	       &row.M,
+	       &row.R);
+	// convert units
+	row.t = orsa::FromUnits(row.t,orsa::Unit::SECOND);
+	//
+	row.a = orsa::FromUnits(row.a,orsa::Unit::KM);
+	// row.e is fine
+	row.i    *= orsa::degToRad();
+	row.node *= orsa::degToRad();
+	row.peri *= orsa::degToRad();
+	row.M    *= orsa::degToRad();
+	//
+	row.R = orsa::FromUnits(row.R,orsa::Unit::KM);
+	
+	data.push_back(row);
+      }
+      
+      fclose(fp);
     }
     
-    fclose(fp);
-  }
-  
-  const double T = data[data.size()-1].t - data[0].t;
-  //
-  const double samplingPeriod    = T / (data.size()-1);
-  const double samplingFrequency = 1 / samplingPeriod;
-  
-  /* ORSA_DEBUG("rows: %i   T: %g [h]",
-     data.size(),
-     orsa::FromUnits(T,orsa::Unit::HOUR,-1));
-  */
-  
-  
-  FFTDataStream dataStream;
-  //
-  dataStream.timestep = samplingPeriod;
-  
-  for (unsigned int k=0; k<data.size(); ++k) {
+    if (data.size()==0) {
+      ++fileID;
+      continue;
+    }
     
-    FFTDataStructure row;
+
+    /*** R ***/
     
-    row.time      = data[k].t;
-    row.amplitude = data[k].e;
-    row.phase     = data[k].node+data[k].peri;
+    std::vector<double> data_R;
+    double mean_R=0;
+    for (unsigned int k=0; k<data.size(); ++k) {
+      data_R.push_back(data[k].R);
+      mean_R += data[k].R;
+    }
+    mean_R /= data.size();
+    std::sort(data_R.begin(),data_R.end());
+    const double median_R = data_R[data_R.size()/2];
+    //
+    const double range_R_50 = data_R[3*data_R.size()/4]   - data_R[data_R.size()/4];
+    const double range_R_90 = data_R[19*data_R.size()/20] - data_R[data_R.size()/20];
+    const double range_R    = data_R[data_R.size()-1]     - data_R[0];
     
-    dataStream.push_back(row);
-  }
-  
-  FFTPowerSpectrum FFTps;
-  const bool Hanning = false;
-  const bool HiRes   = true;
-  FFT(FFTps,
-      dataStream,
-      Hanning,
-      HiRes);
-  
-  for (unsigned int k=0; k<FFTps.size(); ++k) {
-    ORSA_DEBUG("%g %g",
-	       FFTps[k].frequency,
-	       FFTps[k].power);
+    sprintf(filename,"%s_R.dat",argv[fileID]);
+    FILE * fp_R = fopen(filename,"w");
+    {
+      fprintf(fp_R,
+	      "%g %g %g %g %g %g\n",
+	      orsa::FromUnits(data[0].a,orsa::Unit::KM,-1),
+	      orsa::FromUnits(mean_R,orsa::Unit::KM,-1),
+	      orsa::FromUnits(median_R,orsa::Unit::KM,-1),
+	      orsa::FromUnits(range_R_50,orsa::Unit::KM,-1),
+	      orsa::FromUnits(range_R_90,orsa::Unit::KM,-1),
+	      orsa::FromUnits(range_R,orsa::Unit::KM,-1));
+    }
+    fclose(fp_R);
+    
+    
+    
+
+    /*** FFT ***/
+    
+    const double T = data[data.size()-1].t - data[0].t;
+    //
+    const double samplingPeriod    = T / (data.size()-1);
+    // const double samplingFrequency = 1 / samplingPeriod;
+    
+    FFTDataStream dataStream;
+    //
+    dataStream.timestep = samplingPeriod;
+    
+    FFTPowerSpectrum FFTps;
+    const bool Hanning = true;
+    const bool HiRes   = true;
+    
+    // test
+    /* {
+       dataStream.clear();
+       dataStream.timestep = 1.0;
+       for (unsigned int k=0; k<1000; ++k) {
+       FFTDataStructure row;
+       row.time      = dataStream.timestep*k;
+       row.amplitude = 40.0;
+       row.phase     = row.time*orsa::twopi()*0.28;
+       dataStream.push_back(row);
+       }  
+       }
+    */
+    
+    /*** FG ***/
+    
+    {
+      dataStream.clear();
+      for (unsigned int k=0; k<data.size(); ++k) {
+	FFTDataStructure row;
+	row.time      = data[k].t;
+	row.amplitude = data[k].e;
+	row.phase     = data[k].node+data[k].peri;
+	dataStream.push_back(row);
+      }
+    }
+    
+    FFT(FFTps,
+	dataStream,
+	Hanning,
+	HiRes);
+    
+    sprintf(filename,"%s_FG_a0.dat",argv[fileID]);
+    FILE * fp_FG = fopen(filename,"w");
+    for (unsigned int k=0; k<FFTps.size(); ++k) {
+      fprintf(fp_FG,
+	      "%g %g %g\n",
+	      FFTps[k].frequency*3600.0,
+	      orsa::FromUnits(data[0].a,orsa::Unit::KM,-1),
+	      FFTps[k].power);
+    }
+    fclose(fp_FG);
+    
+    /*** HK ***/
+    
+    if (0) {
+      
+      {
+	dataStream.clear();
+	for (unsigned int k=0; k<data.size(); ++k) {
+	  FFTDataStructure row;
+	  row.time      = data[k].t;
+	  row.amplitude = tan(data[k].i/2);
+	  row.phase     = data[k].node;
+	  dataStream.push_back(row);
+	}
+      }
+      
+      FFT(FFTps,
+	  dataStream,
+	  Hanning,
+	  HiRes);
+      
+      sprintf(filename,"%s_HK_a0.dat",argv[fileID]);
+      FILE * fp_HK = fopen(filename,"w");
+      for (unsigned int k=0; k<FFTps.size(); ++k) {
+	fprintf(fp_HK,
+		"%g %g %g\n",
+		FFTps[k].frequency*3600.0,
+		orsa::FromUnits(data[0].a,orsa::Unit::KM,-1),
+		FFTps[k].power);
+      }
+      fclose(fp_HK);
+      
+    }
+    
+    /*** PL ***/
+    
+    if (0) {
+      
+      {
+	dataStream.clear();
+	for (unsigned int k=0; k<data.size(); ++k) {
+	  FFTDataStructure row;
+	  row.time      = data[k].t;
+	  row.amplitude = orsa::FromUnits(data[k].a,orsa::Unit::KM,-1)*(1-orsa::square(data[k].e));
+	  row.phase     = data[k].node+data[k].peri+data[k].M;
+	  dataStream.push_back(row);
+	}
+      }
+      
+      FFT(FFTps,
+	  dataStream,
+	  Hanning,
+	  HiRes);
+      
+      sprintf(filename,"%s_PL_a0.dat",argv[fileID]);
+      FILE * fp_PL = fopen(filename,"w");
+      for (unsigned int k=0; k<FFTps.size(); ++k) {
+	fprintf(fp_PL,
+		"%g %g %g\n",
+		FFTps[k].frequency*3600.0,
+		orsa::FromUnits(data[0].a,orsa::Unit::KM,-1),
+		FFTps[k].power);
+      }
+      fclose(fp_PL);
+      
+    }
+    
+    
+    ++fileID;
   }
   
   return 0;
