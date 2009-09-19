@@ -232,37 +232,104 @@ int main(int argc, char **argv) {
 
     /*** R ***/
     
-    std::vector<double> data_R;
-    double mean_R=0;
-    for (unsigned int k=0; k<data.size(); ++k) {
-      data_R.push_back(data[k].R);
-      mean_R += data[k].R;
-    }
-    mean_R /= data.size();
-    std::sort(data_R.begin(),data_R.end());
-    const double median_R = data_R[data_R.size()/2];
-    //
-    const double range_R_50 = data_R[3*data_R.size()/4]   - data_R[data_R.size()/4];
-    const double range_R_90 = data_R[19*data_R.size()/20] - data_R[data_R.size()/20];
-    const double range_R    = data_R[data_R.size()-1]     - data_R[0];
+    if (1) {
+      
+      std::vector<double> data_R;
+      double mean_R=0;
+      //
+      std::vector<double> data_a;
+      double mean_a=0;
+      //
+      for (unsigned int k=0; k<data.size(); ++k) {
+	data_R.push_back(data[k].R);
+	mean_R += data[k].R;
+   	//
+	data_a.push_back(data[k].a);
+	mean_a += data[k].a;
+      }
+      mean_R /= data.size();
+      mean_a /= data.size();
+      //
+      std::sort(data_R.begin(),data_R.end());
+      std::sort(data_a.begin(),data_a.end());
+      //
+      const double median_R = data_R[data_R.size()/2];
+      const double median_a = data_a[data_a.size()/2];
+      //
+      const double range_R_50 = data_R[3*data_R.size()/4]   - data_R[data_R.size()/4];
+      const double range_R_90 = data_R[19*data_R.size()/20] - data_R[data_R.size()/20];
+      const double range_R    = data_R[data_R.size()-1]     - data_R[0];
+      //
+      const double range_R_50_up   = data_R[3*data_R.size()/4] - median_R;
+      const double range_R_50_down = median_R - data_R[data_R.size()/4];
+      const double range_R_90_up   = data_R[19*data_R.size()/20] - median_R;
+      const double range_R_90_down = median_R - data_R[data_R.size()/20];
+      const double range_R_up      = data_R[data_R.size()-1] - median_R;
+      const double range_R_down    = median_R - data_R[0];
+      //
+      const double range_a_50 = data_a[3*data_a.size()/4]   - data_a[data_a.size()/4];
+      const double range_a_90 = data_a[19*data_a.size()/20] - data_a[data_a.size()/20];
+      const double range_a    = data_a[data_a.size()-1]     - data_a[0];
+      
+      sprintf(filename,"%s_R.dat",argv[fileID]);
+      FILE * fp_R = fopen(filename,"w");
+      {
+	fprintf(fp_R,
+		"%g %g %g %g %g %g %g %g %g %g %g\n",
+		orsa::FromUnits(data[0].a,orsa::Unit::KM,-1),
+		orsa::FromUnits(mean_R,orsa::Unit::KM,-1),
+		orsa::FromUnits(median_R,orsa::Unit::KM,-1),
+		orsa::FromUnits(range_R_50,orsa::Unit::KM,-1),
+		orsa::FromUnits(range_R_90,orsa::Unit::KM,-1),
+		orsa::FromUnits(range_R,orsa::Unit::KM,-1),
+		orsa::FromUnits(mean_a,orsa::Unit::KM,-1),
+		orsa::FromUnits(median_a,orsa::Unit::KM,-1),
+		orsa::FromUnits(range_a_50,orsa::Unit::KM,-1),
+		orsa::FromUnits(range_a_90,orsa::Unit::KM,-1),
+		orsa::FromUnits(range_a,orsa::Unit::KM,-1));
+      }
+      fclose(fp_R);
+      
+      // data for xmgrace xydxdxdydy
+      /* sprintf(filename,"%s_BOX.dat",argv[fileID]);
+	 FILE * fp_BOX = fopen(filename,"w");
+	 {
+	 fprintf(fp_BOX,
+	 "%g %g %g %g %g %g\n",
+	 orsa::FromUnits(data[0].a,orsa::Unit::KM,-1),
+	 orsa::FromUnits(median_R,orsa::Unit::KM,-1),
+	 orsa::FromUnits(median_R+range_R_50,orsa::Unit::KM,-1),
+	 orsa::FromUnits(median_R-range_R_50,orsa::Unit::KM,-1),
+	 orsa::FromUnits(median_R+range_R,orsa::Unit::KM,-1),
+	 orsa::FromUnits(median_R-range_R,orsa::Unit::KM,-1));
+	 }
+	 fclose(fp_BOX);
+      */
+      
+      // data for xmgrace xydxdxdydy (first up, then down
+      sprintf(filename,"%s_DXDXDYDY.dat",argv[fileID]);
+      FILE * fp_DXDXDYDY = fopen(filename,"w");
+      {
+	fprintf(fp_DXDXDYDY,
+		"%g %g %g %g %g %g %g %g %g %g %g %g %g\n",
+		orsa::FromUnits(data[0].a,orsa::Unit::KM,-1),
+		orsa::FromUnits(median_R,orsa::Unit::KM,-1),
+		orsa::FromUnits(0.0,orsa::Unit::KM,-1),
+		orsa::FromUnits(0.0,orsa::Unit::KM,-1),
+		orsa::FromUnits(range_R_50_up,orsa::Unit::KM,-1),    // up
+		orsa::FromUnits(range_R_50_down,orsa::Unit::KM,-1),  // down
+		orsa::FromUnits(range_R_90_up,orsa::Unit::KM,-1),    // up
+		orsa::FromUnits(range_R_90_down,orsa::Unit::KM,-1),  // down
+		orsa::FromUnits(range_R_up,orsa::Unit::KM,-1),       // up
+		orsa::FromUnits(range_R_down,orsa::Unit::KM,-1),     // down
+		orsa::FromUnits(range_R_50,orsa::Unit::KM,-1),       // 3 more extras: total ranges
+		orsa::FromUnits(range_R_90,orsa::Unit::KM,-1),
+		orsa::FromUnits(range_R,orsa::Unit::KM,-1));
+      }
+      fclose(fp_DXDXDYDY);
+      
+    }    
     
-    sprintf(filename,"%s_R.dat",argv[fileID]);
-    FILE * fp_R = fopen(filename,"w");
-    {
-      fprintf(fp_R,
-	      "%g %g %g %g %g %g\n",
-	      orsa::FromUnits(data[0].a,orsa::Unit::KM,-1),
-	      orsa::FromUnits(mean_R,orsa::Unit::KM,-1),
-	      orsa::FromUnits(median_R,orsa::Unit::KM,-1),
-	      orsa::FromUnits(range_R_50,orsa::Unit::KM,-1),
-	      orsa::FromUnits(range_R_90,orsa::Unit::KM,-1),
-	      orsa::FromUnits(range_R,orsa::Unit::KM,-1));
-    }
-    fclose(fp_R);
-    
-    
-    
-
     /*** FFT ***/
     
     const double T = data[data.size()-1].t - data[0].t;
@@ -294,32 +361,102 @@ int main(int argc, char **argv) {
     
     /*** FG ***/
     
-    {
-      dataStream.clear();
-      for (unsigned int k=0; k<data.size(); ++k) {
-	FFTDataStructure row;
-	row.time      = data[k].t;
-	row.amplitude = data[k].e;
-	row.phase     = data[k].node+data[k].peri;
-	dataStream.push_back(row);
+    if (0) {
+      
+      {
+	dataStream.clear();
+	for (unsigned int k=0; k<data.size(); ++k) {
+	  FFTDataStructure row;
+	  row.time      = data[k].t;
+	  row.amplitude = data[k].e;
+	  row.phase     = data[k].node+data[k].peri;
+	  dataStream.push_back(row);
+	}
       }
+      
+      FFT(FFTps,
+	  dataStream,
+	  Hanning,
+	  HiRes);
+      
+      sprintf(filename,"%s_FG_a0.dat",argv[fileID]);
+      FILE * fp_FG = fopen(filename,"w");
+      for (unsigned int k=0; k<FFTps.size(); ++k) {
+	fprintf(fp_FG,
+		"%g %g %g\n",
+		FFTps[k].frequency*3600.0,
+		orsa::FromUnits(data[0].a,orsa::Unit::KM,-1),
+		FFTps[k].power);
+      }
+      fclose(fp_FG);
+      
+    }	
+    
+    /*** NODE_PHASE ***/
+    
+    if (0) {
+      
+      {
+	dataStream.clear();
+	for (unsigned int k=0; k<data.size(); ++k) {
+	  FFTDataStructure row;
+	  row.time      = data[k].t;
+	  row.amplitude = 1.0;
+	  row.phase     = data[k].node;
+	  dataStream.push_back(row);
+	}
+      }
+      
+      FFT(FFTps,
+	  dataStream,
+	  Hanning,
+	  HiRes);
+      
+      sprintf(filename,"%s_NODE_PHASE_a0.dat",argv[fileID]);
+      FILE * fp_NODE_PHASE = fopen(filename,"w");
+      for (unsigned int k=0; k<FFTps.size(); ++k) {
+	fprintf(fp_NODE_PHASE,
+		"%g %g %g\n",
+		FFTps[k].frequency*3600.0,
+		orsa::FromUnits(data[0].a,orsa::Unit::KM,-1),
+		FFTps[k].power);
+      }
+      fclose(fp_NODE_PHASE);
+      
     }
     
-    FFT(FFTps,
-	dataStream,
-	Hanning,
-	HiRes);
+    /*** PERI_PHASE ***/
     
-    sprintf(filename,"%s_FG_a0.dat",argv[fileID]);
-    FILE * fp_FG = fopen(filename,"w");
-    for (unsigned int k=0; k<FFTps.size(); ++k) {
-      fprintf(fp_FG,
-	      "%g %g %g\n",
-	      FFTps[k].frequency*3600.0,
-	      orsa::FromUnits(data[0].a,orsa::Unit::KM,-1),
-	      FFTps[k].power);
+    if (0) {
+      
+      {
+	dataStream.clear();
+	for (unsigned int k=0; k<data.size(); ++k) {
+	  FFTDataStructure row;
+	  row.time      = data[k].t;
+	  row.amplitude = 1.0;
+	  row.phase     = data[k].peri;
+	  dataStream.push_back(row);
+	}
+      }
+      
+      FFT(FFTps,
+	  dataStream,
+	  Hanning,
+	  HiRes);
+      
+      sprintf(filename,"%s_PERI_PHASE_a0.dat",argv[fileID]);
+      FILE * fp_PERI_PHASE = fopen(filename,"w");
+      for (unsigned int k=0; k<FFTps.size(); ++k) {
+	fprintf(fp_PERI_PHASE,
+		"%g %g %g\n",
+		FFTps[k].frequency*3600.0,
+		orsa::FromUnits(data[0].a,orsa::Unit::KM,-1),
+		FFTps[k].power);
+      }
+      fclose(fp_PERI_PHASE);
+      
     }
-    fclose(fp_FG);
     
     /*** HK ***/
     

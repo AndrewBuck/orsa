@@ -218,13 +218,24 @@ orsa::BodyGroup * run(const double orbitRadius,
     // sbtc->setBodyName(vesta->getName());
     //
     orsa::IBPS ibps;
+
+    osg::ref_ptr<orsa::Shape> shape;
     
-    osg::ref_ptr<VestaShape> vestaShapeThomas = new VestaShape;
-    if (!vestaShapeThomas->read("vesta_thomas.dat")) {
-      ORSA_ERROR("problems encountered while reading shape file...");
+    switch (scenario) {
+    case EU: 
+      ORSA_DEBUG("using Ellipsoid shape");
+      shape = new orsa::EllipsoidShape(orsa::FromUnits(288.6,orsa::Unit::KM),
+				       orsa::FromUnits(281.7,orsa::Unit::KM),
+				       orsa::FromUnits(238.9,orsa::Unit::KM));
+      break;
+    default:
+      osg::ref_ptr<VestaShape> vestaShapeThomas = new VestaShape;
+      if (!vestaShapeThomas->read("vesta_thomas.dat")) {
+	ORSA_ERROR("problems encountered while reading shape file...");
+      }
+      shape = vestaShapeThomas.get();
+      break;
     }
-    
-    osg::ref_ptr<orsa::Shape> shape = vestaShapeThomas.get();
     
     // mass dist.
     osg::ref_ptr<orsa::MassDistribution> massDistribution;
@@ -374,8 +385,15 @@ orsa::BodyGroup * run(const double orbitRadius,
 	  data.push_back(vrd);
 	}
 	massDistribution = new orsa::MultipleSphericalFragmentsPlusMantleMassDistribution(data,mantleDensity);
-	break;
       }
+      break;
+    case EU:
+      ORSA_DEBUG("SCENARIO: EU");
+      coreDensity = mantleDensity = meanDensity;
+      coreCenter  = orsa::Vector(0,0,0);
+      coreRadius  = 0.0;
+      massDistribution = new orsa::UniformMassDistribution;
+      break;
     }
     
     const unsigned int order = 8;

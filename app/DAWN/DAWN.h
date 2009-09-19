@@ -20,7 +20,8 @@ enum SCENARIO {U,
 	       CX40,
 	       CX50,
 	       CZ,
-	       C0F20};
+	       C0F20,
+	       EU};
 
 inline SCENARIO s2S(std::string s) {
   std::transform(s.begin(), s.end(), s.begin(), ::toupper);
@@ -34,6 +35,7 @@ inline SCENARIO s2S(std::string s) {
   if (s=="CX50")  return CX50;
   if (s=="CZ")    return CZ;
   if (s=="C0F20") return C0F20; 
+  if (s=="EU")    return EU; 
   //
   ORSA_DEBUG("problem: could not recognize scenario %s, using U",s.c_str());
   return U;
@@ -50,6 +52,7 @@ inline std::string S2s (const SCENARIO S) {
   case CX50:  return "CX50";  break;
   case CZ:    return "CZ";    break;
   case C0F20: return "C0F20"; break;
+  case EU:    return "EU";    break;
   default:    return "undefined"; break;
   }
 }
