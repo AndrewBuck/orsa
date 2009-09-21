@@ -8,5 +8,6 @@
 - consider using cmake instead of qmake;
 - write a test suite, to quickly check code correctness while developing;
 - in ConstantInertialBodyProperty, derive the Inertia matrix from the PaulMoment, and drop inertia matrix from the arguments;
-- remove EllipsoidShape, it's hard to rotate/offset as it is coded now; replace with code to generate an ellipsoid using triangles or latlon;
+- remove EllipsoidShape, it's hard to rotate/offset as it is coded now; replace with code to generate an ellipsoid using triangles;
 - try to use "const orsa::BodyGroup *"; 
+- try CGAL library: http://www.cgal.org/
