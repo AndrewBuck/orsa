@@ -221,12 +221,15 @@ orsa::BodyGroup * run(const double orbitRadius,
 
     osg::ref_ptr<orsa::Shape> shape;
     
+    const double ellipsoid_a = orsa::FromUnits(288.6,orsa::Unit::KM);
+    const double ellipsoid_b = orsa::FromUnits(281.7,orsa::Unit::KM);
+    const double ellipsoid_c = orsa::FromUnits(238.9,orsa::Unit::KM);
+    
     switch (scenario) {
     case EU: 
-      ORSA_DEBUG("using Ellipsoid shape");
-      shape = new orsa::EllipsoidShape(orsa::FromUnits(288.6,orsa::Unit::KM),
-				       orsa::FromUnits(281.7,orsa::Unit::KM),
-				       orsa::FromUnits(238.9,orsa::Unit::KM));
+      shape = new orsa::EllipsoidShape(ellipsoid_a,
+				       ellipsoid_b,
+				       ellipsoid_c);
       break;
     default:
       osg::ref_ptr<VestaShape> vestaShapeThomas = new VestaShape;
@@ -396,30 +399,58 @@ orsa::BodyGroup * run(const double orbitRadius,
       break;
     }
     
+    
     const unsigned int order = 8;
-    const unsigned int     N = 100000000;
-    const int     randomSeed = 95231;
-    //
-#warning fix the problem of computing volume after it is actually needed...
-    // double volume;
+    
     orsa::Vector centerOfMass;
     orsa::Matrix shapeToLocal;
     orsa::Matrix localToShape;
     orsa::Matrix inertiaMatrix;
     orsa::PaulMoment * paulMoment;
-    orsa::bodyInertialComputations(volume,
-				   centerOfMass,
-				   shapeToLocal,
-				   localToShape,
-				   inertiaMatrix,
-				   &paulMoment,
-				   order,
-				   shape.get(),
-				   massDistribution.get(),
-				   N,
-				   randomSeed);
     
-    ORSA_DEBUG("volume: %.12e",volume);
+    switch (scenario) {
+    case EU:
+      centerOfMass.set(0,0,0);
+      shapeToLocal = orsa::Matrix::identity();
+      localToShape = orsa::Matrix::identity();
+      paulMoment = new orsa::PaulMoment(order);
+      orsa::EllipsoidExpansion(paulMoment,
+			       ellipsoid_a,
+			       ellipsoid_b,
+			       ellipsoid_c);
+      // to be verified
+      inertiaMatrix.set(paulMoment->M(2,0,0),0,0,
+			0,paulMoment->M(0,2,0),0,
+			0,0,paulMoment->M(0,0,2));
+      break;
+    default:
+      
+      const unsigned int     N = 100000000;
+      const int     randomSeed = 95231;
+      //
+#warning fix the problem of computing volume after it is actually needed...
+      orsa::bodyInertialComputations(volume,
+				     centerOfMass,
+				     shapeToLocal,
+				     localToShape,
+				     inertiaMatrix,
+				     &paulMoment,
+				     order,
+				     shape.get(),
+				     massDistribution.get(),
+				     N,
+				     randomSeed);    
+      
+      ORSA_DEBUG("volume: %.12e",volume);
+      break;
+    }
+    
+    if (0) {
+      // force C22=0, useful for testing when order=2 and only J2 is wanted
+      const double s = 0.5*(paulMoment->M(2,0,0)+paulMoment->M(0,2,0));
+      paulMoment->setM(s,2,0,0);
+      paulMoment->setM(s,0,2,0);
+    }
     
     orsa::print(shapeToLocal);
     orsa::print(localToShape);
