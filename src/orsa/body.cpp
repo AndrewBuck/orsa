@@ -71,10 +71,13 @@ const orsa::Shape * InertialBodyProperty::localShape() const {
   case orsa::Shape::SHAPE_ELLIPSOID:
     {
       ORSA_DEBUG("CODE NEEDED!!");
+      ORSA_DEBUG("setting same ellipsoid for the moment (BAD BAD BAD)");
+      ls_cache->data->localShape = originalShape();
     }
     break;
   default:
-    ORSA_WARNING("switch case not handled yet...");
+    ORSA_WARNING("switch case not handled yet...   CODE NEEDED!!!");
+    ls_cache->data->localShape = originalShape();
     break;
   }
   

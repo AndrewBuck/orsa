@@ -368,8 +368,8 @@ public:
 };
 
 bool orsa::solve(PaulMoment * pm,
-		 std::vector< std::vector<double> > & norm_C,
-		 std::vector< std::vector<double> > & norm_S,
+		 const std::vector< std::vector<double> > & norm_C,
+		 const std::vector< std::vector<double> > & norm_S,
 		 const double     & R0) {
   
   const unsigned int order = pm->order;
@@ -422,4 +422,43 @@ bool orsa::solve(PaulMoment * pm,
   }
   
   return true;
+}
+
+static double EllipsoidExpansion_product_utility(const unsigned int n) {
+  double product = 1;
+  for (unsigned int k=1; k<=n; ++k) {
+    product *= (2*k-1);
+  }
+  return product;
+}
+
+void orsa::EllipsoidExpansion(PaulMoment   * pm,
+			      const double & a,
+			      const double & b,
+			      const double & c) {
+  
+  const unsigned int order = pm->order;
+  
+  for (unsigned int focusOrder=0; focusOrder<=order; ++focusOrder) {
+    for (unsigned int i=0; i<=focusOrder; ++i) {
+      for (unsigned int j=0; j<=focusOrder; ++j) {
+	for (unsigned int k=0; k<=focusOrder; ++k) {
+	  if (i+j+k==focusOrder) {
+	    if (i%2==1) continue;
+	    if (j%2==1) continue;
+	    if (k%2==1) continue;
+	    const double factor_i   = EllipsoidExpansion_product_utility(i/2);
+	    const double factor_j   = EllipsoidExpansion_product_utility(j/2);
+	    const double factor_k   = EllipsoidExpansion_product_utility(k/2);
+	    const double factor_ijk = EllipsoidExpansion_product_utility((i+j+k)/2+2);
+	    const double factor     = 3*(factor_i*factor_j*factor_k)/factor_ijk;
+	    const double M_ijk      = factor*orsa::int_pow(a,i)*orsa::int_pow(b,j)*orsa::int_pow(c,k);
+	    pm->setM(M_ijk,i,j,k);
+	    ORSA_DEBUG("ijk: %i %i %i   factor: %g   M: %g",i,j,k,factor,M_ijk); 
+	  }
+	}
+      }
+    }
+  }
+  
 }

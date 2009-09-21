@@ -46,9 +46,15 @@ namespace orsa {
   // tries to find a set of PaulMoments that matches the normalized C and S
   // the order of pm must be <= the order of norm_C and norm_S
   bool solve(PaulMoment * pm,
-	     std::vector< std::vector<double> > & norm_C,
-	     std::vector< std::vector<double> > & norm_S,
+	     const std::vector< std::vector<double> > & norm_C,
+	     const std::vector< std::vector<double> > & norm_S,
 	     const double     & R0);
+  
+  // a,b,c are the 3 semiaxes along x,y,z respectively
+  void EllipsoidExpansion(PaulMoment   * pm,
+			  const double & a,
+			  const double & b,
+			  const double & c);
   
 }; // namespace orsa
 

@@ -23,7 +23,7 @@ namespace orsa {
     double mu;
   public:
     double period() const {
-      return (sqrt(4*pi()*pi()*fabs(a*a*a)/mu));
+      return (sqrt(4*pisquared()*fabs(a*a*a)/mu));
     }
   public:
     static double eccentricAnomaly(const double & e, const double & M);

@@ -398,34 +398,71 @@ double orsa::volume(const orsa::RandomPointsInShape * randomPointsInShape) {
 orsa::Vector orsa::centerOfMass(const orsa::RandomPointsInShape * randomPointsInShape,
 				const orsa::MassDistribution * massDistribution) {
   
-  // osg::ref_ptr<orsa::Statistic<double> > stat_M   = new orsa::Statistic<double>;
-  //
-  osg::ref_ptr<orsa::WeightedStatistic<double> > stat_CMx = new orsa::WeightedStatistic<double>;
-  osg::ref_ptr<orsa::WeightedStatistic<double> > stat_CMy = new orsa::WeightedStatistic<double>;
-  osg::ref_ptr<orsa::WeightedStatistic<double> > stat_CMz = new orsa::WeightedStatistic<double>;
+  /* osg::ref_ptr<orsa::WeightedStatistic<double> > stat_CMx = new orsa::WeightedStatistic<double>;
+     osg::ref_ptr<orsa::WeightedStatistic<double> > stat_CMy = new orsa::WeightedStatistic<double>;
+     osg::ref_ptr<orsa::WeightedStatistic<double> > stat_CMz = new orsa::WeightedStatistic<double>;
+     
+     orsa::Vector v;
+     randomPointsInShape->reset();
+     while (randomPointsInShape->get(v)) {
+     const double density = massDistribution->density(v);
+     if (density > 0) {
+     // stat_M->insert(density);
+     //
+     stat_CMx->insert(v.getX(),density);
+     stat_CMy->insert(v.getY(),density);
+     stat_CMz->insert(v.getZ(),density);
+     }
+     }
+     
+     const orsa::Vector center_of_mass(stat_CMx->average(),
+     stat_CMy->average(),
+     stat_CMz->average());
+  */
+  
+  // one cartesian component by one, to save memory when a large number of points is used
+  osg::ref_ptr<orsa::WeightedStatistic<double> > stat = new orsa::WeightedStatistic<double>;
   
   orsa::Vector v;
+  orsa::Vector center_of_mass;
+  orsa::Vector center_of_mass_uncertainty;
+  
+  // x
+  stat->reset();
   randomPointsInShape->reset();
   while (randomPointsInShape->get(v)) {
     const double density = massDistribution->density(v);
     if (density > 0) {
-      // stat_M->insert(density);
-      //
-      stat_CMx->insert(v.getX(),density);
-      stat_CMy->insert(v.getY(),density);
-      stat_CMz->insert(v.getZ(),density);
+      stat->insert(v.getX(),density);
     }
   }
-  
-  const orsa::Vector center_of_mass(stat_CMx->average(),
-				    stat_CMy->average(),
-				    stat_CMz->average());
+  center_of_mass.setX(stat->average());
+  center_of_mass_uncertainty.setX(stat->averageError());
+  // y
+  stat->reset();
+  randomPointsInShape->reset();
+  while (randomPointsInShape->get(v)) {
+    const double density = massDistribution->density(v);
+    if (density > 0) {
+      stat->insert(v.getY(),density);
+    }
+  }
+  center_of_mass.setY(stat->average());
+  center_of_mass_uncertainty.setY(stat->averageError());
+  // z
+  stat->reset();
+  randomPointsInShape->reset();
+  while (randomPointsInShape->get(v)) {
+    const double density = massDistribution->density(v);
+    if (density > 0) {
+      stat->insert(v.getZ(),density);
+    }
+  }
+  center_of_mass.setZ(stat->average());
+  center_of_mass_uncertainty.setZ(stat->averageError());
   
   if (1) {
     // debug output
-    const orsa::Vector center_of_mass_uncertainty(stat_CMx->averageError(),
-						  stat_CMy->averageError(),
-						  stat_CMz->averageError());
     ORSA_DEBUG("cm.x: %14.6e +/- %14.6e",
 	       center_of_mass.getX(),
 	       center_of_mass_uncertainty.getX());
