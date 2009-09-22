@@ -452,6 +452,20 @@ orsa::BodyGroup * run(const double orbitRadius,
       paulMoment->setM(s,0,2,0);
     }
     
+    if (0) {
+      // only use terms with a given order
+      const unsigned int singleOrder = 3;
+      for (unsigned int i=0; i<=order; ++i) {
+	for (unsigned int j=0; j<=order; ++j) {
+	  for (unsigned int k=0; k<=order; ++k) {
+	    if (i+j+k!=singleOrder) {
+	      paulMoment->setM(0.0,i,j,k);
+	    }
+	  }
+	}
+      }
+    }
+    
     orsa::print(shapeToLocal);
     orsa::print(localToShape);
     
@@ -668,7 +682,7 @@ orsa::BodyGroup * run(const double orbitRadius,
   }
   
   
-  const double integrationAccuracy = 1.0e-9;
+  const double integrationAccuracy = 1.0e-6;
   
   // const orsa::Time duration = orsa::Time(40,0,0,0,0);
   const orsa::Time samplingPeriod = orsa::Time(0,0,0,10,0);  
