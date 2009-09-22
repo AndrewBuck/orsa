@@ -458,6 +458,7 @@ orsa::BodyGroup * run(const double orbitRadius,
       for (unsigned int i=0; i<=order; ++i) {
 	for (unsigned int j=0; j<=order; ++j) {
 	  for (unsigned int k=0; k<=order; ++k) {
+	    if (i+k+k==0) continue; // keep M_000 = 1
 	    if (i+j+k!=singleOrder) {
 	      paulMoment->setM(0.0,i,j,k);
 	    }
