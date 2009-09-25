@@ -94,8 +94,8 @@ namespace orsaSolarSystem {
 		 int & d,
 		 double & fd);
   
-  double timeToJulian(const orsa::Time &);
-  orsa::Time   julianToTime(const double &);
+  double     timeToJulian(const orsa::Time &);
+  orsa::Time julianToTime(const double &);
   
   orsa::Time J2000();
   

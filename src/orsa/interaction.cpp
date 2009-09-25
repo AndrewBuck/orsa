@@ -52,6 +52,10 @@ bool Interaction::acceleration(InteractionVector & a,
       
       const orsa::Body * ref_b = bl[j].get();
       
+      if (!ref_b->alive(t)) {
+	continue;
+      }
+      
       // ORSA_DEBUG("ref_b is [%s]",ref_b->getName().c_str());
       
       if (ref_b->getInitialConditions().translational.get()) {
@@ -59,10 +63,6 @@ bool Interaction::acceleration(InteractionVector & a,
 	  continue;
 	}
       } else {
-	continue;
-      }
-      
-      if (!ref_b->alive(t)) {
 	continue;
       }
       
@@ -176,6 +176,10 @@ bool Interaction::acceleration(InteractionVector & a,
 	
 	const orsa::Body * b = bl[k].get();
 	
+	if (!b->alive(t)) {
+	  continue;
+	}
+	
 	// ORSA_DEBUG("b is [%s]",b->getName().c_str());
 	
 	if (!bg->getInterpolatedMass(m_b,b,t)) {
@@ -184,7 +188,7 @@ bool Interaction::acceleration(InteractionVector & a,
 	
 	if (ref_b->nonInteractingGroup && 
 	    b->nonInteractingGroup) {
-	  return true;
+	  continue;
 	}
 	
 	// cannot do this!
@@ -196,10 +200,6 @@ bool Interaction::acceleration(InteractionVector & a,
 	   }
 	   }
 	*/
-	
-	if (!b->alive(t)) {
-	  return true;
-	}
 	
 	if ((m_b == 0) && 
 	    (m_ref_b == 0)) {
@@ -508,6 +508,11 @@ bool Interaction::torque(InteractionVector & N,
       
       const orsa::Body * ref_b = bl[j].get();
       
+      if (!ref_b->alive(t)) {
+       	// ++ref_b_it;
+	continue;
+      }
+      
       // should this be here??
       /* if ((*ref_b_it)->getInitialConditions().translational.get()) {
 	 if (!((*ref_b_it)->getInitialConditions().translational->dynamic())) {
@@ -525,11 +530,6 @@ bool Interaction::torque(InteractionVector & N,
 	}
       } else {
 	// ++ref_b_it;
-	continue;
-      }
-      
-      if (!ref_b->alive(t)) {
-       	// ++ref_b_it;
 	continue;
       }
       
@@ -559,6 +559,11 @@ bool Interaction::torque(InteractionVector & N,
       for (unsigned int k=0; k<j; ++k) {
 	
 	const orsa::Body * b = bl[k].get();
+	
+	if (!b->alive(t)) {
+	  // ++b_it;
+	  continue;
+	}
 	
 	/* 
 	   if ((*b_it).get() == 
@@ -602,11 +607,6 @@ bool Interaction::torque(InteractionVector & N,
 	  // ++b_it;
 	  continue;
 	}	
-	
-	if (!b->alive(t)) {
-	  // ++b_it;
-	  continue;
-	}
 	
 	if (!bg->getInterpolatedMass(m_b,b,t)) {
 	  ORSA_DEBUG("problems...");

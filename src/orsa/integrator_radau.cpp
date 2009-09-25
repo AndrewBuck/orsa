@@ -2,6 +2,7 @@
 
 // #include <orsa/attitude.h>
 #include <orsa/bodygroup.h>
+#include <crash.h>
 #include <orsa/euler.h>
 #include <orsa/interaction.h>
 #include <orsa/print.h>
@@ -39,6 +40,10 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
     double m;
     BodyGroup::BodyList::const_iterator bl_it = bl.begin();
     while (bl_it != bl.end()) {
+      if (!(*bl_it)->alive(start)) {
+	++bl_it;
+	continue;
+      }
       if (!bg->getInterpolatedMass(m,(*bl_it).get(),start)) {
 	ORSA_DEBUG("problems...");
       }
@@ -120,17 +125,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
       
       const orsa::Body * b = bl[bodyIndex].get();
       
-      // if ((*bl_it)->getBodyPosVelCallback() != 0) {
-      /* 
-	 if (!((*bl_it)->getInitialConditions().translational->dynamic())) {
-	 // ORSA_DEBUG("skipping body [%s]",(*bl_it)->getName().c_str());
-	 ++bl_it;
-	 continue;
-	 }
-      */
-      //
       if (!b->alive(start)) {
-      	// ++bl_it;
 	continue;
       }
       
@@ -856,6 +851,11 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	     continue;
 	     }
 	  */
+	  
+	  if (!b->alive(start)) {
+	    // ++bl_it;
+	    continue;
+	  }
 	  
 	  IBPS ibps;
 	  if (!bg->getInterpolatedIBPS(ibps,b,start+orsa::Time(FromUnits(h[j]*timestep.get_d(),Unit::MICROSECOND,-1)))) {
@@ -2208,6 +2208,10 @@ void IntegratorRadau::_body_mass_or_number_changed(orsa::BodyGroup  * bg,
     const BodyGroup::BodyList & bl = bg->getBodyList();
     BodyGroup::BodyList::const_iterator bl_it = bl.begin();
     while (bl_it != bl.end()) {
+      if (!(*bl_it)->alive(t)) {
+	++bl_it;
+	continue;
+      }
       if (!bg->getInterpolatedMass(m,(*bl_it).get(),t)) {
 	ORSA_DEBUG("problems...");
       }	
