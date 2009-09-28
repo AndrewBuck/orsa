@@ -641,7 +641,10 @@ orsa::BodyGroup * run(const double orbitRadius,
     // important, needed by SRP_and_Engine 
     // wet mass at launch: 1240 kg
     // 725 (dry) + 45 (hydrazine) + 450 (Xeon) + 20 (uncertainty)
-    const double dawn_mass = orsa::FromUnits(1100.0,orsa::Unit::KG);
+    //
+    // At Vesta, we should have only 180kg of Xeon, and maybe 35kg of hydrazine,
+    // for a total of 960kg
+    const double dawn_mass = orsa::FromUnits(960.0,orsa::Unit::KG);
     //
     ibps.time = orbitEpoch;
     //
