@@ -58,25 +58,31 @@ inline std::string S2s (const SCENARIO S) {
 }
 
 // for a constant mass body
-class SolarRadiationPressure : public orsa::Propulsion {
+class SRP_and_Engine : public orsa::Propulsion {
  public:
-  SolarRadiationPressure(const double     & bodyMass_in,
-			 const double     & B_in,
-			 orsa::BodyGroup  * bg_in,
-			 const orsa::Body * sun_in,
-			 const orsa::Body * body_in) :
+  SRP_and_Engine(const double     & bodyMass_in,
+		 const double     & B_in,
+		 const double     & thrust_mN_in,
+		 orsa::BodyGroup  * bg_in,
+		 const orsa::Body * sun_in,
+		 const orsa::Body * asteroid_in,
+		 const orsa::Body * body_in) :
     orsa::Propulsion(),
     bodyMass(bodyMass_in),
     B(B_in),
+    thrust_mN(thrust_mN_in),
     bg(bg_in),
     sun(sun_in),
+    asteroid(asteroid_in),
     body(body_in) {
   }
  protected:
   const double bodyMass;
   const double B;
-  osg::ref_ptr<orsa::BodyGroup> bg;
+  const double thrust_mN;
+  osg::ref_ptr<orsa::BodyGroup>  bg;
   osg::ref_ptr<const orsa::Body> sun;
+  osg::ref_ptr<const orsa::Body> asteroid;
   osg::ref_ptr<const orsa::Body> body;
  public:
   orsa::Vector getThrust(const orsa::Time & t) const {
@@ -87,25 +93,42 @@ class SolarRadiationPressure : public orsa::Propulsion {
       if (!bg->getInterpolatedPosition(rSun,sun.get(),t)) {
 	ORSA_DEBUG("problems...");
       }	
-      // orsa::print(rSun);
-      orsa::Vector rBody;
-      if (!bg->getInterpolatedPosition(rBody,body.get(),t)) {
+      
+      orsa::Vector rAsteroid, vAsteroid;
+      if (!bg->getInterpolatedPosVel(rAsteroid,vAsteroid,asteroid.get(),t)) {
+	ORSA_DEBUG("problems...");
+      }
+      orsa::Vector rBody,vBody;
+      if (!bg->getInterpolatedPosVel(rBody,vBody,body.get(),t)) {
 	ORSA_DEBUG("problems...");
       }	
-      // orsa::print(rBody);
-      // Scheeres (1999) formalism
-      const orsa::Vector   s2b = (rBody-rSun);
-      // orsa::print(s2b);
-      const orsa::Vector u_s2b = s2b.normalized();
-      const double G1 = orsa::FromUnits(orsa::FromUnits(orsa::FromUnits(orsa::FromUnits(1.0e8,orsa::Unit::KG),orsa::Unit::KM,3),orsa::Unit::SECOND,-2),orsa::Unit::METER,-2);
       
-      // now B is an external parameter
-      // const double B  = orsa::FromUnits(487.0,orsa::Unit::KG)/orsa::FromUnits(10.0,orsa::Unit::METER,2); // Spacecraft mass to projected area ratio
+      orsa::Vector thrust(0,0,0);
       
-      const double R  = s2b.length();
-      const double acc = G1/(B*R*R);
-      // ORSA_DEBUG("acc: %g",acc);
-      const orsa::Vector thrust = (bodyMass*acc*u_s2b);
+      // first, Solar Radiation Pressure
+      {
+	// Scheeres (1999) formalism
+	const orsa::Vector   s2b = (rBody-rSun);
+    	const orsa::Vector u_s2b = s2b.normalized();
+	const double G1  = orsa::FromUnits(orsa::FromUnits(orsa::FromUnits(orsa::FromUnits(1.0e8,orsa::Unit::KG),orsa::Unit::KM,3),orsa::Unit::SECOND,-2),orsa::Unit::METER,-2);
+	const double R   = s2b.length();
+	const double acc = G1/(B*R*R);
+       	thrust += (bodyMass*acc*u_s2b);
+      }
+      
+      // then, ION thrust
+      /* {
+	 const orsa::Vector u_dv = (vBody-vAsteroid).normalized();
+	 const double newton = orsa::FromUnits(orsa::FromUnits(orsa::FromUnits(1,orsa::Unit::KG),orsa::Unit::METER),orsa::Unit::SECOND,-2);
+	 thrust += (-0.040*newton*u_dv); // nominal: between 0.019 and 0.092 Newton
+	 }
+      */
+      {
+	const orsa::Vector u_dv = (vBody-vAsteroid).normalized();
+	const double newton = orsa::FromUnits(orsa::FromUnits(orsa::FromUnits(1,orsa::Unit::KG),orsa::Unit::METER),orsa::Unit::SECOND,-2);
+	thrust += (-0.001*thrust_mN*newton*u_dv); // nominal: between 0.019 and 0.092 Newton
+      }
+      
       return thrust;
     }
     // return thrust.getRef();
@@ -121,7 +144,8 @@ class SolarRadiationPressure : public orsa::Propulsion {
 
 orsa::BodyGroup * run(const double orbitRadius,
 		      const SCENARIO scenario,
-		      const orsa::Time duration);
+		      const orsa::Time duration,
+		      const double thrust_mN=0);
 
 class CustomIntegrator : public orsa::IntegratorRadau {
  public:
@@ -163,6 +187,9 @@ class CustomIntegrator : public orsa::IntegratorRadau {
     if (next_dt == orsa::Time(0)) {
       print=true;
     }
+    
+    // force printing, while debugging
+    // print=true;
     
     if (!print) return;
     

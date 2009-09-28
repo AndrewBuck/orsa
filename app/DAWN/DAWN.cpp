@@ -24,7 +24,8 @@ using namespace orsaSPICE;
 
 orsa::BodyGroup * run(const double orbitRadius,
 		      const SCENARIO scenario,
-		      const orsa::Time duration) {
+		      const orsa::Time duration,
+		      const double thrust_mN) {
   
   const orsa::Time t0 = gregorTime(2012,
 				   1,
@@ -637,8 +638,10 @@ orsa::BodyGroup * run(const double orbitRadius,
        dawn_bic->velocity = vOrbit;
     */
     //
-    // dummy, positive mass, needed by SolarRadiationPressure (that is implemented as a propulsion...)
-    const double dawn_mass = orsa::FromUnits(1.0,orsa::Unit::KG);
+    // important, needed by SRP_and_Engine 
+    // wet mass at launch: 1240 kg
+    // 725 (dry) + 45 (hydrazine) + 450 (Xeon) + 20 (uncertainty)
+    const double dawn_mass = orsa::FromUnits(1100.0,orsa::Unit::KG);
     //
     ibps.time = orbitEpoch;
     //
@@ -665,11 +668,13 @@ orsa::BodyGroup * run(const double orbitRadius,
     // SRP
     ORSA_DEBUG("**** SRP ****");
     const double solarRadiationPressure_B = 25.0; // MKS, kg/m^2
-    dawn->propulsion = new SolarRadiationPressure(dawn_mass,
-						  solarRadiationPressure_B,
-						  bg,
-						  sun.get(),
-						  dawn.get());
+    dawn->propulsion = new SRP_and_Engine(dawn_mass,
+					  solarRadiationPressure_B,
+					  thrust_mN,
+					  bg,
+					  sun.get(),
+					  vesta.get(),
+					  dawn.get());
     
     // test
     // ORSA_DEBUG("========= DAWN time: %.6f",ibps.time.getRef().get_d());
@@ -681,7 +686,6 @@ orsa::BodyGroup * run(const double orbitRadius,
        dawn->getInitialConditions().time.getRef().get_d());
     */
   }
-  
   
   const double integrationAccuracy = 1.0e-6;
   
