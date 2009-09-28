@@ -74,7 +74,9 @@ class SRP_and_Engine : public orsa::Propulsion {
     bg(bg_in),
     sun(sun_in),
     asteroid(asteroid_in),
-    body(body_in) {
+    body(body_in),
+    newton(orsa::FromUnits(orsa::FromUnits(orsa::FromUnits(1,orsa::Unit::KG),orsa::Unit::METER),orsa::Unit::SECOND,-2)) {
+    
   }
  protected:
   const double bodyMass;
@@ -84,6 +86,8 @@ class SRP_and_Engine : public orsa::Propulsion {
   osg::ref_ptr<const orsa::Body> sun;
   osg::ref_ptr<const orsa::Body> asteroid;
   osg::ref_ptr<const orsa::Body> body;
+ protected:
+  const double newton;
  public:
   orsa::Vector getThrust(const orsa::Time & t) const {
     // compute it once only, use forever...
@@ -123,10 +127,24 @@ class SRP_and_Engine : public orsa::Propulsion {
 	 thrust += (-0.040*newton*u_dv); // nominal: between 0.019 and 0.092 Newton
 	 }
       */
+      //
+      /* {
+	 const orsa::Vector   dr =  rBody-rAsteroid;
+	 const orsa::Vector u_dr = dr.normalized();
+	 const orsa::Vector u_dv = (vBody-vAsteroid).normalized();
+	 const double newton = orsa::FromUnits(orsa::FromUnits(orsa::FromUnits(1,orsa::Unit::KG),orsa::Unit::METER),orsa::Unit::SECOND,-2);
+	 thrust += (-0.001*thrust_mN*newton*u_dv); // nominal: between 0.019 and 0.092 Newton
+	 }
+      */
+      //
       {
+	const orsa::Vector   dr =  rBody-rAsteroid;
+	const orsa::Vector u_dr = dr.normalized();
 	const orsa::Vector u_dv = (vBody-vAsteroid).normalized();
-	const double newton = orsa::FromUnits(orsa::FromUnits(orsa::FromUnits(1,orsa::Unit::KG),orsa::Unit::METER),orsa::Unit::SECOND,-2);
-	thrust += (-0.001*thrust_mN*newton*u_dv); // nominal: between 0.019 and 0.092 Newton
+	const double  target_dr = orsa::FromUnits(420,orsa::Unit::KM); // IMPORTANT: TARGET DISTANCE (little higher than that...)
+	if (dr.length() > target_dr) {
+	  thrust += (-0.001*thrust_mN*newton*u_dv); // nominal: between 0.019 and 0.092 Newton
+	}
       }
       
       return thrust;
