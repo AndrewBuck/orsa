@@ -1,5 +1,9 @@
 #include <orsa/debug.h>
+#include <orsa/orbit.h>
+#include <orsa/print.h>
 #include <orsa/unit.h>
+
+#include <orsaSolarSystem/data.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -162,6 +166,8 @@ public:
   double M;
   //
   double R;
+  //
+  std::string line;
 };
 
 
@@ -217,6 +223,9 @@ int main(int argc, char **argv) {
 	row.M    *= orsa::degToRad();
 	//
 	row.R = orsa::FromUnits(row.R,orsa::Unit::KM);
+	//
+	line[strlen(line)-1] = '\0'; // remove trailing \n
+	row.line = line;
 	
 	data.push_back(row);
       }
@@ -330,6 +339,75 @@ int main(int argc, char **argv) {
       
     }    
     
+    /*** ACC ***/
+
+    if (1) {
+      
+      // keep this in sync with DAWN.cpp
+      const double vestaMass = 1.35e-10*orsaSolarSystem::Data::MSun();
+      const double mu = orsa::Unit::G()*vestaMass;
+      
+      sprintf(filename,"%s_ACC.dat",argv[fileID]);
+      FILE * fp_ACC = fopen(filename,"w");
+      {
+	// skip k=0
+	for (unsigned int k=1; k<data.size(); ++k) {
+	  
+	  const double dt = (data[k].t-data[k-1].t);
+	  if (dt==0) continue;
+	  
+	  orsa::Orbit o1;
+	  o1.mu = mu;
+	  o1.a = data[k-1].a;
+	  o1.e = data[k-1].e;
+	  o1.i = data[k-1].i;
+	  o1.omega_node       = data[k-1].node;
+	  o1.omega_pericenter = data[k-1].peri;
+	  o1.M                = data[k-1].M;
+	  
+	  orsa::Vector r1, v1;
+	  o1.relativePosVel(r1,v1);
+	  
+	  o1.M += orsa::twopi()*dt/o1.period();
+	  
+	  orsa::Vector r1p, v1p;
+	  o1.relativePosVel(r1p,v1p);
+	  
+	  orsa::Orbit o2;
+	  o2.mu = mu;
+	  o2.a = data[k].a;
+	  o2.e = data[k].e;
+	  o2.i = data[k].i;
+	  o2.omega_node       = data[k].node;
+	  o2.omega_pericenter = data[k].peri;
+	  o2.M                = data[k].M;
+	  
+	  orsa::Vector r2, v2;
+	  o2.relativePosVel(r2,v2);
+	  
+	  // excess acceleration, not including the central force
+	  const orsa::Vector acc = 2*(r2-r1p)/orsa::square(dt);
+	  
+	  // orsa::print(acc);
+	  
+	  // unit vectors
+	  const orsa::Vector uR = r1p.normalized();
+	  const orsa::Vector uV = v1p.normalized();
+	  const orsa::Vector uT = externalProduct(uR,uV).normalized();
+	  const orsa::Vector uN = externalProduct(uV,uT).normalized();
+	  
+	  fprintf(fp_ACC,
+		  "%s %g %g %g\n",
+		  data[k].line.c_str(),
+		  acc*uN,
+		  acc*uV,
+		  acc*uT);
+	}
+      }
+      fclose(fp_ACC);
+      
+    }
+    
     /*** FFT ***/
     
     const double T = data[data.size()-1].t - data[0].t;
@@ -342,8 +420,8 @@ int main(int argc, char **argv) {
     dataStream.timestep = samplingPeriod;
     
     FFTPowerSpectrum FFTps;
-    const bool Hanning = true;
-    const bool HiRes   = true;
+    const bool Hanning = false;
+    const bool HiRes   = false;
     
     // test
     /* {
@@ -361,7 +439,7 @@ int main(int argc, char **argv) {
     
     /*** FG ***/
     
-    if (0) {
+    if (1) {
       
       {
 	dataStream.clear();
