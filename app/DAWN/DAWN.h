@@ -163,6 +163,7 @@ class SRP_and_Engine : public orsa::Propulsion {
 orsa::BodyGroup * run(const double orbitRadius,
 		      const SCENARIO scenario,
 		      const orsa::Time duration,
+		      const double phase_DEG=0,
 		      const double thrust_mN=0);
 
 class CustomIntegrator : public orsa::IntegratorRadau {

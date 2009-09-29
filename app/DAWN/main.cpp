@@ -2,8 +2,8 @@
 
 int main(int argc, char ** argv) {
   
-  if ((argc != 4) && (argc !=5)) {
-    ORSA_DEBUG("Usage: %s <orbitRadius_km> <SCENARIO> <duration_days> [thrust_mN]",argv[0]);
+  if ((argc != 4) && (argc !=5) && (argc !=6)) {
+    ORSA_DEBUG("Usage: %s <orbitRadius_km> <SCENARIO> <duration_days> [phase_DEG] [thrust_mN]",argv[0]);
     exit(0);
   }
   
@@ -21,15 +21,21 @@ int main(int argc, char ** argv) {
   
   const orsa::Time duration(atoi(argv[3]),0,0,0,0);
   
+  double phase_DEG=0.0;
+  if (argc>=5) {
+    phase_DEG = atof(argv[4]);
+  }
+  
   double thrust_mN=0.0;
-  if (argc==5) {
-    thrust_mN = atof(argv[4]);
+  if (argc>=6) {
+    thrust_mN = atof(argv[5]);
   }
   
   osg::ref_ptr<orsa::BodyGroup> bg =
     run(orbitRadius,
 	scenario,
 	duration,
+	phase_DEG,
 	thrust_mN);
   
   if (!bg.get()) {

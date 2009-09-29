@@ -25,6 +25,7 @@ using namespace orsaSPICE;
 orsa::BodyGroup * run(const double orbitRadius,
 		      const SCENARIO scenario,
 		      const orsa::Time duration,
+		      const double phase_DEG,
 		      const double thrust_mN) {
   
   const orsa::Time t0 = gregorTime(2012,
@@ -586,7 +587,7 @@ orsa::BodyGroup * run(const double orbitRadius,
     orbit.i  = orbitInclination;
     orbit.omega_node       = alpha;
     orbit.omega_pericenter =   0.0*orsa::degToRad();
-    orbit.M                =   0.0*orsa::degToRad();
+    orbit.M                = phase_DEG*orsa::degToRad();
     //
     orsa::Vector rOrbit, vOrbit;
     orbit.relativePosVel(rOrbit,vOrbit);
