@@ -320,7 +320,7 @@ int main(int argc, char **argv) {
       FILE * fp_DXDXDYDY = fopen(filename,"w");
       {
 	fprintf(fp_DXDXDYDY,
-		"%g %g %g %g %g %g %g %g %g %g %g %g %g\n",
+		"%g %g %g %g %g %g %g %g %g %g %g %g %g %g\n",
 		orsa::FromUnits(data[0].a,orsa::Unit::KM,-1),
 		orsa::FromUnits(median_R,orsa::Unit::KM,-1),
 		orsa::FromUnits(0.0,orsa::Unit::KM,-1),
@@ -333,7 +333,8 @@ int main(int argc, char **argv) {
 		orsa::FromUnits(range_R_down,orsa::Unit::KM,-1),     // down
 		orsa::FromUnits(range_R_50,orsa::Unit::KM,-1),       // 3 more extras: total ranges
 		orsa::FromUnits(range_R_90,orsa::Unit::KM,-1),
-		orsa::FromUnits(range_R,orsa::Unit::KM,-1));
+		orsa::FromUnits(range_R,orsa::Unit::KM,-1),
+		orsa::radToDeg()*fmod(fmod(data[0].peri+data[0].M,orsa::twopi())+orsa::twopi(),orsa::twopi())); // initial mean anomaly
       }
       fclose(fp_DXDXDYDY);
       
