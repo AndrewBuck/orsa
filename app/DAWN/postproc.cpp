@@ -167,6 +167,8 @@ public:
   //
   double R;
   //
+  double rot; // reconstructed rotation angle of the asteroid
+  //
   std::string line;
 };
 
@@ -177,6 +179,16 @@ int main(int argc, char **argv) {
     ORSA_DEBUG("Usage: %s <DAWN-extracted-output-file(s)>");
     exit(0);
   }
+  
+  // keep this in sync with main simulation code 
+  const double vestaPeriod = FromUnits(5.342128799,orsa::Unit::HOUR);
+  const orsa::Time t0 = orsaSolarSystem::gregorTime(2012,
+						    1,
+						    1,
+						    0,
+						    0,
+						    0,
+						    0);
   
   int fileID = 1;
   
@@ -223,6 +235,10 @@ int main(int argc, char **argv) {
 	row.M    *= orsa::degToRad();
 	//
 	row.R = orsa::FromUnits(row.R,orsa::Unit::KM);
+	//
+	// asteroid rotation angle
+	// keep this in sync with main simulation code
+	row.rot = fmod(292.0*orsa::degToRad() + (row.t-t0.get_d())*(orsa::twopi()/vestaPeriod),120*orsa::twopi());
 	//
 	line[strlen(line)-1] = '\0'; // remove trailing \n
 	row.line = line;
@@ -398,8 +414,9 @@ int main(int argc, char **argv) {
 	  const orsa::Vector uN = externalProduct(uV,uT).normalized();
 	  
 	  fprintf(fp_ACC,
-		  "%s %g %g %g\n",
+		  "%s %g %g %g %g\n",
 		  data[k].line.c_str(),
+		  orsa::radToDeg()*data[k].rot,
 		  acc*uN,
 		  acc*uV,
 		  acc*uT);
