@@ -9,8 +9,8 @@
 #include <orsaSolarSystem/datetime.h>
 
 #include <orsaSPICE/spice.h>
-#include <orsaSPICE/spiceBodyAttitudeCallback.h>
-#include <orsaSPICE/spiceBodyPosVelCallback.h>
+#include <orsaSPICE/spiceBodyRotationalCallback.h>
+#include <orsaSPICE/spiceBodyTranslationalCallback.h>
 
 // CSPICE prototypes and definitions.      
 #include <SpiceUsr.h>

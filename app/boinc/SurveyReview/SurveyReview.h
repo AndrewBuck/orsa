@@ -17,7 +17,7 @@
 #include <orsaSolarSystem/obleq.h>
 
 #include <orsaSPICE/spice.h>
-#include <orsaSPICE/spiceBodyPosVelCallback.h>
+#include <orsaSPICE/spiceBodyTranslationalCallback.h>
 
 // magnitude function
 // alpha = solar phase angle = angle Sun-Asteroid-Observer
@@ -362,10 +362,11 @@ public:
     earth = new orsa::Body;
     //
     earth->setName("EARTH");
-    orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(earth->getName());
+    orsaSPICE::SpiceBodyTranslationalCallback * sbtc =
+      new orsaSPICE::SpiceBodyTranslationalCallback(earth->getName());
     orsa::IBPS ibps;
     ibps.inertial = new orsa::PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MEarth());
-    ibps.translational = sbpvc;
+    ibps.translational = sbtc;
     earth->setInitialConditions(ibps);
     //
     bg->addBody(earth.get());
@@ -393,10 +394,11 @@ public:
        osg::ref_ptr<orsa::Body> sun = new orsa::Body;
        //
        sun->setName("SUN");
-       orsaSPICE::SpiceBodyPosVelCallback * sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(sun->getName());
+       orsaSPICE::SpiceBodyTranslationalCallback * sbtc =
+       new orsaSPICE::SpiceBodyTranslationalCallback(sun->getName());
        orsa::IBPS ibps;
        ibps.inertial = new orsa::ConstantMassBodyProperty(FromUnits(1,orsa::Unit::MSUN));
-       ibps.translational = sbpvc;
+       ibps.translational = sbtc;
        sun->setInitialConditions(ibps);
        //
        osg::ref_ptr<orsa::BodyGroup> bg = new orsa::BodyGroup;
