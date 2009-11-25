@@ -25,16 +25,9 @@ using namespace orsaSPICE;
 orsa::BodyGroup * run(const double orbitRadius,
 		      const SCENARIO scenario,
 		      const orsa::Time duration,
+		      const unsigned int degree, // degree and order are the same
 		      const double phase_DEG,
 		      const double thrust_mN) {
-  
-  const orsa::Time t0 = gregorTime(2012,
-				   1,
-				   1,
-				   0,
-				   0,
-				   0,
-				   0);
   
   orsaSPICE::SPICE::instance()->loadKernel("de405.bsp");
   orsaSPICE::SPICE::instance()->loadKernel("vesta-2003-2013.bsp");
@@ -52,13 +45,18 @@ orsa::BodyGroup * run(const double orbitRadius,
   
   const double vestaPoleEclipticLongitude = degToRad()*319.5;
   
-  const orsa::Time orbitEpoch = orsaSolarSystem::gregorTime(2012,
-							    1,
-							    1,
-							    0,
-							    0,
-							    0,
-							    0);
+  const orsa::Time orbitEpoch = 
+    // orsa::Time(32,0,0,0,0) +
+    orsaSolarSystem::gregorTime(2012,
+				1,
+				1,
+				0,
+				0,
+				0, 
+				0);
+  
+  ORSA_DEBUG("orbitEpoch:");
+  orsa::print(orbitEpoch);
   
   // const double orbitRadius      = orsa::FromUnits(400.0,orsa::Unit::KM);
   const double orbitInclination = orsa::degToRad()*90.0;
@@ -401,9 +399,6 @@ orsa::BodyGroup * run(const double orbitRadius,
       break;
     }
     
-    
-    const unsigned int order = 8;
-    
     orsa::Vector centerOfMass;
     orsa::Matrix shapeToLocal;
     orsa::Matrix localToShape;
@@ -415,7 +410,7 @@ orsa::BodyGroup * run(const double orbitRadius,
       centerOfMass.set(0,0,0);
       shapeToLocal = orsa::Matrix::identity();
       localToShape = orsa::Matrix::identity();
-      paulMoment = new orsa::PaulMoment(order);
+      paulMoment = new orsa::PaulMoment(degree);
       orsa::EllipsoidExpansion(paulMoment,
 			       ellipsoid_a,
 			       ellipsoid_b,
@@ -437,7 +432,7 @@ orsa::BodyGroup * run(const double orbitRadius,
 				     localToShape,
 				     inertiaMatrix,
 				     &paulMoment,
-				     order,
+				     degree,
 				     shape.get(),
 				     massDistribution.get(),
 				     N,
@@ -448,20 +443,20 @@ orsa::BodyGroup * run(const double orbitRadius,
     }
     
     if (0) {
-      // force C22=0, useful for testing when order=2 and only J2 is wanted
+      // force C22=0, useful for testing when degree=2 and only J2 is wanted
       const double s = 0.5*(paulMoment->M(2,0,0)+paulMoment->M(0,2,0));
       paulMoment->setM(s,2,0,0);
       paulMoment->setM(s,0,2,0);
     }
     
     if (0) {
-      // only use terms with a given order
-      const unsigned int singleOrder = 3;
-      for (unsigned int i=0; i<=order; ++i) {
-	for (unsigned int j=0; j<=order; ++j) {
-	  for (unsigned int k=0; k<=order; ++k) {
+      // only use terms with a given degree
+      const unsigned int singleDegree = 3;
+      for (unsigned int i=0; i<=degree; ++i) {
+	for (unsigned int j=0; j<=degree; ++j) {
+	  for (unsigned int k=0; k<=degree; ++k) {
 	    if (i+k+k==0) continue; // keep M_000 = 1
-	    if (i+j+k!=singleOrder) {
+	    if (i+j+k!=singleDegree) {
 	      paulMoment->setM(0.0,i,j,k);
 	    }
 	  }
@@ -492,12 +487,12 @@ orsa::BodyGroup * run(const double orbitRadius,
       ORSA_DEBUG("$y_{0}$    & $%+9.3f$ \\\\",orsa::FromUnits(centerOfMass.getY(),orsa::Unit::KM,-1));
       ORSA_DEBUG("$z_{0}$    & $%+9.3f$ \\\\",orsa::FromUnits(centerOfMass.getZ(),orsa::Unit::KM,-1));
       ORSA_DEBUG("\%\\hline");
-      for (unsigned int l=2; l<=order; ++l) {
+      for (unsigned int l=2; l<=degree; ++l) {
 	// J_l is minus C_l0, where C_l0 is not normalized
 	ORSA_DEBUG("$J_{%i}$    & $%+9.6f$ \\\\",l,-C[l][0]);
       }
       ORSA_DEBUG("\%\\hline");
-      for (unsigned int l=2; l<=order; ++l) {
+      for (unsigned int l=2; l<=degree; ++l) {
 	for (unsigned int m=0; m<=l; ++m) {
 	  // LaTeX Tabular style
 	  ORSA_DEBUG("$C_{%i%i}$   & $%+9.6f$ \\\\",l,m,norm_C[l][m]);
@@ -588,6 +583,24 @@ orsa::BodyGroup * run(const double orbitRadius,
     orbit.omega_node       = alpha;
     orbit.omega_pericenter =   0.0*orsa::degToRad();
     orbit.M                = phase_DEG*orsa::degToRad();
+    // 30d
+    /* orbit.mu = orsa::Unit::G() * vestaMass; 
+       orbit.a  = orsa::FromUnits(531.977632,orsa::Unit::KM); 
+       orbit.e  = 0.091496; 
+       orbit.i  = 87.597926*orsa::degToRad(); 
+       orbit.omega_node       =  64.039554*orsa::degToRad(); 
+       orbit.omega_pericenter =  55.537490*orsa::degToRad(); 
+       orbit.M                = 214.403160*orsa::degToRad(); 
+    */
+    // 32d
+    /* orbit.mu = orsa::Unit::G() * vestaMass;  
+       orbit.a  = orsa::FromUnits(569.803522,orsa::Unit::KM);  
+       orbit.e  = 0.056027;  
+       orbit.i  = 86.364254*orsa::degToRad();  
+       orbit.omega_node       =  60.561234*orsa::degToRad();  
+       orbit.omega_pericenter = 358.945082*orsa::degToRad();  
+       orbit.M                =   0.493001*orsa::degToRad();  
+    */
     //
     orsa::Vector rOrbit, vOrbit;
     orbit.relativePosVel(rOrbit,vOrbit);
@@ -697,17 +710,17 @@ orsa::BodyGroup * run(const double orbitRadius,
   const orsa::Time samplingPeriod = orsa::Time(0,0,0,10,0);  
   
   orsa::Time dummyTime(0);
-  osg::ref_ptr<CustomIntegrator> radau = new CustomIntegrator(t0,true);
+  osg::ref_ptr<CustomIntegrator> radau = new CustomIntegrator(orbitEpoch,true);
   radau->_accuracy = integrationAccuracy;
   radau->keepOnlyLastStep = true;
   // first call to output function
-  radau->singleStepDone(bg,t0,dummyTime,dummyTime);
+  radau->singleStepDone(bg,orbitEpoch,dummyTime,dummyTime);
   const bool goodIntegration = radau->integrate(bg,
-						t0,
-						t0+duration,
+						orbitEpoch,
+						orbitEpoch+duration,
 						samplingPeriod); 
   // last call to output function
-  radau->singleStepDone(bg,t0+duration,dummyTime,dummyTime);
+  radau->singleStepDone(bg,orbitEpoch+duration,dummyTime,dummyTime);
   
   if (goodIntegration) {
     return bg;
