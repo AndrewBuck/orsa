@@ -531,17 +531,16 @@ int main(int argc, char **argv) {
     const orsa::Time dt(0,0,10,0,0);
     orsa::Time t = dt; // skip first point at 0
     orsa::Orbit o1, o2;
-    orsa::Vector r1, r2;
+    orsa::Vector r1, r2, v1, v2;
     while (1) {
       if (!basicOrbitProxy1->getOrbit(o1,t)) break;
       if (!basicOrbitProxy2->getOrbit(o2,t)) break;
-      // orsa::print(o1);
-      // orsa::print(o2);
-      if (!o1.relativePosition(r1)) break;
-      if (!o2.relativePosition(r2)) break;
-      printf("%f %f\n",
+      if (!o1.relativePosVel(r1,v1)) break;
+      if (!o2.relativePosVel(r2,v2)) break;
+      printf("%8.5f %12.3f %12.6f\n",
 	     orsa::FromUnits(t.get_d(),orsa::Unit::DAY,-1),
-	     orsa::FromUnits((r2-r1).length(),orsa::Unit::METER,-1));
+	     orsa::FromUnits((r2-r1).length(),orsa::Unit::METER,-1),
+	     orsa::FromUnits(orsa::FromUnits((v2-v1).length(),orsa::Unit::METER,-1),orsa::Unit::SECOND));
       t += dt;
     }
     
