@@ -155,14 +155,14 @@ namespace orsa {
     
   protected:
     double delta(const BOT & bot1,
-		       const BOT & bot2);
+		 const BOT & bot2);
     
   protected:   
     osg::ref_ptr<const orsa::Body> _b;
     osg::ref_ptr<orsa::BodyGroup>  _bg;
   protected:
-    const double             _accuracy;
-    const orsa::Time               _maxPeriod;
+    const double     _accuracy;
+    const orsa::Time _maxPeriod;
   };
   
   class OrbitSolution : public orsa::Orbit {
@@ -189,6 +189,12 @@ namespace orsa {
     void set(const orsa::Orbit & orbit);
   public:
     void get(orsa::Orbit & orbit) const;
+  public:
+    double period() const {
+      orsa::Orbit orbit;
+      get(orbit);
+      return orbit.period();
+    }
   };
   
 } // namespace orsa
