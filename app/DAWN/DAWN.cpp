@@ -523,6 +523,21 @@ orsa::BodyGroup * run(const double orbitRadius,
     bg->addBody(vesta.get());
   }
   
+  if (0) {
+    // Vesta's obliquity = angle between orbit pole and body pole
+    const orsa::Time t = orbitEpoch;
+    const orsa::Body * b = vesta.get();
+    //
+    orsa::Vector r,v;
+    bg->getInterpolatedPosVel(r,v,b,t);
+    const orsa::Vector orbitPole = (orsa::externalProduct(r,v)).normalized();
+    const orsa::Vector bodyPole = orsa::localToGlobal(b,bg,t)*orsa::Vector(0,0,1);
+    const double obliquity = acos(orbitPole*bodyPole);
+    ORSA_DEBUG("%s obliquity: %g [deg]",
+	       b->getName().c_str(),
+	       obliquity*orsa::radToDeg());
+  }
+  
   // ORSA_DEBUG("before DAWN...");
 
   osg::ref_ptr<Body> dawn = new Body;
