@@ -501,6 +501,14 @@ orsa::BodyGroup * run(const double orbitRadius,
 	  }
 	}
       }
+      for (unsigned int l=2; l<=degree; ++l) {
+	double var_l=0; // variance_l, or sigma_l squared
+	for (unsigned int m=0; m<=l; ++m) {
+	  var_l += orsa::square(norm_C[l][m])+orsa::square(norm_S[l][m]);
+	}
+	var_l /= (2*l+1); // definitions may vary...
+	ORSA_DEBUG("power: %2i %e",l,var_l);
+      }
     }
     
     ibps.inertial = new ConstantInertialBodyProperty(vestaMass,
