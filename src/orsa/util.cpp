@@ -347,7 +347,7 @@ RandomPointsInShape::RandomPointsInShape(const orsa::Shape * s,
   in.resize(N);
   const Box boundingBox = shape->boundingBox();
   //
-  {
+  if (0) {
     //debug
     ORSA_DEBUG("box: %f x %f x %f [km]",
 	       orsa::FromUnits(boundingBox.getXMax()-boundingBox.getXMin(),orsa::Unit::KM,-1),
@@ -461,7 +461,7 @@ orsa::Vector orsa::centerOfMass(const orsa::RandomPointsInShape * randomPointsIn
   center_of_mass.setZ(stat->average());
   center_of_mass_uncertainty.setZ(stat->averageError());
   
-  if (1) {
+  if (0) {
     // debug output
     ORSA_DEBUG("cm.x: %14.6e +/- %14.6e",
 	       center_of_mass.getX(),
