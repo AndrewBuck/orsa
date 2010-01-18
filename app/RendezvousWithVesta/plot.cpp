@@ -466,9 +466,9 @@ void VestaPlot::moveAltitudeCurve(const orsa::Time & t) {
   //
   plotFillThread->dataMutex.unlock();
   
-  curve_altitude->setData(xData,
-			  yData,
-			  2);
+  curve_altitude->setData(QwtPointArrayData(xData,
+					    yData,
+					    2));
   
   {
     // altitude marker
@@ -503,15 +503,15 @@ void VestaPlot::plotFill() {
   
   // const unsigned int vSize = plotFillThread->data->size();
   
-  QwtArray<double> xData;
+  QVector<double> xData;
   //
-  QwtArray<double> yData_distance;
-  QwtArray<double> yData_sphere_radius;
-  QwtArray<double> yData_vesta_profile;
+  QVector<double> yData_distance;
+  QVector<double> yData_sphere_radius;
+  QVector<double> yData_vesta_profile;
   //
-  QwtArray<double> yData_q;
-  QwtArray<double> yData_a;
-  QwtArray<double> yData_Q;
+  QVector<double> yData_q;
+  QVector<double> yData_a;
+  QVector<double> yData_Q;
   
   /* 
      xData.resize(vSize);
@@ -569,19 +569,19 @@ void VestaPlot::plotFill() {
     ++it;
   }
   
-  curve_distance->setData(xData,
-			  yData_distance);
-  curve_sphere_radius->setData(xData,
-			       yData_sphere_radius);
-  curve_vesta_profile->setData(xData,
-			       yData_vesta_profile);
-
-  curve_q->setData(xData,
-		   yData_q);
-  curve_a->setData(xData,
-		   yData_a);
-  curve_Q->setData(xData,
-		   yData_Q);
+  curve_distance->setData(QwtPointArrayData(xData,
+					    yData_distance));
+  curve_sphere_radius->setData(QwtPointArrayData(xData,
+						 yData_sphere_radius));
+  curve_vesta_profile->setData(QwtPointArrayData(xData,
+						 yData_vesta_profile));
+  
+  curve_q->setData(QwtPointArrayData(xData,
+				     yData_q));
+  curve_a->setData(QwtPointArrayData(xData,
+				     yData_a));
+  curve_Q->setData(QwtPointArrayData(xData,
+				     yData_Q));
   
   plotFillThread->dataMutex.unlock();
   
