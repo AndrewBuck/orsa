@@ -8,11 +8,11 @@
 #include <orsa/util.h>
 
 #include <orsaSolarSystem/attitude.h>
+#include <orsaSolarSystem/data.h>
 #include <orsaSolarSystem/datetime.h>
 
 #include <orsaSPICE/spice.h>
-#include <orsaSPICE/spiceBodyPosVelCallback.h>
-#include <orsaSPICE/spiceBodyInterpolatedPosVelCallback.h>
+#include <orsaSPICE/spiceBodyTranslationalCallback.h>
 
 #include <errno.h>
 
@@ -30,8 +30,8 @@ static void geo(double & latitude,
 		double & longitude,
 		const orsa::Vector & v) {
   const orsa::Vector u = v.normalized();
-  longitude = orsa::Double(orsa::radToDeg() * (orsa::atan2(u.getY(),u.getX()))).get_d();  
-  latitude  = orsa::Double(orsa::radToDeg() * (orsa::halfpi() - orsa::acos(u.getZ()))).get_d();
+  longitude = orsa::radToDeg() * (atan2(u.getY(),u.getX()));  
+  latitude  = orsa::radToDeg() * (orsa::halfpi() - acos(u.getZ()));
   
   if (longitude >  180) longitude -= 360;
   if (longitude < -180) longitude += 360;
@@ -89,16 +89,18 @@ void MainThread::run() {
   {
     sun->setName("SUN");
     //
-    sun->setMass(FromUnits(one(),Unit::MSUN));
-    // sun->setMass(zero());
+    // sun->setMass(FromUnits(1,Unit::MSUN));
+    // sun->setMass(0);
     //
     sun->isLightSource = true;
     //
     if (accurateSPICE) {
-      SpiceBodyPosVelCallback * sbpvc = new SpiceBodyPosVelCallback(sun->getName());
+      SpiceBodyTranslationalCallback * sbtc =
+	new SpiceBodyTranslationalCallback(sun->getName());
       // sbpvc->setBodyName(sun->getName());
       orsa::IBPS ibps;
-      ibps.translational = sbpvc;
+      ibps.inertial = new PointLikeConstantInertialBodyProperty(orsaSolarSystem::Data::MSun());
+      ibps.translational = sbtc;
       sun->setInitialConditions(ibps);
     } else {
       /* 
@@ -118,14 +120,16 @@ void MainThread::run() {
   osg::ref_ptr<VestaShape> vestaShape = new VestaShape;
   {
     vesta->setName("VESTA");
-    vesta->setMass(vestaMass.getRef());
+    // vesta->setMass(vestaMass.getRef());
     //
     if (accurateSPICE) {
       
-      osg::ref_ptr<SpiceBodyPosVelCallback> sbpvc = new SpiceBodyPosVelCallback(vesta->getName());
+      osg::ref_ptr<SpiceBodyTranslationalCallback> sbtc = 
+	new SpiceBodyTranslationalCallback(vesta->getName());
       
       orsa::IBPS ibps;
-      ibps.translational = sbpvc.get();
+      ibps.inertial = new PointLikeConstantInertialBodyProperty(vestaMass.getRef());
+      ibps.translational = sbtc.get();
       vesta->setInitialConditions(ibps);
     
     } else {
@@ -142,7 +146,21 @@ void MainThread::run() {
     {
       IBPS ibps = vesta->getInitialConditions();
       
-      // ORSA_DEBUG("vestaPeriod: %Fg",vestaPeriod.getRef().get_mpf_t());
+      // ORSA_DEBUG("vestaPeriod: %g",vestaPeriod.getRef());
+      
+      {
+	if (!vestaShape->read("vesta_thomas.dat")) {
+	  ORSA_ERROR("problems encountered while reading shape file...");
+	}
+      }
+      
+      ibps.inertial = new ConstantInertialBodyProperty(vestaMass.getRef(),
+						       vestaShape.get(),
+						       orsa::Vector(0,0,0),
+						       orsa::Matrix::identity(),
+						       orsa::Matrix::identity(),
+						       orsa::Matrix::identity(),
+						       0);
       
       ibps.rotational = new orsaSolarSystem::ConstantZRotationEcliptic_RotationalBodyProperty(J2000(),
 											      292.0*degToRad(),
@@ -151,13 +169,6 @@ void MainThread::run() {
 											      vestaPoleEclipticLatitude.getRef());
       
       vesta->setInitialConditions(ibps);
-    }
-    
-    {
-      if (!vestaShape->read("vesta_thomas.dat")) {
-	ORSA_ERROR("problems encountered while reading shape file...");
-      }
-      vesta->setShape(vestaShape.get());
     }
     
     bg->addBody(vesta.get());
@@ -169,7 +180,7 @@ void MainThread::run() {
   orsa::Orbit dawnOrbit;
   {
     
-    Double alpha = zero();
+    double alpha = 0;
     //
     // computations for the phase
     {
@@ -184,74 +195,89 @@ void MainThread::run() {
 				    sun.get(),
 				    orbitEpoch.getRef())) {
 	
-	osg::ref_ptr<orsa::Attitude> vesta_attitude = new BodyAttitude(vesta.get(),
-								       bg.get());
+	/* osg::ref_ptr<orsa::Attitude> vesta_attitude = new BodyAttitude(vesta.get(),
+	   bg.get());
+	*/
 	
 	// const Matrix g2l = vesta->getAttitude()->globalToLocal(orbitEpoch.getRef());
 	
-	const Matrix g2l = vesta_attitude->globalToLocal(orbitEpoch.getRef());
+	// const Matrix g2l = vesta_attitude->globalToLocal(orbitEpoch.getRef());
+	
+	// const Vector uVesta2Sun_local = (g2l*(rSun-rVesta).normalized()).normalized();
+
+	const orsa::Matrix g2l = orsa::globalToLocal(vesta.get(),bg.get(),orbitEpoch.getRef());
 	
 	const Vector uVesta2Sun_local = (g2l*(rSun-rVesta).normalized()).normalized();
-	
-	const Double uSun_z = uVesta2Sun_local.getZ();
 	
 	{
 	  // let's just call this in any case...
 
-	  const Double i_z = cos(orbitInclination.getRef());
+	  const double i_z = cos(orbitInclination.getRef());
 	  osg::ref_ptr<MultiminPhase> mmp = new MultiminPhase;
-	  const Double mmpAlpha = mmp->getAlpha(fmod(fmod(orbitPhase.getRef(),twopi())+twopi(),twopi()),
+	  const double mmpAlpha = mmp->getAlpha(fmod(fmod(orbitPhase.getRef(),twopi())+twopi(),twopi()),
 						uVesta2Sun_local,
-						orsa::Vector(zero(),
-							     -sqrt(one()-i_z*i_z),
+						orsa::Vector(0,
+							     -sqrt(1-i_z*i_z),
 							     i_z));
 	  alpha = mmpAlpha;
 	}
+
+	/* 
+	   const double uSun_z = uVesta2Sun_local.getZ();
+	   {
+	   // let's just call this in any case...
+	   const double i_z = cos(orbitInclination.getRef());
+	   osg::ref_ptr<MultiminPhase> mmp = new MultiminPhase;
+	   const double mmpAlpha = mmp->getAlpha(fmod(fmod(orbitPhase.getRef(),twopi())+twopi(),twopi()),
+	   uVesta2Sun_local,
+	   orsa::Vector(0,
+	   -sqrt(1-i_z*i_z),
+	   i_z));
+	   alpha = mmpAlpha;
+	   }
+	*/
 	
       }
       
     }
     
-    /* 
-       ORSA_DEBUG("final alpha: %Ff",
-       Double(radToDeg()*alpha).get_mpf_t());
-    */
-    
     dawn->setName("DAWN");
-    dawn->setMass(zero());
+    // dawn->setMass(0);
     //
     // osg::ref_ptr<orsa::BodyInitialConditions> dawn_bic = new orsa::BodyInitialConditions;
     IBPS ibps;
     //
     orsa::Orbit orbit;
     //
-    orbit.mu = vesta->getMu();
+    orbit.mu = orsa::Unit::G() * vestaMass.getRef();
     orbit.a  = orbitRadius.getRef();
-    orbit.e  = zero();
+    orbit.e  = 0;
     orbit.i  = orbitInclination.getRef();
     orbit.omega_node       = alpha;
-    orbit.omega_pericenter = zero();
-    orbit.M                = zero();
+    orbit.omega_pericenter = 0;
+    orbit.M                = 0;
     //
     orsa::Vector rOrbit, vOrbit;
     orbit.relativePosVel(rOrbit,vOrbit);
     
-    // ORSA_DEBUG("rOrbit: %.20Fe",rOrbit.length().get_mpf_t());
+    // ORSA_DEBUG("rOrbit: %.20e",rOrbit.length());
     
     {
-      osg::ref_ptr<orsa::Attitude> vesta_attitude = new BodyAttitude(vesta.get(),
-								     bg.get());
+      /* osg::ref_ptr<orsa::Attitude> vesta_attitude = new BodyAttitude(vesta.get(),
+	 bg.get());
+      */
       
-      const Matrix l2g = vesta_attitude->localToGlobal(orbitEpoch.getRef());
+      //  const Matrix l2g = vesta_attitude->localToGlobal(orbitEpoch.getRef());
+      const orsa::Matrix l2g = orsa::localToGlobal(vesta.get(),bg.get(),orbitEpoch.getRef());
       
       // print(l2g);
       
-      // ORSA_DEBUG("l2g.getM11(): %Fe",l2g.getM11().get_mpf_t());
+      // ORSA_DEBUG("l2g.getM11(): %e",l2g.getM11());
       
       rOrbit = l2g * rOrbit;
       vOrbit = l2g * vOrbit;
       
-      // ORSA_DEBUG("rOrbit: %.20Fe",rOrbit.length().get_mpf_t());
+      // ORSA_DEBUG("rOrbit: %.20e",rOrbit.length());
     }
     
     // global orbit wrt Vesta
@@ -272,6 +298,8 @@ void MainThread::run() {
     }
     
     ibps.time = orbitEpoch.getRef();
+    //  
+    ibps.inertial = new PointLikeConstantInertialBodyProperty(0);
     //
     ibps.translational = new DynamicTranslationalBodyProperty;
     ibps.translational->setPosition(rOrbit);
@@ -280,36 +308,21 @@ void MainThread::run() {
     // dawn->setInitialConditions(dawn_bic.get());
     dawn->setInitialConditions(ibps);
     
-    {
-      osg::ref_ptr<PaulMoment> dummy_pm = new PaulMoment(0);
-      //
-      dummy_pm->setM(one(),0,0,0);
-      dummy_pm->setCenterOfMass(orsa::Vector(0,0,0));
-      dummy_pm->setInertiaMoment(orsa::Matrix::identity());
-      //
-      dawn->setPaulMoment(dummy_pm.get());
-    }
-    
-    // test
-    // ORSA_DEBUG("========= DAWN time: %.6Ff",ibps.time.getRef().asDouble().get_mpf_t());
+    /* {
+       osg::ref_ptr<PaulMoment> dummy_pm = new PaulMoment(0);
+       //
+       dummy_pm->setM(1,0,0,0);
+       dummy_pm->setCenterOfMass(orsa::Vector(0,0,0));
+       dummy_pm->setInertiaMoment(orsa::Matrix::identity());
+       //
+       dawn->setPaulMoment(dummy_pm.get());
+       }
+    */
     
     bg->addBody(dawn.get());
     
-    // test
-    /* 
-       ORSA_DEBUG("========= DAWN time: %.6Ff",
-       dawn->getInitialConditions().time.getRef().asDouble().get_mpf_t());
-    */
-  
   }
   
-  // test
-  /* 
-     ORSA_DEBUG("========= DAWN time: %.6Ff",
-     dawn->getInitialConditions().time.getRef().asDouble().get_mpf_t());
-  */
-  
-
   // OLD
   /* 
      emit progress(0);
@@ -327,13 +340,14 @@ void MainThread::run() {
   {
     emit progress(0);
     
-    osg::ref_ptr<orsa::Attitude> vesta_attitude = new BodyAttitude(vesta.get(),
-								   bg.get());
+    /* osg::ref_ptr<orsa::Attitude> vesta_attitude = new BodyAttitude(vesta.get(),
+       bg.get());
+    */
     
-    const orsa::Double halfParallelFOV   = cameraParallelFOV.getRef()   / 2;
-    const orsa::Double halfOrthogonalFOV = cameraOrthogonalFOV.getRef() / 2;
+    const double halfParallelFOV   = cameraParallelFOV.getRef()   / 2;
+    const double halfOrthogonalFOV = cameraOrthogonalFOV.getRef() / 2;
     
-    const orsa::Double deltaMax = 
+    const double deltaMax = 
       sqrt(int_pow(halfParallelFOV,2) +
 	   int_pow(halfOrthogonalFOV,2));
     
@@ -381,9 +395,9 @@ void MainThread::run() {
     vertexCoverage_out.resize(vestaShape->getVertexVector().size());
     allFaceAtOnce_out.resize(vestaShape->getFaceVector().size());
     
-    const orsa::Double min_i = cameraMinimumI.getRef();
-    const orsa::Double max_i = cameraMaximumI.getRef();
-    const orsa::Double max_e = cameraMaximumE.getRef();
+    const double min_i = cameraMinimumI.getRef();
+    const double max_i = cameraMaximumI.getRef();
+    const double max_e = cameraMaximumE.getRef();
     
     const orsa::Time tStop = orbitEpoch.getRef()+runDuration.getRef();
     const orsa::Time dt = cameraInterval.getRef();
@@ -398,11 +412,11 @@ void MainThread::run() {
 	
         orsa::Orbit & localOrbit = dawnOrbit;
 	
-	const orsa::Double orbitPeriod = localOrbit.period();
+	const double orbitPeriod = localOrbit.period();
 	
-	const orsa::Double original_M  = localOrbit.M;
+	const double original_M  = localOrbit.M;
 	
-	localOrbit.M += orsa::twopi() * (t - orbitEpoch.getRef()).asDouble() / orbitPeriod;
+	localOrbit.M += orsa::twopi() * (t - orbitEpoch.getRef()).get_d() / orbitPeriod;
 	//
 	orsa::Vector relPosDawn, relVelDawn; // relative to Vesta in terms of position and orientation
 	//
@@ -412,7 +426,8 @@ void MainThread::run() {
 	
 	const orsa::Vector rDawn = relPosDawn + rVesta;
 	
-	const orsa::Matrix g2l = vesta_attitude->globalToLocal(t);
+	// const orsa::Matrix g2l = vesta_attitude->globalToLocal(t);
+	const orsa::Matrix g2l = orsa::globalToLocal(vesta.get(),bg.get(),t);
 	// print(g2l);
 	
 	// print(relPosDawn);
@@ -426,7 +441,7 @@ void MainThread::run() {
 	const orsa::Vector relLightSource = g2l * (rSun - rVesta);
 	// print(relLightSource);
 	
-	orsa::Double phase;
+	double phase;
 	if (vestaShape->vertexIlluminationAngles(relLightSource,
 						 relPosDawn,
 						 phase,
@@ -454,11 +469,11 @@ void MainThread::run() {
 	    // FOV components 
 	    const orsa::Vector u_vv = (vv-relPosDawn).normalized();
 	    //
-	    const orsa::Double angle = acos(u_vv*u_FOV_center);
+	    const double angle = acos(u_vv*u_FOV_center);
 	    const orsa::Vector u_projected = (u_vv - (u_vv*u_FOV_center)*u_FOV_center).normalized();
 	    //
-	    const orsa::Double angle_orthogonal = delta[k] * u_projected * u_FOV_orthogonal;
-	    const orsa::Double angle_parallel   = delta[k] * u_projected * u_FOV_parallel;
+	    const double angle_orthogonal = delta[k] * u_projected * u_FOV_orthogonal;
+	    const double angle_parallel   = delta[k] * u_projected * u_FOV_parallel;
 	    
 	    const bool inFOV = 
 	      (fabs(angle_orthogonal) < halfOrthogonalFOV) && 
@@ -475,13 +490,13 @@ void MainThread::run() {
 	    }
 	    
 	    /* 
-	       ORSA_DEBUG("delta: %Ff   deltaMax: %Ff   halfOrthogonalFOV: %Ff   halfParallelFOV: %Ff   parallel: %+Ff orthogonal: %+Ff   inFOV: %i",
-	       delta[k].get_mpf_t(), 
-	       deltaMax.get_mpf_t(),
-	       halfOrthogonalFOV.get_mpf_t(),
-	       halfParallelFOV.get_mpf_t(),
-	       angle_parallel.get_mpf_t(),
-	       angle_orthogonal.get_mpf_t(),
+	       ORSA_DEBUG("delta: %f   deltaMax: %f   halfOrthogonalFOV: %f   halfParallelFOV: %f   parallel: %+f orthogonal: %+f   inFOV: %i",
+	       delta[k], 
+	       deltaMax,
+	       halfOrthogonalFOV,
+	       halfParallelFOV,
+	       angle_parallel,
+	       angle_orthogonal,
 	       inFOV);
 	    */
 	    

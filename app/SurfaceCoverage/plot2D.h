@@ -3,6 +3,8 @@
 
 #include <qpainter.h>
 
+#include <QRectF>
+
 #include <qwt_painter.h>
 #include <qwt_plot.h>
 #include <qwt_plot_item.h>
@@ -33,14 +35,14 @@ class TriangleItem: public QwtPlotItem {
     lon_j = mainThread->longitude[face][tri.j()];
     lon_k = mainThread->longitude[face][tri.k()];
     //
-    d_rect = QwtDoubleRect(std::min(lon_i,std::min(lon_j,lon_k)),
-			   std::min(lat_i,std::min(lat_j,lat_k)),
-			   std::max(lon_i,std::max(lon_j,lon_k)),
-			   std::max(lat_i,std::max(lat_j,lat_k)));
+    d_rect = QRectF(std::min(lon_i,std::min(lon_j,lon_k)),
+		    std::min(lat_i,std::min(lat_j,lat_k)),
+		    std::max(lon_i,std::max(lon_j,lon_k)),
+		    std::max(lat_i,std::max(lat_j,lat_k)));
   }
     
  public:
-  virtual QwtDoubleRect boundingRect() const {
+  virtual QRectF boundingRect() const {
     return d_rect;
   }
   
@@ -52,10 +54,10 @@ class TriangleItem: public QwtPlotItem {
   }
   
  public:
-  void draw(QPainter * painter,
+  void draw(QPainter * painter, 
 	    const QwtScaleMap & xMap, 
-	    const QwtScaleMap & yMap,
-	    const QRect &) const {
+	    const QwtScaleMap & yMap, 
+	    const QRectF      & ) const {
     
     setBrush();
     
@@ -68,13 +70,13 @@ class TriangleItem: public QwtPlotItem {
     painter->setPen(d_pen);
     painter->setBrush(d_brush);
     
-    QwtPainter::drawPolygon(painter, QwtPolygon(point));
+    QwtPainter::drawPolygon(painter, QPolygon(point));
   }
   
  private:
   mutable QPen   d_pen;
   mutable QBrush d_brush;
-  QwtDoubleRect  d_rect;
+  QRectF  d_rect;
   
  private: 
   MainThread * mainThread;

@@ -613,22 +613,22 @@ void SurfaceCoverageWidget::computePeriodsRatio(const QString &) {
   
   s.sprintf("--.--- : 1");
   
-  const orsa::Double vestaMass = FromUnits(lineVestaMass->text().toDouble(),orsa::Unit::KG);
+  const double vestaMass = FromUnits(lineVestaMass->text().toDouble(),orsa::Unit::KG);
   
   if (lineVestaPeriod->text().length() != 0) { 
     
-    const orsa::Double vestaPeriod = FromUnits(lineVestaPeriod->text().toDouble(),orsa::Unit::HOUR);
+    const double vestaPeriod = FromUnits(lineVestaPeriod->text().toDouble(),orsa::Unit::HOUR);
     
-    const orsa::Double orbitRadius = orsa::FromUnits(lineOrbitRadius->text().toDouble(),orsa::Unit::KM);
+    const double orbitRadius = orsa::FromUnits(lineOrbitRadius->text().toDouble(),orsa::Unit::KM);
     
     orsa::Orbit orbit;
     // only 'mu' and 'a' needed
-    orbit.mu = orsa::Unit::instance()->getG() * vestaMass;
+    orbit.mu = orsa::Unit::G() * vestaMass;
     orbit.a  = orbitRadius;
     //
-    if ((orbit.mu > orsa::zero()) && (orbit.a > orsa::zero())) {
-      const orsa::Double orbitPeriod = orbit.period();
-      s.sprintf("%.3f : 1",orsa::Double(orbitPeriod/vestaPeriod).get_d());
+    if ((orbit.mu > 0) && (orbit.a > 0)) {
+      const double orbitPeriod = orbit.period();
+      s.sprintf("%.3f : 1",orbitPeriod/vestaPeriod);
     }
     
   }

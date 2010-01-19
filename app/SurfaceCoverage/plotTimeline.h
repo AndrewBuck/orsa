@@ -20,7 +20,7 @@ class TimelineCurve : public QwtPlotCurve {
     totalArea=0;
     for (unsigned int f=0; f<mainThread->faceVector_out.size(); ++f) {
       totalArea += mainThread->faceArea_out[f];
-      // ORSA_DEBUG("area of face %i: %Ff",f,mainThread->faceArea_out[f].get_mpf_t());
+      // ORSA_DEBUG("area of face %i: %f",f,mainThread->faceArea_out[f]);
     }
     if (!(totalArea > 0)) {
       ORSA_DEBUG("problems...");
@@ -28,12 +28,12 @@ class TimelineCurve : public QwtPlotCurve {
   }
  public:
   void updateData() {
-    QwtArray<double> xData;
-    QwtArray<double> yData;
+    QVector<double> xData;
+    QVector<double> yData;
     const orsa::Time tStop = mainThread->orbitEpoch.getRef() + mainThread->runDuration.getRef();
     const orsa::Time dt = mainThread->cameraInterval.getRef();
     orsa::Time t = mainThread->orbitEpoch.getRef();
-    orsa::Double tmpArea;
+    double tmpArea;
     while (t <= tStop) {
       tmpArea=0;
       for (unsigned int face=0; face<mainThread->faceVector_out.size(); ++face) {
@@ -44,27 +44,27 @@ class TimelineCurve : public QwtPlotCurve {
       }
       //
       /* 
-	 ORSA_DEBUG("coverage: %Ff   t: %Ff",
-	 orsa::Double(100 * tmpArea / totalArea).get_mpf_t(),
-	 FromUnits((t-mainThread->orbitEpoch.getRef()).asDouble(),
-	 orsa::Unit::HOUR,-1).get_mpf_t());
+	 ORSA_DEBUG("coverage: %f   t: %f",
+	 100 * tmpArea / totalArea,
+	 FromUnits((t-mainThread->orbitEpoch.getRef()),
+	 orsa::Unit::HOUR,-1));
       */
       //
-      xData.push_back(FromUnits((t-mainThread->orbitEpoch.getRef()).asDouble(),
-				orsa::Unit::HOUR,-1).get_d());
-      yData.push_back(orsa::Double(100 * tmpArea / totalArea).get_d()); // percent
+      xData.push_back(FromUnits((t-mainThread->orbitEpoch.getRef()).get_d(),
+				orsa::Unit::HOUR,-1));
+      yData.push_back(100 * tmpArea / totalArea); // percent
       //
       t += dt;
     }
-    setData(xData,
-	    yData);
+    setData(QwtPointArrayData(xData,
+			      yData));
   }
  protected: 
   MainThread * mainThread;
  protected:
   const Qt::GlobalColor color;
  protected:
-  orsa::Double totalArea;
+  double totalArea;
 };
 
 class PlotTimeline : public QwtPlot {

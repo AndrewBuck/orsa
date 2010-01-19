@@ -39,24 +39,24 @@ class MainThread : public QThread {
   void reset();
 
  public:
-  orsa::Cache<orsa::Double> vestaMass;
+  orsa::Cache<double> vestaMass;
   // orsa::Cache<ComboMassDistribution::MassDistributionType> vestaMassDistribution;
   // orsa::Cache<ComboShapeModel::ShapeModelType>             vestaShapeModel;
-  orsa::Cache<orsa::Double> vestaPeriod;
-  orsa::Cache<orsa::Double> vestaPoleEclipticLatitude;
-  orsa::Cache<orsa::Double> vestaPoleEclipticLongitude;
+  orsa::Cache<double> vestaPeriod;
+  orsa::Cache<double> vestaPoleEclipticLatitude;
+  orsa::Cache<double> vestaPoleEclipticLongitude;
  public:
   orsa::Cache<orsa::Time>   orbitEpoch;
-  orsa::Cache<orsa::Double> orbitRadius;
-  orsa::Cache<orsa::Double> orbitInclination;
-  orsa::Cache<orsa::Double> orbitPhase;
+  orsa::Cache<double> orbitRadius;
+  orsa::Cache<double> orbitInclination;
+  orsa::Cache<double> orbitPhase;
  public:
-  orsa::Cache<orsa::Double> cameraParallelFOV;
-  orsa::Cache<orsa::Double> cameraOrthogonalFOV;
+  orsa::Cache<double> cameraParallelFOV;
+  orsa::Cache<double> cameraOrthogonalFOV;
   orsa::Cache<orsa::Time>   cameraInterval;
-  orsa::Cache<orsa::Double> cameraMinimumI;
-  orsa::Cache<orsa::Double> cameraMaximumI;
-  orsa::Cache<orsa::Double> cameraMaximumE;
+  orsa::Cache<double> cameraMinimumI;
+  orsa::Cache<double> cameraMaximumI;
+  orsa::Cache<double> cameraMaximumE;
  public:
   orsa::Cache<orsa::Time>   runDuration;
   orsa::Cache<std::string>  outputSPICEFile;
@@ -71,7 +71,7 @@ class MainThread : public QThread {
   // output
  public:	
   std::vector< std::vector<double> > latitude, longitude;
-  std::vector<orsa::Double>    faceArea_out;
+  std::vector<double>    faceArea_out;
   orsa::TriShape::FaceVector   faceVector_out;
   orsa::TriShape::VertexVector vertexVector_out;
   std::vector< std::vector<orsa::Time> > vertexCoverage_out;
