@@ -16,8 +16,8 @@
 #include <gsl/gsl_randist.h>
 
 #include <orsaSPICE/spice.h>
-#include <orsaSPICE/spiceBodyAttitudeCallback.h>
-#include <orsaSPICE/spiceBodyPosVelCallback.h>
+#include <orsaSPICE/spiceBodyRotationalCallback.h>
+#include <orsaSPICE/spiceBodyTranslationalCallback.h>
 
 #include <orsaSolarSystem/data.h>
 #include <orsaSolarSystem/datetime.h>

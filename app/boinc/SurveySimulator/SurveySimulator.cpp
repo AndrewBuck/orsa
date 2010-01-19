@@ -19,8 +19,8 @@
 #include <gsl/gsl_roots.h>
 
 #include <orsaSPICE/spice.h>
-#include <orsaSPICE/spiceBodyAttitudeCallback.h>
-#include <orsaSPICE/spiceBodyPosVelCallback.h>
+#include <orsaSPICE/spiceBodyRotationalCallback.h>
+#include <orsaSPICE/spiceBodyTranslationalCallback.h>
 
 #include <orsaSolarSystem/data.h>
 #include <orsaSolarSystem/datetime.h>
@@ -164,10 +164,11 @@ osg::ref_ptr<orsa::Body> SPICEBody (const std::string  & bodyName,
   localBody->setName(bodyName);
   // localBody->setMass(bodyMass);  
   
-  osg::ref_ptr<orsaSPICE::SpiceBodyPosVelCallback> sbpvc = new orsaSPICE::SpiceBodyPosVelCallback(bodyName);
+  osg::ref_ptr<orsaSPICE::SpiceBodyTranslationalCallback> sbtc = 
+    new orsaSPICE::SpiceBodyTranslationalCallback(bodyName);
   orsa::IBPS ibps;
-  ibps.inertial = new orsa::ConstantMassBodyProperty(bodyMass);
-  ibps.translational = sbpvc.get();
+  ibps.inertial = new orsa::PointLikeConstantInertialBodyProperty(bodyMass);
+  ibps.translational = sbtc.get();
   localBody->setInitialConditions(ibps);
   
   return localBody.get();
