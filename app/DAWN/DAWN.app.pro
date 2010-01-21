@@ -3,7 +3,7 @@ TEMPLATE = app
 CONFIG += qt
 QT     -= gui opengl
 
-CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib qd_include qd_lib qwt_include qwt_lib spice_include spice_lib tbb_include tbb_lib
+CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib qd_include qd_lib spice_include spice_lib tbb_include tbb_lib
 
 include(../../orsa.pri)
 
