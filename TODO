@@ -1,5 +1,5 @@
 - [TBB] use the cache_aligned_allocator wherever possible;
-- implement "roving observer": http://www.cfa.harvard.edu/iau/info/RovingObs.html
+- implement "roving observer" and satellite observations, both use two lines: http://www.cfa.harvard.edu/iau/info/RovingObs.html
 - weighted stats in orbit determination;
 - handle radar observations;
 - solar pressure, for satellites, and atmosphere drag;
