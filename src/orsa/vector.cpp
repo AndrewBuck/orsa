@@ -4,6 +4,9 @@
 #include <orsa/debug.h>
 #include <orsa/vector.h>
 
+#include <osg/Vec3f>
+#include <osg/Vec3d>
+
 using namespace orsa;
 
 osg::Vec3d Vector::getVec3d() const {
@@ -89,3 +92,8 @@ bool orsa::operator == (const Vector & v1, const Vector & v2) {
   return true;
 }
 
+orsa::Vector orsa::externalProduct (const orsa::Vector & lhs, const orsa::Vector & rhs) {
+  return orsa::Vector (lhs.getY()*rhs.getZ()-lhs.getZ()*rhs.getY(),
+		       lhs.getZ()*rhs.getX()-lhs.getX()*rhs.getZ(),
+		       lhs.getX()*rhs.getY()-lhs.getY()*rhs.getX()); 
+}

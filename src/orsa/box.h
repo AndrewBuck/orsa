@@ -5,7 +5,19 @@
 #include <orsa/double.h>
 #include <orsa/vector.h>
 
-#include <osg/BoundingBox>
+// keep this in sync with include/osg/BoundingBox in OSG source
+// this avoids including directly the OSG header, makes code lighter
+#include <osg/Config>
+namespace osg {
+  template<typename VT> class BoundingBoxImpl;
+  typedef BoundingBoxImpl<Vec3f> BoundingBoxf;
+  typedef BoundingBoxImpl<Vec3d> BoundingBoxd;
+#ifdef OSG_USE_FLOAT_BOUNDINGBOX
+  typedef BoundingBoxf BoundingBox;
+#else
+  typedef BoundingBoxd BoundingBox;
+#endif
+}
 
 namespace orsa {
   
@@ -45,16 +57,9 @@ namespace orsa {
     const double & getYMax() const { return _yMax.getRef(); }
     const double & getZMin() const { return _zMin.getRef(); }
     const double & getZMax() const { return _zMax.getRef(); }
-
+    
   public:
-    osg::BoundingBox getOSGBoundingBox() const {
-      return osg::BoundingBox(_xMin.getRef(),
-			      _yMin.getRef(),
-			      _zMin.getRef(),
-			      _xMax.getRef(),
-			      _yMax.getRef(),
-			      _zMax.getRef());
-    }
+    osg::BoundingBox getOSGBoundingBox() const;
     
   public:
     double volume() const;

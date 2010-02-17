@@ -6,8 +6,10 @@
 #include <orsa/cache.h>
 #include <orsa/double.h>
 
-#include <osg/Vec3f>
-#include <osg/Vec3d>
+namespace osg {
+  class Vec3f;
+  class Vec3d;
+}
 
 namespace orsa {
   
@@ -212,11 +214,7 @@ namespace orsa {
     return p;
   }
   
-  inline Vector externalProduct (const Vector & lhs, const Vector & rhs) {
-    return Vector (lhs.getY()*rhs.getZ()-lhs.getZ()*rhs.getY(),
-		   lhs.getZ()*rhs.getX()-lhs.getX()*rhs.getZ(),
-		   lhs.getX()*rhs.getY()-lhs.getY()*rhs.getX()); 
-  }
+  Vector externalProduct (const Vector & lhs, const Vector & rhs);
   
   bool operator == (const Vector &, const Vector &);
   

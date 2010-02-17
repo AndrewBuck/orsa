@@ -7,7 +7,9 @@
 #include <orsa/double.h>
 #include <orsa/vector.h>
 
-#include <osg/Matrixd>
+namespace osg {
+  class Matrixd;
+}
 
 namespace orsa {
   

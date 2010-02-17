@@ -1,5 +1,7 @@
 #include <orsa/matrix.h>
 
+#include <osg/Matrixd>
+
 using namespace orsa;
 
 /* 

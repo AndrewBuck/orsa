@@ -1,5 +1,7 @@
 #include <orsa/box.h>
 
+#include <osg/BoundingBox>
+
 using namespace orsa;
 
 Box::Box() { }
@@ -92,3 +94,13 @@ bool Box::isInside(const orsa::Vector & v) const {
   if (v.getZ() > _zMax.getRef()) return false;
   return true;
 }
+
+osg::BoundingBox Box::getOSGBoundingBox() const {
+  return osg::BoundingBox(_xMin.getRef(),
+			  _yMin.getRef(),
+			  _zMin.getRef(),
+			  _xMax.getRef(),
+			  _yMax.getRef(),
+			  _zMax.getRef());
+}
+
