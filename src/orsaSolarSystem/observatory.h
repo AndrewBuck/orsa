@@ -30,6 +30,12 @@ namespace orsaSolarSystem {
     virtual bool getPosition(orsa::Vector & position,
 			     const std::string & obsCode,
 			     const orsa::Time &) const = 0;
+   public:
+    // absolute position and velocity
+    virtual bool getPosVel(orsa::Vector & position,
+			   orsa::Vector & velocity,
+			   const std::string & obsCode,
+			   const orsa::Time &) const = 0;
   };
   
 }; // namespace orsaSolarSystem
