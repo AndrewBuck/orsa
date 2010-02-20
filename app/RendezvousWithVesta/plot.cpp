@@ -14,7 +14,7 @@ PlotFillThread::PlotFillThread(orsa::BodyGroup  * bg,
   QThread(),
   _bg(bg),
   _dt(dt) {
-  data = new orsa::Interval<PlotData>;
+  data = new DataType;
   data->enableDataStoring();
 }
 
@@ -191,11 +191,13 @@ VestaPlot::VestaPlot(orsa::BodyGroup        * bg,
   
   setAutoReplot(false);
   
+  setMargin(0);
+  
   setAxisTitle(xBottom,"time [s]");
   setAxisTitle(yLeft,  "[km]");
   
   curve_distance = new VestaPlotCurve(true);
-  curve_distance->setRenderHint(QwtPlotItem::RenderAntialiased);
+  // curve_distance->setRenderHint(QwtPlotItem::RenderAntialiased);
   curve_distance->setYAxis(QwtPlot::yLeft);
   curve_distance->attach(this);
   //
@@ -595,23 +597,16 @@ void VestaPlot::closeEvent(QCloseEvent *) {
   }
 }
 
-void VestaPlot::drawItems(QPainter                 * painter, 
-			  const QRect              & rect,
-			  const QwtScaleMap          maps[axisCnt],
-			  const QwtPlotPrintFilter & filter) const {
+void VestaPlot::drawItems(QPainter          * painter, 
+			  const QRectF      & rect,
+			  const QwtScaleMap   maps[axisCnt]) const {
   
   if (autoReplot()) {
     ORSA_ERROR("warning: this method does not work properly when autoReplot is enabled");
     return QwtPlot::drawItems(painter, 
 			      rect, 
-			      maps,
-			      filter);
+			      maps);
   }
-  
-  /* 
-     QTime measureTime;
-     measureTime.start();
-  */
   
   /* 
      if (_canvasCache) {
@@ -622,7 +617,7 @@ void VestaPlot::drawItems(QPainter                 * painter,
   */
   
   if (!_canvasCache) {
-    _canvasCache      = new QPixmap(rect.size());
+    _canvasCache      = new QPixmap(round(rect.width()),round(rect.height()));
     _canvasCacheDirty = true;
   }
   
@@ -630,10 +625,11 @@ void VestaPlot::drawItems(QPainter                 * painter,
   if ( (!_canvasCacheDirty) && 
        (rect.size() == _canvasCache->size()) ) {
     // using cache...
-    painter->drawPixmap(rect, 
-			(*_canvasCache));
+    // ORSA_DEBUG("using cache...");
+    painter->drawPixmap(rect,(*_canvasCache),rect);
   } else {
     // not using cache...
+    // ORSA_DEBUG("not using cache...");
     for (QwtPlotItemIterator it = itmList.begin(); it != itmList.end(); ++it) {
       {
 	VestaPlotCurve * curve = dynamic_cast< VestaPlotCurve * > (*it);
@@ -656,8 +652,7 @@ void VestaPlot::drawItems(QPainter                 * painter,
     //
     QwtPlot::drawItems(painter, 
 		       rect, 
-		       maps,
-		       filter);
+		       maps);
     //
     for (QwtPlotItemIterator it = itmList.begin(); it != itmList.end(); ++it) {
       {
