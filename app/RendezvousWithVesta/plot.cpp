@@ -191,7 +191,7 @@ VestaPlot::VestaPlot(orsa::BodyGroup        * bg,
   
   setAutoReplot(false);
   
-  setMargin(0);
+  setMargin(3);
   
   setAxisTitle(xBottom,"time [s]");
   setAxisTitle(yLeft,  "[km]");
@@ -598,8 +598,10 @@ void VestaPlot::closeEvent(QCloseEvent *) {
 }
 
 void VestaPlot::drawItems(QPainter          * painter, 
-			  const QRectF      & rect,
+			  const QRectF      & rectf,
 			  const QwtScaleMap   maps[axisCnt]) const {
+  
+  const QRect rect = rectf.toRect();
   
   if (autoReplot()) {
     ORSA_ERROR("warning: this method does not work properly when autoReplot is enabled");
@@ -611,13 +613,13 @@ void VestaPlot::drawItems(QPainter          * painter,
   /* 
      if (_canvasCache) {
      // debug info
-     std::cerr << " rect: " <<          rect.size().width() << "x" <<          rect.size().height() << std::endl;
+     std::cerr << " rect: " <<          rect.size().width() << "x" <<          rect.size().height() << " at (" <<          rect.x() << "," <<          rect.y() << ")" << std::endl;
      std::cerr << "cache: " << _canvasCache->size().width() << "x" << _canvasCache->size().height() << std::endl;
      } 
   */
   
   if (!_canvasCache) {
-    _canvasCache      = new QPixmap(round(rect.width()),round(rect.height()));
+    _canvasCache      = new QPixmap(rect.size());
     _canvasCacheDirty = true;
   }
   
@@ -626,7 +628,8 @@ void VestaPlot::drawItems(QPainter          * painter,
        (rect.size() == _canvasCache->size()) ) {
     // using cache...
     // ORSA_DEBUG("using cache...");
-    painter->drawPixmap(rect,(*_canvasCache),rect);
+    painter->drawPixmap(rect,(*_canvasCache));
+    // painter->drawPixmap(rect,(*_canvasCache),rect); // this call offsets the moving items by 2 pixels, and the rect (x,y) = (2,2) so maybe the solution to this problem lies in modifying the QRect appropriately
   } else {
     // not using cache...
     // ORSA_DEBUG("not using cache...");
@@ -703,9 +706,4 @@ void VestaPlot::drawItems(QPainter          * painter,
       }
     }
   }
-  
-  /* 
-     ORSA_DEBUG("call took about %i [ms]",
-     measureTime.elapsed());
-  */
 }
