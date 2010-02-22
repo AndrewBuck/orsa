@@ -336,14 +336,27 @@ namespace orsaInputOutput {
 	return false;
       }
       const unsigned int length = _lineLength.getRef();
-      char line[length];
+      char line[length], lineAbove[length];
       _file->rewind();
       while (_file->gets(line,length)) {
 	line[strlen(line)-1] = '\0'; // remove trailing \n
 	if (goodLine(line)) {
 	  // uncomment while debugging
 	  // ORSA_DEBUG("accepted line: [%s]",line);
-	  processLine(line);
+	  // first, try to process a single line
+	  if (!processLine(line)) {
+	    // if unsuccessful, try processing two lines together
+	    // this is necessary as sometimes files have mixed 1-line, 2-line data
+	    if (goodLine(lineAbove)) {
+	      if (!processLines(lineAbove,line)) {
+		ORSA_DEBUG("processLines failed");
+	      }
+	    } else {
+	      ORSA_DEBUG("processLine failed");
+	    }
+	  }
+	  //
+	  strcpy(lineAbove,line);
 	} else {
 	  // uncomment while debugging
 	  // ORSA_DEBUG("rejected line: [%s]",line);
@@ -365,6 +378,11 @@ namespace orsaInputOutput {
   public:
     //! extract data from a good line
     virtual bool processLine(const char * line) = 0;
+
+  public:
+    //! extract data from two good lines,
+    //! defaults to empty method returning false
+    virtual bool processLines(const char * /* line_1 */ , const char * /* line_2 */ ) { return false; }
     
   public:
     orsa::Cache<unsigned int> _lineLength;

@@ -120,3 +120,9 @@ bool MPCObservationsFile::processLine(const char * line) {
   
   return true;
 }
+
+bool MPCObservationsFile::processLines(const char * line1, const char * line2) {
+  ORSA_DEBUG("Implement HERE two-line data reading code");
+  ORSA_DEBUG("line 1: [%s]",line1);
+  ORSA_DEBUG("line 2: [%s]",line2);
+}

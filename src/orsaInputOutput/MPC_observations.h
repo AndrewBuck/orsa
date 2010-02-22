@@ -30,6 +30,9 @@ namespace orsaInputOutput {
     
   public:
     bool processLine(const char * line);
+    
+  public:
+    bool processLines(const char * lineAbove, const char * line);
   };
   
 }; // orsaInputOutput
