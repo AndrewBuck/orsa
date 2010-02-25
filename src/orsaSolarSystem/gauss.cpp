@@ -239,7 +239,7 @@ void orsaSolarSystem::GaussMethod(std::vector<orsaSolarSystem::OrbitWithEpoch> &
   
   orsa::Vector obsPosition[3];
   for (unsigned int k=0; k<3; ++k) {       
-    if (!obsPosCB->getPosition(obsPosition[k],obs[k]->obsCode.getRef(),obs[k]->epoch.getRef())) { ORSA_DEBUG("problems"); }
+    if (!obsPosCB->getPosition(obsPosition[k],obs[k].get())) { ORSA_DEBUG("problems"); }
   }
   
   orsa::Vector R[3]; 
@@ -252,10 +252,15 @@ void orsaSolarSystem::GaussMethod(std::vector<orsaSolarSystem::OrbitWithEpoch> &
     double c_ra,  s_ra;
     double c_dec, s_dec;
     for (unsigned int k=0; k<3; ++k) { 
-      sincos(obs[k]->ra.getRef().getRad(), 
+      orsaSolarSystem::OpticalObservation * opticalObservation =  
+	dynamic_cast<orsaSolarSystem::OpticalObservation *>(obs[k].get());
+      if (!opticalObservation) {
+	ORSA_DEBUG("observation is not optical");
+      }
+      sincos(opticalObservation->ra.getRef().getRad(), 
 	     &s_ra, 
 	     &c_ra);
-      sincos(obs[k]->dec.getRef().getRad(),
+      sincos(opticalObservation->dec.getRef().getRad(),
 	     &s_dec,
 	     &c_dec);
       u_rho[k].set(c_dec*c_ra,

@@ -20,10 +20,15 @@ namespace orsaInputOutput {
       InputFile <
       orsaInputOutput::CompressedFile,
       std::vector< osg::ref_ptr<orsaSolarSystem::Observation> > 
-      > () { }
+      > () {
+      twoLinesCall=false;
+    }
       
   protected:
     ~MPCObservationsFile() { }
+    
+  protected:
+    bool twoLinesCall;
     
   public:
     bool goodLine(const char * line);

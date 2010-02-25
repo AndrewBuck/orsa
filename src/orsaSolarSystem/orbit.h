@@ -51,7 +51,7 @@ namespace orsaSolarSystem {
   //! Residuals relative to orbit not integrated, good for times close to orbit epoch
   void ComputeResidual(std::vector<orsaSolarSystem::Residual> & residual,
 		       const orsaSolarSystem::OrbitWithEpoch & orbit,
-		       const orsaSolarSystem::ObservationVector & observationVector,
+		       const orsaSolarSystem::OpticalObservationVector & observationVector,
 		       const orsaSolarSystem::ObservatoryPositionCallback * obsPosCB, 
 		       const orsa::Body * refBody,
 		       orsa::BodyGroup * bg);

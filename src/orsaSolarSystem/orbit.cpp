@@ -127,7 +127,7 @@ void orsaSolarSystem::ConvertEquinoctialUncertainties(double & sigma_a,
 
 void orsaSolarSystem::ComputeResidual(std::vector<orsaSolarSystem::Residual>   & residual,
 				      const orsaSolarSystem::OrbitWithEpoch    & orbit,
-				      const orsaSolarSystem::ObservationVector & obs,
+				      const orsaSolarSystem::OpticalObservationVector & obs,
 				      const orsaSolarSystem::ObservatoryPositionCallback * obsPosCB, 
 				      const orsa::Body * refBody,
 				      orsa::BodyGroup  * bg) {
@@ -141,9 +141,15 @@ void orsaSolarSystem::ComputeResidual(std::vector<orsaSolarSystem::Residual>   &
   
   for (unsigned int k=0; k<obs.size(); ++k) {
     
+    orsaSolarSystem::OpticalObservation * opticalObservation =  
+      dynamic_cast<orsaSolarSystem::OpticalObservation *>(obs[k].get());
+    if (!opticalObservation) {
+      ORSA_DEBUG("observation is not optical");
+    }
+    
     if (!bg->getInterpolatedPosVel(refBodyPosition,refBodyVelocity,refBody,obs[k]->epoch.getRef())) { ORSA_DEBUG("problems"); }
     
-    if (!obsPosCB->getPosition(obsPosition,obs[k]->obsCode.getRef(),obs[k]->epoch.getRef())) { ORSA_DEBUG("problems"); }
+    if (!obsPosCB->getPosition(obsPosition,obs[k].get())) { ORSA_DEBUG("problems"); }
     
     {
       orsa::Orbit localOrbit = orbit;
@@ -159,13 +165,13 @@ void orsaSolarSystem::ComputeResidual(std::vector<orsaSolarSystem::Residual>   &
     const double  ra_orbit = fmod(atan2(dr.getY(),dr.getX())+orsa::twopi(),orsa::twopi());
     const double dec_orbit = asin(dr.getZ()/dr.length());
     
-    double delta_ra = obs[k]->ra.getRef().getRad()-ra_orbit;
-    if (fabs(obs[k]->ra.getRef().getRad()-ra_orbit+orsa::twopi()) < fabs(delta_ra)) delta_ra = obs[k]->ra.getRef().getRad()-ra_orbit+orsa::twopi();
-    if (fabs(obs[k]->ra.getRef().getRad()-ra_orbit-orsa::twopi()) < fabs(delta_ra)) delta_ra = obs[k]->ra.getRef().getRad()-ra_orbit-orsa::twopi();
-    const double cos_dec = cos(0.5*(obs[k]->dec.getRef().getRad()+dec_orbit));
+    double delta_ra = opticalObservation->ra.getRef().getRad()-ra_orbit;
+    if (fabs(opticalObservation->ra.getRef().getRad()-ra_orbit+orsa::twopi()) < fabs(delta_ra)) delta_ra = opticalObservation->ra.getRef().getRad()-ra_orbit+orsa::twopi();
+    if (fabs(opticalObservation->ra.getRef().getRad()-ra_orbit-orsa::twopi()) < fabs(delta_ra)) delta_ra = opticalObservation->ra.getRef().getRad()-ra_orbit-orsa::twopi();
+    const double cos_dec = cos(0.5*(opticalObservation->dec.getRef().getRad()+dec_orbit));
     delta_ra *= cos_dec;
     
-    double delta_dec = obs[k]->dec.getRef().getRad()-dec_orbit;
+    double delta_dec = opticalObservation->dec.getRef().getRad()-dec_orbit;
     
     residual[k].delta_ra  = delta_ra;
     residual[k].delta_dec = delta_dec;

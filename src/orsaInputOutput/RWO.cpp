@@ -49,7 +49,7 @@ bool RWOFile::processLine(const char * line) {
   s_obsCode.assign(line,176,3);
   removeLeadingAndTrailingSpaces(s_obsCode);
   
-  osg::ref_ptr<Observation> workObs = new Observation;
+  osg::ref_ptr<OpticalObservation> workObs = new OpticalObservation;
   
   workObs->designation = s_designation;
   workObs->obsCode     = s_obsCode;

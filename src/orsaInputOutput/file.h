@@ -344,15 +344,18 @@ namespace orsaInputOutput {
 	  // uncomment while debugging
 	  // ORSA_DEBUG("accepted line: [%s]",line);
 	  // first, try to process a single line
+	  // ORSA_DEBUG("calling processLine, line: [%s]",line);
 	  if (!processLine(line)) {
 	    // if unsuccessful, try processing two lines together
 	    // this is necessary as sometimes files have mixed 1-line, 2-line data
 	    if (goodLine(lineAbove)) {
+	      // ORSA_DEBUG("calling processLines, line1: [%s]",lineAbove);
+	      // ORSA_DEBUG("calling processLines, line2: [%s]",line);
 	      if (!processLines(lineAbove,line)) {
-		ORSA_DEBUG("processLines failed");
+		// ORSA_DEBUG("processLines failed");
 	      }
 	    } else {
-	      ORSA_DEBUG("processLine failed");
+	      // ORSA_DEBUG("processLine failed");
 	    }
 	  }
 	  //

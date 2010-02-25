@@ -6,6 +6,8 @@
 #include <orsa/double.h>
 #include <orsa/vector.h>
 
+#include <orsaSolarSystem/observation.h>
+
 #include <string>
 
 #include <osg/Referenced>
@@ -18,6 +20,11 @@ namespace orsaSolarSystem {
     orsa::Cache<double> lon, pxy, pz;
     orsa::Cache<std::string> obsCode;
     orsa::Cache<std::string> name;
+  public:
+    // satellite or roving observer
+    bool moving() const {
+      return ((!lon.isSet()) && (!pxy.isSet()) && (!pz.isSet()));
+    }
   };
   
   class ObservatoryPositionCallback : public osg::Referenced {
@@ -28,14 +35,12 @@ namespace orsaSolarSystem {
   public:
     // absolute position
     virtual bool getPosition(orsa::Vector & position,
-			     const std::string & obsCode,
-			     const orsa::Time &) const = 0;
-   public:
+			     const orsaSolarSystem::Observation * obs) const = 0;
+  public:
     // absolute position and velocity
     virtual bool getPosVel(orsa::Vector & position,
 			   orsa::Vector & velocity,
-			   const std::string & obsCode,
-			   const orsa::Time &) const = 0;
+			   const orsaSolarSystem::Observation * obs) const = 0;
   };
   
 }; // namespace orsaSolarSystem
