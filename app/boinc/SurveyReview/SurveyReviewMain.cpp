@@ -7,6 +7,7 @@
 #include <orsa/statistic.h>
 
 #include <orsaSolarSystem/datetime.h>
+#include <orsaSolarSystem/observatory.h>
 
 #include <orsaSPICE/spice.h>
 #include <orsaSPICE/spiceBodyRotationalCallback.h>
@@ -25,8 +26,6 @@
 int main() {
   
   orsa::Debug::instance()->initTimer();
-  
-  // mpf_set_default_prec(64);
   
   boinc_init();
   
@@ -118,8 +117,8 @@ int main() {
   obsCodeFile->setFileName(resolvedFileName);
   obsCodeFile->read();
   
-  osg::ref_ptr<StandardObservatoryPositionCallback> obsPosCB =
-    new StandardObservatoryPositionCallback(obsCodeFile.get());
+  osg::ref_ptr<orsaSolarSystem::StandardObservatoryPositionCallback> obsPosCB =
+    new orsaSolarSystem::StandardObservatoryPositionCallback(obsCodeFile.get());
   
   {
     // spice error file (should resolve filename?)
