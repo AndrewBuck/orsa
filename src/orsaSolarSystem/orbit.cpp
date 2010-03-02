@@ -3,7 +3,7 @@
 #include <orsaSolarSystem/obleq.h>
 
 double orsaSolarSystem::RMS(const std::vector<orsaSolarSystem::Residual> & r) {
-  ORSA_DEBUG("r.size(): %i",r.size());
+  // ORSA_DEBUG("r.size(): %i",r.size());
   if (r.size() == 0) return 0;
   double rms=0, d2ra, d2dec;
   for (unsigned int k=0; k<r.size(); ++k) {
