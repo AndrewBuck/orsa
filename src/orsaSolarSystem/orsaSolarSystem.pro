@@ -44,6 +44,7 @@ SOURCES = attitude.cpp \
           gauss.cpp \
           gmst.cpp \
           obleq.cpp \
+          observatory.cpp \
           orbit.cpp \
           sdncal.h \
           dow.c \
