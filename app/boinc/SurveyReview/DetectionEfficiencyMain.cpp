@@ -46,6 +46,21 @@ int main(int argc, char ** argv) {
   obsCode = SkyCoverage::alias(obsCode);
   ORSA_DEBUG("MPC obsCode: [%s]",obsCode.c_str());
   
+  // local midnight epoch
+  orsa::Time epoch;
+  if (strlen(compactDate.c_str())==7) {
+    // seven character date format
+    std::string year,dayOfYear;
+    year.assign(compactDate,0,4);
+    dayOfYear.assign(compactDate,4,3);
+#warning ADD FRACTION OF DAY FOR LOCAL MIDNIGHT EXACT EPOCH
+    ORSA_DEBUG("ADD FRACTION OF DAY FOR LOCAL MIDNIGHT EXACT EPOCH");
+    epoch = orsaSolarSystem::gregorTime(atoi(year.c_str()),
+					1,
+					atoi(dayOfYear.c_str()));
+    orsa::print(epoch);
+  }
+  
   osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile = new orsaInputOutput::MPCObsCodeFile;
   obsCodeFile->setFileName("obscode.dat");
   obsCodeFile->read();
