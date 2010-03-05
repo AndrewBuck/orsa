@@ -3,18 +3,16 @@
 
 #include <orsaInputOutput/file.h>
 
-#include <orsa/orbit.h>
+#include <orsaSolarSystem/orbit.h>
 
 #include <list>
-// #include <map>
 #include <string>
 
 namespace orsaInputOutput {
   
   class MPCCometDataElement {
   public:
-    orsa::Orbit orbit;
-    orsa::Time  epoch;
+    orsaSolarSystem::OrbitWithEpoch orbit;
     std::string designation;
   };
   

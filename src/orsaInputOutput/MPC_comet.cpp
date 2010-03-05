@@ -52,7 +52,8 @@ bool MPCCometFile::processLine(const char * line) {
 						 atoi(s_epoch_m.c_str()),
 						 atof(s_epoch_d.c_str()));
   
-  Orbit orbit;
+  OrbitWithEpoch orbit;
+  orbit.epoch = epoch;
   orbit.mu = orsaSolarSystem::Data::GMSun(); 
   orbit.e  = atof(s_e.c_str());
   //
@@ -70,7 +71,6 @@ bool MPCCometFile::processLine(const char * line) {
   MPCCometDataElement element;
   //
   element.orbit       = orbit;
-  element.epoch       = epoch;
   element.designation = s_designation;
   
   _data.push_back(element);

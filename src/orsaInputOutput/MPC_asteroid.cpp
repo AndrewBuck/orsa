@@ -37,9 +37,8 @@ bool MPCAsteroidFile::processLine(const char * line) {
   s_e.assign(line,70,9);
   s_a.assign(line,92,11);
   
-  const Time epoch = MPC_packedToTime(s_epoch.c_str());
-  
-  Orbit orbit;
+  orsaSolarSystem::OrbitWithEpoch orbit;
+  orbit.epoch = MPC_packedToTime(s_epoch.c_str());
   orbit.mu = orsaSolarSystem::Data::GMSun(); 
   orbit.e  = atof(s_e.c_str());
   //
@@ -57,7 +56,6 @@ bool MPCAsteroidFile::processLine(const char * line) {
   MPCAsteroidDataElement element;
   //
   element.orbit       = orbit;
-  element.epoch       = epoch;
   element.H           = atof(s_H.c_str());
   element.designation = s_designation;
   
