@@ -38,6 +38,10 @@ namespace orsaInputOutput {
     
   public:
     bool processLines(const char * lineAbove, const char * line);
+    
+  public:
+    orsa::Cache<orsa::Time>  select_startEpoch, select_stopEpoch;
+    orsa::Cache<std::string> select_obsCode;
   };
   
 }; // orsaInputOutput

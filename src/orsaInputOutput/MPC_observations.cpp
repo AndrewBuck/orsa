@@ -17,15 +17,15 @@ bool MPCObservationsFile::goodLine(const char * line) {
   // the following line positions MUST be spaces: 19, 22, 34, 37, 47, 50;
   // the following CAN be non-spaces: 31, 43, 55;
   //
-  if (isspace(line[15])) return false;
-  if (isspace(line[16])) return false;
-  if (isspace(line[17])) return false;
-  if (isspace(line[18])) return false;
+  if ( isspace(line[15])) return false;
+  if ( isspace(line[16])) return false;
+  if ( isspace(line[17])) return false;
+  if ( isspace(line[18])) return false;
   if (!isspace(line[19])) return false;
   if (!isspace(line[22])) return false;
-  if (isspace(line[77])) return false;
-  if (isspace(line[78])) return false;
-  if (isspace(line[79])) return false;  
+  if ( isspace(line[77])) return false;
+  if ( isspace(line[78])) return false;
+  if ( isspace(line[79])) return false;  
   //
   // some of the line positions that must be digits
   if (!isdigit(line[17])) return false;
@@ -42,6 +42,39 @@ bool MPCObservationsFile::processLine(const char * line) {
   std::string s_epoch, s_ra, s_decSign, s_dec;
   std::string s_mag, s_magCode;
   std::string s_obsCode;
+  
+  // first, fields affected by select_* code
+  
+  s_obsCode.assign(line,77,3);
+  removeLeadingAndTrailingSpaces(s_obsCode);
+  if (select_obsCode.isSet()) {
+    if (s_obsCode != select_obsCode.getRef()) {
+      return false;
+    }
+  }
+  
+  s_epoch.assign(line,15,17);
+  orsa::Time epoch;
+  {
+    int y, m; 
+    double d;
+    gmp_sscanf(s_epoch.c_str(),"%d %d %lf",&y,&m,&d);
+    epoch = orsaSolarSystem::FromTimeScale(orsaSolarSystem::gregorTime(y,m,d),
+					   orsaSolarSystem::TS_UTC);
+    // orsa::print(epoch);
+    if (select_startEpoch.isSet()) {
+      if (epoch < select_startEpoch.getRef()) {
+	return false;
+      }
+    }
+    if (select_stopEpoch.isSet()) {
+      if (epoch < select_stopEpoch.getRef()) {
+	return false;
+      }
+    }
+  }
+  
+  // now, all the remaining fields
   
   s_designation.assign(line,5,7); 
   removeLeadingAndTrailingSpaces(s_designation);
@@ -63,8 +96,9 @@ bool MPCObservationsFile::processLine(const char * line) {
   if (s_note2[0] == 'v') return false; // is the second line, ignore
   if (s_note2[0] == 's') return false; // is the second line, ignore
   
-  s_epoch.assign(line,15,17);
- 
+  // moved earlier, for faster select_* code
+  // s_epoch.assign(line,15,17);
+  
   s_ra.assign(line,32,12);
 
   s_decSign.assign(line,44,1);
@@ -75,8 +109,9 @@ bool MPCObservationsFile::processLine(const char * line) {
   
   s_magCode.assign(line,70,1);
   
-  s_obsCode.assign(line,77,3);
-  removeLeadingAndTrailingSpaces(s_obsCode);
+  // moved earlier, for faster select_* code
+  // s_obsCode.assign(line,77,3);
+  // removeLeadingAndTrailingSpaces(s_obsCode);
   
   // osg::ref_ptr<OpticalObservation> workObs = new OpticalObservation;
   //
@@ -96,15 +131,19 @@ bool MPCObservationsFile::processLine(const char * line) {
   workObs->obsCode     = s_obsCode;
   workObs->discovery   = (strlen(s_discovery.c_str()) > 0);
   
-  {
-    int y, m; 
-    double d;
-    gmp_sscanf(s_epoch.c_str(),"%d %d %lf",&y,&m,&d);
-    workObs->epoch = 
-      orsaSolarSystem::FromTimeScale(orsaSolarSystem::gregorTime(y,m,d),
-				     orsaSolarSystem::TS_UTC);
-    // orsa::print(workObs->epoch.getRef());
-  }
+  // moved earlier, for faster select_* code
+  /* {
+     int y, m; 
+     double d;
+     gmp_sscanf(s_epoch.c_str(),"%d %d %lf",&y,&m,&d);
+     workObs->epoch = 
+     orsaSolarSystem::FromTimeScale(orsaSolarSystem::gregorTime(y,m,d),
+     orsaSolarSystem::TS_UTC);
+     // orsa::print(workObs->epoch.getRef());
+     }
+  */
+  //
+  workObs->epoch = epoch;
   
   {
     orsaSolarSystem::OpticalObservation * opticalObservation =  
@@ -157,7 +196,10 @@ bool MPCObservationsFile::processLine(const char * line) {
 
 bool MPCObservationsFile::processLines(const char * line1, const char * line2) {
   twoLinesCall=true;
-  processLine(line1);
+  if (!processLine(line1)) {
+    twoLinesCall=false;
+    return false;
+  }
   std::string s_designation, s_note1, s_note2;
   std::string s_epoch;
   std::string s_obsCode;
@@ -166,6 +208,7 @@ bool MPCObservationsFile::processLines(const char * line1, const char * line2) {
   removeLeadingAndTrailingSpaces(s_designation);
   if (s_designation != _data[_data.size()-1]->designation.getRef()) {
     // ORSA_DEBUG("found data inconsistency");
+    twoLinesCall=false;
     return false;
   }
   s_note1.assign(line2,13,1);
@@ -185,6 +228,7 @@ bool MPCObservationsFile::processLines(const char * line1, const char * line2) {
 	 ORSA_DEBUG("line1: [%s]",line1);
 	 ORSA_DEBUG("line2: [%s]",line2);
       */
+      twoLinesCall=false;
       return false;
     }
   }
@@ -192,6 +236,7 @@ bool MPCObservationsFile::processLines(const char * line1, const char * line2) {
   removeLeadingAndTrailingSpaces(s_obsCode);
   if (s_obsCode != _data[_data.size()-1]->obsCode.getRef()) {
     // ORSA_DEBUG("found data inconsistency");
+    twoLinesCall=false;
     return false;
   }
   switch (s_note2[0]) {
