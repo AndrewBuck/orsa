@@ -32,6 +32,9 @@ class SkyCoverage : public osg::Referenced {
  public:
   static void normalize(double & ra,
 			double & dec);  
+ public:
+  //! translates the observatory code used in sky-coverage file to a standard MPC observatory code
+  static std::string alias(const std::string &);
   
  public:
   void reset();

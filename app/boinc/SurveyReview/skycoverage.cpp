@@ -52,6 +52,12 @@ void SkyCoverage::normalize(double & ra_rad,
   ra_rad = fmod(fmod(ra_rad,orsa::twopi())+orsa::twopi(),orsa::twopi());
 }
 
+std::string SkyCoverage::alias(const std::string & fileCode) {
+  if (fileCode=="CSS") return "703";
+  if (fileCode=="SPACEWATCH") return "691";
+  return fileCode;
+} 
+
 void SkyCoverage::reset() {
   data.clear();
 }
