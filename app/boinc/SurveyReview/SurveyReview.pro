@@ -4,7 +4,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += SurveyReview.app.pro 
 
-## SUBDIRS += test.app.pro
+SUBDIRS += DetectionEfficiency.app.pro
 
 CONFIG  += ordered
 
