@@ -15,9 +15,6 @@ bool MPCObservationsFile::goodLine(const char * line) {
   
   if (strlen(line) < 80) return false;
   
-  // the following line positions MUST be spaces: 19, 22, 34, 37, 47, 50;
-  // the following CAN be non-spaces: 31, 43, 55;
-  //
   if ( isspace(line[15])) return false;
   if ( isspace(line[16])) return false;
   if ( isspace(line[17])) return false;
@@ -27,8 +24,7 @@ bool MPCObservationsFile::goodLine(const char * line) {
   if ( isspace(line[77])) return false;
   if ( isspace(line[78])) return false;
   if ( isspace(line[79])) return false;  
-  //
-  // some of the line positions that must be digits
+  
   if (!isdigit(line[17])) return false;
   
   // ORSA_DEBUG("good line: [%s]",line);
@@ -97,6 +93,12 @@ bool MPCObservationsFile::processLine(const char * line) {
     if (s_note2[0] == 'R') return false; // RadarObservation,     requires two lines
     if (s_note2[0] == 'V') return false; // RovingObservation,    requires two lines
     if (s_note2[0] == 'S') return false; // SatelliteObservation, requires two lines
+  } else {
+    if ( (s_note2[0] != 'R') && 
+	 (s_note2[0] != 'V') &&
+	 (s_note2[0] != 'S') ) {
+      return false;
+    }    
   }
   
   // always check this
