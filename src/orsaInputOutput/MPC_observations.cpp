@@ -1,4 +1,5 @@
 #include <orsaInputOutput/MPC_observations.h>
+#include <orsaInputOutput/MPC.h>
 
 #include <orsa/util.h>
 
@@ -38,7 +39,7 @@ bool MPCObservationsFile::goodLine(const char * line) {
 bool MPCObservationsFile::processLine(const char * line) {
   
   // std::string number;
-  std::string s_designation, s_discovery, s_note1, s_note2;
+  std::string s_number, s_designation, s_discovery, s_note1, s_note2;
   std::string s_epoch, s_ra, s_decSign, s_dec;
   std::string s_mag, s_magCode;
   std::string s_obsCode;
@@ -49,6 +50,7 @@ bool MPCObservationsFile::processLine(const char * line) {
   removeLeadingAndTrailingSpaces(s_obsCode);
   if (select_obsCode.isSet()) {
     if (s_obsCode != select_obsCode.getRef()) {
+      // ORSA_DEBUG("--OUT--   select: [%s] read: [%s]",select_obsCode.getRef().c_str(),s_obsCode.c_str());
       return false;
     }
   }
@@ -64,17 +66,23 @@ bool MPCObservationsFile::processLine(const char * line) {
     // orsa::print(epoch);
     if (select_startEpoch.isSet()) {
       if (epoch < select_startEpoch.getRef()) {
+	// ORSA_DEBUG("--OUT--");
 	return false;
       }
     }
     if (select_stopEpoch.isSet()) {
-      if (epoch < select_stopEpoch.getRef()) {
+      if (epoch > select_stopEpoch.getRef()) {
+	// ORSA_DEBUG("--OUT--");
 	return false;
       }
     }
   }
   
   // now, all the remaining fields
+  
+  // it's a number in MPC format, can contain letters...
+  s_number.assign(line,0,5);
+  removeLeadingAndTrailingSpaces(s_number);
   
   s_designation.assign(line,5,7); 
   removeLeadingAndTrailingSpaces(s_designation);
@@ -127,6 +135,7 @@ bool MPCObservationsFile::processLine(const char * line) {
     workObs = new orsaSolarSystem::OpticalObservation;
   }
   
+  workObs->number      = MPC_packedNumber(s_number);
   workObs->designation = s_designation;
   workObs->obsCode     = s_obsCode;
   workObs->discovery   = (strlen(s_discovery.c_str()) > 0);
@@ -177,17 +186,19 @@ bool MPCObservationsFile::processLine(const char * line) {
     }
   }
   
-  if ((s_designation != "") && 
-      (s_obsCode != "") &&
-      (strlen(s_obsCode.c_str())) == 3) {
+  if ( ( (s_number != "") || (s_designation != "")) && 
+       (s_obsCode != "") &&
+       (strlen(s_obsCode.c_str())) == 3) {
     if ( (isalnum(s_obsCode[0])) &&
 	 (isalnum(s_obsCode[1])) &&
 	 (isalnum(s_obsCode[2]))) {
       _data.push_back(workObs);
     } else {
+      // ORSA_DEBUG("--OUT--");
       return false;
     }
   } else {
+    // ORSA_DEBUG("--OUT--");
     return false;
   }
   
@@ -200,16 +211,27 @@ bool MPCObservationsFile::processLines(const char * line1, const char * line2) {
     twoLinesCall=false;
     return false;
   }
-  std::string s_designation, s_note1, s_note2;
+  std::string s_number, s_designation, s_note1, s_note2;
   std::string s_epoch;
   std::string s_obsCode;
   // check that designation, epoch, and obscode are the same on both lines
+  s_number.assign(line2,0,5); 
+  removeLeadingAndTrailingSpaces(s_number);
+  if (_data[_data.size()-1]->number.isSet()) {
+    if (MPC_packedNumber(s_number) != _data[_data.size()-1]->number.getRef()) {
+      // ORSA_DEBUG("found data inconsistency");
+      twoLinesCall=false;
+      return false;
+    }
+  }
   s_designation.assign(line2,5,7); 
   removeLeadingAndTrailingSpaces(s_designation);
-  if (s_designation != _data[_data.size()-1]->designation.getRef()) {
-    // ORSA_DEBUG("found data inconsistency");
-    twoLinesCall=false;
-    return false;
+  if (_data[_data.size()-1]->designation.isSet()) {
+    if (s_designation != _data[_data.size()-1]->designation.getRef()) {
+      // ORSA_DEBUG("found data inconsistency");
+      twoLinesCall=false;
+      return false;
+    }
   }
   s_note1.assign(line2,13,1);
   s_note2.assign(line2,14,1);
