@@ -137,7 +137,9 @@ bool MPCObservationsFile::processLine(const char * line) {
     workObs = new orsaSolarSystem::OpticalObservation;
   }
   
-  workObs->number      = MPC_packedNumber(s_number);
+  if (MPC_packedNumber(s_number) != 0) {
+    workObs->number = MPC_packedNumber(s_number);
+  }
   workObs->designation = s_designation;
   workObs->obsCode     = s_obsCode;
   workObs->discovery   = (strlen(s_discovery.c_str()) > 0);
@@ -188,7 +190,7 @@ bool MPCObservationsFile::processLine(const char * line) {
     }
   }
   
-  if ( ( (s_number != "") || (s_designation != "")) && 
+  if ( ((MPC_packedNumber(s_number) != 0) || (s_designation != "")) && 
        (s_obsCode != "") &&
        (strlen(s_obsCode.c_str())) == 3) {
     if ( (isalnum(s_obsCode[0])) &&
