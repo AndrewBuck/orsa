@@ -65,3 +65,22 @@ orsa::Time orsaInputOutput::MPC_packedToTime(const std::string & packedEpoch) {
 				   orsaSolarSystem::TS_TDT);
   return t;
 }
+
+unsigned int orsaInputOutput::MPC_packedNumber(const std::string & packedNumber) {
+  // if last digit is a 'P', issue an error, as it is probably a comet number
+  if (packedNumber[strlen(packedNumber.c_str())-1] == 'P') {
+    ORSA_DEBUG("[%s] interpreted as comet number, returning zero.",packedNumber.c_str());
+    return 0;
+  }
+  unsigned int num=0;
+  for (unsigned int k=0; k<strlen(packedNumber.c_str()); ++k) {
+    if (!isalnum(packedNumber[k])) {
+      ORSA_DEBUG("cannot handle this character: [%s]",packedNumber[k]);
+    }
+    num *= 10;
+    num += MPC_charToInt(packedNumber[k]);
+  }
+  // ORSA_DEBUG("[%s] -> %i",packedNumber.c_str(),num);
+  return num;
+}
+

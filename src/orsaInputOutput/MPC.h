@@ -11,6 +11,8 @@ namespace orsaInputOutput {
   
   orsa::Time MPC_packedToTime(const std::string & packedEpoch);
   
+  unsigned int MPC_packedNumber(const std::string & packedNumber);
+  
 }; // orsaInputOutput
 
 #endif // _ORSA_INPUT_OUTPUT_MPC_
