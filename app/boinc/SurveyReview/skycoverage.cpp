@@ -87,9 +87,10 @@ bool SkyCoverage::setField(const double & x1,
   const double field_RA  = acos(u1*u2);
   const double field_DEC = acos(u2*u3);
   
-  ORSA_DEBUG("field: %f x %f [deg^2] [RAxDEC]",
-	     orsa::radToDeg()*field_RA,
-	     orsa::radToDeg()*field_DEC);
+  /* ORSA_DEBUG("field: %f x %f [deg^2] [RAxDEC]",
+     orsa::radToDeg()*field_RA,
+     orsa::radToDeg()*field_DEC);
+  */
   
   SkyCoverageElement e;
   
@@ -106,12 +107,12 @@ bool SkyCoverage::setField(const double & x1,
   
   data.push_back(e);
   
-  ORSA_DEBUG("data size: %i   minScalarProduct: %f",data.size(),e.minScalarProduct);
+  // ORSA_DEBUG("data size: %i   minScalarProduct: %f",data.size(),e.minScalarProduct);
   
   return true;
 }
 
-bool SkyCoverage::get(const orsa::Vector u,
+bool SkyCoverage::get(const orsa::Vector & u,
 		      double & V) const {
   orsa::Cache<double> local_V;
   std::list<SkyCoverageElement>::const_iterator it = data.begin();

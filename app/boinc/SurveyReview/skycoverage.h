@@ -51,7 +51,7 @@ class SkyCoverage : public osg::Referenced {
 		const double & V);
   
  public:
-  bool get(const orsa::Vector u,
+  bool get(const orsa::Vector & u,
 	   double & V) const;
   
  public:
