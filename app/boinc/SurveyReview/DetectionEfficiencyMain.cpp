@@ -13,8 +13,35 @@
 #include <orsaSPICE/spiceBodyRotationalCallback.h>
 #include <orsaSPICE/spiceBodyTranslationalCallback.h>
 
+#include <orsaInputOutput/MPC_observations.h>
+
 // CSPICE prototypes and definitions.      
 #include <SpiceUsr.h>
+
+class CustomMPCObservationsFile : public orsaInputOutput::MPCObservationsFile {
+public:
+  CustomMPCObservationsFile() :
+    orsaInputOutput::MPCObservationsFile() {
+    processedLines=0;
+  }
+public:
+  bool processLine(const char * line) {
+    const bool retVal = orsaInputOutput::MPCObservationsFile::processLine(line);
+    /* if (retVal) {
+       ORSA_DEBUG("ACCEPTED: [%s]",line);
+       } else {
+       ORSA_DEBUG("REJECTED: [%s]",line);
+       }
+    */
+    ++processedLines;
+    if (processedLines%100000==0) {
+      ORSA_DEBUG("lines processed: %i   selected: %i",processedLines,_data.size());
+    }
+    return retVal;
+  }
+protected:
+  unsigned int processedLines;
+};
 
 int main(int argc, char ** argv) {
   
@@ -46,6 +73,16 @@ int main(int argc, char ** argv) {
   obsCode = SkyCoverage::alias(obsCode);
   ORSA_DEBUG("MPC obsCode: [%s]",obsCode.c_str());
   
+  osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile = new orsaInputOutput::MPCObsCodeFile;
+  obsCodeFile->setFileName("obscode.dat");
+  obsCodeFile->read();
+  
+  osg::ref_ptr<orsaSolarSystem::StandardObservatoryPositionCallback> obsPosCB =
+    new orsaSolarSystem::StandardObservatoryPositionCallback(obsCodeFile.get());
+  
+  const orsaSolarSystem::Observatory & observatory = 
+    obsCodeFile->_data.observatory[obsCode];
+  
   // local midnight epoch
   orsa::Time epoch;
   if (strlen(compactDate.c_str())==7) {
@@ -57,19 +94,14 @@ int main(int argc, char ** argv) {
     ORSA_DEBUG("ADD FRACTION OF DAY FOR LOCAL MIDNIGHT EXACT EPOCH");
     epoch = orsaSolarSystem::gregorTime(atoi(year.c_str()),
 					1,
-					atoi(dayOfYear.c_str()));
+					atoi(dayOfYear.c_str())+1.0-observatory.lon.getRef()/orsa::twopi());
     orsa::print(epoch);
   }
   
-  osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile = new orsaInputOutput::MPCObsCodeFile;
-  obsCodeFile->setFileName("obscode.dat");
-  obsCodeFile->read();
-  
-  osg::ref_ptr<orsaSolarSystem::StandardObservatoryPositionCallback> obsPosCB =
-    new orsaSolarSystem::StandardObservatoryPositionCallback(obsCodeFile.get());
-  
-  
   osg::ref_ptr<SkyCoverage> skyCoverage = new SkyCoverage;
+  //
+  skyCoverage->obscode = obsCode;
+  skyCoverage->epoch   = epoch;
   //
   {
     
@@ -120,11 +152,65 @@ int main(int argc, char ** argv) {
   osg::ref_ptr<orsa::Body> moon  = SPICEBody("MOON",orsaSolarSystem::Data::MMoon());
   bg->addBody(moon.get());
   
+  osg::ref_ptr<CustomMPCObservationsFile> obsFile =
+    new CustomMPCObservationsFile;
+#warning CHECK HERE...
+  obsFile->select_startEpoch = epoch - orsa::Time(0,12,0,0,0);
+  obsFile->select_stopEpoch  = epoch + orsa::Time(0,12,0,0,0);
+  ORSA_DEBUG("select start/stop:");
+  orsa::print(obsFile->select_startEpoch.getRef());
+  orsa::print(obsFile->select_stopEpoch.getRef());
+  obsFile->select_obsCode    = obsCode;
+  // obsFile->setFileName("mpn.arc.gz");
+  obsFile->setFileName("all.2007010.obs");
+  obsFile->read();
+  ORSA_DEBUG("selected observations: %i",obsFile->_data.size());
   
+  {
+    unsigned int inField=0,inFieldCandidates=0;
+    double V;
+    orsaSolarSystem::OpticalObservation * obs;
+    for (unsigned int k=0; k<obsFile->_data.size(); ++k) {
+      obs = dynamic_cast<orsaSolarSystem::OpticalObservation *> (obsFile->_data[k].get());
+      if (obs) {
+	if (!obs->mag.isSet()) {
+	  // ORSA_DEBUG("mag not set, skipping");
+	  continue;
+	}
+	++inFieldCandidates;
+	if (skyCoverage->get(obs->ra.getRef(),
+			     obs->dec.getRef(),
+			     V)) {	
+	  ++inField;
+	  if (obs->number.isSet()) {
+	    ORSA_DEBUG("V field: %.1f   V obs: %.1f   obj: (%i)",V,obs->mag.getRef(),obs->number.getRef());
+	  } else if (obs->designation.isSet()) {
+	    ORSA_DEBUG("V field: %.1f   V obs: %.1f   obj: [%s]",V,obs->mag.getRef(),obs->designation.getRef().c_str());
+	  } else {
+	    ORSA_DEBUG("NONAME??");
+	    exit(0);
+	  }
+	} else {
+	  // ORSA_DEBUG("this one out:");
+	  // orsa::print(obs->epoch.getRef());
+	  // orsa::print(obs->ra.getRef());
+	  // orsa::print(obs->dec.getRef());
+	}
+      }
+    }
+    // debug
+    // ORSA_DEBUG("inField success: %i/%i",inField,inFieldCandidates);
+    // this ratio should be smaller than 1.0, because the field declared
+    // in the sky coverage files is smaller than the real data CCD field.
+  }
   
-  
-  // REMEMBER to write obs.dat file
-  
+#warning COMPLETE WRITING OF obs.dat FILE
+  // write obs.dat file
+  {
+    FILE * fp = fopen("obs.dat","w");
+    
+    fclose(fp);
+  }
 
   return 0;
 }
