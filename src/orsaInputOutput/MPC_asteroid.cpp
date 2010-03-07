@@ -57,7 +57,12 @@ bool MPCAsteroidFile::processLine(const char * line) {
   //
   element.orbit       = orbit;
   element.H           = atof(s_H.c_str());
-  element.designation = s_designation;
+  if (MPC_packedNumber(s_designation) != 0) {
+    element.number = MPC_packedNumber(s_designation);
+  }
+  if (strlen(s_designation.c_str()) != 0) {
+    element.designation = s_designation;
+  }
   
   _data.push_back(element);
   
