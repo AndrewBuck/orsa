@@ -9,17 +9,19 @@
 
 namespace orsaInputOutput {
   
+  typedef std::vector< osg::ref_ptr<orsaSolarSystem::Observation> > MPCObservationsData;
+  
   class MPCObservationsFile : 
   public orsaInputOutput::InputFile <
     orsaInputOutput::CompressedFile,
-    std::vector< osg::ref_ptr<orsaSolarSystem::Observation> > 
+    MPCObservationsData
     > {
     
   public:    
     MPCObservationsFile() : 
       InputFile <
       orsaInputOutput::CompressedFile,
-      std::vector< osg::ref_ptr<orsaSolarSystem::Observation> > 
+      MPCObservationsData
       > () {
       twoLinesCall=false;
     }

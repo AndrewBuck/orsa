@@ -305,7 +305,7 @@ namespace orsaInputOutput {
   
   
   //! T should be either a CompressedFile or a PlainFile
-  //! D is the data type, for data storage, i.e. std::list<double>
+  //! D is the data type, for data storage, i.e. std::list<double> or std::vector<double>
   template <class T, class D> class InputFile : public osg::Referenced {
     
   public:

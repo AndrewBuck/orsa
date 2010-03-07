@@ -5,19 +5,20 @@
 
 #include <orsaSolarSystem/orbit.h>
 
-#include <list>
+#include <vector>
 #include <string>
 
 namespace orsaInputOutput {
   
   class MPCAsteroidDataElement {
   public:
-    orsaSolarSystem::OrbitWithEpoch orbit;
-    double H;
-    std::string designation;
+    orsa::Cache<orsaSolarSystem::OrbitWithEpoch> orbit;
+    orsa::Cache<double> H;
+    orsa::Cache<unsigned int> number;
+    orsa::Cache<std::string> designation;
   };
   
-  typedef std::list<MPCAsteroidDataElement> MPCAsteroidData;
+  typedef std::vector<MPCAsteroidDataElement> MPCAsteroidData;
   
   class MPCAsteroidFile : 
   public orsaInputOutput::InputFile <

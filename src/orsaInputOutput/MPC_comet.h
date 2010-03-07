@@ -5,18 +5,18 @@
 
 #include <orsaSolarSystem/orbit.h>
 
-#include <list>
+#include <vector>
 #include <string>
 
 namespace orsaInputOutput {
   
   class MPCCometDataElement {
   public:
-    orsaSolarSystem::OrbitWithEpoch orbit;
-    std::string designation;
+    orsa::Cache<orsaSolarSystem::OrbitWithEpoch> orbit;
+    orsa::Cache<std::string> designation;
   };
   
-  typedef std::list<MPCCometDataElement> MPCCometData;
+  typedef std::vector<MPCCometDataElement> MPCCometData;
   
   class MPCCometFile : 
   public orsaInputOutput::InputFile <

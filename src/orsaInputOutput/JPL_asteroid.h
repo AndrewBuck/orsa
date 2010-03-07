@@ -6,8 +6,7 @@
 #include <orsa/cache.h>
 #include <orsa/orbit.h>
 
-#include <list>
-// #include <map>
+#include <vector>
 #include <string>
 
 namespace orsaInputOutput {
@@ -21,7 +20,7 @@ namespace orsaInputOutput {
     std::string  designation;
   };
   
-  typedef std::list<JPLAsteroidDataElement> JPLAsteroidData;
+  typedef std::vector<JPLAsteroidDataElement> JPLAsteroidData;
   
   class JPLNumberedAsteroidFile : 
   public orsaInputOutput::InputFile <
