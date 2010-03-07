@@ -67,9 +67,16 @@ orsa::Time orsaInputOutput::MPC_packedToTime(const std::string & packedEpoch) {
 }
 
 unsigned int orsaInputOutput::MPC_packedNumber(const std::string & packedNumber) {
+  if (strlen(packedNumber.c_str()) == 0) {
+    return 0;
+  }
+  if (strlen(packedNumber.c_str()) != 5) {
+    // ORSA_DEBUG("MPC packed number use only 5 digits (arg: [%s])",packedNumber.c_str());
+    return 0;
+  }
   // if last digit is a 'P', issue an error, as it is probably a comet number
   if (packedNumber[strlen(packedNumber.c_str())-1] == 'P') {
-    ORSA_DEBUG("[%s] interpreted as comet number, returning zero.",packedNumber.c_str());
+    // ORSA_DEBUG("[%s] interpreted as comet number, returning zero.",packedNumber.c_str());
     return 0;
   }
   unsigned int num=0;
