@@ -9,6 +9,8 @@
 
 #include <orsaInputOutput/file.h>
 
+#include <orsaSolarSystem/orbit.h>
+
 #include <osg/Referenced>
 
 #include <string>
@@ -52,14 +54,21 @@ class SkyCoverage : public osg::Referenced {
   
  public:
   bool get(const orsa::Vector & u,
-	   double & V) const;
+	   double & V,
+	   const bool verbose=false) const;
   
  public:
   bool get(const orsa::Angle & ra,
 	   const orsa::Angle & dec,
-	   double & V) const {
-    return get(unitVector(ra,dec),V);
+	   double & V,
+	   const bool verbose=false) const {
+    return get(unitVector(ra,dec),V,verbose);
   }
+  
+ public:
+  //! smallest distance (angle) between the u direction and any of the fields centers
+  double minDistance(const orsa::Vector & u,
+		     const bool verbose=false) const;
   
  public:
   class SkyCoverageElement {
