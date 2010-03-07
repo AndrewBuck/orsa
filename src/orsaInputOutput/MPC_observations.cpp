@@ -140,7 +140,9 @@ bool MPCObservationsFile::processLine(const char * line) {
   if (MPC_packedNumber(s_number) != 0) {
     workObs->number = MPC_packedNumber(s_number);
   }
-  workObs->designation = s_designation;
+  if (strlen(s_designation.c_str()) != 0) {
+    workObs->designation = s_designation;
+  }
   workObs->obsCode     = s_obsCode;
   workObs->discovery   = (strlen(s_discovery.c_str()) > 0);
   
