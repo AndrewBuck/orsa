@@ -438,8 +438,8 @@ int main() {
 	    //
 	    orbit->M = original_M;
 	    
-	    const orsa::Vector dr_epoch          = orsaSolarSystem::eclipticToEquatorial()*(orbitPosition_epoch         - observerPosition_epoch);
-	    const orsa::Vector dr_epoch_plus_dt  = orsaSolarSystem::eclipticToEquatorial()*(orbitPosition_epoch_plus_dt - observerPosition_epoch_plus_dt);
+	    const orsa::Vector dr_epoch          = (orbitPosition_epoch         - observerPosition_epoch);
+	    const orsa::Vector dr_epoch_plus_dt  = (orbitPosition_epoch_plus_dt - observerPosition_epoch_plus_dt);
 	    
 	    // orsa::print(dr_nightStart);
 	    // orsa::print(dr_nightStop);
