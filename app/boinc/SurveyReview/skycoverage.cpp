@@ -87,15 +87,17 @@ bool SkyCoverage::setField(const double & x1,
   const double field_RA  = acos(u1*u2);
   const double field_DEC = acos(u2*u3);
   
-  /* ORSA_DEBUG("field: %f x %f [deg^2] [RAxDEC]",
-     orsa::radToDeg()*field_RA,
-     orsa::radToDeg()*field_DEC);
-  */
+  ORSA_DEBUG("field: %f x %f [deg^2] [RAxDEC]",
+	     orsa::radToDeg()*field_RA,
+	     orsa::radToDeg()*field_DEC);
   
   SkyCoverageElement e;
   
+  // in Ecliptic coords...
+  const orsa::Vector northEquatorialPole = orsaSolarSystem::equatorialToEcliptic()*orsa::Vector(0,0,1);
+  
   e.u_centerField = (u1+u2+u3+u4).normalized();
-  e.u_RA  = orsa::externalProduct(orsa::Vector(0,0,1),e.u_centerField).normalized();
+  e.u_RA  = orsa::externalProduct(northEquatorialPole,e.u_centerField).normalized();
   e.u_DEC = orsa::externalProduct(e.u_centerField,e.u_RA).normalized();
   e.halfFieldSize_RA  = 0.5*field_RA;
   e.halfFieldSize_DEC = 0.5*field_DEC;
@@ -108,6 +110,13 @@ bool SkyCoverage::setField(const double & x1,
   data.push_back(e);
   
   // ORSA_DEBUG("data size: %i   minScalarProduct: %f",data.size(),e.minScalarProduct);
+  
+  /* 
+     {
+     // some testing before leaving
+     ORSA_DEBUG("consinstency checks");
+     }
+  */
   
   return true;
 }
@@ -126,10 +135,10 @@ bool SkyCoverage::get(const orsa::Vector & u,
       // orsa::print((*it).u_centerField);
     }
     if (u*(*it).u_centerField > (*it).minScalarProduct) {
-      const double delta_RA  = fabs(acos((u-(*it).u_centerField)*(*it).u_RA));
+      const double delta_RA  = fabs(asin(u*(*it).u_RA));
       // if (verbose) ORSA_DEBUG("delta_RA: %f [deg]",orsa::radToDeg()*delta_RA);
       if (delta_RA < (*it).halfFieldSize_RA) {
-	const double delta_DEC = fabs(acos((u-(*it).u_centerField)*(*it).u_DEC));
+	const double delta_DEC = fabs(asin(u*(*it).u_DEC));
 	// if (verbose) ORSA_DEBUG("delta_DEC: %f [deg]",orsa::radToDeg()*delta_DEC);
 	if (delta_DEC < (*it).halfFieldSize_DEC) {
 	  // if (verbose)  ORSA_DEBUG("found in one field, V: %f",(*it).limitingMagnitude);
