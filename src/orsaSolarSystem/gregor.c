@@ -195,9 +195,9 @@ long int GregorianToSdn(
 
 	/* check for invalid dates */
 	if (inputYear == 0 || inputYear < -4714 ||
-		inputMonth <= 0 || inputMonth > 12 ||
-		inputDay <= 0 || inputDay > 31) {
-		return (0);
+	    inputMonth <= 0 || inputMonth > 12) {
+	  // || inputDay <= 0 || inputDay > 31) {
+	  return (0);
 	}
 	/* check for dates before SDN 1 (Nov 25, 4714 B.C.) */
 	if (inputYear == -4714) {
