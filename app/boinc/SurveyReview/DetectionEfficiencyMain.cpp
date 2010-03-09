@@ -82,8 +82,8 @@ public:
     orsa::Vector r;
     orbit.relativePosition(r);
     const orsa::Vector orbitPosition = r + sunPosition;
-    //
-    // orbit.M = original_M;
+    // restore, important!
+    orbit.M = original_M;
     
     // all in Ecliptic coords, as usual
     orsa::Vector dr = (orbitPosition - obsPosition).normalized();
@@ -147,6 +147,8 @@ public:
       }
     }
     
+    const orsa::Vector dr_nonint = dr.normalized();
+    
     const double minArc = skyCoverage->minDistance(dr.normalized());
     if (0 && (minArc < 10.0*orsa::degToRad())) {
       // close enough, integrate
@@ -204,7 +206,7 @@ public:
       }
       
       osg::ref_ptr<orsa::IntegratorRadau> radau = new orsa::IntegratorRadau;
-      radau->_accuracy = 1.0e-6;
+      radau->_accuracy = 1.0e-3;
       
       radau->integrate(bg.get(),
 		       orbit.epoch.getRef(),
@@ -235,11 +237,17 @@ public:
       // const double ra_orbit  = fmod(atan2(dr.getY(),dr.getX())+orsa::twopi(),orsa::twopi());
       // const double dec_orbit = asin(dr.getZ()/dr.length());
       
+      const orsa::Vector dr_integrated = dr.normalized();
+      
+      const double delta_arc = acos(dr_integrated.normalized()*dr_nonint.normalized());
+      
       const double integrated_minArc = skyCoverage->minDistance(dr.normalized());
       
-      ORSA_DEBUG("integrated minArc: %.2f [deg]   non-integrated: %.2f [deg]",
+      ORSA_DEBUG("integrated minArc: %.2f [deg]   non-integrated: %.2f [deg]   distance: %.2f [deg] = %.2f [arcsec]",
 		 orsa::radToDeg()*integrated_minArc,
-		 orsa::radToDeg()*minArc);
+		 orsa::radToDeg()*minArc,
+		 orsa::radToDeg()*delta_arc,
+		 orsa::radToArcsec()*delta_arc);
     }
     
     
@@ -275,11 +283,11 @@ public:
 	
 	// ORSA_DEBUG("---ROT---");
 	// orsa::print(dr);
-	dr = orsaSolarSystem::eclipticToEquatorial()*dr;
+	const orsa::Vector dr_equatorial = orsaSolarSystem::eclipticToEquatorial()*dr;
 	// orsa::print(dr);
 	
-	const orsa::Angle ra  = fmod(atan2(dr.getY(),dr.getX())+orsa::twopi(),orsa::twopi());
-	const orsa::Angle dec = asin(dr.getZ()/dr.length());
+	const orsa::Angle ra  = fmod(atan2(dr_equatorial.getY(),dr_equatorial.getX())+orsa::twopi(),orsa::twopi());
+	const orsa::Angle dec = asin(dr_equatorial.getZ()/dr_equatorial.length());
 	
 	{
 	  const orsaInputOutput::MPCAsteroidDataElement & orb = _data[_data.size()-1];
