@@ -65,11 +65,13 @@ public:
     if (!retVal) return retVal;
     
     // skip numbered orbits
-    if (_data[_data.size()-1].number.isSet()) {
-      // remove from data
-      _data.pop_back();
-      return false;
-    }
+    /* 
+       if (_data[_data.size()-1].number.isSet()) {
+       // remove from data
+       _data.pop_back();
+       return false;
+       }
+    */
     
     // a copy
     orsaSolarSystem::OrbitWithEpoch orbit = _data[_data.size()-1].orbit.getRef();
@@ -352,6 +354,12 @@ public:
   unsigned int observed;
 };
 
+class EfficiencyData {
+public:
+  orsa::Cache<double> V;
+  orsa::Cache<bool>   observed;
+};
+
 int main(int argc, char ** argv) {
   
   orsa::Debug::instance()->initTimer();
@@ -498,7 +506,8 @@ int main(int argc, char ** argv) {
   orsa::print(obsFile->select_startEpoch.getRef());
   orsa::print(obsFile->select_stopEpoch.getRef());
   obsFile->select_obsCode = obsCode;
-  // obsFile->setFileName("mpn.arc.gz");
+  obsFile->setFileName("mpn.arc.gz");
+  obsFile->read();
   obsFile->setFileName("mpu.arc.gz");
   obsFile->read();
   ORSA_DEBUG("selected observations: %i",obsFile->_data.size());
@@ -581,6 +590,74 @@ int main(int argc, char ** argv) {
       }
     }  
   }
+  
+  // start to work at efficiency
+  std::vector<EfficiencyData> etaData;
+  for (unsigned int korb=0; korb<orbitFile->_data.size(); ++korb) {
+    orsaSolarSystem::OrbitWithEpoch orbit = orbitFile->_data[korb].orbit.getRef();
+    const double orbitPeriod = orbit.period();
+    const double original_M  = orbit.M;
+    orbit.M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()-orbit.epoch.getRef()).get_d() / orbitPeriod, orsa::twopi());
+    orsa::Vector r;
+    orbit.relativePosition(r);
+    const orsa::Vector orbitPosition = r + sunPosition;
+    // restore, important!
+    orbit.M = original_M;
+    // all in Ecliptic coords, as usual
+    const orsa::Vector orb2obs = obsPosition - orbitPosition;
+    const orsa::Vector orb2sun = sunPosition - orbitPosition;
+    const double phaseAngle = acos(orb2sun.normalized()*orb2obs.normalized());
+    //
+    bool observed=false;
+    orsaSolarSystem::OpticalObservation * obs;
+    for (unsigned int kobs=0; kobs<obsFile->_data.size(); ++kobs) {
+      obs = dynamic_cast<orsaSolarSystem::OpticalObservation *> (obsFile->_data[kobs].get());
+      if (obs) {
+	if (!obs->mag.isSet()) {
+	  // ORSA_DEBUG("mag not set, skipping");
+	  continue;
+	}
+	if (obs->designation.isSet() && orbitFile->_data[korb].designation.isSet()) {
+	  if (obs->designation.getRef() == orbitFile->_data[korb].designation.getRef()) {
+	    observed=true;
+	    break;
+	  }
+	}
+	if (obs->number.isSet() && orbitFile->_data[korb].number.isSet()) {
+	  if (obs->number.getRef() == orbitFile->_data[korb].number.getRef()) {
+	    observed=true;
+	    break;
+	  }
+	}
+      }	  
+    }
+    EfficiencyData ed;
+    ed.V = apparentMagnitude(orbitFile->_data[korb].H.getRef(),
+			     phaseAngle,
+			     orb2obs.length(),
+			     orb2sun.length()); 
+    ed.observed = observed;
+    etaData.push_back(ed);
+  }
+  //
+  double V=16;
+  const double dV=0.5;
+  while (V<=22.0) {
+    unsigned int Nobs=0,Ntot=0;
+    for (unsigned int k=0; k<etaData.size(); ++k) {
+      if ((etaData[k].V.getRef()>=V) && 
+	  (etaData[k].V.getRef()<V+dV)) {
+	++Ntot;
+	if (etaData[k].observed.getRef()) {
+	  ++Nobs;
+	}
+      }
+    }
+    const double eta = (Ntot!=0?(double)Nobs/(double)Ntot:0);
+    ORSA_DEBUG("eta %g %g %i %i",V,eta,Nobs,Ntot);
+    V += dV;
+  }
+
   
 #warning COMPLETE WRITING OF obs.dat FILE
   // write obs.dat file
