@@ -273,10 +273,12 @@ public:
 	
 	// local dr, rotated, for plotting purposes only	
 	
-#warning a rotation like this one is needed, but not quite this one.... WHY??
-	const orsa::Vector dr = orsaSolarSystem::eclipticToEquatorial()*dr;
+	// ORSA_DEBUG("---ROT---");
+	// orsa::print(dr);
+	dr = orsaSolarSystem::eclipticToEquatorial()*dr;
+	// orsa::print(dr);
 	
-	const orsa::Angle ra = fmod(atan2(dr.getY(),dr.getX())+orsa::twopi(),orsa::twopi());
+	const orsa::Angle ra  = fmod(atan2(dr.getY(),dr.getX())+orsa::twopi(),orsa::twopi());
 	const orsa::Angle dec = asin(dr.getZ()/dr.length());
 	
 	{
@@ -543,10 +545,10 @@ int main(int argc, char ** argv) {
 	     orbitFile->_data.size(),
 	     orbitFile->observed);
   
-  if (1) {
+  {
     // dump lists
     ORSA_DEBUG("--DUMP-OBS---");
-    {
+    if (1) {
       orsaSolarSystem::OpticalObservation * obs;
       for (unsigned int k=0; k<obsFile->_data.size(); ++k) {
 	obs = dynamic_cast<orsaSolarSystem::OpticalObservation *> (obsFile->_data[k].get());
