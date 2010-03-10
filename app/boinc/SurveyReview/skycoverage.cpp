@@ -54,7 +54,7 @@ void SkyCoverage::normalize(double & ra_rad,
 
 std::string SkyCoverage::alias(const std::string & fileCode) {
   if (fileCode=="CSS") return "703";
-  if (fileCode=="SPACEWATCH") return "691";
+  if (fileCode=="SPACEWATCH") return "291";
   return fileCode;
 } 
 
