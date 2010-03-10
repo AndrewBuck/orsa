@@ -29,6 +29,7 @@ public:
   }
 public:
   bool processLine(const char * line) {
+    
     const bool retVal = orsaInputOutput::MPCObservationsFile::processLine(line);
     /* if (retVal) {
        ORSA_DEBUG("ACCEPTED: [%s]",line);
@@ -356,6 +357,9 @@ public:
 
 class EfficiencyData {
 public:
+  orsa::Cache<double> H;   
+  orsa::Cache<unsigned int> number;
+  orsa::Cache<std::string> designation;
   orsa::Cache<double> V;
   orsa::Cache<bool>   observed;
 };
@@ -632,6 +636,13 @@ int main(int argc, char ** argv) {
       }	  
     }
     EfficiencyData ed;
+    ed.H = orbitFile->_data[korb].H.getRef();
+    if (orbitFile->_data[korb].number.isSet()) {
+      ed.number = orbitFile->_data[korb].number.getRef();
+    }
+    if (orbitFile->_data[korb].designation.isSet()) {
+      ed.designation = orbitFile->_data[korb].designation.getRef();
+    }
     ed.V = apparentMagnitude(orbitFile->_data[korb].H.getRef(),
 			     phaseAngle,
 			     orb2obs.length(),
@@ -640,24 +651,42 @@ int main(int argc, char ** argv) {
     etaData.push_back(ed);
   }
   //
-  double V=16;
-  const double dV=0.5;
-  while (V<=22.0) {
-    unsigned int Nobs=0,Ntot=0;
+  {
     for (unsigned int k=0; k<etaData.size(); ++k) {
-      if ((etaData[k].V.getRef()>=V) && 
-	  (etaData[k].V.getRef()<V+dV)) {
-	++Ntot;
-	if (etaData[k].observed.getRef()) {
-	  ++Nobs;
+      const EfficiencyData & ed = etaData[k];
+      char id[1024];
+      if (ed.number.isSet()) {
+	sprintf(id,"%i",ed.number.getRef());
+      } else if (ed.designation.isSet()) {
+	sprintf(id,"%s",ed.designation.getRef().c_str());
+      }
+      ORSA_DEBUG("[ALL-ED] %5.2f %7s %5.2f %1i",
+		 ed.H.getRef(),
+		 id,
+		 ed.V.getRef(),
+		 ed.observed.getRef());
+      
+    }
+  }
+  //
+  { double V=16;
+    const double dV=0.2;
+    while (V<=22.0) {
+      unsigned int Nobs=0,Ntot=0;
+      for (unsigned int k=0; k<etaData.size(); ++k) {
+	if ((etaData[k].V.getRef()>=V) && 
+	    (etaData[k].V.getRef()<V+dV)) {
+	  ++Ntot;
+	  if (etaData[k].observed.getRef()) {
+	    ++Nobs;
+	  }
 	}
       }
+      const double eta = (Ntot!=0?(double)Nobs/(double)Ntot:0);
+      ORSA_DEBUG("[eta] %.6f %.6f %7i %7i",V+0.5*dV,eta,Nobs,Ntot);
+      V += dV;
     }
-    const double eta = (Ntot!=0?(double)Nobs/(double)Ntot:0);
-    ORSA_DEBUG("eta %g %g %i %i",V,eta,Nobs,Ntot);
-    V += dV;
   }
-
   
 #warning COMPLETE WRITING OF obs.dat FILE
   // write obs.dat file
