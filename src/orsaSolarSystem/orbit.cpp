@@ -210,8 +210,6 @@ void orsaSolarSystem::OrbitMultifit::singleIterationDone(const gsl_multifit_fdfs
   equinoctialOrbit.k = _par->get("equinoctialOrbit_k"); 
   equinoctialOrbit.L = _par->get("equinoctialOrbit_L"); 
   
-#warning remember to set orbit.mu!!!
-  
   /* orsaSolarSystem::OrbitWithEpoch orbit;
      orbit.epoch = orbitEpoch.getRef();
      //
@@ -224,8 +222,6 @@ void orsaSolarSystem::OrbitMultifit::singleIterationDone(const gsl_multifit_fdfs
   */
   //
   // equinoctialOrbit.get(orbit);
-  //
-#warning remember to set orbit.mu
   
 #define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
 

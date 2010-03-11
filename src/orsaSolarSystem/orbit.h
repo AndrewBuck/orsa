@@ -59,8 +59,6 @@ namespace orsaSolarSystem {
   //! A class for Orbit Differential Corrections
   class OrbitMultifit : public orsa::Multifit {
     
-#warning make sure Orbit.mu is always correctly set...
-    
   public:
     OrbitMultifit() :
       orsa::Multifit(),
