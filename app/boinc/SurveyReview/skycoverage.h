@@ -93,8 +93,18 @@ class SkyCoverage : public osg::Referenced {
   
   inline double eta_V(const double & V,
 		      const double & V_limit) const {
-    if (V<V0.getRef()) return eta0.getRef();
-    double retVal = (eta0.getRef()-c.getRef()*orsa::square(V-V0.getRef()))/(1+exp((V-V_limit)/w.getRef()));
+    return eta_V(V,V_limit,eta0.getRef(),c.getRef(),V0.getRef(),w.getRef());
+  }
+  
+ public:
+  static inline double eta_V(const double & V,
+			     const double & V_limit,
+			     const double & eta0,
+			     const double & c,
+			     const double & V0,
+			     const double & w) {
+    if (V<V0) return eta0;
+    double retVal = (eta0-c*orsa::square(V-V0))/(1+exp((V-V_limit)/w));
     if (retVal < orsa::epsilon()) retVal=0.0;
     if (retVal > 1.0) retVal=1.0;
     return retVal;
