@@ -3,6 +3,7 @@
 #include "skycoverage.h"
 
 #include <orsa/debug.h>
+#include <orsa/multimin.h>
 #include <orsa/print.h>
 #include <orsa/statistic.h>
 #include <orsa/util.h>
@@ -91,7 +92,7 @@ public:
     // all in Ecliptic coords, as usual
     orsa::Vector dr = (orbitPosition - obsPosition).normalized();
     
-    if (1) {
+    if (0) {
       // test:
       // if the object was observed,
       // check how far from the fields it is
@@ -279,7 +280,7 @@ public:
       // all good, keep the object
       
 
-      {
+      if (0) {
 	// plot
 	
 	// local dr, rotated, for plotting purposes only	
@@ -364,7 +365,106 @@ public:
   orsa::Cache<bool>   observed;
 };
 
+class EfficiencyMultimin : public orsa::Multimin {
+public:
+  class DataElement {
+  public:
+    orsa::Cache<double> V, eta, delta_eta;
+  };
+  typedef std::vector<DataElement> DataStorage;
+public:
+  bool fit(const DataStorage & data_in,
+	   const double      & V0_in) {
+    data = data_in;
+    V0 = V0_in;
+    osg::ref_ptr<orsa::MultiminParameters> par = new orsa::MultiminParameters;
+#warning improve initial guess!
+    par->insert("eta0",     0.80,  0.01);
+    par->insert("c",        0.001, 0.0001);
+    par->insert("V_limit", 21.00,  0.01);
+    par->insert("w",        0.50,  0.01); 
+    // ranges
+    par->setRange("eta0",0.0,1.0);
+    // par->setRangeMin("c",0.0); // don't set this one, as often c becomes negative while iterating
+    par->setRangeMin("V_limit",V0);
+    //
+    setMultiminParameters(par.get());
+    if (!run_nmsimplex(4096,0.001)) {
+      // if (!run_conjugate_fr(1024,0.01,0.1,0.1)) {
+      ORSA_WARNING("the fit did not converge.");
+      return false;
+    } else {
+      return true;
+    }
+  }
+protected:
+  double fun(const orsa::MultiminParameters * par) const {
+    if (data.size()==0) return 0.0;
+    double retVal=0.0;
+    for (unsigned int k=0; k<data.size(); ++k) {
+      const double eta_fun = SkyCoverage::eta_V(data[k].V.getRef(),
+						par->get("V_limit"),
+						par->get("eta0"),
+						par->get("c"),
+						V0,
+						par->get("w"));
+      retVal += orsa::square((data[k].eta.getRef()-eta_fun)/data[k].delta_eta.getRef());
+    }
+    ORSA_DEBUG("eta0: %g   V_limit: %g   c: %g   w: %g   retVal: %g   retVal/Npoints: %g",
+	       par->get("eta0"),
+	       par->get("V_limit"),
+	       par->get("c"),
+	       par->get("w"),
+	       retVal,
+	       retVal/data.size());
+    return retVal;
+  }
+protected:
+  DataStorage data;
+  double V0;
+};
+
 int main(int argc, char ** argv) {
+  
+  // test EfficiencyMultimin    
+  if (0) {
+    // nominal values
+    const double V_limit = 18.75;
+    const double    eta0 =  0.94;
+    const double       c =  0.005;
+    const double      V0 = 16.0;
+    const double       w =  0.52;
+    
+    // noise
+    const int randomSeed=527123;
+    const double delta_eta=0.04;
+    osg::ref_ptr<orsa::RNG> rnd = new orsa::RNG(randomSeed); 
+    EfficiencyMultimin::DataStorage data;
+    double V=V0;
+    while (V<= 24) {
+      EfficiencyMultimin::DataElement el;
+      el.V = V;
+      el.eta = SkyCoverage::eta_V(V,
+				  V_limit,
+				  eta0,
+				  c,
+				  V0,
+				  w); 
+      el.eta += rnd->gsl_ran_gaussian(delta_eta)*sqrt(el.eta.getRef());
+      el.delta_eta = delta_eta;
+      data.push_back(el);
+      V += 0.1;
+    }
+    osg::ref_ptr<EfficiencyMultimin> eta_multimin = new EfficiencyMultimin;
+    const bool success = eta_multimin->fit(data,V0);
+    if (!success) { 
+      ORSA_DEBUG("problems??");
+    }
+    osg::ref_ptr<const orsa::MultiminParameters> parFinal = eta_multimin->getMultiminParameters();
+    // save final parameters
+    
+    exit(0);
+  }
   
   orsa::Debug::instance()->initTimer();
   
@@ -414,9 +514,6 @@ int main(int argc, char ** argv) {
     year.assign(compactDate,0,4);
     dayOfYear.assign(compactDate,4,3);
     ORSA_DEBUG("%s %i %s %i",year.c_str(),atoi(year.c_str()),dayOfYear.c_str(),atoi(dayOfYear.c_str()));
-#warning ADD FRACTION OF DAY FOR LOCAL MIDNIGHT EXACT EPOCH
-    ORSA_DEBUG("ADD FRACTION OF DAY FOR LOCAL MIDNIGHT EXACT EPOCH");
-    //
     epoch = orsaSolarSystem::gregorTime(atoi(year.c_str()),
 					1,
 					atoi(dayOfYear.c_str())+1.0-observatory.lon.getRef()/orsa::twopi());
@@ -463,7 +560,7 @@ int main(int argc, char ** argv) {
     
   }
   
-  {
+  if (0) {
     // test skycoverage
     const int randomSeed=35092;
     double V;
@@ -503,7 +600,6 @@ int main(int argc, char ** argv) {
   
   osg::ref_ptr<CustomMPCObservationsFile> obsFile =
     new CustomMPCObservationsFile;
-#warning CHECK HERE...
   obsFile->select_startEpoch = epoch - orsa::Time(0,12,0,0,0);
   obsFile->select_stopEpoch  = epoch + orsa::Time(0,12,0,0,0);
   ORSA_DEBUG("select start/stop:");
@@ -514,7 +610,7 @@ int main(int argc, char ** argv) {
   obsFile->read();
   obsFile->setFileName("mpu.arc.gz");
   obsFile->read();
-  ORSA_DEBUG("selected observations: %i",obsFile->_data.size());
+  ORSA_DEBUG("total selected observations: %i",obsFile->_data.size());
   
   {
     unsigned int inField=0,inFieldCandidates=0;
@@ -560,7 +656,8 @@ int main(int argc, char ** argv) {
   orbitFile->skyCoverage = skyCoverage.get();
   orbitFile->obsFile = obsFile.get();
   orbitFile->setFileName("MPCORB.DAT");
-  // orbitFile->setFileName("NEA.DAT");
+  orbitFile->read();
+  orbitFile->setFileName("NEA.DAT");
   orbitFile->read();
   ORSA_DEBUG("selected orbits: %i   observed: %i",
 	     orbitFile->_data.size(),
@@ -568,8 +665,8 @@ int main(int argc, char ** argv) {
   
   {
     // dump lists
-    ORSA_DEBUG("--DUMP-OBS---");
-    if (1) {
+    if (0) {
+      ORSA_DEBUG("--DUMP-OBS---");
       orsaSolarSystem::OpticalObservation * obs;
       for (unsigned int k=0; k<obsFile->_data.size(); ++k) {
 	obs = dynamic_cast<orsaSolarSystem::OpticalObservation *> (obsFile->_data[k].get());
@@ -582,8 +679,8 @@ int main(int argc, char ** argv) {
 	}
       }
     }
-    ORSA_DEBUG("--DUMP-ORB---");
-    if (0) {
+    if (0) { 
+      ORSA_DEBUG("--DUMP-ORB---");
       for (unsigned int k=0; k<orbitFile->_data.size(); ++k) {
 	const orsaInputOutput::MPCAsteroidDataElement & orb = orbitFile->_data[k];
 	if (orb.number.isSet()) {
@@ -669,9 +766,14 @@ int main(int argc, char ** argv) {
     }
   }
   //
-  { double V=16;
+  { 
+    char filename[1024];
+    sprintf(filename,"%s.eta.dat",argv[1]);
+    FILE * fp_eta = fopen(filename,"w");
+    
+    double V=16;
     const double dV=0.2;
-    while (V<=22.0) {
+    while (V<=24.0) {
       unsigned int Nobs=0,Ntot=0;
       for (unsigned int k=0; k<etaData.size(); ++k) {
 	if ((etaData[k].V.getRef()>=V) && 
@@ -682,10 +784,15 @@ int main(int argc, char ** argv) {
 	  }
 	}
       }
-      const double eta = (Ntot!=0?(double)Nobs/(double)Ntot:0);
-      ORSA_DEBUG("[eta] %.6f %.6f %7i %7i",V+0.5*dV,eta,Nobs,Ntot);
+      const double       eta = (Ntot!=0?(double)Nobs/(double)Ntot:0);
+      const double delta_eta = (Ntot!=0?(double)(Nobs*sqrt(Ntot)+Ntot*sqrt(Nobs))/(double)(Ntot*Ntot):0);
+      ORSA_DEBUG("[eta] %.6f %.6f %.6f %.6f %7i %7i",V+0.5*dV,eta,delta_eta,dV,Nobs,Ntot);
+      fprintf(fp_eta,
+	      "%.6f %.6f %.6f %.6f %7i %7i\n",V+0.5*dV,eta,delta_eta,dV,Nobs,Ntot);
       V += dV;
     }
+    
+    fclose(fp_eta);
   }
   
 #warning COMPLETE WRITING OF obs.dat FILE
