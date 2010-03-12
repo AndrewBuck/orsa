@@ -66,6 +66,14 @@ class SkyCoverage : public osg::Referenced {
   }
   
  public:
+  // "fast" version, only to know if the given direction is covered
+  bool fastGet(const orsa::Vector & u) const;
+  bool fastGet(const orsa::Angle & ra,
+	       const orsa::Angle & dec) const {
+    return fastGet(unitVector(ra,dec));
+  }
+  
+ public:
   //! smallest distance (angle) between the u direction and any of the fields centers
   double minDistance(const orsa::Vector & u,
 		     const bool verbose=false) const;

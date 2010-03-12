@@ -125,8 +125,6 @@ bool SkyCoverage::setField(const double & x1,
 bool SkyCoverage::get(const orsa::Vector & u,
 		      double & V,
 		      const bool verbose) const {
-#warning VERIFY EQUATIONS FOR RA/DEC  DELTA PROJECTIONS!!
-  // if (verbose) ORSA_DEBUG("----called-----");
   orsa::Cache<double> local_V;
   std::list<SkyCoverageElement>::const_iterator it = data.begin();
   while (it != data.end()) {
@@ -162,8 +160,24 @@ bool SkyCoverage::get(const orsa::Vector & u,
   }
 }
 
+bool SkyCoverage::fastGet(const orsa::Vector & u) const {
+  orsa::Cache<double> local_V;
+  std::list<SkyCoverageElement>::const_iterator it = data.begin();
+  while (it != data.end()) {
+    if (u*(*it).u_centerField > (*it).minScalarProduct) {
+      if (fabs(asin(u*(*it).u_RA)) < (*it).halfFieldSize_RA) {
+       	if (fabs(asin(u*(*it).u_DEC)) < (*it).halfFieldSize_DEC) {
+	  return true;
+	}
+      }
+    }
+    ++it;
+  }
+  return false;
+}
+
 double SkyCoverage::minDistance(const orsa::Vector & u,
-				const bool verbose) const {
+				const bool /* verbose */ ) const {
   double minArc=orsa::pi();
   std::list<SkyCoverageElement>::const_iterator it = data.begin();
   while (it != data.end()) {
