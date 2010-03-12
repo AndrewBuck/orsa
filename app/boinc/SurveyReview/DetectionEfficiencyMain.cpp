@@ -257,8 +257,7 @@ public:
     
     if (0) {
       const double minArc = skyCoverage->minDistance(dr.normalized());
-      double V;
-      const bool inField  = skyCoverage->get(dr.normalized(),V,true);
+      const bool inField  = skyCoverage->fastGet(dr.normalized());
       const orsaInputOutput::MPCAsteroidDataElement & orb = _data[_data.size()-1];
       if (orb.number.isSet()) {
 	ORSA_DEBUG("object (%i) present, min distance: %.2f [deg]   in field: %i",
@@ -275,11 +274,10 @@ public:
     }    
     
     
-    double V; // apparent magnitude of field
-    if (skyCoverage->get(dr.normalized(),V)) {
+    if (skyCoverage->fastGet(dr.normalized())) {
+      
       // all good, keep the object
       
-
       if (0) {
 	// plot
 	
@@ -362,6 +360,7 @@ public:
   orsa::Cache<unsigned int> number;
   orsa::Cache<std::string> designation;
   orsa::Cache<double> V;
+  orsa::Cache<double> apparentVelocity;
   orsa::Cache<bool>   observed;
 };
 
@@ -477,6 +476,8 @@ int main(int argc, char ** argv) {
   
   orsaSPICE::SPICE::instance()->loadKernel("de405.bsp");
   
+  const orsa::Time dt(0,0,10,0,0); // used to compute apparent velocity
+  
   // extract observatory and date from input file name
   size_t found_underscore = std::string(argv[1]).find("_",0);
   size_t found_dot        = std::string(argv[1]).find(".",0);
@@ -508,17 +509,22 @@ int main(int argc, char ** argv) {
   
   // local midnight epoch
   orsa::Time epoch;
+  int _y;
   if (strlen(compactDate.c_str())==7) {
     // seven character date format
-    std::string year,dayOfYear;
-    year.assign(compactDate,0,4);
-    dayOfYear.assign(compactDate,4,3);
-    ORSA_DEBUG("%s %i %s %i",year.c_str(),atoi(year.c_str()),dayOfYear.c_str(),atoi(dayOfYear.c_str()));
-    epoch = orsaSolarSystem::gregorTime(atoi(year.c_str()),
+    std::string s_year,s_dayOfYear;
+    s_year.assign(compactDate,0,4);
+    s_dayOfYear.assign(compactDate,4,3);
+    _y = atoi(s_year.c_str());
+    epoch = orsaSolarSystem::gregorTime(_y,
 					1,
-					atoi(dayOfYear.c_str())+1.0-observatory.lon.getRef()/orsa::twopi());
+					atoi(s_dayOfYear.c_str())+1.0-observatory.lon.getRef()/orsa::twopi());
     orsa::print(epoch);
+  } else {
+    ORSA_DEBUG("problems...");
+    exit(0);
   }
+  const int year = _y;
   
   osg::ref_ptr<SkyCoverage> skyCoverage = new SkyCoverage;
   //
@@ -563,12 +569,11 @@ int main(int argc, char ** argv) {
   if (0) {
     // test skycoverage
     const int randomSeed=35092;
-    double V;
     osg::ref_ptr<orsa::RNG> rnd = new orsa::RNG(randomSeed); 
     for (unsigned int j=0; j<10000000; ++j) {
       const orsa::Angle ra  = rnd->gsl_rng_uniform()*orsa::twopi();
       const orsa::Angle dec = (2*rnd->gsl_rng_uniform()-1)*orsa::halfpi();
-      if (skyCoverage->get(ra,dec,V)) {
+      if (skyCoverage->fastGet(ra,dec)) {
 	ORSA_DEBUG("[SKY-rnd] (RND) %.6f %.6f",
 		   ra.getRad(),dec.getRad());
       }
@@ -595,26 +600,37 @@ int main(int argc, char ** argv) {
   orsa::Vector r;
   bg->getInterpolatedPosition(r,sun.get(),epoch);
   const orsa::Vector sunPosition = r;
+  bg->getInterpolatedPosition(r,sun.get(),epoch+dt);
+  const orsa::Vector sunPosition_dt = r;
   obsPosCB->getPosition(r,obsCode,epoch);
   const orsa::Vector obsPosition = r;
+  obsPosCB->getPosition(r,obsCode,epoch+dt);
+  const orsa::Vector obsPosition_dt = r;
   
   osg::ref_ptr<CustomMPCObservationsFile> obsFile =
     new CustomMPCObservationsFile;
-  obsFile->select_startEpoch = epoch - orsa::Time(0,12,0,0,0);
-  obsFile->select_stopEpoch  = epoch + orsa::Time(0,12,0,0,0);
-  ORSA_DEBUG("select start/stop:");
-  orsa::print(obsFile->select_startEpoch.getRef());
-  orsa::print(obsFile->select_stopEpoch.getRef());
-  obsFile->select_obsCode = obsCode;
-  obsFile->setFileName("mpn.arc.gz");
-  obsFile->read();
-  obsFile->setFileName("mpu.arc.gz");
-  obsFile->read();
-  ORSA_DEBUG("total selected observations: %i",obsFile->_data.size());
+  {
+    obsFile->select_startEpoch = epoch - orsa::Time(0,12,0,0,0);
+    obsFile->select_stopEpoch  = epoch + orsa::Time(0,12,0,0,0);
+    ORSA_DEBUG("select start/stop:");
+    orsa::print(obsFile->select_startEpoch.getRef());
+    orsa::print(obsFile->select_stopEpoch.getRef());
+    obsFile->select_obsCode = obsCode;
+    /* obsFile->setFileName("mpn.arc.gz");
+       obsFile->read();
+       obsFile->setFileName("mpu.arc.gz");
+       obsFile->read();
+    */
+    char filename[1024];
+    sprintf(filename,"%i.obs.gz",year);
+    obsFile->setFileName(filename);
+    obsFile->read();
+    //
+    ORSA_DEBUG("total selected observations: %i",obsFile->_data.size());
+  }
   
   {
     unsigned int inField=0,inFieldCandidates=0;
-    double V;
     orsaSolarSystem::OpticalObservation * obs;
     for (unsigned int k=0; k<obsFile->_data.size(); ++k) {
       obs = dynamic_cast<orsaSolarSystem::OpticalObservation *> (obsFile->_data[k].get());
@@ -624,9 +640,8 @@ int main(int argc, char ** argv) {
 	  continue;
 	}
 	++inFieldCandidates;
-	if (skyCoverage->get(obs->ra.getRef(),
-			     obs->dec.getRef(),
-			     V)) {	
+	if (skyCoverage->fastGet(obs->ra.getRef(),
+				 obs->dec.getRef())) {	
 	  ++inField;
 	  /* if (obs->number.isSet()) {
 	     ORSA_DEBUG("V field: %.1f   V obs: %.1f   obj: (%i)",V,obs->mag.getRef(),obs->number.getRef());
@@ -698,15 +713,23 @@ int main(int argc, char ** argv) {
     orsaSolarSystem::OrbitWithEpoch orbit = orbitFile->_data[korb].orbit.getRef();
     const double orbitPeriod = orbit.period();
     const double original_M  = orbit.M;
+    //
     orbit.M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()-orbit.epoch.getRef()).get_d() / orbitPeriod, orsa::twopi());
     orsa::Vector r;
     orbit.relativePosition(r);
     const orsa::Vector orbitPosition = r + sunPosition;
+    // not at t+dt
+    orbit.M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()+dt-orbit.epoch.getRef()).get_d() / orbitPeriod, orsa::twopi());
+    orsa::Vector r_dt;
+    orbit.relativePosition(r_dt);
+    const orsa::Vector orbitPosition_dt = r_dt + sunPosition_dt;
     // restore, important!
     orbit.M = original_M;
     // all in Ecliptic coords, as usual
     const orsa::Vector orb2obs = obsPosition - orbitPosition;
     const orsa::Vector orb2sun = sunPosition - orbitPosition;
+    const orsa::Vector orb2obs_dt = obsPosition_dt - orbitPosition_dt;
+    const orsa::Vector orb2sun_dt = sunPosition_dt - orbitPosition_dt;
     const double phaseAngle = acos(orb2sun.normalized()*orb2obs.normalized());
     //
     bool observed=false;
@@ -744,6 +767,7 @@ int main(int argc, char ** argv) {
 			     phaseAngle,
 			     orb2obs.length(),
 			     orb2sun.length()); 
+    ed.apparentVelocity = acos(orb2obs_dt.normalized()*orb2obs.normalized())/dt.get_d();
     ed.observed = observed;
     etaData.push_back(ed);
   }
@@ -757,10 +781,11 @@ int main(int argc, char ** argv) {
       } else if (ed.designation.isSet()) {
 	sprintf(id,"%s",ed.designation.getRef().c_str());
       }
-      ORSA_DEBUG("[ALL-ED] %5.2f %7s %5.2f %1i",
+      ORSA_DEBUG("[ALL-ED] %5.2f %7s %5.2f %10.6f %1i",
 		 ed.H.getRef(),
 		 id,
 		 ed.V.getRef(),
+		 orsa::FromUnits(ed.apparentVelocity.getRef()*orsa::radToDeg(),orsa::Unit::DAY), // deg/day
 		 ed.observed.getRef());
       
     }
@@ -771,26 +796,48 @@ int main(int argc, char ** argv) {
     sprintf(filename,"%s.eta.dat",argv[1]);
     FILE * fp_eta = fopen(filename,"w");
     
-    double V=16;
+    double V=17.0;
     const double dV=0.2;
     while (V<=24.0) {
-      unsigned int Nobs=0,Ntot=0;
-      for (unsigned int k=0; k<etaData.size(); ++k) {
-	if ((etaData[k].V.getRef()>=V) && 
-	    (etaData[k].V.getRef()<V+dV)) {
-	  ++Ntot;
-	  if (etaData[k].observed.getRef()) {
-	    ++Nobs;
+      double apparentVelocity=orsa::FromUnits(0.001*orsa::degToRad(),orsa::Unit::DAY,-1);
+      const double apparentVelocityFactor=2.0;
+      while (apparentVelocity<orsa::FromUnits(1.0*orsa::degToRad(),orsa::Unit::DAY,-1)) {
+	
+	unsigned int Nobs=0,Ntot=0;
+	for (unsigned int k=0; k<etaData.size(); ++k) {
+	  if ((etaData[k].V.getRef()>=V) && 
+	      (etaData[k].V.getRef()<V+dV) && 
+	      (etaData[k].apparentVelocity.getRef()>=apparentVelocity) &&
+	      (etaData[k].apparentVelocity.getRef()<apparentVelocityFactor*apparentVelocity)) {
+	    ++Ntot;
+	    if (etaData[k].observed.getRef()) {
+	      ++Nobs;
+	    }
 	  }
 	}
+	
+	// write point only if Ntot != 0
+	if (Ntot!=0) {
+	  const double       eta = (double)Nobs/(double)Ntot;
+	  const double sigma_eta = (double)((Nobs+1)*sqrt(Ntot)+Ntot*sqrt(Nobs+1))/(double)(Ntot*Ntot); // using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
+	  fprintf(fp_eta,
+		  "%.6f %.6f %.6f %.6f %.6f %.6f %7i %7i\n",
+		  V+0.5*dV,
+		  dV,
+		  orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToDeg(),orsa::Unit::DAY),
+		  apparentVelocityFactor,
+		  eta,
+		  sigma_eta,
+		  Nobs,
+		  Ntot);
+	}
+	
+	apparentVelocity *= apparentVelocityFactor;
       }
-      const double       eta = (Ntot!=0?(double)Nobs/(double)Ntot:0);
-      const double delta_eta = (Ntot!=0?(double)(Nobs*sqrt(Ntot)+Ntot*sqrt(Nobs))/(double)(Ntot*Ntot):0);
-      ORSA_DEBUG("[eta] %.6f %.6f %.6f %.6f %7i %7i",V+0.5*dV,eta,delta_eta,dV,Nobs,Ntot);
-      fprintf(fp_eta,
-	      "%.6f %.6f %.6f %.6f %7i %7i\n",V+0.5*dV,eta,delta_eta,dV,Nobs,Ntot);
+      
       V += dV;
     }
+    
     
     fclose(fp_eta);
   }
