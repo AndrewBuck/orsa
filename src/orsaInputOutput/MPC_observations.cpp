@@ -163,32 +163,32 @@ bool MPCObservationsFile::processLine(const char * line) {
   {
     orsaSolarSystem::OpticalObservation * opticalObservation =  
       dynamic_cast<orsaSolarSystem::OpticalObservation *>(workObs.get());
-    if (!opticalObservation) {
-      ORSA_DEBUG("observation is not an OpticalObservation");
-    }
     
-    {
-      int h, m;
-      double s;
-      gmp_sscanf(s_ra.c_str(),"%d %d %lf",&h,&m,&s);
-      Angle tmp; tmp.setHMS(h,m,s);
-      opticalObservation->ra = tmp;
-      // orsa::print(workObs->ra.getRef());
-    }
-    
-    {
-      const int sign = s_decSign == "-" ? -1 : +1;
-      int d, p;
-      double s;
-      gmp_sscanf(s_dec.c_str(),"%d %d %lf",&d,&p,&s);
-      Angle tmp; tmp.setDPS(d,p,s,sign);
-      opticalObservation->dec = tmp;
-      // orsa::print(workObs->dec.getRef());
-    }
-    
-    if (strlen(s_mag.c_str()) > 0) {
-      opticalObservation->mag     = atof(s_mag.c_str());
-      opticalObservation->magCode = s_magCode;
+    if (opticalObservation) {
+      
+      {
+	int h, m;
+	double s;
+	gmp_sscanf(s_ra.c_str(),"%d %d %lf",&h,&m,&s);
+	Angle tmp; tmp.setHMS(h,m,s);
+	opticalObservation->ra = tmp;
+	// orsa::print(workObs->ra.getRef());
+      }
+      
+      {
+	const int sign = s_decSign == "-" ? -1 : +1;
+	int d, p;
+	double s;
+	gmp_sscanf(s_dec.c_str(),"%d %d %lf",&d,&p,&s);
+	Angle tmp; tmp.setDPS(d,p,s,sign);
+	opticalObservation->dec = tmp;
+	// orsa::print(workObs->dec.getRef());
+      }
+      
+      if (strlen(s_mag.c_str()) > 0) {
+	opticalObservation->mag     = atof(s_mag.c_str());
+	opticalObservation->magCode = s_magCode;
+      }
     }
   }
   
