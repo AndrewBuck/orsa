@@ -1,6 +1,6 @@
 #include "SurveyReview.h"
-#include "grain.h"
 #include "skycoverage.h"
+#include "eta.h"
 
 #include <orsa/debug.h>
 #include <orsa/multimin.h>
@@ -355,7 +355,7 @@ public:
 };
 
 class EfficiencyData {
-public:
+ public:
   orsa::Cache<double> H;   
   orsa::Cache<unsigned int> number;
   orsa::Cache<std::string> designation;
@@ -364,106 +364,7 @@ public:
   orsa::Cache<bool>   observed;
 };
 
-class EfficiencyMultimin : public orsa::Multimin {
-public:
-  class DataElement {
-  public:
-    orsa::Cache<double> V, eta, delta_eta;
-  };
-  typedef std::vector<DataElement> DataStorage;
-public:
-  bool fit(const DataStorage & data_in,
-	   const double      & V0_in) {
-    data = data_in;
-    V0 = V0_in;
-    osg::ref_ptr<orsa::MultiminParameters> par = new orsa::MultiminParameters;
-#warning improve initial guess!
-    par->insert("eta0",     0.80,  0.01);
-    par->insert("c",        0.001, 0.0001);
-    par->insert("V_limit", 21.00,  0.01);
-    par->insert("w",        0.50,  0.01); 
-    // ranges
-    par->setRange("eta0",0.0,1.0);
-    // par->setRangeMin("c",0.0); // don't set this one, as often c becomes negative while iterating
-    par->setRangeMin("V_limit",V0);
-    //
-    setMultiminParameters(par.get());
-    if (!run_nmsimplex(4096,0.001)) {
-      // if (!run_conjugate_fr(1024,0.01,0.1,0.1)) {
-      ORSA_WARNING("the fit did not converge.");
-      return false;
-    } else {
-      return true;
-    }
-  }
-protected:
-  double fun(const orsa::MultiminParameters * par) const {
-    if (data.size()==0) return 0.0;
-    double retVal=0.0;
-    for (unsigned int k=0; k<data.size(); ++k) {
-      const double eta_fun = SkyCoverage::eta_V(data[k].V.getRef(),
-						par->get("V_limit"),
-						par->get("eta0"),
-						par->get("c"),
-						V0,
-						par->get("w"));
-      retVal += orsa::square((data[k].eta.getRef()-eta_fun)/data[k].delta_eta.getRef());
-    }
-    ORSA_DEBUG("eta0: %g   V_limit: %g   c: %g   w: %g   retVal: %g   retVal/Npoints: %g",
-	       par->get("eta0"),
-	       par->get("V_limit"),
-	       par->get("c"),
-	       par->get("w"),
-	       retVal,
-	       retVal/data.size());
-    return retVal;
-  }
-protected:
-  DataStorage data;
-  double V0;
-};
-
 int main(int argc, char ** argv) {
-  
-  // test EfficiencyMultimin    
-  if (0) {
-    // nominal values
-    const double V_limit = 18.75;
-    const double    eta0 =  0.94;
-    const double       c =  0.005;
-    const double      V0 = 16.0;
-    const double       w =  0.52;
-    
-    // noise
-    const int randomSeed=527123;
-    const double delta_eta=0.04;
-    osg::ref_ptr<orsa::RNG> rnd = new orsa::RNG(randomSeed); 
-    EfficiencyMultimin::DataStorage data;
-    double V=V0;
-    while (V<= 24) {
-      EfficiencyMultimin::DataElement el;
-      el.V = V;
-      el.eta = SkyCoverage::eta_V(V,
-				  V_limit,
-				  eta0,
-				  c,
-				  V0,
-				  w); 
-      el.eta += rnd->gsl_ran_gaussian(delta_eta)*sqrt(el.eta.getRef());
-      el.delta_eta = delta_eta;
-      data.push_back(el);
-      V += 0.1;
-    }
-    osg::ref_ptr<EfficiencyMultimin> eta_multimin = new EfficiencyMultimin;
-    const bool success = eta_multimin->fit(data,V0);
-    if (!success) { 
-      ORSA_DEBUG("problems??");
-    }
-    osg::ref_ptr<const orsa::MultiminParameters> parFinal = eta_multimin->getMultiminParameters();
-    // save final parameters
-    
-    exit(0);
-  }
   
   orsa::Debug::instance()->initTimer();
   
@@ -785,7 +686,7 @@ int main(int argc, char ** argv) {
 		 ed.H.getRef(),
 		 id,
 		 ed.V.getRef(),
-		 orsa::FromUnits(ed.apparentVelocity.getRef()*orsa::radToDeg(),orsa::Unit::DAY), // deg/day
+		 orsa::FromUnits(ed.apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR), // arcsec/hour
 		 ed.observed.getRef());
       
     }
@@ -799,9 +700,9 @@ int main(int argc, char ** argv) {
     double V=17.0;
     const double dV=0.2;
     while (V<=24.0) {
-      double apparentVelocity=orsa::FromUnits(0.001*orsa::degToRad(),orsa::Unit::DAY,-1);
+      double apparentVelocity=orsa::FromUnits(0.01*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
       const double apparentVelocityFactor=2.0;
-      while (apparentVelocity<orsa::FromUnits(1.0*orsa::degToRad(),orsa::Unit::DAY,-1)) {
+      while (apparentVelocity<orsa::FromUnits(300.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)) {
 	
 	unsigned int Nobs=0,Ntot=0;
 	for (unsigned int k=0; k<etaData.size(); ++k) {
@@ -818,16 +719,16 @@ int main(int argc, char ** argv) {
 	
 	// write point only if Ntot != 0
 	if (Ntot!=0) {
-	  const double       eta = (double)Nobs/(double)Ntot;
-	  const double sigma_eta = (double)((Nobs+1)*sqrt(Ntot)+Ntot*sqrt(Nobs+1))/(double)(Ntot*Ntot); // using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
+	  const double      eta = (double)Nobs/(double)Ntot;
+	  const double sigmaEta = (double)(sqrt(Nobs+1))/(double)(Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
 	  fprintf(fp_eta,
 		  "%.6f %.6f %.6f %.6f %.6f %.6f %7i %7i\n",
 		  V+0.5*dV,
 		  dV,
-		  orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToDeg(),orsa::Unit::DAY),
+		  orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToArcsec(),orsa::Unit::HOUR),
 		  apparentVelocityFactor,
 		  eta,
-		  sigma_eta,
+		  sigmaEta,
 		  Nobs,
 		  Ntot);
 	}

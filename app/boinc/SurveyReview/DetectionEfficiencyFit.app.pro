@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-TARGET = DetectionEfficiency
+TARGET = DetectionEfficiencyFit
 
 CONFIG += qt
 
@@ -26,5 +26,5 @@ unix:!macx {
 	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads
 }
 
-HEADERS = skycoverage.h   SurveyReview.h   grain.h   eta.h
-SOURCES = skycoverage.cpp SurveyReview.cpp grain.cpp DetectionEfficiencyMain.cpp
+HEADERS = skycoverage.h   eta.h
+SOURCES = skycoverage.cpp DetectionEfficiencyFitMain.cpp

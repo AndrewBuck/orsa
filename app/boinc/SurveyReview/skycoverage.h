@@ -105,14 +105,30 @@ class SkyCoverage : public osg::Referenced {
   }
   
  public:
+  // V = apparent magnitude
   static inline double eta_V(const double & V,
 			     const double & V_limit,
-			     const double & eta0,
-			     const double & c,
+			     const double & eta0_V,
+			     const double & c_V,
 			     const double & V0,
-			     const double & w) {
-    if (V<V0) return eta0;
-    double retVal = (eta0-c*orsa::square(V-V0))/(1+exp((V-V_limit)/w));
+			     const double & w_V) {
+    if (V<V0) return eta0_V;
+    double retVal = (eta0_V-c_V*orsa::square(V-V0))/(1+exp((V-V_limit)/w_V));
+    if (retVal < orsa::epsilon()) retVal=0.0;
+    if (retVal > 1.0) retVal=1.0;
+    return retVal;
+  }
+  
+ public:
+  // U = apparent velocity
+  static inline double eta_U(const double & U,
+			     const double & U_limit,
+			     const double & eta0_U,
+			     const double & c_U,
+			     const double & U0,
+			     const double & w_U) {
+    if (U>U0) return eta0_U;
+    double retVal = (eta0_U-c_U*orsa::square(U-U0))/(1+exp((U_limit-U)/w_U));
     if (retVal < orsa::epsilon()) retVal=0.0;
     if (retVal > 1.0) retVal=1.0;
     return retVal;
