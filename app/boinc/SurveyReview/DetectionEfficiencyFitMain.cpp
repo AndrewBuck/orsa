@@ -1,4 +1,3 @@
-#include <orsa/multimin.h>
 #include "skycoverage.h"
 #include "eta.h"
 
@@ -11,7 +10,7 @@ int main(int argc, char ** argv) {
     exit(0);
   }
   
-  EfficiencyMultimin::DataStorage data;
+  EfficiencyMultifit::DataStorage data;
   {
     FILE * fp = fopen(argv[1],"r");
     if (!fp) {
@@ -32,7 +31,7 @@ int main(int argc, char ** argv) {
       ORSA_DEBUG("reading: %g %g %g %g",
 		 V,apparentVelocity,eta,sigmaEta);
       //
-      EfficiencyMultimin::DataElement el;
+      EfficiencyMultifit::DataElement el;
       el.V=V;
       el.U=apparentVelocity;
       el.eta=eta;
@@ -46,12 +45,12 @@ int main(int argc, char ** argv) {
   
   const double U0=orsa::FromUnits(100.0*orsa::arcsecToRad(),orsa::Unit::HOUR); // arcsec/hour
   
-  osg::ref_ptr<EfficiencyMultimin> eta_multimin = new EfficiencyMultimin;
-  const bool success = eta_multimin->fit(data,V0,U0);
+  osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
+  const bool success = etaFit->fit(data,V0,U0);
   if (!success) { 
     ORSA_DEBUG("problems??");
   }
-  osg::ref_ptr<const orsa::MultiminParameters> parFinal = eta_multimin->getMultiminParameters();
+  osg::ref_ptr<const orsa::MultifitParameters> parFinal = etaFit->getMultifitParameters();
   // save final parameters
   
   exit(0);
