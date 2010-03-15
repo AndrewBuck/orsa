@@ -150,6 +150,11 @@ class EfficiencyMultifit : public orsa::Multifit {
     gsl_matrix_free(covar);  
   }
  protected:
+  void success(const gsl_multifit_fdfsolver * s) const { 
+#warning finish here!
+    // implement this similarly to singleIterationDone above to save final parameters and corresponding uncertainties
+  }
+ protected:
   DataStorage data;
   double V0;
   double U0;
