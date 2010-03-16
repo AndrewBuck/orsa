@@ -11,18 +11,12 @@ int main(int argc, char ** argv) {
     exit(0);
   }
   
-  char line[4096];
-  char patch[1024];
-  
   // first, the targets
-  sprintf(line,"all:");
+  printf("all:");
   for (int arg=1; arg<argc; ++arg) {
-    sprintf(patch," %s.fit.dat",SkyCoverage::basename(argv[arg]).c_str());
-    strcat(line,patch);
+    printf(" %s.fit.dat",SkyCoverage::basename(argv[arg]).c_str());
   }
-  strcat(line,"\n");
-  printf("%s",line);
-  
+  printf("\n"); 
   printf("\n");
   
   // now the rules
