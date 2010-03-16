@@ -543,7 +543,7 @@ int Multifit::f_gsl (const gsl_vector * parameters,
 		     void * dataPoints, 
 		     gsl_vector * f) {
   
-  ORSA_DEBUG("f...");
+  // ORSA_DEBUG("f...");
   
   for(unsigned int k=0; k<_par->size(); ++k) {
     _par->set(k,gsl_vector_get(parameters,k));
@@ -557,7 +557,7 @@ int Multifit::f_gsl (const gsl_vector * parameters,
   
   for (unsigned int j=0; j<data->size(); ++j) {
     const double fj = (__fun__(_par.get(),data,0,0,j) - data->getF(j))/(data->getSigma(j));
-    ORSA_DEBUG("f[%02i] = %10.3f", j, fj);
+    // ORSA_DEBUG("f[%02i] = %10.3f", j, fj);
     gsl_vector_set (f, j, fj);
   }
   
@@ -586,7 +586,7 @@ int Multifit::df_gsl (const gsl_vector * v,
 		      void             * dataPoints, 
 		      gsl_matrix       * J) {
   
-  ORSA_DEBUG("df...");
+  // ORSA_DEBUG("df...");
   
   for(unsigned int k=0; k<_par->size(); ++k) {
     _par->set(k,gsl_vector_get(v,k));
@@ -614,7 +614,7 @@ int Multifit::fdf_gsl (const gsl_vector * v,
 		       gsl_vector * f, 
 		       gsl_matrix * J) {
   
-  ORSA_DEBUG("fdf...");
+  // ORSA_DEBUG("fdf...");
   
   for(unsigned int k=0; k<_par->size(); ++k) {
     _par->set(k,gsl_vector_get(v,k));

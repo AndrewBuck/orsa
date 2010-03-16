@@ -251,7 +251,7 @@ namespace orsa {
   protected:
     virtual void computeAllFunctionCalls(const orsa::MultifitParameters *, 
 					 const orsa::MultifitData *,
-					 const computeAllCallsMode) const = 0;
+					 const computeAllCallsMode) const { }
     
   public:
     virtual int f_gsl (const gsl_vector * parameters, 

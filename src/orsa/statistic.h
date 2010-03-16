@@ -7,6 +7,7 @@
 #include <osg/ref_ptr>
 
 #include <orsa/cache.h>
+#include <orsa/double.h>
 
 namespace orsa {
   
