@@ -701,7 +701,7 @@ int main(int argc, char ** argv) {
     const double dV=0.2;
     while (V<=24.0) {
       double apparentVelocity=orsa::FromUnits(0.01*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-      const double apparentVelocityFactor=2.0;
+      const double apparentVelocityFactor=1.2;
       while (apparentVelocity<orsa::FromUnits(300.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)) {
 	
 	unsigned int Nobs=0,Ntot=0;
