@@ -26,11 +26,15 @@ int main(int argc, char ** argv) {
   orsa::Debug::instance()->initTimer();
   
   if (argc != 2) {
-    printf("Usage: %s <efficiency-data-file>\n",argv[0]);
+    printf("Usage: %s <allEta-file>\n",argv[0]);
     exit(0);
   }
   
-  EfficiencyMultifit::DataStorage data;
+  ORSA_DEBUG("process ID: %i",getpid());
+  
+  const std::string basename = SkyCoverage::basename(argv[1]);
+  
+  std::vector<EfficiencyData> etaData;
   {
     FILE * fp = fopen(argv[1],"r");
     if (!fp) {
@@ -38,32 +42,98 @@ int main(int argc, char ** argv) {
       exit(0);
     }
     char line[1024];
-    double V, apparentVelocity, eta, sigmaEta;
+    double H, V, apparentVelocity;
+    char id[1024];
+    int observed;
     while (fgets(line,1024,fp)) {
-      sscanf(line,"%lf %*s %lf %*s %lf %lf",
+      sscanf(line,"%lf %s %lf %lf %i",
+	     &H,
+	     id,
 	     &V,
 	     &apparentVelocity,
-	     &eta,
-	     &sigmaEta);
-      // apparentVelocity is in arcsec/hour
+	     &observed);
+      // convert
       apparentVelocity = orsa::FromUnits(apparentVelocity*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
       //
-      ORSA_DEBUG("reading: %g %g %g %g",
-		 V,apparentVelocity,eta,sigmaEta);
+      EfficiencyData ed;
+      ed.H=H;
+      if (atoi(id) != 0) {
+	ed.number = atoi(id);
+      } else {
+	ed.designation = id;
+      }
+      ed.V=V;
+      ed.apparentVelocity=apparentVelocity;
+      ed.observed = (observed==1);
       //
-      EfficiencyMultifit::DataElement el;
-      el.V=V;
-      el.U=apparentVelocity;
-      el.eta=eta;
-      el.sigmaEta=sigmaEta;
-      data.push_back(el);
+      etaData.push_back(ed);
     }
     fclose(fp);
   }
   
   const double V0=17.0;
-  
-  const double U0=orsa::FromUnits(100.0*orsa::arcsecToRad(),orsa::Unit::HOUR); // arcsec/hour
+  const double U0=orsa::FromUnits(100.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
+  EfficiencyMultifit::DataStorage data;
+  {
+    char filename[1024];
+    sprintf(filename,"%s.eta.dat",basename.c_str());
+    FILE * fp_eta = fopen(filename,"w"); 
+    
+    double V=V0;
+    const double dV=0.2;
+    while (V<=24.0) {
+      double apparentVelocity=orsa::FromUnits(0.01*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+      const double apparentVelocityFactor=1.2;
+      while (apparentVelocity<orsa::FromUnits(300.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)) {
+	
+	unsigned int Nobs=0,Ntot=0;
+	for (unsigned int k=0; k<etaData.size(); ++k) {
+	  if ((etaData[k].V.getRef()>=V) && 
+	      (etaData[k].V.getRef()<V+dV) && 
+	      (etaData[k].apparentVelocity.getRef()>=apparentVelocity) &&
+	      (etaData[k].apparentVelocity.getRef()<apparentVelocityFactor*apparentVelocity)) {
+	    ++Ntot;
+	    if (etaData[k].observed.getRef()) {
+	      ++Nobs;
+	    }
+	  }
+	}
+	
+	// write point only if Ntot != 0
+	if (Ntot!=0) {
+	  const double      eta = (double)Nobs/(double)Ntot;
+	  const double sigmaEta = (double)(sqrt(Nobs+1))/(double)(Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
+	  
+	  fprintf(fp_eta,
+		  "%.6f %.6f %.6f %.6f %.6f %.6f %7i %7i\n",
+		  V+0.5*dV,
+		  dV,
+		  orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToArcsec(),orsa::Unit::HOUR),
+		  apparentVelocityFactor,
+		  eta,
+		  sigmaEta,
+		  Nobs,
+		  Ntot);
+	  
+	  
+	  EfficiencyMultifit::DataElement el;
+	  //
+	  el.V=V;
+	  el.U=apparentVelocity;
+	  el.eta=eta;
+	  el.sigmaEta=sigmaEta;
+	  //
+	  data.push_back(el);
+	}
+	
+	apparentVelocity *= apparentVelocityFactor;
+      }
+      
+      V += dV;
+    }
+    
+    fclose(fp_eta);
+  }    
   
   osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
   const bool success = etaFit->fit(data,V0,U0);
@@ -76,8 +146,11 @@ int main(int argc, char ** argv) {
   const double     c_V = parFinal->get("c_V");
   const double V_limit = parFinal->get("V_limit");
   const double     w_V = parFinal->get("w_V");
-  const double U_limit = parFinal->get("U_limit");
-  const double     w_U = parFinal->get("w_U");
+  //
+  const double U_limit_slow = parFinal->get("U_limit_slow");
+  const double     w_U_slow = parFinal->get("w_U_slow");
+  // const double U_limit_fast = parFinal->get("U_limit_fast");
+  // const double     w_U_fast = parFinal->get("w_U_fast");
 #warning keep vars in sync with fitting code
   
   {
@@ -129,11 +202,9 @@ int main(int argc, char ** argv) {
 					      w_V);
 
       const double eta_U = SkyCoverage::eta_U(data[k].U.getRef(),
-					      U_limit,
-					      1.0, // eta0_U,
-					      0.0, // c_U,
-					      U0,
-					      w_U);
+					      U_limit_slow,
+					      w_U_slow,
+					      U0);
       
       if (data[k].sigmaEta.getRef() > 0) {
 	if (eta_U != 0) {
