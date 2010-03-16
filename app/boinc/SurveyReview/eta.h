@@ -27,12 +27,15 @@ class EfficiencyMultifit : public orsa::Multifit {
   // U = apparent velocity
   bool fit(const DataStorage & data_in,
 	   const double      & V0_in,
-	   const double      & U0_in) {
+	   const double      & U0_in,
+	   const std::string & outputFile_in) {
     
     // local copies
     data = data_in;
     V0 = V0_in;
     U0 = U0_in;
+    //
+    outputFile = outputFile_in;
     
     // basic checks
     if (data.size()==0) return false;
@@ -160,13 +163,60 @@ class EfficiencyMultifit : public orsa::Multifit {
     gsl_matrix_free(covar);  
   }
  protected:
-  void success(const gsl_multifit_fdfsolver * /* s */ ) const {
-    // implement this similarly to singleIterationDone above to save final parameters and corresponding uncertainties
-  }
+  void success(const gsl_multifit_fdfsolver * s) const {
+    
+    for (unsigned int k=0; k<_par->size(); ++k) {
+      _par->set(k, gsl_vector_get(s->x,k));
+    }
+    
+    double c = 1.0;
+    //
+    const unsigned int dof = _data->size() - _par->size();
+    if (dof > 0) {
+      const double chi = gsl_blas_dnrm2(s->f);
+      c = GSL_MAX_DBL(1.0, chi / sqrt(dof)); 
+      ORSA_DEBUG("chisq/dof = %g",  chi*chi/dof);
+      // gmp_fprintf(fp,"chisq/dof = %g\n",  chi*chi/dof);
+    }
+    //
+    const double factor = c;
+    
+    gsl_matrix * covar = gsl_matrix_alloc(_par->size(),_par->size());
+    
+    gsl_multifit_covar(s->J, 0.0, covar);
+    
+#define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
+    
+    FILE * fp = fopen(outputFile.c_str(),"w");
+    
+    for (unsigned int p=0; p<_par->size(); ++p) {
+      // first, specific cases where unit conversions or factors are needed
+      if ((_par->name(p) == "U_limit_slow") || 
+	  (_par->name(p) == "w_U_slow")) {
+	fprintf(fp,
+		"%s %g %g\n",
+		_par->name(p).c_str(),
+		orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
+		orsa::FromUnits(factor*ERR(p)*orsa::radToArcsec(),orsa::Unit::HOUR));
+      } else {
+	// generic one
+	fprintf(fp,
+		"%s %g %g\n",
+		_par->name(p).c_str(),
+		_par->get(p),
+		factor*ERR(p));
+      }
+    }
+    
+    fclose(fp);
+    
+    gsl_matrix_free(covar);  
+ }
  protected:
   DataStorage data;
   double V0;
   double U0;
+  std::string outputFile;
 };
 
 #endif // __ETA_H_
