@@ -101,7 +101,7 @@ class EfficiencyMultifit : public orsa::Multifit {
     osg::ref_ptr<orsa::MultifitParameters> localPar = new orsa::MultifitParameters;
     
     // deep copy
-    (*(localPar.get())) = (*par);
+    (*localPar) = (*par);
     
     // modify
     localPar->set(p,par->get(p)+d*par->getDelta(p));
@@ -112,10 +112,13 @@ class EfficiencyMultifit : public orsa::Multifit {
 					    localPar->get("c_V"),
 					    V0,
 					    localPar->get("w_V"));
+    
     const double eta_U = SkyCoverage::eta_U(data->getD("U",row),
 					    localPar->get("U_limit_slow"),
 					    localPar->get("w_U_slow"),
 					    U0);
+    
+    
     return (eta_V*eta_U);
   }
  protected: 
