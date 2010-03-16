@@ -3,6 +3,16 @@
 
 #include <orsa/multifit.h>
 
+class EfficiencyData {
+ public:
+  orsa::Cache<double> H;   
+  orsa::Cache<unsigned int> number;
+  orsa::Cache<std::string> designation;
+  orsa::Cache<double> V;
+  orsa::Cache<double> apparentVelocity;
+  orsa::Cache<bool>   observed;
+};
+
 class EfficiencyMultifit : public orsa::Multifit {
  public:
   class DataElement {
@@ -28,10 +38,11 @@ class EfficiencyMultifit : public orsa::Multifit {
     if (data.size()==0) return false;
     
     osg::ref_ptr<orsa::MultifitParameters> par = new orsa::MultifitParameters;
-#warning improve initial guess!
     //
-    const double initial_U_limit = orsa::FromUnits(10.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
-    const double initial_w_U     = orsa::FromUnits( 1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
+    const double initial_U_limit_slow = orsa::FromUnits( 10.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
+    const double initial_w_U_slow     = orsa::FromUnits(  1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
+    // const double initial_U_limit_fast = orsa::FromUnits(100.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
+    // const double initial_w_U_fast     = orsa::FromUnits( 10.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
     //    
     // V pars
     par->insert("eta0_V",     0.95,  0.001);
@@ -41,8 +52,10 @@ class EfficiencyMultifit : public orsa::Multifit {
     // U pars
     // par->insert("eta0_U",     0.95,  0.001);
     // par->insert("c_U",        1.0e-9,1.0e-12);
-    par->insert("U_limit",    initial_U_limit, initial_U_limit*0.001);
-    par->insert("w_U",        initial_w_U,     initial_w_U*0.001); 
+    par->insert("U_limit_slow",    initial_U_limit_slow, initial_U_limit_slow*0.001);
+    par->insert("w_U_slow",        initial_w_U_slow,     initial_w_U_slow*0.001); 
+    // par->insert("U_limit_fast",    initial_U_limit_fast, initial_U_limit_fast*0.001);
+    // par->insert("w_U_fast",        initial_w_U_fast,     initial_w_U_fast*0.001); 
     // ranges
     // par->setRange("eta0_V",0.0,1.0);
     // excluding eta0_U for the moment...
@@ -97,12 +110,9 @@ class EfficiencyMultifit : public orsa::Multifit {
 					    V0,
 					    localPar->get("w_V"));
     const double eta_U = SkyCoverage::eta_U(data->getD("U",row),
-					    localPar->get("U_limit"),
-					    1.0, // localPar->get("eta0_U"),
-					    0.0, // localPar->get("c_U"),
-					    U0,
-					    localPar->get("w_U"));
-    
+					    localPar->get("U_limit_slow"),
+					    localPar->get("w_U_slow"),
+					    U0);
     return (eta_V*eta_U);
   }
  protected: 
@@ -132,8 +142,8 @@ class EfficiencyMultifit : public orsa::Multifit {
     
     for (unsigned int p=0; p<_par->size(); ++p) {
       // first, specific cases where unit conversions or factors are needed
-      if ((_par->name(p) == "U_limit") || 
-	  (_par->name(p) == "w_U")) {
+      if ((_par->name(p) == "U_limit_slow") || 
+	  (_par->name(p) == "w_U_slow")) {
 	ORSA_DEBUG("%s: %g +/- %g [arcsec/hour]",
 		   _par->name(p).c_str(),
 		   orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
@@ -150,8 +160,7 @@ class EfficiencyMultifit : public orsa::Multifit {
     gsl_matrix_free(covar);  
   }
  protected:
-  void success(const gsl_multifit_fdfsolver * s) const { 
-#warning finish here!
+  void success(const gsl_multifit_fdfsolver * /* s */ ) const {
     // implement this similarly to singleIterationDone above to save final parameters and corresponding uncertainties
   }
  protected:
