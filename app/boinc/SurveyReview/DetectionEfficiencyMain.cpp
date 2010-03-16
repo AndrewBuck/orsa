@@ -354,16 +354,6 @@ public:
   unsigned int observed;
 };
 
-class EfficiencyData {
- public:
-  orsa::Cache<double> H;   
-  orsa::Cache<unsigned int> number;
-  orsa::Cache<std::string> designation;
-  orsa::Cache<double> V;
-  orsa::Cache<double> apparentVelocity;
-  orsa::Cache<bool>   observed;
-};
-
 int main(int argc, char ** argv) {
   
   orsa::Debug::instance()->initTimer();
@@ -374,6 +364,8 @@ int main(int argc, char ** argv) {
   }
   
   ORSA_DEBUG("process ID: %i",getpid());
+  
+  const std::string basename = SkyCoverage::basename(argv[1]);
   
   orsaSPICE::SPICE::instance()->loadKernel("de405.bsp");
   
@@ -674,6 +666,9 @@ int main(int argc, char ** argv) {
   }
   //
   {
+    char filename[1024];
+    sprintf(filename,"%s.allEta.dat",basename.c_str());
+    FILE * fp_allEta = fopen(filename,"w");
     for (unsigned int k=0; k<etaData.size(); ++k) {
       const EfficiencyData & ed = etaData[k];
       char id[1024];
@@ -682,74 +677,16 @@ int main(int argc, char ** argv) {
       } else if (ed.designation.isSet()) {
 	sprintf(id,"%s",ed.designation.getRef().c_str());
       }
-      ORSA_DEBUG("[ALL-ED] %5.2f %7s %5.2f %10.6f %1i",
-		 ed.H.getRef(),
-		 id,
-		 ed.V.getRef(),
-		 orsa::FromUnits(ed.apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR), // arcsec/hour
-		 ed.observed.getRef());
-      
+      fprintf(fp_allEta,
+	      "%5.2f %7s %5.2f %10.6f %1i\n",
+	      ed.H.getRef(),
+	      id,
+	      ed.V.getRef(),
+	      orsa::FromUnits(ed.apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR), // arcsec/hour
+	      ed.observed.getRef());
     }
-  }
-  //
-  { 
-    char filename[1024];
-    sprintf(filename,"%s.eta.dat",argv[1]);
-    FILE * fp_eta = fopen(filename,"w");
-    
-    double V=17.0;
-    const double dV=0.2;
-    while (V<=24.0) {
-      double apparentVelocity=orsa::FromUnits(0.01*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-      const double apparentVelocityFactor=1.2;
-      while (apparentVelocity<orsa::FromUnits(300.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)) {
-	
-	unsigned int Nobs=0,Ntot=0;
-	for (unsigned int k=0; k<etaData.size(); ++k) {
-	  if ((etaData[k].V.getRef()>=V) && 
-	      (etaData[k].V.getRef()<V+dV) && 
-	      (etaData[k].apparentVelocity.getRef()>=apparentVelocity) &&
-	      (etaData[k].apparentVelocity.getRef()<apparentVelocityFactor*apparentVelocity)) {
-	    ++Ntot;
-	    if (etaData[k].observed.getRef()) {
-	      ++Nobs;
-	    }
-	  }
-	}
-	
-	// write point only if Ntot != 0
-	if (Ntot!=0) {
-	  const double      eta = (double)Nobs/(double)Ntot;
-	  const double sigmaEta = (double)(sqrt(Nobs+1))/(double)(Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
-	  fprintf(fp_eta,
-		  "%.6f %.6f %.6f %.6f %.6f %.6f %7i %7i\n",
-		  V+0.5*dV,
-		  dV,
-		  orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToArcsec(),orsa::Unit::HOUR),
-		  apparentVelocityFactor,
-		  eta,
-		  sigmaEta,
-		  Nobs,
-		  Ntot);
-	}
-	
-	apparentVelocity *= apparentVelocityFactor;
-      }
-      
-      V += dV;
-    }
-    
-    
-    fclose(fp_eta);
+    fclose(fp_allEta);
   }
   
-#warning COMPLETE WRITING OF obs.dat FILE
-  // write obs.dat file
-  {
-    FILE * fp = fopen("obs.dat","w");
-    
-    fclose(fp);
-  }
-
   return 0;
 }
