@@ -135,8 +135,11 @@ int main(int argc, char ** argv) {
     fclose(fp_eta);
   }    
   
+  char filename[1024];
+  sprintf(filename,"%s.fit.dat",basename.c_str());
+  
   osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
-  const bool success = etaFit->fit(data,V0,U0);
+  const bool success = etaFit->fit(data,V0,U0,filename);
   if (!success) { 
     ORSA_DEBUG("problems??");
   }
@@ -153,7 +156,7 @@ int main(int argc, char ** argv) {
   // const double     w_U_fast = parFinal->get("w_U_fast");
 #warning keep vars in sync with fitting code
   
-  {
+  if (0) {
     // output for testing
     typedef std::list< osg::ref_ptr<EfficiencyStatistics> > AllStat;
     AllStat stat_V, stat_U;  
