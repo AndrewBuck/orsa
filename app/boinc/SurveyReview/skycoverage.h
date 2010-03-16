@@ -114,23 +114,21 @@ class SkyCoverage : public osg::Referenced {
 			     const double & w_V) {
     if (V<V0) return eta0_V;
     double retVal = (eta0_V-c_V*orsa::square(V-V0))/(1+exp((V-V_limit)/w_V));
-    if (retVal < orsa::epsilon()) retVal=0.0;
-    if (retVal > 1.0) retVal=1.0;
+    // if (retVal < orsa::epsilon()) retVal=0.0;
+    // if (retVal > 1.0) retVal=1.0;
     return retVal;
   }
   
  public:
   // U = apparent velocity
   static inline double eta_U(const double & U,
-			     const double & U_limit,
-			     const double & eta0_U,
-			     const double & c_U,
-			     const double & U0,
-			     const double & w_U) {
-    if (U>U0) return eta0_U;
-    double retVal = (eta0_U-c_U*orsa::square(U-U0))/(1+exp((U_limit-U)/w_U));
-    if (retVal < orsa::epsilon()) retVal=0.0;
-    if (retVal > 1.0) retVal=1.0;
+			     const double & U_limit_slow,
+			     const double & w_U_slow,
+			     const double & U0) {
+    if (U>U0) return 1.0;
+    double retVal = 1.0/(1+exp((U_limit_slow-U)/w_U_slow));
+    // if (retVal < orsa::epsilon()) retVal=0.0;
+    // if (retVal > 1.0) retVal=1.0;
     return retVal;
   }
   
@@ -140,8 +138,17 @@ class SkyCoverage : public osg::Referenced {
   orsa::Cache<double> eta0, c, V0, w;
   
  public:
-  // coefficients for efficiency as function of apparent velocity
-  
+  // return all the filename up to the first dot
+  static std::string basename(const std::string & filename) {
+    size_t found_dot = std::string(filename).find(".",0);
+    if (found_dot == std::string::npos) {
+      ORSA_DEBUG("not regular filename: %s",filename.c_str());
+      exit(0);
+    }
+    std::string s;
+    s.assign(filename,0,found_dot);
+    return s;
+  }
 };
 
 #endif // SURVEY_REVIEW_SKY_COVERAGE
