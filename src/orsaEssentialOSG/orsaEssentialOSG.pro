@@ -16,6 +16,6 @@ SOURCES += $${OSG_SRC}/osg/ApplicationUsage.cpp \
            $${OSG_SRC}/osg/Matrixd.cpp \ 
            $${OSG_SRC}/osg/Matrixf.cpp \
            $${OSG_SRC}/osg/Notify.cpp \
-           $${OSG_SRC}/osg/Observer.cpp \
+#           $${OSG_SRC}/osg/Observer.cpp \
            $${OSG_SRC}/osg/Quat.cpp \
            $${OSG_SRC}/osg/Referenced.cpp
