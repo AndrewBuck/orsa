@@ -468,9 +468,14 @@ void VestaPlot::moveAltitudeCurve(const orsa::Time & t) {
   //
   plotFillThread->dataMutex.unlock();
   
-  curve_altitude->setData(QwtPointArrayData(xData,
-					    yData,
-					    2));
+  curve_altitude->setData(xData,
+			  yData,
+			  2);
+  // this below will work with Qwt 5.3
+  /* curve_altitude->setData(QwtPointArrayData(xData,
+     yData,
+     2));
+  */
   
   {
     // altitude marker
@@ -571,19 +576,35 @@ void VestaPlot::plotFill() {
     ++it;
   }
   
-  curve_distance->setData(QwtPointArrayData(xData,
-					    yData_distance));
-  curve_sphere_radius->setData(QwtPointArrayData(xData,
-						 yData_sphere_radius));
-  curve_vesta_profile->setData(QwtPointArrayData(xData,
-						 yData_vesta_profile));
+  curve_distance->setData(xData,
+			  yData_distance);
+  curve_sphere_radius->setData(xData,
+			       yData_sphere_radius);
+  curve_vesta_profile->setData(xData,
+			       yData_vesta_profile);
   
-  curve_q->setData(QwtPointArrayData(xData,
-				     yData_q));
-  curve_a->setData(QwtPointArrayData(xData,
-				     yData_a));
-  curve_Q->setData(QwtPointArrayData(xData,
-				     yData_Q));
+  curve_q->setData(xData,
+		   yData_q);
+  curve_a->setData(xData,
+		   yData_a);
+  curve_Q->setData(xData,
+		   yData_Q);
+  
+  // this below will work with Qwt 5.3
+  /* curve_distance->setData(QwtPointArrayData(xData,
+     yData_distance));
+     curve_sphere_radius->setData(QwtPointArrayData(xData,
+     yData_sphere_radius));
+     curve_vesta_profile->setData(QwtPointArrayData(xData,
+     yData_vesta_profile));
+     
+     curve_q->setData(QwtPointArrayData(xData,
+     yData_q));
+     curve_a->setData(QwtPointArrayData(xData,
+     yData_a));
+     curve_Q->setData(QwtPointArrayData(xData,
+     yData_Q));
+  */
   
   plotFillThread->dataMutex.unlock();
   
@@ -598,16 +619,19 @@ void VestaPlot::closeEvent(QCloseEvent *) {
 }
 
 void VestaPlot::drawItems(QPainter          * painter, 
-			  const QRectF      & rectf,
-			  const QwtScaleMap   maps[axisCnt]) const {
+			  const QRect       & rect,
+			  const QwtScaleMap   maps[axisCnt],
+			  const QwtPlotPrintFilter & filter) const {
   
-  const QRect rect = rectf.toRect();
+  // this below will work with Qwt 5.3
+  // const QRect rect = rectf.toRect();
   
   if (autoReplot()) {
     ORSA_ERROR("warning: this method does not work properly when autoReplot is enabled");
     return QwtPlot::drawItems(painter, 
 			      rect, 
-			      maps);
+			      maps,
+			      filter);
   }
   
   /* 
@@ -655,7 +679,8 @@ void VestaPlot::drawItems(QPainter          * painter,
     //
     QwtPlot::drawItems(painter, 
 		       rect, 
-		       maps);
+		       maps,
+		       filter);
     //
     for (QwtPlotItemIterator it = itmList.begin(); it != itmList.end(); ++it) {
       {

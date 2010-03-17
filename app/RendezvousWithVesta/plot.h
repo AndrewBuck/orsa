@@ -134,8 +134,14 @@ class VestaPlot : public QwtPlot {
   PlotFillThread * plotFillThread;
   mutable QTimer   plotFillTimer;
   void drawItems(QPainter *, 
-		 const QRectF &,
-		 const QwtScaleMap maps[axisCnt]) const;
+		 const QRect &,
+		 const QwtScaleMap maps[axisCnt],
+		 const QwtPlotPrintFilter &) const;
+  // this below will work with Qwt 5.3
+  /* void drawItems(QPainter *, 
+     const QRectF &,
+     const QwtScaleMap maps[axisCnt]) const;
+  */
  protected:
   void closeEvent(QCloseEvent *);  
   
