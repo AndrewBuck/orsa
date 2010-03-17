@@ -372,16 +372,16 @@ int main(int argc, char ** argv) {
   const orsa::Time dt(0,0,10,0,0); // used to compute apparent velocity
   
   // extract observatory and date from input file name
-  size_t found_underscore = std::string(argv[1]).find("_",0);
-  size_t found_dot        = std::string(argv[1]).find(".",0);
+  size_t found_underscore = std::string(::basename(argv[1])).find("_",0);
+  size_t found_dot        = std::string(::basename(argv[1])).find(".",0);
   if ((found_underscore == std::string::npos) || (found_dot == std::string::npos)) {
-    ORSA_DEBUG("not regular filename: %s",argv[1]);
+    ORSA_DEBUG("not regular filename: %s",::basename(argv[1]));
     exit(0);
   }
   // ORSA_DEBUG("found: %i",found);
   std::string obsCode, compactDate;
-  obsCode.assign(argv[1],0,found_underscore);
-  compactDate.assign(argv[1],found_underscore+1,found_dot-found_underscore-1);
+  obsCode.assign(::basename(argv[1]),0,found_underscore);
+  compactDate.assign(::basename(argv[1]),found_underscore+1,found_dot-found_underscore-1);
   //
   ORSA_DEBUG("    obsCode: [%s]",obsCode.c_str());
   ORSA_DEBUG("compactDate: [%s]",compactDate.c_str());
