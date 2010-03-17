@@ -138,15 +138,22 @@ class SkyCoverage : public osg::Referenced {
   orsa::Cache<double> eta0, c, V0, w;
   
  public:
-  // return all the filename up to the first dot
+  // return filename, stripping path and suffix (after first dot)
   static std::string basename(const std::string & filename) {
-    size_t found_dot = std::string(filename).find(".",0);
+    const size_t found_last_slash = std::string(filename).find_last_of("//");
+    const size_t found_dot = std::string(filename).find(".",(found_last_slash==std::string::npos?0:found_last_slash+1));
+    // ORSA_DEBUG("[%s] -> last_slash: %i first dot after slash: %i",filename.c_str(),found_last_slash,found_dot);
     if (found_dot == std::string::npos) {
       ORSA_DEBUG("not regular filename: %s",filename.c_str());
       exit(0);
     }
     std::string s;
-    s.assign(filename,0,found_dot);
+    if (found_last_slash!=std::string::npos) {
+      s.assign(filename,found_last_slash+1,found_dot-found_last_slash-1);
+    } else {
+      s.assign(filename,0,found_dot);
+    }
+    // ORSA_DEBUG("returning: [%s]",s.c_str());
     return s;
   }
 };
