@@ -74,7 +74,7 @@ bool StandardObservatoryPositionCallback::getPosVel(orsa::Vector      & position
     
     // LMST = GMST + longitude
     double s, c;
-    sincos(orsaSolarSystem::gmst(t).getRad()+observatory.lon.getRef(),&s,&c);
+    orsa::sincos(orsaSolarSystem::gmst(t).getRad()+observatory.lon.getRef(),&s,&c);
     obsPos = orsa::Vector(observatory.pxy.getRef()*c,
 			  observatory.pxy.getRef()*s,
 			  observatory.pz.getRef());

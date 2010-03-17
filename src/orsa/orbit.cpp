@@ -350,13 +350,13 @@ bool Orbit::relativePosVel(Vector & relativePosition, Vector & relativeVelocity)
   if (_cached_omega_pericenter.isSet()) {
     if (_cached_omega_pericenter.getRef() != omega_pericenter) {
       _cached_omega_pericenter = omega_pericenter;
-      sincos(omega_pericenter,&_sp,&_cp);
+      orsa::sincos(omega_pericenter,&_sp,&_cp);
     } else {
       // ORSA_DEBUG("-- speedup --");
     }
   } else {
     _cached_omega_pericenter = omega_pericenter;
-    sincos(omega_pericenter,&_sp,&_cp);
+    orsa::sincos(omega_pericenter,&_sp,&_cp);
   } 
   //
   const double sp = _sp;
@@ -365,13 +365,13 @@ bool Orbit::relativePosVel(Vector & relativePosition, Vector & relativeVelocity)
   if (_cached_omega_node.isSet()) {
     if (_cached_omega_node.getRef() != omega_node) {
       _cached_omega_node = omega_node;
-      sincos(omega_node,&_so,&_co);
+      orsa::sincos(omega_node,&_so,&_co);
     } else {
       // ORSA_DEBUG("-- speedup --");
     }
   } else {
     _cached_omega_node = omega_node;
-    sincos(omega_node,&_so,&_co);
+    orsa::sincos(omega_node,&_so,&_co);
   } 
   //
   const double so = _so;
@@ -380,13 +380,13 @@ bool Orbit::relativePosVel(Vector & relativePosition, Vector & relativeVelocity)
   if (_cached_i.isSet()) {
     if (_cached_i.getRef() != i) {
       _cached_i = i;
-      sincos(i,&_si,&_ci);
+      orsa::sincos(i,&_si,&_ci);
     } else {
       // ORSA_DEBUG("-- speedup --");
     }
   } else {
     _cached_i = i;
-    sincos(i,&_si,&_ci);
+    orsa::sincos(i,&_si,&_ci);
   } 
   //
   const double si = _si;
@@ -394,15 +394,15 @@ bool Orbit::relativePosVel(Vector & relativePosition, Vector & relativeVelocity)
   
 #else // _ORBIT_RPV_SPEEDUP_
   
-  sincos(omega_pericenter,&s,&c);
+  orsa::sincos(omega_pericenter,&s,&c);
   const double sp = s;
   const double cp = c;
   
-  sincos(omega_node,&s,&c);
+  orsa::sincos(omega_node,&s,&c);
   const double so = s;
   const double co = c;
   
-  sincos(i,&s,&c);
+  orsa::sincos(i,&s,&c);
   const double si = s;
   const double ci = c;
   
@@ -429,7 +429,7 @@ bool Orbit::relativePosVel(Vector & relativePosition, Vector & relativeVelocity)
     
     cape = eccentricAnomaly();
     
-    sincos(cape,&s,&c);
+    orsa::sincos(cape,&s,&c);
     const double scap = s;
     const double ccap = c;
 

@@ -243,10 +243,8 @@ osg::Group * Viz::createRoot() {
     const double dx = twopi()/n_points;
     double s,c;
     for (unsigned int j=0; j<n_points; ++j) {
-      sincos(dx*j,&s,&c);
+      orsa::sincos(dx*j,&s,&c);
       (*coords)[j].set(osg::Vec3d(c-1.0,s,0.0));
-      // sincos(dx*(j+1),&s,&c);
-      // (*coords)[j].set(osg::Vec3d(c,s,0.0));
     }
     //
     unitOffsetCircle->setVertexArray(coords);
@@ -286,7 +284,7 @@ osg::Group * Viz::createRoot() {
      const double AU = FromUnits(1,orsa::Unit::AU);
      for (unsigned int j=0; j<pointsPerSegment; ++j) {
      // for (unsigned int j=s*pointsPerSegment; j<(s+1)*pointsPerSegment; ++j) {
-     sincos(dx*(j+s*pointsPerSegment),&ds,&dc);
+     orsa::sincos(dx*(j+s*pointsPerSegment),&ds,&dc);
      (*coords)[j].set(osg::Vec3d(AU*(dc-1.0),AU*ds,0.0));
      }
      }

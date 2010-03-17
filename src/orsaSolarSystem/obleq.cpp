@@ -52,9 +52,9 @@ void orsaSolarSystem::equatorialToGalactic(double & l,
 					   const double & ra,
 					   const double & dec) {
   double c_ra, s_ra;
-  sincos(ra,&s_ra,&c_ra);
+  orsa::sincos(ra,&s_ra,&c_ra);
   double c_dec, s_dec;
-  sincos(dec,&s_dec,&c_dec);
+  orsa::sincos(dec,&s_dec,&c_dec);
   b = asin(c_dec*cos(dec_g)*cos(ra-ra_g)+s_dec*sin(dec_g));
   l = l_g+atan2((s_dec/c_dec)*cos(dec_g)-cos(ra-ra_g)*sin(dec_g),sin(ra-ra_g));
 }
@@ -64,9 +64,9 @@ void orsaSolarSystem::galacticToEquatorial(double & ra,
 					   const double & l,
 					   const double & b) {
   double c_b, s_b;
-  sincos(b,&s_b,&c_b);
+  orsa::sincos(b,&s_b,&c_b);
   double c_l, s_l;
-  sincos(l,&s_l,&c_l);
+  orsa::sincos(l,&s_l,&c_l);
   dec = asin(c_b*cos(dec_g)*sin(l-l_g)+s_b*sin(dec_g));
   ra = ra_g+atan2(cos(l-l_g),(s_b/c_b)*cos(dec_g)-sin(dec_g)*sin(l-l_g));
 }

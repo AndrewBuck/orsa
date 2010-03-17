@@ -11,13 +11,13 @@ SkyCoverage::~SkyCoverage() { }
 orsa::Vector SkyCoverage::unitVector(const orsa::Angle & ra,
 				     const orsa::Angle & dec) {
   double s_ra, c_ra;
-  sincos(ra.getRad(),
-	 &s_ra,
-	 &c_ra);
+  orsa::sincos(ra.getRad(),
+	       &s_ra,
+	       &c_ra);
   double s_dec, c_dec;
-  sincos(dec.getRad(),
-	 &s_dec, 
-	 &c_dec);
+  orsa::sincos(dec.getRad(),
+	       &s_dec, 
+	       &c_dec);
   return (orsaSolarSystem::equatorialToEcliptic() * 
 	  orsa::Vector(c_dec*c_ra,
 		       c_dec*s_ra,

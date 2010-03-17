@@ -58,7 +58,12 @@ namespace orsa {
   }
   
   inline void sincos(const Angle & angle, double * s, double * c) {
+#ifdef __APPLE__
+    (*s) = sin(angle.getRad());
+    (*c) = cos(angle.getRad());
+#else
     ::sincos(angle.getRad(),s,c); 
+#endif
   }
   
 } // namespace orsa

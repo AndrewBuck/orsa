@@ -339,7 +339,7 @@ Matrix Matrix::axisRotation(const Vector & v, const double & angle) {
   P.m23 = P.m32 = u.getY()*u.getZ();
   //
   double s,c;
-  sincos(angle,&s,&c);
+  orsa::sincos(angle,&s,&c);
   //
   const Matrix M = P + c * (Matrix::identity() - P) + s * S;
   return M;
@@ -347,7 +347,7 @@ Matrix Matrix::axisRotation(const Vector & v, const double & angle) {
 
 Matrix Matrix::rotX(const double & angle) {
   double s,c;
-  sincos(angle,&s,&c);
+  orsa::sincos(angle,&s,&c);
   Matrix rot;
   rot.m12 = rot.m13 = rot.m21 = rot.m31 = 0;
   rot.m11 = 1;
@@ -367,7 +367,7 @@ Matrix Matrix::rotX(const double & angle) {
 
 Matrix Matrix::rotY(const double & angle) {
   double s,c;
-  sincos(angle,&s,&c);
+  orsa::sincos(angle,&s,&c);
   Matrix rot;
   rot.m12 = rot.m21 = rot.m23 = rot.m32 = 0;
   rot.m22 = 1;
@@ -387,7 +387,7 @@ Matrix Matrix::rotY(const double & angle) {
 
 Matrix Matrix::rotZ(const double & angle) {
   double s,c;
-  sincos(angle,&s,&c);
+  orsa::sincos(angle,&s,&c);
   Matrix rot;
   rot.m13 = rot.m23 = rot.m31 = rot.m32 = 0;
   rot.m33 = 1;
