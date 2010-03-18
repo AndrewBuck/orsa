@@ -101,7 +101,9 @@ class SkyCoverage : public osg::Referenced {
   
   inline double eta_V(const double & V,
 		      const double & V_limit) const {
-    return eta_V(V,V_limit,eta0.getRef(),c.getRef(),V0.getRef(),w.getRef());
+    // return eta_V(V,V_limit,eta0.getRef(),l.getRef(),V0.getRef(),w.getRef());
+    ORSA_DEBUG("CODE NEEDED HERE, sync with eta_V below");
+    return 0.5;
   }
   
  public:
@@ -109,13 +111,19 @@ class SkyCoverage : public osg::Referenced {
   static inline double eta_V(const double & V,
 			     const double & V_limit,
 			     const double & eta0_V,
-			     const double & c_V,
 			     const double & V0,
+			     const double & quad,
+			     const double & pow,
 			     const double & w_V) {
-    if (V<V0) return eta0_V;
-    double retVal = (eta0_V-c_V*orsa::square(V-V0))/(1+exp((V-V_limit)/w_V));
-    // if (retVal < orsa::epsilon()) retVal=0.0;
-    // if (retVal > 1.0) retVal=1.0;
+    double retVal;
+    if (V<V0) {
+      retVal = eta0_V;
+    } else {
+      retVal = (eta0_V-quad*::pow(V-V0,pow))/(1.0+exp((V-V_limit)/w_V));
+    }
+    // ORSA_DEBUG("V: %g   prelim. retVal: %g",V,retVal);
+    if (retVal < 0.0) retVal=0.0;
+    if (retVal > 1.0) retVal=1.0;
     return retVal;
   }
   
@@ -127,15 +135,15 @@ class SkyCoverage : public osg::Referenced {
 			     const double & U0) {
     if (U>U0) return 1.0;
     double retVal = 1.0/(1+exp((U_limit_slow-U)/w_U_slow));
-    // if (retVal < orsa::epsilon()) retVal=0.0;
-    // if (retVal > 1.0) retVal=1.0;
+    if (retVal < 0.0) retVal=0.0;
+    if (retVal > 1.0) retVal=1.0;
     return retVal;
   }
   
  public:
   // coefficients for efficiency as function of apparent magnitude
   // should include a function of the galactic latitude <-> background stars number density
-  orsa::Cache<double> eta0, c, V0, w;
+  orsa::Cache<double> eta0, l, c, V0, w;
   
  public:
   // return filename, stripping path and suffix (after first dot)

@@ -71,7 +71,7 @@ int main(int argc, char ** argv) {
     fclose(fp);
   }
   
-  const double V0=17.0;
+  const double V0=16.0;
   const double U0=orsa::FromUnits(100.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
   EfficiencyMultifit::DataStorage data;
   {
@@ -81,8 +81,9 @@ int main(int argc, char ** argv) {
     
     double V=V0;
     const double dV=0.2;
+    // const double VFactor=1.05;
     while (V<=24.0) {
-      double apparentVelocity=orsa::FromUnits(0.01*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+      double apparentVelocity=orsa::FromUnits(0.1*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
       const double apparentVelocityFactor=1.2;
       while (apparentVelocity<orsa::FromUnits(300.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)) {
 	
@@ -90,6 +91,7 @@ int main(int argc, char ** argv) {
 	for (unsigned int k=0; k<etaData.size(); ++k) {
 	  if ((etaData[k].V.getRef()>=V) && 
 	      (etaData[k].V.getRef()<V+dV) && 
+	      // (etaData[k].V.getRef()<V*VFactor) && 
 	      (etaData[k].apparentVelocity.getRef()>=apparentVelocity) &&
 	      (etaData[k].apparentVelocity.getRef()<apparentVelocityFactor*apparentVelocity)) {
 	    ++Ntot;
@@ -100,14 +102,14 @@ int main(int argc, char ** argv) {
 	}
 	
 	// write point only if Ntot != 0
-	if (Ntot!=0) {
+	if (Ntot>=2) {
 	  const double      eta = (double)Nobs/(double)Ntot;
 	  const double sigmaEta = (double)(sqrt(Nobs+1))/(double)(Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
 	  
 	  fprintf(fp_eta,
 		  "%.6f %.6f %.6f %.6f %.6f %.6f %7i %7i\n",
-		  V+0.5*dV,
-		  dV,
+		  V+0.5*dV, // V*0.5*(1+VFactor), // V+0.5*dV,
+		  dV, // VFactor, // dV,
 		  orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToArcsec(),orsa::Unit::HOUR),
 		  apparentVelocityFactor,
 		  eta,
@@ -115,10 +117,11 @@ int main(int argc, char ** argv) {
 		  Nobs,
 		  Ntot);
 	  
+	  // ORSA_DEBUG("sigmaEta: %g   Nobs: %i   Ntot: %i",sigmaEta,Nobs,Ntot);
 	  
 	  EfficiencyMultifit::DataElement el;
 	  //
-	  el.V=V;
+	  el.V=V+0.5*dV;
 	  el.U=apparentVelocity;
 	  el.eta=eta;
 	  el.sigmaEta=sigmaEta;
@@ -130,6 +133,7 @@ int main(int argc, char ** argv) {
       }
       
       V += dV;
+      // V *= VFactor;
     }
     
     fclose(fp_eta);
@@ -146,7 +150,8 @@ int main(int argc, char ** argv) {
   osg::ref_ptr<const orsa::MultifitParameters> parFinal = etaFit->getMultifitParameters();
   // save final parameters
   const double  eta0_V = parFinal->get("eta0_V");
-  const double     c_V = parFinal->get("c_V");
+  const double    quad = parFinal->get("quad");
+  // const double     pow = parFinal->get("pow");
   const double V_limit = parFinal->get("V_limit");
   const double     w_V = parFinal->get("w_V");
   //
@@ -200,8 +205,9 @@ int main(int argc, char ** argv) {
       const double eta_V = SkyCoverage::eta_V(data[k].V.getRef(),
 					      V_limit,
 					      eta0_V,
-					      c_V,
 					      V0,
+					      quad,
+					      2.0, // pow,
 					      w_V);
 
       const double eta_U = SkyCoverage::eta_U(data[k].U.getRef(),
@@ -209,6 +215,7 @@ int main(int argc, char ** argv) {
 					      w_U_slow,
 					      U0);
       
+      // at this point, small sigmas can become huge because divided by a very small eta's
       if (data[k].sigmaEta.getRef() > 0) {
 	if (eta_U != 0) {
 	  sV->insert(data[k].eta.getRef()/eta_U,
@@ -237,6 +244,21 @@ int main(int argc, char ** argv) {
 	  ++it;
 	  continue;
 	}
+	/* 
+	   if ((*it)->entries()<2) {
+	   // at least two entries are necessary to estimate variance
+	   ++it;
+	   continue;
+	   }
+	*/
+	if ((*it)->averageError()==0.0) {
+	  ++it;
+	  continue;
+	}
+	if ((*it)->averageError()>1.0) {
+	  ++it;
+	  continue;
+	}
 	fprintf(fpv,"%g %g %g %g\n",
 		(*it)->center,
 		(*it)->fit.getRef(),
@@ -253,6 +275,21 @@ int main(int argc, char ** argv) {
       while (it != stat_U.end()) {
 	if (!(*it)->fit.isSet()) {
 	  ORSA_DEBUG("problems: fit value not set");
+	  ++it;
+	  continue;
+	}
+	/* 
+	   if ((*it)->entries()<2) {
+	   // at least two entries are necessary to estimate variance
+	   ++it;
+	   continue;
+	   }
+	*/
+	if ((*it)->averageError()==0.0) {
+	  ++it;
+	  continue;
+	}
+	if ((*it)->averageError()>1.0) {
 	  ++it;
 	  continue;
 	}

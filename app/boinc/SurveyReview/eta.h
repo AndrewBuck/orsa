@@ -48,10 +48,11 @@ class EfficiencyMultifit : public orsa::Multifit {
     // const double initial_w_U_fast     = orsa::FromUnits( 10.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
     //    
     // V pars
-    par->insert("eta0_V",     0.95,  0.001);
-    par->insert("c_V",        0.001, 0.00001);
-    par->insert("V_limit",   19.00,  0.001);
-    par->insert("w_V",        0.50,  0.001); 
+    par->insert("eta0_V",  0.8, 0.00001);
+    par->insert("quad",    0.00, 0.00001);
+    // par->insert("pow",           2.0, 0.001);
+    par->insert("V_limit",19.00,  0.001);
+    par->insert("w_V",     0.50,  0.0001); 
     // U pars
     // par->insert("eta0_U",     0.95,  0.001);
     // par->insert("c_U",        1.0e-9,1.0e-12);
@@ -60,13 +61,14 @@ class EfficiencyMultifit : public orsa::Multifit {
     // par->insert("U_limit_fast",    initial_U_limit_fast, initial_U_limit_fast*0.001);
     // par->insert("w_U_fast",        initial_w_U_fast,     initial_w_U_fast*0.001); 
     // ranges
-    // par->setRange("eta0_V",0.0,1.0);
+    par->setRange("eta0_V",0.0,1.0);
     // excluding eta0_U for the moment...
     // par->setRange("eta0_U",0.0,1.0);
     // par->setRangeMin("c",0.0); // don't set this one, as often c becomes negative while iterating
     // par->setRangeMin("V_limit",V0);
     // par->setRangeMin("U_limit",0.0);
     // par->setRangeMax("U_limit",U0);
+    //xs par->setRange("pow",0.0,5.0);
     //
     setMultifitParameters(par.get());
     
@@ -109,8 +111,9 @@ class EfficiencyMultifit : public orsa::Multifit {
     const double eta_V = SkyCoverage::eta_V(data->getD("V",row),
 					    localPar->get("V_limit"),
 					    localPar->get("eta0_V"),
-					    localPar->get("c_V"),
-					    V0,
+					    V0, // localPar->get("V0"),
+					    localPar->get("quad"),
+					    2.0, // localPar->get("pow"),    
 					    localPar->get("w_V"));
     
     const double eta_U = SkyCoverage::eta_U(data->getD("U",row),
