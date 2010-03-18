@@ -163,12 +163,12 @@ class EfficiencyMultifit : public orsa::Multifit {
     double c = 1.0;
     //
     const unsigned int dof = _data->size() - _par->size();
+    const double chi = gsl_blas_dnrm2(s->f);
     if (dof > 0) {
-      const double chi = gsl_blas_dnrm2(s->f);
       c = GSL_MAX_DBL(1.0, chi / sqrt(dof)); 
-      ORSA_DEBUG("chisq/dof = %g",  chi*chi/dof);
+      // ORSA_DEBUG("chisq/dof = %g",  chi*chi/dof);
       // gmp_fprintf(fp,"chisq/dof = %g\n",  chi*chi/dof);
-    }
+    } 
     //
     const double factor = c;
     
@@ -180,24 +180,31 @@ class EfficiencyMultifit : public orsa::Multifit {
     
     FILE * fp = fopen(outputFile.c_str(),"w");
     
+    // first var names
+    fprintf(fp,"# chi-sq");
+    for (unsigned int p=0; p<_par->size(); ++p) {
+      fprintf(fp," %s +/- sigma",_par->name(p).c_str());
+    }
+    fprintf(fp,"\n");
+    
+    fprintf(fp,"%g",chi*chi/(dof>0?dof:1.0));
     for (unsigned int p=0; p<_par->size(); ++p) {
       // first, specific cases where unit conversions or factors are needed
       if ((_par->name(p) == "U_limit") || 
 	  (_par->name(p) == "w_U")) {
 	fprintf(fp,
-		"%s %g %g\n",
-		_par->name(p).c_str(),
+		" %g %g",
 		orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
 		orsa::FromUnits(factor*ERR(p)*orsa::radToArcsec(),orsa::Unit::HOUR));
       } else {
 	// generic one
 	fprintf(fp,
-		"%s %g %g\n",
-		_par->name(p).c_str(),
+		" %g %g",
 		_par->get(p),
 		factor*ERR(p));
       }
     }
+    fprintf(fp,"\n");
     
     fclose(fp);
     
