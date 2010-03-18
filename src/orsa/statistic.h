@@ -8,6 +8,7 @@
 
 #include <orsa/cache.h>
 #include <orsa/double.h>
+#include <orsa/debug.h>
 
 namespace orsa {
   
@@ -89,8 +90,8 @@ namespace orsa {
   public:
     void insert(const T & val,
 		const T & weight) {
-      if (weight < 0) {
-	ORSA_DEBUG("problems: negative weight...");
+      if (weight <= 0) {
+	ORSA_DEBUG("problems: negative or zero weight...");
       } else {
 	VW vw;
 	vw.v = val;
@@ -109,26 +110,37 @@ namespace orsa {
       return (_s/_w);
     }
  public:
+    // this formula is "chi-squared" corrected
+    /* T variance() const {
+       if (_vw.size() > 1) {
+       const T _a = average();
+       T _w = 0;
+       for (unsigned int k=0; k<_vw.size(); ++k) {
+       _w += _vw[k].w;
+       }
+       T _s2 = 0;
+       T _w2 = 0;
+       for (unsigned int k=0; k<_vw.size(); ++k) {
+       const T _va = _vw[k].v - _a;
+       const T _norm_w = _vw[k].w/_w;
+       _s2 += _norm_w*_va*_va;
+       _w2 += _norm_w*_norm_w;
+       }
+       _s2 *= 1/(1-_w2);
+       return _s2;
+       } else {
+       return 0;
+       }
+       }
+    */
+  public:
+    // straight-forward formula, preferred in the general case
     T variance() const {
-      if (_vw.size() > 1) {
-	const T _a = average();
-	T _w = 0;
-	for (unsigned int k=0; k<_vw.size(); ++k) {
-	  _w += _vw[k].w;
-	}
-	T _s2 = 0;
-	T _w2 = 0;
-	for (unsigned int k=0; k<_vw.size(); ++k) {
-	  const T _va = _vw[k].v - _a;
-	  const T _norm_w = _vw[k].w/_w;
-	  _s2 += _norm_w*_va*_va;
-	  _w2 += _norm_w*_norm_w;
-	}
-	_s2 *= 1/(1-_w2);
-	return _s2;
-      } else {
-	return 0;
+      T _w = 0;
+      for (unsigned int k=0; k<_vw.size(); ++k) {
+       	_w += _vw[k].w;
       }
+      return (1/_w);
     }
   public:
     T standardDeviation() const {
@@ -154,7 +166,6 @@ namespace orsa {
  protected:
     std::vector<VW> _vw;
   };
-  
   
   template <class T> class RunningStatistic : public osg::Referenced {
   public:
