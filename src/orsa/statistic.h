@@ -143,7 +143,7 @@ namespace orsa {
       }
     }
   public:
-    const mpz_class & entries() const {
+    const mpz_class entries() const {
       return _vw.size();
     }
    protected:
