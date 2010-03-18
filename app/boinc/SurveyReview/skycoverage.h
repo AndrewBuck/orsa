@@ -99,11 +99,18 @@ class SkyCoverage : public osg::Referenced {
   // orsa::Cache<orsa::Time>  nightStart, nightStop;  // epoch -/+ 1/2 observing period
   orsa::Cache<std::string> obscode;
   
-  inline double eta_V(const double & V,
-		      const double & V_limit) const {
-    // return eta_V(V,V_limit,eta0.getRef(),l.getRef(),V0.getRef(),w.getRef());
-    ORSA_DEBUG("CODE NEEDED HERE, sync with eta_V below");
-    return 0.5;
+  inline double eta(const double & V,
+		    const double & U) const {
+    return (eta_V(V,
+		  V_limit.getRef(),
+		  eta0_V.getRef(),
+		  V0.getRef(),
+		  c_V.getRef(),
+		  w_V.getRef()) * 
+	    eta_U(U,
+		  U_limit.getRef(),
+		  w_U.getRef(),
+		  U0.getRef()));
   }
   
  public:
@@ -112,14 +119,13 @@ class SkyCoverage : public osg::Referenced {
 			     const double & V_limit,
 			     const double & eta0_V,
 			     const double & V0,
-			     const double & quad,
-			     const double & pow,
+			     const double & c_V,
 			     const double & w_V) {
     double retVal;
     if (V<V0) {
       retVal = eta0_V;
     } else {
-      retVal = (eta0_V-quad*::pow(V-V0,pow))/(1.0+exp((V-V_limit)/w_V));
+      retVal = (eta0_V-c_V*orsa::square(V-V0))/(1.0+exp((V-V_limit)/w_V));
     }
     // ORSA_DEBUG("V: %g   prelim. retVal: %g",V,retVal);
     if (retVal < 0.0) retVal=0.0;
@@ -130,21 +136,21 @@ class SkyCoverage : public osg::Referenced {
  public:
   // U = apparent velocity
   static inline double eta_U(const double & U,
-			     const double & U_limit_slow,
-			     const double & w_U_slow,
+			     const double & U_limit,
+			     const double & w_U,
 			     const double & U0) {
     if (U>U0) return 1.0;
-    double retVal = 1.0/(1+exp((U_limit_slow-U)/w_U_slow));
+    double retVal = 1.0/(1+exp((U_limit-U)/w_U));
     if (retVal < 0.0) retVal=0.0;
     if (retVal > 1.0) retVal=1.0;
     return retVal;
   }
   
  public:
-  // coefficients for efficiency as function of apparent magnitude
-  // should include a function of the galactic latitude <-> background stars number density
-  orsa::Cache<double> eta0, l, c, V0, w;
-  
+  // coefficients for efficiency as function of apparent magnitude V
+  orsa::Cache<double> V_limit, eta0_V, V0, c_V, w_V;
+  // coefficients for efficiency as function of apparent velocity U
+  orsa::Cache<double> U_limit, w_U, U0;
  public:
   // return filename, stripping path and suffix (after first dot)
   static std::string basename(const std::string & filename) {

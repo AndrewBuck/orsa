@@ -148,29 +148,30 @@ int main() {
       boinc_resolve_filename_s("obs.dat",resolvedFileName);
       FILE * fp = boinc_fopen(resolvedFileName.c_str(),"r"); 
       if (fp) { 
-	char obscode[1024], epoch[1024];
-	double eta0, c, V0, w;
-	if (6 != gmp_fscanf(fp,"%s %s %lf %lf %lf %lf",
-			    obscode,
-			    epoch,
-			    &eta0,&c,&V0,&w)) {
-	  ORSA_DEBUG("problems...");
-	  boinc_finish(0); 
-	} 
-	fclose(fp);
-	if (strlen(obscode) != 3) {
-	  ORSA_DEBUG("check possibly wrong obscode: [%s]",obscode);
-	  boinc_finish(0); 
-	}
-	
-	skyCoverage->obscode = obscode;
-	skyCoverage->epoch   = orsa::Time(mpz_class(epoch));
-	
-	skyCoverage->eta0 = eta0;
-	skyCoverage->c    = c;
-	skyCoverage->V0   = V0;
-	skyCoverage->w    = w;
-	
+#warning RE-INCLUDE THIS CODE!
+	/* char obscode[1024], epoch[1024];
+	   double eta0, c, V0, w;
+	   if (6 != gmp_fscanf(fp,"%s %s %lf %lf %lf %lf",
+	   obscode,
+	   epoch,
+	   &eta0,&c,&V0,&w)) {
+	   ORSA_DEBUG("problems...");
+	   boinc_finish(0); 
+	   } 
+	   fclose(fp);
+	   if (strlen(obscode) != 3) {
+	   ORSA_DEBUG("check possibly wrong obscode: [%s]",obscode);
+	   boinc_finish(0); 
+	   }
+	 
+	   skyCoverage->obscode = obscode;
+	   skyCoverage->epoch   = orsa::Time(mpz_class(epoch));
+	   
+	   skyCoverage->eta0 = eta0;
+	   skyCoverage->c    = c;
+	   skyCoverage->V0   = V0;
+	   skyCoverage->w    = w;
+	*/
       } else {
 	ORSA_DEBUG("cannot open observatory file");
 	boinc_finish(0);   
@@ -516,21 +517,24 @@ int main() {
 						 neo2sun.length());
 	      
 	      // efficiency
-	      const double eta = skyCoverage->eta_V(V,V_field);
-	      
-	      ORSA_DEBUG("a: %f [AU] e: %f i: %f [deg] H: %f V: %f eta: %e",
-			 orsa::FromUnits(orbit->a,orsa::Unit::AU,-1),
-			 orbit->e,
-			 orsa::radToDeg()*orbit->i,
-			 orbit->H,
-			 V,
-			 eta);
-	      
-	      eta_NEO->insert(eta);
-	      //
-	      if (orbit->isPHO()) {
-		eta_PHO->insert(eta);
-	      }
+#warning RE-INCLUDE THIS CODE
+	      /* 
+		 const double eta = skyCoverage->eta(V,U);
+		 
+		 ORSA_DEBUG("a: %f [AU] e: %f i: %f [deg] H: %f V: %f eta: %e",
+		 orsa::FromUnits(orbit->a,orsa::Unit::AU,-1),
+		 orbit->e,
+		 orsa::radToDeg()*orbit->i,
+		 orbit->H,
+		 V,
+		 eta);
+		 
+		 eta_NEO->insert(eta);
+		 //
+		 if (orbit->isPHO()) {
+		 eta_PHO->insert(eta);
+		 }
+	      */
 	      
 	      // if (boinc_is_standalone()) {
 	      

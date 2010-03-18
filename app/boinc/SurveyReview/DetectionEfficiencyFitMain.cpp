@@ -81,7 +81,6 @@ int main(int argc, char ** argv) {
     
     double V=V0;
     const double dV=0.2;
-    // const double VFactor=1.05;
     while (V<=24.0) {
       double apparentVelocity=orsa::FromUnits(0.1*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
       const double apparentVelocityFactor=1.2;
@@ -91,7 +90,6 @@ int main(int argc, char ** argv) {
 	for (unsigned int k=0; k<etaData.size(); ++k) {
 	  if ((etaData[k].V.getRef()>=V) && 
 	      (etaData[k].V.getRef()<V+dV) && 
-	      // (etaData[k].V.getRef()<V*VFactor) && 
 	      (etaData[k].apparentVelocity.getRef()>=apparentVelocity) &&
 	      (etaData[k].apparentVelocity.getRef()<apparentVelocityFactor*apparentVelocity)) {
 	    ++Ntot;
@@ -108,16 +106,14 @@ int main(int argc, char ** argv) {
 	  
 	  fprintf(fp_eta,
 		  "%.6f %.6f %.6f %.6f %.6f %.6f %7i %7i\n",
-		  V+0.5*dV, // V*0.5*(1+VFactor), // V+0.5*dV,
-		  dV, // VFactor, // dV,
+		  V+0.5*dV, 
+		  dV, 
 		  orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToArcsec(),orsa::Unit::HOUR),
 		  apparentVelocityFactor,
 		  eta,
 		  sigmaEta,
 		  Nobs,
 		  Ntot);
-	  
-	  // ORSA_DEBUG("sigmaEta: %g   Nobs: %i   Ntot: %i",sigmaEta,Nobs,Ntot);
 	  
 	  EfficiencyMultifit::DataElement el;
 	  //
@@ -133,7 +129,6 @@ int main(int argc, char ** argv) {
       }
       
       V += dV;
-      // V *= VFactor;
     }
     
     fclose(fp_eta);
@@ -150,16 +145,12 @@ int main(int argc, char ** argv) {
   osg::ref_ptr<const orsa::MultifitParameters> parFinal = etaFit->getMultifitParameters();
   // save final parameters
   const double  eta0_V = parFinal->get("eta0_V");
-  const double    quad = parFinal->get("quad");
-  // const double     pow = parFinal->get("pow");
+  const double     c_V = parFinal->get("c_V");
   const double V_limit = parFinal->get("V_limit");
   const double     w_V = parFinal->get("w_V");
   //
-  const double U_limit_slow = parFinal->get("U_limit_slow");
-  const double     w_U_slow = parFinal->get("w_U_slow");
-  // const double U_limit_fast = parFinal->get("U_limit_fast");
-  // const double     w_U_fast = parFinal->get("w_U_fast");
-#warning keep vars in sync with fitting code
+  const double U_limit = parFinal->get("U_limit");
+  const double     w_U = parFinal->get("w_U");
   
   if (0) {
     // output for testing
@@ -206,16 +197,15 @@ int main(int argc, char ** argv) {
 					      V_limit,
 					      eta0_V,
 					      V0,
-					      quad,
-					      2.0, // pow,
+					      c_V,
 					      w_V);
-
+      
       const double eta_U = SkyCoverage::eta_U(data[k].U.getRef(),
-					      U_limit_slow,
-					      w_U_slow,
+					      U_limit,
+					      w_U,
 					      U0);
       
-      // at this point, small sigmas can become huge because divided by a very small eta's
+      // at this point, small sigmas can become very large because divided by a very small eta's
       if (data[k].sigmaEta.getRef() > 0) {
 	if (eta_U != 0) {
 	  sV->insert(data[k].eta.getRef()/eta_U,
@@ -244,13 +234,6 @@ int main(int argc, char ** argv) {
 	  ++it;
 	  continue;
 	}
-	/* 
-	   if ((*it)->entries()<2) {
-	   // at least two entries are necessary to estimate variance
-	   ++it;
-	   continue;
-	   }
-	*/
 	if ((*it)->averageError()==0.0) {
 	  ++it;
 	  continue;
@@ -278,13 +261,6 @@ int main(int argc, char ** argv) {
 	  ++it;
 	  continue;
 	}
-	/* 
-	   if ((*it)->entries()<2) {
-	   // at least two entries are necessary to estimate variance
-	   ++it;
-	   continue;
-	   }
-	*/
 	if ((*it)->averageError()==0.0) {
 	  ++it;
 	  continue;
