@@ -72,7 +72,6 @@ int main(int argc, char ** argv) {
   }
   
   const double V0=16.0;
-  const double U0=orsa::FromUnits(100.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
   EfficiencyMultifit::DataStorage data;
   {
     char filename[1024];
@@ -138,7 +137,7 @@ int main(int argc, char ** argv) {
   sprintf(filename,"%s.fit.dat",basename.c_str());
   
   osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
-  const bool success = etaFit->fit(data,V0,U0,filename);
+  const bool success = etaFit->fit(data,V0,filename);
   if (!success) { 
     ORSA_DEBUG("problems??");
   }
@@ -151,6 +150,8 @@ int main(int argc, char ** argv) {
   //
   const double U_limit = parFinal->get("U_limit");
   const double     w_U = parFinal->get("w_U");
+  //
+  const double    beta = parFinal->get("beta");
   
   if (0) {
     // output for testing
@@ -193,32 +194,28 @@ int main(int argc, char ** argv) {
 	}
       }
       
-      const double eta_V = SkyCoverage::eta_V(data[k].V.getRef(),
-					      V_limit,
-					      eta0_V,
-					      V0,
-					      c_V,
-					      w_V);
-      
-      const double eta_U = SkyCoverage::eta_U(data[k].U.getRef(),
-					      U_limit,
-					      w_U,
-					      U0);
+      const double eta = SkyCoverage::eta(data[k].V.getRef(),
+					  V_limit,
+					  eta0_V,
+					  V0,
+					  c_V,
+					  w_V,
+					  data[k].U.getRef(),
+					  U_limit,
+					  w_U,
+					  beta);
       
       // at this point, small sigmas can become very large because divided by a very small eta's
       if (data[k].sigmaEta.getRef() > 0) {
-	if (eta_U != 0) {
-	  sV->insert(data[k].eta.getRef()/eta_U,
-		     orsa::square(eta_U/data[k].sigmaEta.getRef()));
+	if (eta != 0) {
+	  sV->insert(data[k].eta.getRef()/eta,
+		     orsa::square(eta/data[k].sigmaEta.getRef()));
+	  sU->insert(data[k].eta.getRef()/eta,
+		     orsa::square(eta/data[k].sigmaEta.getRef()));
 	}
-	if (eta_V != 0) {
-	  sU->insert(data[k].eta.getRef()/eta_V,
-		     orsa::square(eta_V/data[k].sigmaEta.getRef()));
-	}
+	if (!sV->fit.isSet()) sV->fit = 1.0;
+	if (!sU->fit.isSet()) sU->fit = 1.0;
       }
-      
-      if (!sV->fit.isSet()) sV->fit = eta_V;
-      if (!sU->fit.isSet()) sU->fit = eta_U;
     }
     
     // sort lists

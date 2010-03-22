@@ -101,46 +101,38 @@ class SkyCoverage : public osg::Referenced {
   
   inline double eta(const double & V,
 		    const double & U) const {
-    return (eta_V(V,
-		  V_limit.getRef(),
-		  eta0_V.getRef(),
-		  V0.getRef(),
-		  c_V.getRef(),
-		  w_V.getRef()) * 
-	    eta_U(U,
-		  U_limit.getRef(),
-		  w_U.getRef(),
-		  U0.getRef()));
+    return eta(V,
+	       V_limit.getRef(),
+	       eta0_V.getRef(),
+	       V0.getRef(),
+	       c_V.getRef(),
+	       w_V.getRef(),
+	       U,
+	       U_limit.getRef(),
+	       w_U.getRef(),
+	       beta.getRef());
   }
   
  public:
-  // V = apparent magnitude
-  static inline double eta_V(const double & V,
-			     const double & V_limit,
-			     const double & eta0_V,
-			     const double & V0,
-			     const double & c_V,
-			     const double & w_V) {
+  static inline double eta(const double & V,
+			   const double & V_limit,
+			   const double & eta0_V,
+			   const double & V0,
+			   const double & c_V,
+			   const double & w_V,
+			   const double & U,
+			   const double & U_limit,
+			   const double & w_U,
+			   const double & beta) {
     double retVal;
     if (V<V0) {
       retVal = eta0_V;
     } else {
-      retVal = (eta0_V-c_V*orsa::square(V-V0))/(1.0+exp((V-V_limit)/w_V));
+      retVal = 
+	(eta0_V-c_V*orsa::square(V-V0)) / 
+	(1.0+exp( cos(beta)*(V-V_limit)/w_V + sin(beta)*(U_limit-U)/w_U)) / 
+	(1.0+exp(-sin(beta)*(V-V_limit)/w_V + cos(beta)*(U_limit-U)/w_U));
     }
-    // ORSA_DEBUG("V: %g   prelim. retVal: %g",V,retVal);
-    if (retVal < 0.0) retVal=0.0;
-    if (retVal > 1.0) retVal=1.0;
-    return retVal;
-  }
-  
- public:
-  // U = apparent velocity
-  static inline double eta_U(const double & U,
-			     const double & U_limit,
-			     const double & w_U,
-			     const double & U0) {
-    if (U>U0) return 1.0;
-    double retVal = 1.0/(1+exp((U_limit-U)/w_U));
     if (retVal < 0.0) retVal=0.0;
     if (retVal > 1.0) retVal=1.0;
     return retVal;
@@ -150,7 +142,9 @@ class SkyCoverage : public osg::Referenced {
   // coefficients for efficiency as function of apparent magnitude V
   orsa::Cache<double> V_limit, eta0_V, V0, c_V, w_V;
   // coefficients for efficiency as function of apparent velocity U
-  orsa::Cache<double> U_limit, w_U, U0;
+  orsa::Cache<double> U_limit, w_U;
+  // mixing angle
+  orsa::Cache<double> beta;
  public:
   // return filename, stripping path and suffix (after first dot)
   static std::string basename(const std::string & filename) {

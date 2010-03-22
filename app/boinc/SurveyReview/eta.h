@@ -27,13 +27,11 @@ class EfficiencyMultifit : public orsa::Multifit {
   // U = apparent velocity
   bool fit(const DataStorage & data_in,
 	   const double      & V0_in,
-	   const double      & U0_in,
 	   const std::string & outputFile_in) {
     
     // local copies
     data = data_in;
     V0 = V0_in;
-    U0 = U0_in;
     //
     outputFile = outputFile_in;
     
@@ -53,6 +51,8 @@ class EfficiencyMultifit : public orsa::Multifit {
     // U pars
     par->insert("U_limit",    initial_U_limit, 0.001*initial_U_limit);
     par->insert("w_U",        initial_w_U,     0.001*initial_w_U); 
+    // mixing 
+    par->insert("beta",  0.0, 0.00001);
     // ranges
     par->setRange("eta0_V",0.0,1.0);
     //
@@ -94,20 +94,17 @@ class EfficiencyMultifit : public orsa::Multifit {
     // modify
     localPar->set(p,par->get(p)+d*par->getDelta(p));
     
-    const double eta_V = SkyCoverage::eta_V(data->getD("V",row),
-					    localPar->get("V_limit"),
-					    localPar->get("eta0_V"),
-					    V0,
-					    localPar->get("c_V"),
-					    localPar->get("w_V"));
-    
-    const double eta_U = SkyCoverage::eta_U(data->getD("U",row),
-					    localPar->get("U_limit"),
-					    localPar->get("w_U"),
-					    U0);
-    
-    
-    return (eta_V*eta_U);
+    const double eta = SkyCoverage::eta(data->getD("V",row),
+					localPar->get("V_limit"),
+					localPar->get("eta0_V"),
+					V0,
+					localPar->get("c_V"),
+					localPar->get("w_V"),
+					data->getD("U",row),
+					localPar->get("U_limit"),
+					localPar->get("w_U"),
+					localPar->get("beta"));
+    return eta;
   }
  protected: 
   void singleIterationDone(const gsl_multifit_fdfsolver * s) const { 
@@ -142,6 +139,11 @@ class EfficiencyMultifit : public orsa::Multifit {
 		   _par->name(p).c_str(),
 		   orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
 		   orsa::FromUnits(factor*ERR(p)*orsa::radToArcsec(),orsa::Unit::HOUR));
+      } else if (_par->name(p) == "beta") {
+	ORSA_DEBUG("%s: %g +/- %g [deg]",
+		   _par->name(p).c_str(),
+		   orsa::radToDeg()*_par->get(p),
+		   orsa::radToDeg()*factor*ERR(p));
       } else {
 	// generic one
 	ORSA_DEBUG("%s: %g +/- %g",
@@ -213,7 +215,6 @@ class EfficiencyMultifit : public orsa::Multifit {
  protected:
   DataStorage data;
   double V0;
-  double U0;
   std::string outputFile;
 };
 
