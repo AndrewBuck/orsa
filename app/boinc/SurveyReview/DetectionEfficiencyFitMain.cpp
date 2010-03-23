@@ -88,7 +88,7 @@ int main(int argc, char ** argv) {
       const double apparentVelocityFactor=1.2;
       while (apparentVelocity<orsa::FromUnits(300.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)) {
 	
-	unsigned int Nobs=0,Ntot=0;
+	unsigned int Nobs=0,Ndsc=0,Ntot=0; // dsc=discovered
 	for (unsigned int k=0; k<etaData.size(); ++k) {
 	  if ((etaData[k].V.getRef()>=V) && 
 	      (etaData[k].V.getRef()<V+dV) && 
@@ -98,6 +98,9 @@ int main(int argc, char ** argv) {
 	    if (etaData[k].observed.getRef()) {
 	      ++Nobs;
 	    }
+	    if (etaData[k].discovered.getRef()) {
+	      ++Ndsc;
+	    }	
 	  }
 	}
 	
@@ -107,7 +110,7 @@ int main(int argc, char ** argv) {
 	  const double sigmaEta = (double)(sqrt(Nobs+1))/(double)(Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
 	  
 	  fprintf(fp_eta,
-		  "%.6f %.6f %.6f %.6f %.6f %.6f %7i %7i\n",
+		  "%.6f %.6f %.6f %.6f %.6f %.6f %7i %7i %7i\n",
 		  V+0.5*dV, 
 		  dV, 
 		  orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToArcsec(),orsa::Unit::HOUR),
@@ -115,6 +118,7 @@ int main(int argc, char ** argv) {
 		  eta,
 		  sigmaEta,
 		  Nobs,
+		  Ndsc,
 		  Ntot);
 	  
 	  EfficiencyMultifit::DataElement el;
@@ -123,6 +127,9 @@ int main(int argc, char ** argv) {
 	  el.U=apparentVelocity;
 	  el.eta=eta;
 	  el.sigmaEta=sigmaEta;
+	  el.Nobs=Nobs;
+	  el.Ndsc=Ndsc;
+	  el.Ntot=Ntot;
 	  //
 	  data.push_back(el);
 	}
@@ -136,11 +143,15 @@ int main(int argc, char ** argv) {
     fclose(fp_eta);
   }    
   
+  osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile = new orsaInputOutput::MPCObsCodeFile;
+  obsCodeFile->setFileName("obscode.dat");
+  obsCodeFile->read();
+  
   char fitFilename[1024];
   sprintf(fitFilename,"%s.fit.dat",basename.c_str());
   
   osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
-  const bool success = etaFit->fit(data,V0,fitFilename,basename);
+  const bool success = etaFit->fit(data,V0,fitFilename,basename,obsCodeFile.get());
   if (!success) { 
     ORSA_DEBUG("problems??");
   }

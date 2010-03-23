@@ -244,22 +244,26 @@ std::string SkyCoverage::basename(const std::string & filename) {
   return s;
 }
 
-bool SkyCoverage::processFilename(char * filename,
+bool SkyCoverage::processFilename(const std::string & filename_in,
 				  orsaInputOutput::MPCObsCodeFile * obsCodeFile,
 				  std::string & obsCode,
 				  orsa::Time & epoch,
 				  int & year,
 				  int & dayOfYear) {
   
-  // char filename[1024];
-  // sprintf(filename,"%s",filename_str.c_str());
+  char filename[1024];
+  sprintf(filename,"%s",filename_in.c_str());
   
   // extract observatory and date from input file name
   size_t found_underscore = std::string(::basename(filename)).find("_",0);
   size_t found_dot        = std::string(::basename(filename)).find(".",0);
-  if ((found_underscore == std::string::npos) || (found_dot == std::string::npos)) {
-    ORSA_DEBUG("not regular filename: %s",::basename(filename));
+  if (found_underscore == std::string::npos) {
+    ORSA_DEBUG("no underscore found in filename: %s",::basename(filename));
     return false;
+  }
+  if (found_dot == std::string::npos) {
+    // filename without dot, using full file size
+    found_dot = strlen(filename);
   }
   // ORSA_DEBUG("found: %i",found);
   std::string compactDate;
@@ -295,7 +299,7 @@ bool SkyCoverage::processFilename(char * filename,
     epoch = orsaSolarSystem::gregorTime(year,
 					1,
 					dayOfYear+1.0-observatory.lon.getRef()/orsa::twopi());
-    orsa::print(epoch);
+    // orsa::print(epoch);
   } else {
     ORSA_DEBUG("problems...");
     return false;

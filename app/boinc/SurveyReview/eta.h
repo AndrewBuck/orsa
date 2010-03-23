@@ -21,6 +21,7 @@ class EfficiencyMultifit : public orsa::Multifit {
     // V = apparent magnitude
     // U = apparent velocity
     orsa::Cache<double> V, U, eta, sigmaEta;
+    orsa::Cache<unsigned int> Nobs, Ndsc, Ntot;
   };
   typedef std::vector<DataElement> DataStorage;
  public:
@@ -29,14 +30,16 @@ class EfficiencyMultifit : public orsa::Multifit {
   bool fit(const DataStorage & data_in,
 	   const double      & V0_in,
 	   const std::string & outputFile_in,
-	   const std::string & jobID_in) {
+	   const std::string & jobID_in,
+	   orsaInputOutput::MPCObsCodeFile * obsCodeFile_in) {
     
     // local copies
     data = data_in;
     V0 = V0_in;
     //
-    outputFile = outputFile_in;
-    jobID      = jobID_in;
+    outputFile  = outputFile_in;
+    jobID       = jobID_in;
+    obsCodeFile = obsCodeFile_in;
     
     // basic checks
     if (data.size()==0) return false;
@@ -161,6 +164,20 @@ class EfficiencyMultifit : public orsa::Multifit {
  protected:
   void success(const gsl_multifit_fdfsolver * s) const {
     
+    std::string obsCode;
+    orsa::Time epoch;
+    int year;
+    int dayOfYear;
+    if (!SkyCoverage::processFilename(jobID.c_str(),
+				      obsCodeFile,
+				      obsCode,
+				      epoch,
+				      year,
+				      dayOfYear)) {
+      ORSA_DEBUG("problems...");
+      exit(0);
+    }
+    
     for (unsigned int k=0; k<_par->size(); ++k) {
       _par->set(k, gsl_vector_get(s->x,k));
     }
@@ -183,35 +200,47 @@ class EfficiencyMultifit : public orsa::Multifit {
     
 #define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
     
+    ORSA_DEBUG("writing file: [%s]",outputFile.c_str());
     FILE * fp = fopen(outputFile.c_str(),"w");
     
+    // NOTE: all spaces in printed strings are measured to keep good alignment
+    
     // first var names
-    fprintf(fp,"#");
+    fprintf(fp,"# ");
+    fprintf(fp,"       JD ");
+    fprintf(fp,"       year ");
     for (unsigned int p=0; p<_par->size(); ++p) {
-      fprintf(fp," %s +/- sigma",_par->name(p).c_str());
+      fprintf(fp,"%11s +/- sigma ",_par->name(p).c_str());
     }
-    fprintf(fp," chisq/dof");
+    fprintf(fp," chisq/dof ");
+    fprintf(fp,"      jobID ");
     fprintf(fp,"\n");
     
-    fprintf(fp,"%g",chi*chi/(dof>0?dof:1.0));
+    fprintf(fp,"%.3f ",orsaSolarSystem::timeToJulian(epoch));
+    fprintf(fp,"%.6f ",orsaSolarSystem::fractionalYear(epoch));
     for (unsigned int p=0; p<_par->size(); ++p) {
       // first, specific cases where unit conversions or factors are needed
       if ((_par->name(p) == "U_limit") || 
 	  (_par->name(p) == "w_U")) {
 	fprintf(fp,
-		" %g %g",
+		"%+.3e %+.3e ",
 		orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
 		orsa::FromUnits(factor*ERR(p)*orsa::radToArcsec(),orsa::Unit::HOUR));
+      } else if (_par->name(p) == "beta") {
+	fprintf(fp,
+		"%+.3e %+.3e ",
+		orsa::radToDeg()*_par->get(p),
+		orsa::radToDeg()*factor*ERR(p));
       } else {
 	// generic one
 	fprintf(fp,
-		" %g %g",
+		"%+.3e %+.3e ",
 		_par->get(p),
 		factor*ERR(p));
       }
     } 
-    fprintf(fp," %g",chi*chi/(dof>0?dof:1.0));
-    fprintf(fp," %s",jobID.c_str());
+    fprintf(fp,"%+.3e ",chi*chi/(dof>0?dof:1.0));
+    fprintf(fp,"%s ",jobID.c_str());
     fprintf(fp,"\n");
     
     fclose(fp);
@@ -223,6 +252,7 @@ class EfficiencyMultifit : public orsa::Multifit {
   double V0;
   std::string outputFile;
   std::string jobID;
+  orsaInputOutput::MPCObsCodeFile * obsCodeFile;
 };
 
 #endif // __ETA_H_

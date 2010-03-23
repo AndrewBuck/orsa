@@ -167,7 +167,7 @@ class SkyCoverage : public osg::Referenced {
   // return filename, stripping path and suffix (after first dot)
   static std::string basename(const std::string & filename);
  public:
-  static bool processFilename(char * filename,
+  static bool processFilename(const std::string & filename_in,
 			      orsaInputOutput::MPCObsCodeFile * obsCodeFile,
 			      std::string & obsCode,
 			      orsa::Time & epoch,
