@@ -26,5 +26,5 @@ unix:!macx {
 	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads
 }
 
-HEADERS = 
-SOURCES = GenMakeMain.cpp
+HEADERS = skycoverage.h
+SOURCES = skycoverage.cpp GenMakeMain.cpp

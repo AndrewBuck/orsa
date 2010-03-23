@@ -8,13 +8,18 @@
 #include <orsa/vector.h>
 
 #include <orsaInputOutput/file.h>
+#include <orsaInputOutput/MPC_asteroid.h>
+#include <orsaInputOutput/MPC_observations.h>
+#include <orsaInputOutput/MPC_obscode.h>
 
+#include <orsaSolarSystem/observatory.h>
 #include <orsaSolarSystem/orbit.h>
 
 #include <osg/Referenced>
 
 #include <string>
 #include <list>
+#include <libgen.h>
 
 // single night, single observatory
 class SkyCoverage : public osg::Referenced {
@@ -94,49 +99,62 @@ class SkyCoverage : public osg::Referenced {
   std::list<SkyCoverageElement> data;
   
  public:
-  orsa::Cache<orsa::Time>  epoch;               // local midnight epoch
-  // orsa::Cache<orsa::Time>  halfObservingPeriod; // 1/2 of the duration of the observing night
-  // orsa::Cache<orsa::Time>  nightStart, nightStop;  // epoch -/+ 1/2 observing period
+  orsa::Cache<orsa::Time>  epoch;   // local midnight epoch
   orsa::Cache<std::string> obscode;
   
-  inline double eta(const double & V,
-		    const double & U) const {
-    return eta(V,
-	       V_limit.getRef(),
-	       eta0_V.getRef(),
-	       V0.getRef(),
-	       c_V.getRef(),
-	       w_V.getRef(),
-	       U,
-	       U_limit.getRef(),
-	       w_U.getRef(),
-	       beta.getRef());
-  }
+ public:
+  double eta(const double & V,
+	     const double & U) const;
+  /* inline double eta(const double & V,
+     const double & U) const {
+     return eta(V,
+     V_limit.getRef(),
+     eta0_V.getRef(),
+     V0.getRef(),
+     c_V.getRef(),
+     w_V.getRef(),
+     U,
+     U_limit.getRef(),
+     w_U.getRef(),
+     beta.getRef());
+     }
+  */
   
  public:
-  static inline double eta(const double & V,
-			   const double & V_limit,
-			   const double & eta0_V,
-			   const double & V0,
-			   const double & c_V,
-			   const double & w_V,
-			   const double & U,
-			   const double & U_limit,
-			   const double & w_U,
-			   const double & beta) {
-    double retVal;
-    if (V<V0) {
-      retVal = eta0_V;
-    } else {
-      retVal = 
-	(eta0_V-c_V*orsa::square(V-V0)) / 
-	(1.0+exp( cos(beta)*(V-V_limit)/w_V + sin(beta)*(U_limit-U)/w_U)) / 
-	(1.0+exp(-sin(beta)*(V-V_limit)/w_V + cos(beta)*(U_limit-U)/w_U));
-    }
-    if (retVal < 0.0) retVal=0.0;
-    if (retVal > 1.0) retVal=1.0;
-    return retVal;
-  }
+  static double eta(const double & V,
+		    const double & V_limit,
+		    const double & eta0_V,
+		    const double & V0,
+		    const double & c_V,
+		    const double & w_V,
+		    const double & U,
+		    const double & U_limit,
+		    const double & w_U,
+		    const double & beta);
+  /* static inline double eta(const double & V,
+     const double & V_limit,
+     const double & eta0_V,
+     const double & V0,
+     const double & c_V,
+     const double & w_V,
+     const double & U,
+     const double & U_limit,
+     const double & w_U,
+     const double & beta) {
+     double retVal;
+     if (V<V0) {
+     retVal = eta0_V;
+     } else {
+     retVal = 
+     (eta0_V-c_V*orsa::square(V-V0)) / 
+     (1.0+exp( cos(beta)*(V-V_limit)/w_V + sin(beta)*(U_limit-U)/w_U)) / 
+     (1.0+exp(-sin(beta)*(V-V_limit)/w_V + cos(beta)*(U_limit-U)/w_U));
+     }
+     if (retVal < 0.0) retVal=0.0;
+     if (retVal > 1.0) retVal=1.0;
+     return retVal;
+     }
+  */
   
  public:
   // coefficients for efficiency as function of apparent magnitude V
@@ -147,23 +165,14 @@ class SkyCoverage : public osg::Referenced {
   orsa::Cache<double> beta;
  public:
   // return filename, stripping path and suffix (after first dot)
-  static std::string basename(const std::string & filename) {
-    const size_t found_last_slash = std::string(filename).find_last_of("//");
-    const size_t found_dot = std::string(filename).find(".",(found_last_slash==std::string::npos?0:found_last_slash+1));
-    // ORSA_DEBUG("[%s] -> last_slash: %i first dot after slash: %i",filename.c_str(),found_last_slash,found_dot);
-    if (found_dot == std::string::npos) {
-      ORSA_DEBUG("not regular filename: %s",filename.c_str());
-      exit(0);
-    }
-    std::string s;
-    if (found_last_slash!=std::string::npos) {
-      s.assign(filename,found_last_slash+1,found_dot-found_last_slash-1);
-    } else {
-      s.assign(filename,0,found_dot);
-    }
-    // ORSA_DEBUG("returning: [%s]",s.c_str());
-    return s;
-  }
+  static std::string basename(const std::string & filename);
+ public:
+  static bool processFilename(char * filename,
+			      orsaInputOutput::MPCObsCodeFile * obsCodeFile,
+			      std::string & obsCode,
+			      orsa::Time & epoch,
+			      int & year,
+			      int & dayOfYear);    
 };
 
 #endif // SURVEY_REVIEW_SKY_COVERAGE

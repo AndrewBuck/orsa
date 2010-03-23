@@ -45,13 +45,15 @@ int main(int argc, char ** argv) {
     double H, V, apparentVelocity;
     char id[1024];
     int observed;
+    int discovered;
     while (fgets(line,1024,fp)) {
-      sscanf(line,"%lf %s %lf %lf %i",
+      sscanf(line,"%lf %s %lf %lf %i %i",
 	     &H,
 	     id,
 	     &V,
 	     &apparentVelocity,
-	     &observed);
+	     &observed,
+	     &discovered);
       // convert
       apparentVelocity = orsa::FromUnits(apparentVelocity*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
       //
@@ -65,6 +67,7 @@ int main(int argc, char ** argv) {
       ed.V=V;
       ed.apparentVelocity=apparentVelocity;
       ed.observed = (observed==1);
+      ed.discovered = (discovered==1);
       //
       etaData.push_back(ed);
     }
@@ -133,11 +136,11 @@ int main(int argc, char ** argv) {
     fclose(fp_eta);
   }    
   
-  char filename[1024];
-  sprintf(filename,"%s.fit.dat",basename.c_str());
+  char fitFilename[1024];
+  sprintf(fitFilename,"%s.fit.dat",basename.c_str());
   
   osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
-  const bool success = etaFit->fit(data,V0,filename);
+  const bool success = etaFit->fit(data,V0,fitFilename,basename);
   if (!success) { 
     ORSA_DEBUG("problems??");
   }

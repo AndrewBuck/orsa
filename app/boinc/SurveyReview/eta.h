@@ -11,6 +11,7 @@ class EfficiencyData {
   orsa::Cache<double> V;
   orsa::Cache<double> apparentVelocity;
   orsa::Cache<bool>   observed;
+  orsa::Cache<bool>   discovered;
 };
 
 class EfficiencyMultifit : public orsa::Multifit {
@@ -27,13 +28,15 @@ class EfficiencyMultifit : public orsa::Multifit {
   // U = apparent velocity
   bool fit(const DataStorage & data_in,
 	   const double      & V0_in,
-	   const std::string & outputFile_in) {
+	   const std::string & outputFile_in,
+	   const std::string & jobID_in) {
     
     // local copies
     data = data_in;
     V0 = V0_in;
     //
     outputFile = outputFile_in;
+    jobID      = jobID_in;
     
     // basic checks
     if (data.size()==0) return false;
@@ -183,10 +186,11 @@ class EfficiencyMultifit : public orsa::Multifit {
     FILE * fp = fopen(outputFile.c_str(),"w");
     
     // first var names
-    fprintf(fp,"# chi-sq");
+    fprintf(fp,"#");
     for (unsigned int p=0; p<_par->size(); ++p) {
       fprintf(fp," %s +/- sigma",_par->name(p).c_str());
     }
+    fprintf(fp," chisq/dof");
     fprintf(fp,"\n");
     
     fprintf(fp,"%g",chi*chi/(dof>0?dof:1.0));
@@ -205,7 +209,9 @@ class EfficiencyMultifit : public orsa::Multifit {
 		_par->get(p),
 		factor*ERR(p));
       }
-    }
+    } 
+    fprintf(fp," %g",chi*chi/(dof>0?dof:1.0));
+    fprintf(fp," %s",jobID.c_str());
     fprintf(fp,"\n");
     
     fclose(fp);
@@ -216,6 +222,7 @@ class EfficiencyMultifit : public orsa::Multifit {
   DataStorage data;
   double V0;
   std::string outputFile;
+  std::string jobID;
 };
 
 #endif // __ETA_H_

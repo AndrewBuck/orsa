@@ -88,9 +88,10 @@ bool SkyCoverage::setField(const double & x1,
   const double field_RA  = acos(u1*u2);
   const double field_DEC = acos(u2*u3);
   
-  ORSA_DEBUG("field: %f x %f [deg^2] [RAxDEC]",
-	     orsa::radToDeg()*field_RA,
-	     orsa::radToDeg()*field_DEC);
+  /* ORSA_DEBUG("field: %f x %f [deg^2] [RAxDEC]",
+     orsa::radToDeg()*field_RA,
+     orsa::radToDeg()*field_DEC);
+  */
   
   SkyCoverageElement e;
   
@@ -186,4 +187,120 @@ double SkyCoverage::minDistance(const orsa::Vector & u,
   }
   return minArc;
 }
+
+double SkyCoverage::eta(const double & V,
+			const double & U) const {
+  return SkyCoverage::eta(V,
+			  V_limit.getRef(),
+			  eta0_V.getRef(),
+			  V0.getRef(),
+			  c_V.getRef(),
+			  w_V.getRef(),
+			  U,
+			  U_limit.getRef(),
+			  w_U.getRef(),
+			  beta.getRef());
+}
+
+double SkyCoverage::eta(const double & V,
+			const double & V_limit,
+			const double & eta0_V,
+			const double & V0,
+			const double & c_V,
+			const double & w_V,
+			const double & U,
+			const double & U_limit,
+			const double & w_U,
+			const double & beta) {
+  double retVal;
+  if (V<V0) {
+    retVal = eta0_V;
+  } else {
+    retVal = 
+      (eta0_V-c_V*orsa::square(V-V0)) / 
+      (1.0+exp( cos(beta)*(V-V_limit)/w_V + sin(beta)*(U_limit-U)/w_U)) / 
+      (1.0+exp(-sin(beta)*(V-V_limit)/w_V + cos(beta)*(U_limit-U)/w_U));
+  }
+  if (retVal < 0.0) retVal=0.0;
+  if (retVal > 1.0) retVal=1.0;
+  return retVal;
+}
+
+std::string SkyCoverage::basename(const std::string & filename) {
+  const size_t found_last_slash = std::string(filename).find_last_of("//");
+  const size_t found_dot = std::string(filename).find(".",(found_last_slash==std::string::npos?0:found_last_slash+1));
+  // ORSA_DEBUG("[%s] -> last_slash: %i first dot after slash: %i",filename.c_str(),found_last_slash,found_dot);
+  if (found_dot == std::string::npos) {
+    ORSA_DEBUG("not regular filename: %s",filename.c_str());
+    exit(0);
+  }
+  std::string s;
+  if (found_last_slash!=std::string::npos) {
+    s.assign(filename,found_last_slash+1,found_dot-found_last_slash-1);
+  } else {
+    s.assign(filename,0,found_dot);
+  }
+  // ORSA_DEBUG("returning: [%s]",s.c_str());
+  return s;
+}
+
+bool SkyCoverage::processFilename(char * filename,
+				  orsaInputOutput::MPCObsCodeFile * obsCodeFile,
+				  std::string & obsCode,
+				  orsa::Time & epoch,
+				  int & year,
+				  int & dayOfYear) {
+  
+  // char filename[1024];
+  // sprintf(filename,"%s",filename_str.c_str());
+  
+  // extract observatory and date from input file name
+  size_t found_underscore = std::string(::basename(filename)).find("_",0);
+  size_t found_dot        = std::string(::basename(filename)).find(".",0);
+  if ((found_underscore == std::string::npos) || (found_dot == std::string::npos)) {
+    ORSA_DEBUG("not regular filename: %s",::basename(filename));
+    return false;
+  }
+  // ORSA_DEBUG("found: %i",found);
+  std::string compactDate;
+  obsCode.assign(::basename(filename),0,found_underscore);
+  compactDate.assign(::basename(filename),found_underscore+1,found_dot-found_underscore-1);
+  //
+  // ORSA_DEBUG("    obsCode: [%s]",obsCode.c_str());
+  // ORSA_DEBUG("compactDate: [%s]",compactDate.c_str());
+  
+  // translate file obscode to MPC standard obscode
+  obsCode = SkyCoverage::alias(obsCode);
+  // ORSA_DEBUG("MPC obsCode: [%s]",obsCode.c_str());
+  
+  /* osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile = new orsaInputOutput::MPCObsCodeFile;
+     obsCodeFile->setFileName("obscode.dat");
+     obsCodeFile->read();
+     
+     osg::ref_ptr<orsaSolarSystem::StandardObservatoryPositionCallback> obsPosCB =
+     new orsaSolarSystem::StandardObservatoryPositionCallback(obsCodeFile.get());
+  */
+  
+  const orsaSolarSystem::Observatory & observatory = 
+    obsCodeFile->_data.observatory[obsCode];
+  
+  // local midnight epoch
+  if (strlen(compactDate.c_str())==7) {
+    // seven character date format
+    std::string s_year,s_dayOfYear;
+    s_year.assign(compactDate,0,4);
+    s_dayOfYear.assign(compactDate,4,3);
+    year = atoi(s_year.c_str());
+    dayOfYear = atoi(s_dayOfYear.c_str());
+    epoch = orsaSolarSystem::gregorTime(year,
+					1,
+					dayOfYear+1.0-observatory.lon.getRef()/orsa::twopi());
+    orsa::print(epoch);
+  } else {
+    ORSA_DEBUG("problems...");
+    return false;
+  }   
+  return true;
+}
+
 

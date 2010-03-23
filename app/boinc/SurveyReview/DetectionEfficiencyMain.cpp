@@ -40,7 +40,7 @@ public:
     */
     ++processedLines;
     if ((processedLines>0) && (processedLines%100000==0)) {
-      ORSA_DEBUG("lines processed: %i   selected: %i",processedLines,_data.size());
+      // ORSA_DEBUG("lines processed: %i   selected: %i",processedLines,_data.size());
     }
     return retVal;
   }
@@ -371,25 +371,6 @@ int main(int argc, char ** argv) {
   
   const orsa::Time dt(0,0,10,0,0); // used to compute apparent velocity
   
-  // extract observatory and date from input file name
-  size_t found_underscore = std::string(::basename(argv[1])).find("_",0);
-  size_t found_dot        = std::string(::basename(argv[1])).find(".",0);
-  if ((found_underscore == std::string::npos) || (found_dot == std::string::npos)) {
-    ORSA_DEBUG("not regular filename: %s",::basename(argv[1]));
-    exit(0);
-  }
-  // ORSA_DEBUG("found: %i",found);
-  std::string obsCode, compactDate;
-  obsCode.assign(::basename(argv[1]),0,found_underscore);
-  compactDate.assign(::basename(argv[1]),found_underscore+1,found_dot-found_underscore-1);
-  //
-  ORSA_DEBUG("    obsCode: [%s]",obsCode.c_str());
-  ORSA_DEBUG("compactDate: [%s]",compactDate.c_str());
-  
-  // translate file obscode to MPC standard obscode
-  obsCode = SkyCoverage::alias(obsCode);
-  ORSA_DEBUG("MPC obsCode: [%s]",obsCode.c_str());
-  
   osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile = new orsaInputOutput::MPCObsCodeFile;
   obsCodeFile->setFileName("obscode.dat");
   obsCodeFile->read();
@@ -397,27 +378,19 @@ int main(int argc, char ** argv) {
   osg::ref_ptr<orsaSolarSystem::StandardObservatoryPositionCallback> obsPosCB =
     new orsaSolarSystem::StandardObservatoryPositionCallback(obsCodeFile.get());
   
-  const orsaSolarSystem::Observatory & observatory = 
-    obsCodeFile->_data.observatory[obsCode];
-  
-  // local midnight epoch
+  std::string obsCode;
   orsa::Time epoch;
-  int _y;
-  if (strlen(compactDate.c_str())==7) {
-    // seven character date format
-    std::string s_year,s_dayOfYear;
-    s_year.assign(compactDate,0,4);
-    s_dayOfYear.assign(compactDate,4,3);
-    _y = atoi(s_year.c_str());
-    epoch = orsaSolarSystem::gregorTime(_y,
-					1,
-					atoi(s_dayOfYear.c_str())+1.0-observatory.lon.getRef()/orsa::twopi());
-    orsa::print(epoch);
-  } else {
+  int year;
+  int dayOfYear;
+  if (!SkyCoverage::processFilename(argv[1],
+				    obsCodeFile.get(),
+				    obsCode,
+				    epoch,
+				    year,
+				    dayOfYear)) {
     ORSA_DEBUG("problems...");
     exit(0);
   }
-  const int year = _y;
   
   osg::ref_ptr<SkyCoverage> skyCoverage = new SkyCoverage;
   //
@@ -626,24 +599,37 @@ int main(int argc, char ** argv) {
     const double phaseAngle = acos(orb2sun.normalized()*orb2obs.normalized());
     //
     bool observed=false;
+    bool discovered=false;
     orsaSolarSystem::OpticalObservation * obs;
     for (unsigned int kobs=0; kobs<obsFile->_data.size(); ++kobs) {
       obs = dynamic_cast<orsaSolarSystem::OpticalObservation *> (obsFile->_data[kobs].get());
       if (obs) {
-	if (!obs->mag.isSet()) {
-	  // ORSA_DEBUG("mag not set, skipping");
-	  continue;
-	}
+	/* 
+	   if (!obs->mag.isSet()) {
+	   // ORSA_DEBUG("mag not set, skipping");
+	   continue;
+	   }
+	*/
 	if (obs->designation.isSet() && orbitFile->_data[korb].designation.isSet()) {
 	  if (obs->designation.getRef() == orbitFile->_data[korb].designation.getRef()) {
 	    observed=true;
-	    break;
+	    if (obs->discovery.isSet()) {
+	      if (obs->discovery.getRef()) {
+		discovered=true;
+	      }
+	    }
+	    // break; // no break, because it can skip the discovery asterisk
 	  }
 	}
 	if (obs->number.isSet() && orbitFile->_data[korb].number.isSet()) {
 	  if (obs->number.getRef() == orbitFile->_data[korb].number.getRef()) {
 	    observed=true;
-	    break;
+	    if (obs->discovery.isSet()) {
+	      if (obs->discovery.getRef()) {
+		discovered=true;
+	      }
+	    }
+	    // break; // no break, because it can skip the discovery asterisk
 	  }
 	}
       }	  
@@ -662,6 +648,7 @@ int main(int argc, char ** argv) {
 			     orb2sun.length()); 
     ed.apparentVelocity = acos(orb2obs_dt.normalized()*orb2obs.normalized())/dt.get_d();
     ed.observed = observed;
+    ed.discovered = discovered;
     etaData.push_back(ed);
   }
   //
@@ -678,12 +665,13 @@ int main(int argc, char ** argv) {
 	sprintf(id,"%s",ed.designation.getRef().c_str());
       }
       fprintf(fp_allEta,
-	      "%5.2f %7s %5.2f %10.6f %1i\n",
+	      "%5.2f %7s %5.2f %10.6f %1i %1i\n",
 	      ed.H.getRef(),
 	      id,
 	      ed.V.getRef(),
 	      orsa::FromUnits(ed.apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR), // arcsec/hour
-	      ed.observed.getRef());
+	      ed.observed.getRef(),
+	      ed.discovered.getRef());
     }
     fclose(fp_allEta);
   }
