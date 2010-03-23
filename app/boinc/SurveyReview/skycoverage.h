@@ -84,6 +84,10 @@ class SkyCoverage : public osg::Referenced {
 		     const bool verbose=false) const;
   
  public:
+  // total area of sky covered, as declared in file, no check for overlaps is performed
+  double totalDegSq() const;
+  
+ public:
   class SkyCoverageElement {
   public:
     orsa::Vector u_centerField;
@@ -105,20 +109,6 @@ class SkyCoverage : public osg::Referenced {
  public:
   double eta(const double & V,
 	     const double & U) const;
-  /* inline double eta(const double & V,
-     const double & U) const {
-     return eta(V,
-     V_limit.getRef(),
-     eta0_V.getRef(),
-     V0.getRef(),
-     c_V.getRef(),
-     w_V.getRef(),
-     U,
-     U_limit.getRef(),
-     w_U.getRef(),
-     beta.getRef());
-     }
-  */
   
  public:
   static double eta(const double & V,
@@ -131,30 +121,6 @@ class SkyCoverage : public osg::Referenced {
 		    const double & U_limit,
 		    const double & w_U,
 		    const double & beta);
-  /* static inline double eta(const double & V,
-     const double & V_limit,
-     const double & eta0_V,
-     const double & V0,
-     const double & c_V,
-     const double & w_V,
-     const double & U,
-     const double & U_limit,
-     const double & w_U,
-     const double & beta) {
-     double retVal;
-     if (V<V0) {
-     retVal = eta0_V;
-     } else {
-     retVal = 
-     (eta0_V-c_V*orsa::square(V-V0)) / 
-     (1.0+exp( cos(beta)*(V-V_limit)/w_V + sin(beta)*(U_limit-U)/w_U)) / 
-     (1.0+exp(-sin(beta)*(V-V_limit)/w_V + cos(beta)*(U_limit-U)/w_U));
-     }
-     if (retVal < 0.0) retVal=0.0;
-     if (retVal > 1.0) retVal=1.0;
-     return retVal;
-     }
-  */
   
  public:
   // coefficients for efficiency as function of apparent magnitude V
@@ -173,6 +139,66 @@ class SkyCoverage : public osg::Referenced {
 			      orsa::Time & epoch,
 			      int & year,
 			      int & dayOfYear);    
+};
+
+class SkyCoverageFile : 
+public orsaInputOutput::InputFile < orsaInputOutput::CompressedFile, osg::ref_ptr<SkyCoverage> > {
+ public:
+  SkyCoverageFile() : 
+    orsaInputOutput::InputFile < orsaInputOutput::CompressedFile, osg::ref_ptr<SkyCoverage> > () {
+    _data = new SkyCoverage;
+  }
+ protected:
+  ~SkyCoverageFile() { }
+ public:
+  void setFileName (const std::string & filename) {
+    // first, read obscode and epoch from filename
+    osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile = new orsaInputOutput::MPCObsCodeFile;
+    obsCodeFile->setFileName("obscode.dat");
+    obsCodeFile->read();
+    std::string obsCode;
+    orsa::Time epoch;
+    int year;
+    int dayOfYear;
+    if (!SkyCoverage::processFilename(filename,
+				      obsCodeFile.get(),
+				      obsCode,
+				      epoch,
+				      year,
+				      dayOfYear)) {
+      ORSA_DEBUG("problems...");
+    }
+    _data->obscode=obsCode;
+    _data->epoch=epoch;
+    // now, regular call
+    orsaInputOutput::InputFile < orsaInputOutput::CompressedFile, osg::ref_ptr<SkyCoverage> >::setFileName(filename);
+  }
+ public:
+  bool processLine(const char * line) {
+    double x1,x2,x3,x4; // ra
+    double y1,y2,y3,y4; // dec
+    double V;           // limiting mag 
+    if (9 == gmp_sscanf(line,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",
+			&x1,&y1,
+			&x2,&y2,
+			&x3,&y3,
+			&x4,&y4,
+			&V)) {
+      SkyCoverage::normalize(x1,y1);
+      SkyCoverage::normalize(x2,y2);
+      SkyCoverage::normalize(x3,y3);
+      SkyCoverage::normalize(x4,y4);
+      //
+      _data->setField(x1,y1,x2,y2,x3,y3,x4,y4,V);
+      return true;
+    } else {
+      return false;
+    }
+  }
+ public:
+  bool goodLine(const char * /* line */ ) { 
+    return true;
+  }
 };
 
 #endif // SURVEY_REVIEW_SKY_COVERAGE

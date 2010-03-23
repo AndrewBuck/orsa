@@ -392,45 +392,11 @@ int main(int argc, char ** argv) {
     exit(0);
   }
   
-  osg::ref_ptr<SkyCoverage> skyCoverage = new SkyCoverage;
-  //
-  skyCoverage->obscode = obsCode;
-  skyCoverage->epoch   = epoch;
-  //
-  {
-    
-    FILE * fp;
-    char line[1024];
-    
-    {
-      fp = fopen(argv[1],"r");
-      if (fp == 0) {
-	ORSA_DEBUG("cannot open field file [%s]",argv[1]);
-	exit(0);
-      }
-      double x1,x2,x3,x4; // ra
-      double y1,y2,y3,y4; // dec
-      double V;           // limiting mag
-      //
-      while (fgets(line,1024,fp)) {
-	if (9 == gmp_sscanf(line,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",
-			    &x1,&y1,
-			    &x2,&y2,
-			    &x3,&y3,
-			    &x4,&y4,
-			    &V)) {
-	  SkyCoverage::normalize(x1,y1);
-	  SkyCoverage::normalize(x2,y2);
-	  SkyCoverage::normalize(x3,y3);
-	  SkyCoverage::normalize(x4,y4);
-	  //
-	  skyCoverage->setField(x1,y1,x2,y2,x3,y3,x4,y4,V);
-	} 
-      }
-      fclose(fp);
-    }
-    
-  }
+  osg::ref_ptr<SkyCoverageFile> skyCoverageFile = new SkyCoverageFile;
+  skyCoverageFile->setFileName(argv[1]);
+  skyCoverageFile->read();
+  
+  osg::ref_ptr<SkyCoverage> skyCoverage = skyCoverageFile->_data;
   
   if (0) {
     // test skycoverage

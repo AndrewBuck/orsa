@@ -177,6 +177,18 @@ bool SkyCoverage::fastGet(const orsa::Vector & u) const {
   return false;
 }
 
+double SkyCoverage::totalDegSq() const {
+  double area=0;
+  std::list<SkyCoverageElement>::const_iterator it = data.begin();
+  while (it != data.end()) {
+    area += (*it).halfFieldSize_RA*(*it).halfFieldSize_DEC;
+    ++it;
+  }
+  // factor four because dealing with half-sizes above
+  area *= 4*orsa::square(orsa::radToDeg());
+  return area;
+}
+
 double SkyCoverage::minDistance(const orsa::Vector & u,
 				const bool /* verbose */ ) const {
   double minArc=orsa::pi();

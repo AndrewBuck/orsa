@@ -178,6 +178,16 @@ class EfficiencyMultifit : public orsa::Multifit {
       exit(0);
     }
     
+    double degSq=0;
+    {
+      osg::ref_ptr<SkyCoverageFile> skyCoverageFile = new SkyCoverageFile;
+      char filename[1024];
+      sprintf(filename,"%s.txt",jobID.c_str());
+      skyCoverageFile->setFileName(filename);
+      skyCoverageFile->read();
+      degSq=skyCoverageFile->_data->totalDegSq();
+    }
+    
     unsigned int sNobs=0, sNdsc=0, sNtot=0;
     for (unsigned int row=0; row<data.size(); ++row) {
       sNobs += data[row].Nobs.getRef();
@@ -221,6 +231,7 @@ class EfficiencyMultifit : public orsa::Multifit {
     }
     fprintf(fp," chisq/dof ");
     fprintf(fp,"  Nobs  Ndsc  Ntot ");
+    fprintf(fp,"    degSq ");
     fprintf(fp,"      jobID ");
     fprintf(fp,"\n");
     
@@ -249,6 +260,7 @@ class EfficiencyMultifit : public orsa::Multifit {
     } 
     fprintf(fp,"%+.3e ",chi*chi/(dof>0?dof:1.0));
     fprintf(fp," %5i %5i %5i ",sNobs,sNdsc,sNtot);
+    fprintf(fp,"%.3e ",degSq);
     fprintf(fp,"%s ",jobID.c_str());
     fprintf(fp,"\n");
     
