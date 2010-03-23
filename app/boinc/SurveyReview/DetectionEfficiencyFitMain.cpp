@@ -76,10 +76,14 @@ int main(int argc, char ** argv) {
   
   const double V0=16.0;
   EfficiencyMultifit::DataStorage data;
+  const bool write_fp_eta=false;
   {
-    char filename[1024];
-    sprintf(filename,"%s.eta.dat",basename.c_str());
-    FILE * fp_eta = fopen(filename,"w"); 
+    FILE * fp_eta;
+    if (write_fp_eta) {
+      char filename[1024];
+      sprintf(filename,"%s.eta.dat",basename.c_str());
+      fp_eta = fopen(filename,"w"); 
+    }
     
     double V=V0;
     const double dV=0.2;
@@ -109,17 +113,19 @@ int main(int argc, char ** argv) {
 	  const double      eta = (double)Nobs/(double)Ntot;
 	  const double sigmaEta = (double)(sqrt(Nobs+1))/(double)(Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
 	  
-	  fprintf(fp_eta,
+	  if (write_fp_eta) {
+	    fprintf(fp_eta,
 		  "%.6f %.6f %.6f %.6f %.6f %.6f %5i %5i %5i\n",
-		  V+0.5*dV, 
-		  dV, 
-		  orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToArcsec(),orsa::Unit::HOUR),
-		  apparentVelocityFactor,
-		  eta,
-		  sigmaEta,
-		  Nobs,
-		  Ndsc,
-		  Ntot);
+		    V+0.5*dV, 
+		    dV, 
+		    orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToArcsec(),orsa::Unit::HOUR),
+		    apparentVelocityFactor,
+		    eta,
+		    sigmaEta,
+		    Nobs,
+		    Ndsc,
+		    Ntot);
+	  }
 	  
 	  EfficiencyMultifit::DataElement el;
 	  //
@@ -140,7 +146,10 @@ int main(int argc, char ** argv) {
       V += dV;
     }
     
-    fclose(fp_eta);
+    if (write_fp_eta) {
+      fclose(fp_eta);
+    }
+    
   }    
   
   osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile = new orsaInputOutput::MPCObsCodeFile;

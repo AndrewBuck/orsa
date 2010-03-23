@@ -230,8 +230,9 @@ class EfficiencyMultifit : public orsa::Multifit {
       fprintf(fp,"%11s +/- sigma ",_par->name(p).c_str());
     }
     fprintf(fp," chisq/dof ");
-    fprintf(fp,"  Nobs  Ndsc  Ntot ");
+    fprintf(fp," Nobs  Ndsc  Ntot ");
     fprintf(fp,"    degSq ");
+    fprintf(fp,"   V0 ");
     fprintf(fp,"      jobID ");
     fprintf(fp,"\n");
     
@@ -259,8 +260,9 @@ class EfficiencyMultifit : public orsa::Multifit {
       }
     } 
     fprintf(fp,"%+.3e ",chi*chi/(dof>0?dof:1.0));
-    fprintf(fp," %5i %5i %5i ",sNobs,sNdsc,sNtot);
+    fprintf(fp,"%5i %5i %5i ",sNobs,sNdsc,sNtot);
     fprintf(fp,"%.3e ",degSq);
+    fprintf(fp,"%.2f ",V0);
     fprintf(fp,"%s ",jobID.c_str());
     fprintf(fp,"\n");
     
