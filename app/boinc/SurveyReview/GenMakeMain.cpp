@@ -26,12 +26,16 @@ int main(int argc, char ** argv) {
   printf("%%.allEta.dat: %%.txt\n");
   printf("\t./DetectionEfficiency $*.txt\n");
   printf("\n");
+  //
   printf("%%.fit.dat: %%.allEta.dat\n");
   printf("\t./DetectionEfficiencyFit $*.allEta.dat\n");
   printf("\n");
-  printf("%%.eta.dat: %%.allEta.dat\n");
-  printf("\t./DetectionEfficiencyFit $*.allEta.dat\n");
-  printf("\n");
+  //
+  /* printf("%%.eta.dat: %%.allEta.dat\n");
+     printf("\t./DetectionEfficiencyFit $*.allEta.dat\n");
+     printf("\n");
+  */
+  //
   
   return 0;
 }
