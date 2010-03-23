@@ -178,6 +178,13 @@ class EfficiencyMultifit : public orsa::Multifit {
       exit(0);
     }
     
+    unsigned int sNobs=0, sNdsc=0, sNtot=0;
+    for (unsigned int row=0; row<data.size(); ++row) {
+      sNobs += data[row].Nobs.getRef();
+      sNdsc += data[row].Ndsc.getRef();
+      sNtot += data[row].Ntot.getRef();
+    }
+    
     for (unsigned int k=0; k<_par->size(); ++k) {
       _par->set(k, gsl_vector_get(s->x,k));
     }
@@ -213,6 +220,7 @@ class EfficiencyMultifit : public orsa::Multifit {
       fprintf(fp,"%11s +/- sigma ",_par->name(p).c_str());
     }
     fprintf(fp," chisq/dof ");
+    fprintf(fp,"  Nobs  Ndsc  Ntot ");
     fprintf(fp,"      jobID ");
     fprintf(fp,"\n");
     
@@ -240,6 +248,7 @@ class EfficiencyMultifit : public orsa::Multifit {
       }
     } 
     fprintf(fp,"%+.3e ",chi*chi/(dof>0?dof:1.0));
+    fprintf(fp," %5i %5i %5i ",sNobs,sNdsc,sNtot);
     fprintf(fp,"%s ",jobID.c_str());
     fprintf(fp,"\n");
     

@@ -110,7 +110,7 @@ int main(int argc, char ** argv) {
 	  const double sigmaEta = (double)(sqrt(Nobs+1))/(double)(Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
 	  
 	  fprintf(fp_eta,
-		  "%.6f %.6f %.6f %.6f %.6f %.6f %7i %7i %7i\n",
+		  "%.6f %.6f %.6f %.6f %.6f %.6f %5i %5i %5i\n",
 		  V+0.5*dV, 
 		  dV, 
 		  orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToArcsec(),orsa::Unit::HOUR),
