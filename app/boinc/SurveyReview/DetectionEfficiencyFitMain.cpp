@@ -162,7 +162,8 @@ int main(int argc, char ** argv) {
   osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
   const bool success = etaFit->fit(data,V0,fitFilename,basename,obsCodeFile.get());
   if (!success) { 
-    ORSA_DEBUG("problems??");
+    ORSA_DEBUG("fitting did not converge, exiting");
+    exit(0);
   }
   osg::ref_ptr<const orsa::MultifitParameters> parFinal = etaFit->getMultifitParameters();
   // save final parameters

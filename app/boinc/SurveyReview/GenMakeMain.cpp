@@ -12,6 +12,12 @@ int main(int argc, char ** argv) {
     exit(0);
   }
   
+  // before all, write this rule
+  // with this, all intermediate files are kept instead of deleted automatically
+  // this is needed to keep the *.allEta.dat files around
+  printf(".SECONDARY:\n");
+  printf("\n");
+  
   // first, the targets
   printf("all:");
   for (int arg=1; arg<argc; ++arg) {
