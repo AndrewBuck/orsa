@@ -657,6 +657,11 @@ bool Multifit::run() {
     ORSA_ERROR("no parameters");
     return false;
   }
+  //
+  if (_data->size()<_par->size()) {
+    ORSA_ERROR("cannot run: n < p");
+    return false;
+  }
   
   gsl_multifit_fdfsolver * s = gsl_multifit_fdfsolver_alloc(gsl_multifit_fdfsolver_lmsder, 
 							    _data->size(),
