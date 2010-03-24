@@ -741,6 +741,29 @@ bool Multifit::run() {
 	}
       }
     }
+
+    {
+      // stop if a parameter or its estimated uncertainty is not finite
+      gsl_matrix * covar = gsl_matrix_alloc(_par->size(),_par->size());
+      gsl_multifit_covar(s->J, 0.0, covar);
+      bool break_main_iteration=false;
+      for (unsigned int k=0; k<_par->size(); ++k) {
+	if (!finite(gsl_vector_get(s->x, k))) {
+	  ORSA_DEBUG("interrupting because parameter [%s] is not finite.",
+		     _par->name(k).c_str());
+	  break_main_iteration=true;
+	  break;
+	}
+	if (!finite(gsl_matrix_get(covar,k,k))) {
+	  ORSA_DEBUG("interrupting because uncertainty of parameter [%s] is not finite.",
+		     _par->name(k).c_str());
+	  break_main_iteration=true;
+	  break;
+	}
+      }
+      gsl_matrix_free(covar);	
+      if (break_main_iteration) break; // this trick avoids leaking memory, i.e. leaving before freeing covar memory
+    }
     
     if (logFile.isSet()) {
       
