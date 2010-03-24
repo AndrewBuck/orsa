@@ -115,7 +115,7 @@ int main(int argc, char ** argv) {
 	  
 	  if (write_fp_eta) {
 	    fprintf(fp_eta,
-		  "%.6f %.6f %.6f %.6f %.6f %.6f %5i %5i %5i\n",
+		    "%5.2f %4.2f %6.2f %4.2f %5.3f %5.3f %5i %5i %5i\n",
 		    V+0.5*dV, 
 		    dV, 
 		    orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToArcsec(),orsa::Unit::HOUR),
