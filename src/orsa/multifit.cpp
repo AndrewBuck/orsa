@@ -730,6 +730,18 @@ bool Multifit::run() {
       }
     }
     
+    {
+      // stop if chisq/dof < epsilon
+      if (mf.n > mf.p) {
+	const double chi = gsl_blas_dnrm2(s->f);
+	const double dof = mf.n - mf.p;
+	if (chi*chi/dof < orsa::epsilon()) {
+	  ORSA_DEBUG("chisq/dof too small, interrupting...");
+	  break;
+	}
+      }
+    }
+    
     if (logFile.isSet()) {
       
       FILE * fp = fopen(logFile.getRef().c_str(),"a");
