@@ -506,7 +506,9 @@ unsigned int MultifitData::vars() const {
 
 // Multifit
 
-Multifit::Multifit() : Referenced(true) { }
+Multifit::Multifit() : Referenced(true) {
+  doAbort=false;
+}
 
 Multifit::~Multifit() { }
 
@@ -736,11 +738,11 @@ bool Multifit::run() {
     }
     
     {
-      // stop if chisq/dof < epsilon
+      // stop if chisq/dof gets too small
       if (mf.n > mf.p) {
 	const double chi = gsl_blas_dnrm2(s->f);
 	const double dof = mf.n - mf.p;
-	if (chi*chi/dof < orsa::epsilon()) {
+	if (chi*chi/dof < 1.0e-6) {
 	  ORSA_DEBUG("chisq/dof too small, interrupting...");
 	  break;
 	}
@@ -869,6 +871,10 @@ bool Multifit::run() {
     
     singleIterationDone(s); 
     singleIterationDone(_par.get());  
+    
+    if (doAbort) {
+      break;
+    }
     
   } while (((cv_status == GSL_CONTINUE) || (it_status == GSL_CONTINUE)) && (iter < local_max_iter));
   

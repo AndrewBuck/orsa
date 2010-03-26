@@ -314,6 +314,13 @@ namespace orsa {
       fclose(fp);
     }
     virtual const std::string & getLogFile() const { return logFile.getRef(); }
+        
+  public:
+    virtual void abort() const {
+      doAbort = true;
+    }
+  private:
+    mutable bool doAbort;
     
   protected:
     osg::ref_ptr<orsa::MultifitParameters> _par;
