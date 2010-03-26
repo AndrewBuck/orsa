@@ -68,7 +68,7 @@ namespace orsa {
 		     const double       & min);
     bool setRangeMax(const unsigned int   index,
 		     const double       & max);
-  public:
+  protected:
     void setInRange(const std::string & name);
     void setInRange(const unsigned int index);
   public:
@@ -83,28 +83,46 @@ namespace orsa {
     double getDelta(const std::string & name) const;
     double getDelta(const unsigned int index) const;
   public:
-    // bool haveRange(const std::string & name) const;
-    // bool haveRange(const unsigned int index) const;
-  public:
     const orsa::Cache<double> & getRangeMin(const std::string & name) const;
     const orsa::Cache<double> & getRangeMax(const std::string & name) const;
     const orsa::Cache<double> & getRangeMin(const unsigned int index) const;
     const orsa::Cache<double> & getRangeMax(const unsigned int index) const;
   public:
-    unsigned int size() const {
+    void setFixed(const std::string & name,
+		  const bool         fixed);
+    void setFixed(const unsigned int index,
+		  const bool         fixed);
+  public:
+    bool isFixed(const std::string & name) const;
+    bool isFixed(const unsigned int index) const;
+  public:
+    // total number of parameters, including fixed and not-fixed
+    unsigned int totalSize() const { 
       return _data.size();
     }
+  public:
+    // number of parameters that are not fixed
+    unsigned int sizeNotFixed() const { 
+      unsigned int _s=0;
+      for (unsigned int k=0; k<_data.size(); ++k) {
+	if (!isFixed(k)) {
+	  ++_s;
+	}
+      }
+      return _s;
+    }
   private:
-    class NVD {
+    class NVDF {
     public:
       std::string name;
       double      value;
       double      delta;
+      bool        fixed;
       //
       orsa::Cache<double> min, max;
     };
   private: 
-    typedef std::vector<NVD> dataType;
+    typedef std::vector<NVDF> dataType;
     dataType _data;
     
   public:
