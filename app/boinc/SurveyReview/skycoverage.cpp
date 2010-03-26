@@ -56,6 +56,7 @@ std::string SkyCoverage::alias(const std::string & fileCode) {
   if (fileCode=="CATALINA")   return "703";
   if (fileCode=="CSS")        return "703";
   if (fileCode=="LINEAR")     return "704";
+  if (fileCode=="LONEOS")     return "699";
   if (fileCode=="SPACEWATCH") return "291";
   return fileCode;
 } 
