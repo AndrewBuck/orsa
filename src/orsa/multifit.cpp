@@ -916,7 +916,11 @@ bool Multifit::run() {
     return false;
   }
   
-  return true;
+  if (cv_status == GSL_SUCCESS) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 void Multifit::setMultifitParameters(orsa::MultifitParameters * mp) {
