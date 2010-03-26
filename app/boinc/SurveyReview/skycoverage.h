@@ -142,10 +142,10 @@ class SkyCoverage : public osg::Referenced {
 };
 
 class SkyCoverageFile : 
-public orsaInputOutput::InputFile < orsaInputOutput::CompressedFile, osg::ref_ptr<SkyCoverage> > {
+public orsaInputOutput::InputFile < orsaInputOutput::PlainFile, osg::ref_ptr<SkyCoverage> > {
  public:
   SkyCoverageFile() : 
-    orsaInputOutput::InputFile < orsaInputOutput::CompressedFile, osg::ref_ptr<SkyCoverage> > () {
+    orsaInputOutput::InputFile < orsaInputOutput::PlainFile, osg::ref_ptr<SkyCoverage> > () {
     _data = new SkyCoverage;
   }
  protected:
@@ -171,7 +171,7 @@ public orsaInputOutput::InputFile < orsaInputOutput::CompressedFile, osg::ref_pt
     _data->obscode=obsCode;
     _data->epoch=epoch;
     // now, regular call
-    orsaInputOutput::InputFile < orsaInputOutput::CompressedFile, osg::ref_ptr<SkyCoverage> >::setFileName(filename);
+    orsaInputOutput::InputFile < orsaInputOutput::PlainFile, osg::ref_ptr<SkyCoverage> >::setFileName(filename);
   }
  public:
   bool processLine(const char * line) {
