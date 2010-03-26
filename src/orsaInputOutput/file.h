@@ -86,7 +86,7 @@ namespace orsaInputOutput {
     
   public:
     CompressedFile() : File() {
-      _file = 0;
+      _file = Z_NULL;
       _status.set(FS_CLOSE);
     }
       
@@ -96,13 +96,22 @@ namespace orsaInputOutput {
     }
     
   private:
+    void printError(const char * func) const {
+      int errnum;
+      const char * err = gzerror(_file,&errnum);
+      ORSA_ERROR("func: %s   file [%s]: %s   [_file: %x]",
+		 func,
+		 _filename.getRef().c_str(),
+		 err,
+		 _file);
+    }
+    
+  private:
     bool _open(const char * mode) {
       close();
       _file = gzopen(_filename.getRef().c_str(),mode);
-      if (_file == 0) {
-	ORSA_ERROR("cannot open file [%s]: %s",
-		   _filename.getRef().c_str(),
-		   strerror(errno));
+      if (_file == Z_NULL) {
+	printError(__func__);
 	return false;
       } else {
 	return true;
@@ -137,14 +146,13 @@ namespace orsaInputOutput {
   public:
     int close() {
       if (_status.getRef() != FS_CLOSE) {
-	if (gzclose(_file) == 0) {
+	const int retVal = gzclose(_file);
+	if (retVal == Z_OK) {
 	  _status.set(FS_CLOSE);
 	  _file = 0;
 	  return 0;
 	} else {
-       	  ORSA_ERROR("cannot close file [%s]: %s",
-		     _filename.getRef().c_str(),
-		     strerror(errno));
+	  printError(__func__);
 	  return -1;
 	}
       } else {
@@ -155,17 +163,23 @@ namespace orsaInputOutput {
     
   public:
     void rewind() {
-      gzrewind(_file);
+      if (gzrewind(_file) != 0) {
+	printError(__func__);
+      }
     }
     
   public:
     bool gets(char * buffer,int length) {
-      return (gzgets(_file,buffer,length) != 0);
+      if (gzgets(_file,buffer,length) == Z_NULL) {
+	return false;
+      } else {
+	return true;
+      }
     }	
     
   public:
     bool puts(const char * buffer) {
-      return (gzputs(_file,buffer) >= 0);
+      return (gzputs(_file,buffer) > 0);
     }
     
   public:
