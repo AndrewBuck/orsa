@@ -181,13 +181,19 @@ void orsaSolarSystem::ComputeResidual(std::vector<orsaSolarSystem::Residual>   &
 
 void orsaSolarSystem::OrbitMultifit::singleIterationDone(const gsl_multifit_fdfsolver * s) const {
   
-  for (unsigned int k=0; k<_par->size(); ++k) {
-    _par->set(k, gsl_vector_get(s->x,k));
+  {
+    unsigned int gslIndex=0;
+    for (unsigned int k=0; k<_par->totalSize(); ++k) {
+      if (!_par->isFixed(k)) {
+	_par->set(k, gsl_vector_get(s->x,gslIndex));
+    	++gslIndex;
+      }
+    }
   }
   
   double c = 1.0;
   //
-  const unsigned int dof = _data->size() - _par->size();
+  const unsigned int dof = _data->size() - _par->sizeNotFixed();
   if (dof > 0) {
     const double chi = gsl_blas_dnrm2(s->f);
     c = GSL_MAX_DBL(1.0, chi / sqrt(dof)); 
@@ -197,7 +203,7 @@ void orsaSolarSystem::OrbitMultifit::singleIterationDone(const gsl_multifit_fdfs
   //
   const double factor = c;
   
-  gsl_matrix * covar = gsl_matrix_alloc(_par->size(),_par->size());
+  gsl_matrix * covar = gsl_matrix_alloc(_par->sizeNotFixed(),_par->sizeNotFixed());
   
   gsl_multifit_covar(s->J, 0.0, covar);
   

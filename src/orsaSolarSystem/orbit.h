@@ -100,9 +100,9 @@ namespace orsaSolarSystem {
       } else if (m==MODE_DF) {
 	osg::ref_ptr<orsa::MultifitParameters> par_m = new orsa::MultifitParameters;
 	osg::ref_ptr<orsa::MultifitParameters> par_p = new orsa::MultifitParameters;
-	pre_df_m.resize(par->size());
-	pre_df_p.resize(par->size());
-	for (unsigned int p=0; p<par->size(); ++p) {
+	pre_df_m.resize(par->totalSize());
+	pre_df_p.resize(par->totalSize());
+	for (unsigned int p=0; p<par->totalSize(); ++p) {
 	  // deep copies of the original par
 	  (*(par_m.get())) = (*par);
 	  (*(par_p.get())) = (*par);
@@ -651,19 +651,25 @@ namespace orsaSolarSystem {
 				    dataPoints, 
 				    J);
       const orsa::MultifitData * data = (orsa::MultifitData *) dataPoints;
-      for (unsigned int k=0; k<_par->size(); ++k) {
-	for (unsigned int j=0; j<data->size(); ++j) {
-	  if (j%2==0) {
-	    // R.A.
-	    // need to check for twopi periodicity? (see f_gsl)
-	    // multiply by cos(dec)
-	    gsl_matrix_set(J,j,k,
-			   cos(data->getF(j+1))*gsl_matrix_get(J,j,k));  
+      {
+	unsigned int gslIndex=0;
+	for (unsigned int k=0; k<_par->totalSize(); ++k) {
+	  if (!_par->isFixed(k)) {
+	    for (unsigned int j=0; j<data->size(); ++j) {
+	      if (j%2==0) {
+		// R.A.
+		// need to check for twopi periodicity? (see f_gsl)
+		// multiply by cos(dec)
+		gsl_matrix_set(J,j,gslIndex,
+			       cos(data->getF(j+1))*gsl_matrix_get(J,j,gslIndex));  
+	      }
+	      // ORSA_DEBUG("df[%02i][%02i] = %10.3f",j,k,gsl_matrix_get(J,j,k));
+	    }
+	    ++gslIndex;
 	  }
-	  // ORSA_DEBUG("df[%02i][%02i] = %10.3f",j,k,gsl_matrix_get(J,j,k));
 	}
+	return retval;
       }
-      return retval;
     }
     
   };

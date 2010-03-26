@@ -115,13 +115,19 @@ class EfficiencyMultifit : public orsa::Multifit {
  protected: 
   void singleIterationDone(const gsl_multifit_fdfsolver * s) const { 
     
-    for (unsigned int k=0; k<_par->size(); ++k) {
-      _par->set(k, gsl_vector_get(s->x,k));
+    {
+      unsigned int gslIndex=0;
+      for (unsigned int k=0; k<_par->totalSize(); ++k) {
+	if (!_par->isFixed(k)) {
+	  _par->set(k, gsl_vector_get(s->x,k));
+	  ++gslIndex;
+	}
+      }
     }
     
     double c = 1.0;
     //
-    const unsigned int dof = _data->size() - _par->size();
+    const unsigned int dof = _data->size() - _par->sizeNotFixed();
     if (dof > 0) {
       const double chi = gsl_blas_dnrm2(s->f);
       c = GSL_MAX_DBL(1.0, chi / sqrt(dof)); 
@@ -131,22 +137,28 @@ class EfficiencyMultifit : public orsa::Multifit {
     //
     const double factor = c;
     
-    gsl_matrix * covar = gsl_matrix_alloc(_par->size(),_par->size());
+    gsl_matrix * covar = gsl_matrix_alloc(_par->sizeNotFixed(),_par->sizeNotFixed());
     
     gsl_multifit_covar(s->J, 0.0, covar);
     
 #define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
     
     // call abort() if an uncertainty gets too large
-    for (unsigned int p=0; p<_par->size(); ++p) {
-      if  (factor*ERR(p) > fabs(1.0e9*_par->get(p))) {
-	ORSA_DEBUG("uncertainty of parameter [%s] is too large, aborting",
-		   _par->name(p).c_str());
-	abort();
+    {
+      unsigned int gslIndex=0;
+      for (unsigned int p=0; p<_par->totalSize(); ++p) {
+	if (!_par->isFixed(p)) {
+	  if  (factor*ERR(gslIndex) > fabs(1.0e9*_par->get(p))) {
+	    ORSA_DEBUG("uncertainty of parameter [%s] is too large, aborting",
+		       _par->name(p).c_str());
+	    abort();
+	  }
+	  ++gslIndex;
+	}
       }
     }
     
-    for (unsigned int p=0; p<_par->size(); ++p) {
+    for (unsigned int p=0; p<_par->totalSize(); ++p) {
       // first, specific cases where unit conversions or factors are needed
       if ((_par->name(p) == "U_limit") || 
 	  (_par->name(p) == "w_U")) {
@@ -204,13 +216,19 @@ class EfficiencyMultifit : public orsa::Multifit {
       sNtot += data[row].Ntot.getRef();
     }
     
-    for (unsigned int k=0; k<_par->size(); ++k) {
-      _par->set(k, gsl_vector_get(s->x,k));
+    {
+      unsigned int gslIndex=0;
+      for (unsigned int k=0; k<_par->totalSize(); ++k) {
+	if (!_par->isFixed(k)) {
+	  _par->set(k, gsl_vector_get(s->x,k));
+	  ++gslIndex;
+	}
+      }
     }
     
     double c = 1.0;
     //
-    const unsigned int dof = _data->size() - _par->size();
+    const unsigned int dof = _data->size() - _par->sizeNotFixed();
     const double chi = gsl_blas_dnrm2(s->f);
     if (dof > 0) {
       c = GSL_MAX_DBL(1.0, chi / sqrt(dof)); 
@@ -220,7 +238,7 @@ class EfficiencyMultifit : public orsa::Multifit {
     //
     const double factor = c;
     
-    gsl_matrix * covar = gsl_matrix_alloc(_par->size(),_par->size());
+    gsl_matrix * covar = gsl_matrix_alloc(_par->sizeNotFixed(),_par->sizeNotFixed());
     
     gsl_multifit_covar(s->J, 0.0, covar);
     
@@ -235,7 +253,7 @@ class EfficiencyMultifit : public orsa::Multifit {
     fprintf(fp,"# ");
     fprintf(fp,"       JD ");
     fprintf(fp,"       year ");
-    for (unsigned int p=0; p<_par->size(); ++p) {
+    for (unsigned int p=0; p<_par->totalSize(); ++p) {
       fprintf(fp,"%11s +/- sigma ",_par->name(p).c_str());
     }
     fprintf(fp," chisq/dof ");
@@ -247,27 +265,33 @@ class EfficiencyMultifit : public orsa::Multifit {
     
     fprintf(fp,"%.3f ",orsaSolarSystem::timeToJulian(epoch));
     fprintf(fp,"%.6f ",orsaSolarSystem::fractionalYear(epoch));
-    for (unsigned int p=0; p<_par->size(); ++p) {
-      // first, specific cases where unit conversions or factors are needed
-      if ((_par->name(p) == "U_limit") || 
-	  (_par->name(p) == "w_U")) {
-	fprintf(fp,
-		"%+.3e %+.3e ",
-		orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
-		orsa::FromUnits(factor*ERR(p)*orsa::radToArcsec(),orsa::Unit::HOUR));
-      } else if (_par->name(p) == "beta") {
-	fprintf(fp,
-		"%+.3e %+.3e ",
-		orsa::radToDeg()*_par->get(p),
-		orsa::radToDeg()*factor*ERR(p));
-      } else {
-	// generic one
-	fprintf(fp,
-		"%+.3e %+.3e ",
-		_par->get(p),
-		factor*ERR(p));
-      }
-    } 
+    {
+      unsigned int gslIndex=0;
+      for (unsigned int p=0; p<_par->totalSize(); ++p) {
+	// first, specific cases where unit conversions or factors are needed
+	if ((_par->name(p) == "U_limit") || 
+	    (_par->name(p) == "w_U")) {
+	  fprintf(fp,
+		  "%+.3e %+.3e ",
+		  orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
+		  _par->isFixed(p)?0.0:orsa::FromUnits(factor*ERR(gslIndex)*orsa::radToArcsec(),orsa::Unit::HOUR));
+	} else if (_par->name(p) == "beta") {
+	  fprintf(fp,
+		  "%+.3e %+.3e ",
+		  orsa::radToDeg()*_par->get(p),
+		  _par->isFixed(p)?0.0:orsa::radToDeg()*factor*ERR(p));
+	} else {
+	  // generic one
+	  fprintf(fp,
+		  "%+.3e %+.3e ",
+		  _par->get(p),
+		  _par->isFixed(p)?0.0:factor*ERR(p));
+	}
+	if (!_par->isFixed(p)) {
+	  ++gslIndex;
+	}
+      } 
+    }
     fprintf(fp,"%+.3e ",chi*chi/(dof>0?dof:1.0));
     fprintf(fp,"%5i %5i %5i ",sNobs,sNdsc,sNtot);
     fprintf(fp,"%.3e ",degSq);
