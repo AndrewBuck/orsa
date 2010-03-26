@@ -163,6 +163,9 @@ int main(int argc, char ** argv) {
   const bool success = etaFit->fit(data,V0,fitFilename,basename,obsCodeFile.get());
   if (!success) { 
     ORSA_DEBUG("fitting did not converge, exiting");
+    // just "touch" the output file
+    FILE * fp = fopen(fitFilename,"w");
+    fclose(fp);
     exit(0);
   }
   osg::ref_ptr<const orsa::MultifitParameters> parFinal = etaFit->getMultifitParameters();
