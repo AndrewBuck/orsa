@@ -159,14 +159,13 @@ int main(int argc, char ** argv) {
   char fitFilename[1024];
   sprintf(fitFilename,"%s.fit.dat",basename.c_str());
   
-  /* unsigned int non_zero_n   = 0;
-     for (unsigned int k=0; k<data.size(); ++k) {
-     if (data[k].eta.getRef()>0.0) {
-     ++non_zero_n;
-     }	
-     }
-     ORSA_DEBUG("non_zero_n: %i",non_zero_n);
-  */
+  unsigned int non_zero_n   = 0;
+  for (unsigned int k=0; k<data.size(); ++k) {
+    if (data[k].eta.getRef()>0.0) {
+      ++non_zero_n;
+    }	
+  }
+  ORSA_DEBUG("non_zero_n: %i",non_zero_n);
   
   // multifit parameters  
   osg::ref_ptr<orsa::MultifitParameters> par = new orsa::MultifitParameters;
@@ -191,15 +190,13 @@ int main(int argc, char ** argv) {
   // par->setFixed("w_U",true);
   // par->setFixed("beta",true);
   
-  /* 
-     if (non_zero_n < par->sizeNotFixed()) {
-     ORSA_DEBUG("not enought data for fit, exiting");
-     // just "touch" the output file
-     FILE * fp = fopen(fitFilename,"w");
-     fclose(fp);
-     exit(0);
-     }
-  */
+  if (non_zero_n < par->sizeNotFixed()) {
+    ORSA_DEBUG("not enought data for fit, exiting");
+    // just "touch" the output file
+    FILE * fp = fopen(fitFilename,"w");
+    fclose(fp);
+    exit(0);
+  }
   
   osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
   const bool success = etaFit->fit(par.get(),
