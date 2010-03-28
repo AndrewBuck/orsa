@@ -76,7 +76,7 @@ int main(int argc, char ** argv) {
   
   const double V0=16.0;
   EfficiencyMultifit::DataStorage data;
-  const bool write_fp_eta=false;
+  const bool write_fp_eta=true;
   {
     FILE * fp_eta;
     if (write_fp_eta) {
@@ -159,8 +159,55 @@ int main(int argc, char ** argv) {
   char fitFilename[1024];
   sprintf(fitFilename,"%s.fit.dat",basename.c_str());
   
+  /* unsigned int non_zero_n   = 0;
+     for (unsigned int k=0; k<data.size(); ++k) {
+     if (data[k].eta.getRef()>0.0) {
+     ++non_zero_n;
+     }	
+     }
+     ORSA_DEBUG("non_zero_n: %i",non_zero_n);
+  */
+  
+  // multifit parameters  
+  osg::ref_ptr<orsa::MultifitParameters> par = new orsa::MultifitParameters;
+  //
+  const double initial_U_limit = orsa::FromUnits( 40.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
+  const double initial_w_U     = orsa::FromUnits( 10.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
+  //    
+  // V pars
+  par->insert("eta0_V",  0.90, 0.0001);
+  par->insert("c_V",     0.01, 0.00001);
+  par->insert("V_limit",19.00, 0.001);
+  par->insert("w_V",     0.50, 0.0001); 
+  // U pars
+  par->insert("U_limit",    initial_U_limit, 0.01*initial_U_limit);
+  par->insert("w_U",        initial_w_U,     0.01*initial_w_U); 
+  // mixing 
+  par->insert("beta",  0.0, 0.00001);
+  // ranges
+  par->setRange("eta0_V",0.0,1.0);
+  // fixed?
+  // par->setFixed("U_limit",true);
+  // par->setFixed("w_U",true);
+  // par->setFixed("beta",true);
+  
+  /* 
+     if (non_zero_n < par->sizeNotFixed()) {
+     ORSA_DEBUG("not enought data for fit, exiting");
+     // just "touch" the output file
+     FILE * fp = fopen(fitFilename,"w");
+     fclose(fp);
+     exit(0);
+     }
+  */
+  
   osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
-  const bool success = etaFit->fit(data,V0,fitFilename,basename,obsCodeFile.get());
+  const bool success = etaFit->fit(par.get(),
+				   data,
+				   V0,
+				   fitFilename,
+				   basename,
+				   obsCodeFile.get());
   if (!success) { 
     ORSA_DEBUG("fitting did not converge, exiting");
     // just "touch" the output file
@@ -180,7 +227,7 @@ int main(int argc, char ** argv) {
   //
   const double    beta = parFinal->get("beta");
   
-  if (0) {
+  if (1) {
     // output for testing
     typedef std::list< osg::ref_ptr<EfficiencyStatistics> > AllStat;
     AllStat stat_V, stat_U;  
@@ -232,16 +279,31 @@ int main(int argc, char ** argv) {
 					  w_U,
 					  beta);
       
+      const double nominal_eta_V = SkyCoverage::nominal_eta_V(data[k].V.getRef(),
+							      V_limit,
+							      eta0_V,
+							      V0,
+							      c_V,
+							      w_V);
+      
+      const double nominal_eta_U = SkyCoverage::nominal_eta_U(data[k].U.getRef(),
+							      U_limit,
+							      w_U);
+      
       // at this point, small sigmas can become very large because divided by a very small eta's
       if (data[k].sigmaEta.getRef() > 0) {
 	if (eta != 0) {
-	  sV->insert(data[k].eta.getRef()/eta,
-		     orsa::square(eta/data[k].sigmaEta.getRef()));
-	  sU->insert(data[k].eta.getRef()/eta,
-		     orsa::square(eta/data[k].sigmaEta.getRef()));
+	  if (nominal_eta_V != 0) {
+	    sV->insert(data[k].eta.getRef()*nominal_eta_V/eta,
+		       orsa::square(eta/(nominal_eta_V*data[k].sigmaEta.getRef())));
+	  }
+	  if (nominal_eta_U != 0) {
+	    sU->insert(data[k].eta.getRef()*nominal_eta_U/eta,
+		       orsa::square(eta/(nominal_eta_U*data[k].sigmaEta.getRef())));
+	  }
 	}
-	if (!sV->fit.isSet()) sV->fit = 1.0;
-	if (!sU->fit.isSet()) sU->fit = 1.0;
+	if (!sV->fit.isSet()) sV->fit = nominal_eta_V;
+	if (!sU->fit.isSet()) sU->fit = nominal_eta_U;
       }
     }
     
@@ -259,14 +321,11 @@ int main(int argc, char ** argv) {
 	  continue;
 	}
 	if ((*it)->averageError()==0.0) {
+	  // ORSA_DEBUG("--SKIPPING--");
 	  ++it;
 	  continue;
 	}
-	if ((*it)->averageError()>1.0) {
-	  ++it;
-	  continue;
-	}
-	fprintf(fpv,"%g %g %g %g\n",
+       	fprintf(fpv,"%g %g %g %g\n",
 		(*it)->center,
 		(*it)->fit.getRef(),
 		(*it)->average(),
@@ -286,14 +345,11 @@ int main(int argc, char ** argv) {
 	  continue;
 	}
 	if ((*it)->averageError()==0.0) {
+	  // ORSA_DEBUG("--SKIPPING--");
 	  ++it;
 	  continue;
 	}
-	if ((*it)->averageError()>1.0) {
-	  ++it;
-	  continue;
-	}
-	fprintf(fpu,"%g %g %g %g\n",
+      	fprintf(fpu,"%g %g %g %g\n",
 		orsa::FromUnits((*it)->center*orsa::radToArcsec(),orsa::Unit::HOUR), // arcsec/hour
 		(*it)->fit.getRef(),
 		(*it)->average(),

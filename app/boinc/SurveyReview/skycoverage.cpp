@@ -240,6 +240,31 @@ double SkyCoverage::eta(const double & V,
   return retVal;
 }
 
+double SkyCoverage::nominal_eta_V(const double & V,
+				  const double & V_limit,
+				  const double & eta0_V,
+				  const double & V0,
+				  const double & c_V,
+				  const double & w_V) {
+  double retVal;
+  if (V<V0) {
+    retVal = eta0_V;
+  } else {
+    retVal = 
+      (eta0_V-c_V*orsa::square(V-V0)) / 
+      (1.0+exp((V-V_limit)/w_V));
+  }
+  if (retVal < 0.0) retVal=0.0;
+  if (retVal > 1.0) retVal=1.0;
+  return retVal;
+}
+
+double SkyCoverage::nominal_eta_U(const double & U,
+				  const double & U_limit,
+				  const double & w_U) {
+  return (1.0/(1.0+exp((U_limit-U)/w_U)));
+}
+
 std::string SkyCoverage::basename(const std::string & filename) {
   const size_t found_last_slash = std::string(filename).find_last_of("//");
   const size_t found_dot = std::string(filename).find(".",(found_last_slash==std::string::npos?0:found_last_slash+1));

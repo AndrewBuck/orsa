@@ -27,7 +27,8 @@ class EfficiencyMultifit : public orsa::Multifit {
  public:
   // V = apparent magnitude
   // U = apparent velocity
-  bool fit(const DataStorage & data_in,
+  bool fit(orsa::MultifitParameters * par,
+	   const DataStorage & data_in,
 	   const double      & V0_in,
 	   const std::string & outputFile_in,
 	   const std::string & jobID_in,
@@ -44,25 +45,27 @@ class EfficiencyMultifit : public orsa::Multifit {
     // basic checks
     if (data.size()==0) return false;
     
-    osg::ref_ptr<orsa::MultifitParameters> par = new orsa::MultifitParameters;
+    /* 
+       osg::ref_ptr<orsa::MultifitParameters> par = new orsa::MultifitParameters;
+       //
+       const double initial_U_limit = orsa::FromUnits( 10.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
+       const double initial_w_U     = orsa::FromUnits(  1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
+       //    
+       // V pars
+       par->insert("eta0_V",  0.90, 0.0001);
+       par->insert("c_V",     0.01, 0.00001);
+       par->insert("V_limit",19.00, 0.001);
+       par->insert("w_V",     0.50, 0.0001); 
+       // U pars
+       par->insert("U_limit",    initial_U_limit, 0.001*initial_U_limit);
+       par->insert("w_U",        initial_w_U,     0.001*initial_w_U); 
+       // mixing 
+       par->insert("beta",  0.0, 0.00001);
+       // ranges
+       par->setRange("eta0_V",0.0,1.0);
+    */
     //
-    const double initial_U_limit = orsa::FromUnits( 10.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
-    const double initial_w_U     = orsa::FromUnits(  1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
-    //    
-    // V pars
-    par->insert("eta0_V",  0.90, 0.0001);
-    par->insert("c_V",     0.01, 0.00001);
-    par->insert("V_limit",19.00, 0.001);
-    par->insert("w_V",     0.50, 0.0001); 
-    // U pars
-    par->insert("U_limit",    initial_U_limit, 0.001*initial_U_limit);
-    par->insert("w_U",        initial_w_U,     0.001*initial_w_U); 
-    // mixing 
-    par->insert("beta",  0.0, 0.00001);
-    // ranges
-    par->setRange("eta0_V",0.0,1.0);
-    //
-    setMultifitParameters(par.get());
+    setMultifitParameters(par);
     
     osg::ref_ptr<orsa::MultifitData> fitData = new orsa::MultifitData;
     //
@@ -119,7 +122,7 @@ class EfficiencyMultifit : public orsa::Multifit {
       unsigned int gslIndex=0;
       for (unsigned int k=0; k<_par->totalSize(); ++k) {
 	if (!_par->isFixed(k)) {
-	  _par->set(k, gsl_vector_get(s->x,k));
+	  _par->set(k, gsl_vector_get(s->x,gslIndex));
 	  ++gslIndex;
 	}
       }
@@ -141,14 +144,12 @@ class EfficiencyMultifit : public orsa::Multifit {
     
     gsl_multifit_covar(s->J, 0.0, covar);
     
-#define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
-    
     // call abort() if an uncertainty gets too large
     {
       unsigned int gslIndex=0;
       for (unsigned int p=0; p<_par->totalSize(); ++p) {
 	if (!_par->isFixed(p)) {
-	  if  (factor*ERR(gslIndex) > fabs(1.0e9*_par->get(p))) {
+	  if  (factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)) > fabs(1.0e9*_par->get(p))) {
 	    ORSA_DEBUG("uncertainty of parameter [%s] is too large, aborting",
 		       _par->name(p).c_str());
 	    abort();
@@ -158,25 +159,31 @@ class EfficiencyMultifit : public orsa::Multifit {
       }
     }
     
-    for (unsigned int p=0; p<_par->totalSize(); ++p) {
-      // first, specific cases where unit conversions or factors are needed
-      if ((_par->name(p) == "U_limit") || 
-	  (_par->name(p) == "w_U")) {
-	ORSA_DEBUG("%s: %g +/- %g [arcsec/hour]",
-		   _par->name(p).c_str(),
-		   orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
-		   orsa::FromUnits(factor*ERR(p)*orsa::radToArcsec(),orsa::Unit::HOUR));
-      } else if (_par->name(p) == "beta") {
-	ORSA_DEBUG("%s: %g +/- %g [deg]",
-		   _par->name(p).c_str(),
-		   orsa::radToDeg()*_par->get(p),
-		   orsa::radToDeg()*factor*ERR(p));
-      } else {
-	// generic one
-	ORSA_DEBUG("%s: %g +/- %g",
-		   _par->name(p).c_str(),
-		   _par->get(p),
-		   factor*ERR(p));
+    {
+      unsigned int gslIndex=0;
+      for (unsigned int p=0; p<_par->totalSize(); ++p) {
+	// first, specific cases where unit conversions or factors are needed
+	if ((_par->name(p) == "U_limit") || 
+	    (_par->name(p) == "w_U")) {
+	  ORSA_DEBUG("%s: %g +/- %g [arcsec/hour]",
+		     _par->name(p).c_str(),
+		     orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
+		     _par->isFixed(p)?0.0:orsa::FromUnits(factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex))*orsa::radToArcsec(),orsa::Unit::HOUR));
+	} else if (_par->name(p) == "beta") {
+	  ORSA_DEBUG("%s: %g +/- %g [deg]",
+		     _par->name(p).c_str(),
+		     orsa::radToDeg()*_par->get(p),
+		     _par->isFixed(p)?0.0:orsa::radToDeg()*factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
+	} else {
+	  // generic one
+	  ORSA_DEBUG("%s: %g +/- %g",
+		     _par->name(p).c_str(),
+		     _par->get(p),
+		     _par->isFixed(p)?0.0:factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
+	}
+	if (!_par->isFixed(p)) {
+	  ++gslIndex;
+	}
       }
     }
     
@@ -242,8 +249,6 @@ class EfficiencyMultifit : public orsa::Multifit {
     
     gsl_multifit_covar(s->J, 0.0, covar);
     
-#define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
-    
     ORSA_DEBUG("writing file: [%s]",outputFile.c_str());
     FILE * fp = fopen(outputFile.c_str(),"w");
     
@@ -274,18 +279,18 @@ class EfficiencyMultifit : public orsa::Multifit {
 	  fprintf(fp,
 		  "%+.3e %+.3e ",
 		  orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
-		  _par->isFixed(p)?0.0:orsa::FromUnits(factor*ERR(gslIndex)*orsa::radToArcsec(),orsa::Unit::HOUR));
+		  _par->isFixed(p)?0.0:orsa::FromUnits(factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex))*orsa::radToArcsec(),orsa::Unit::HOUR));
 	} else if (_par->name(p) == "beta") {
 	  fprintf(fp,
 		  "%+.3e %+.3e ",
 		  orsa::radToDeg()*_par->get(p),
-		  _par->isFixed(p)?0.0:orsa::radToDeg()*factor*ERR(p));
+		  _par->isFixed(p)?0.0:orsa::radToDeg()*factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
 	} else {
 	  // generic one
 	  fprintf(fp,
 		  "%+.3e %+.3e ",
 		  _par->get(p),
-		  _par->isFixed(p)?0.0:factor*ERR(p));
+		  _par->isFixed(p)?0.0:factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
 	}
 	if (!_par->isFixed(p)) {
 	  ++gslIndex;
