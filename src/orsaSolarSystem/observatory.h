@@ -31,6 +31,16 @@ namespace orsaSolarSystem {
     bool moving() const {
       return ((!lon.isSet()) && (!pxy.isSet()) && (!pz.isSet()));
     }
+  public:
+    // derived latitude
+    double latitude() const {
+      if (pxy.isSet() && pz.isSet()) {
+	return atan2(pz.getRef(),pxy.getRef());
+      } else {
+	ORSA_DEBUG("problems");
+	return 0.0;
+      }
+    }
   };
   
   class ObservatoryPositionCallback : public osg::Referenced {
@@ -79,6 +89,9 @@ namespace orsaSolarSystem {
 		   orsa::Vector & velocity,
 		   const std::string & obsCode,
 		   const orsa::Time  & t) const;
+  public:
+    const orsaSolarSystem::Observatory & getObservatory(const std::string & obsCode) const;
+    const orsaSolarSystem::Observatory & getObservatory(const orsaSolarSystem::Observation * obs) const;
   protected:
     osg::ref_ptr<orsa::BodyGroup> bg;   
     osg::ref_ptr<orsa::Body> earth; 

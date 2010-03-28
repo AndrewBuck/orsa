@@ -102,3 +102,10 @@ bool StandardObservatoryPositionCallback::getPosVel(orsa::Vector & position,
   return getPosVel(position,velocity,obs.get());
 }
 
+const orsaSolarSystem::Observatory & StandardObservatoryPositionCallback::getObservatory(const std::string & obsCode) const {
+  return obsCodeFile->_data.observatory[obsCode];
+}
+
+const orsaSolarSystem::Observatory & StandardObservatoryPositionCallback::getObservatory(const orsaSolarSystem::Observation * obs) const {
+  return obsCodeFile->_data.observatory[obs->obsCode.getRef()];
+}
