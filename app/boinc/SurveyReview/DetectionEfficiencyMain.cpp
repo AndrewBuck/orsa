@@ -425,19 +425,28 @@ int main(int argc, char ** argv) {
   */
   
   // MOON
-  /* osg::ref_ptr<orsa::Body> moon  = SPICEBody("MOON",orsaSolarSystem::Data::MMoon());
-     bg->addBody(moon.get());
-  */
+  osg::ref_ptr<orsa::Body> moon  = SPICEBody("MOON",orsaSolarSystem::Data::MMoon());
+  bg->addBody(moon.get());
   
   orsa::Vector r;
   bg->getInterpolatedPosition(r,sun.get(),epoch);
   const orsa::Vector sunPosition = r;
   bg->getInterpolatedPosition(r,sun.get(),epoch+dt);
   const orsa::Vector sunPosition_dt = r;
+  bg->getInterpolatedPosition(r,moon.get(),epoch);
+  const orsa::Vector moonPosition = r;
+  bg->getInterpolatedPosition(r,moon.get(),epoch+dt);
+  const orsa::Vector moonPosition_dt = r;
   obsPosCB->getPosition(r,obsCode,epoch);
   const orsa::Vector obsPosition = r;
   obsPosCB->getPosition(r,obsCode,epoch+dt);
   const orsa::Vector obsPosition_dt = r;
+  
+  const orsaSolarSystem::Observatory observatory = obsPosCB->getObservatory(obsCode);
+  const double observatoryLatitude = observatory.latitude();
+  
+  // earth north pole
+  const orsa::Vector northPole = (orsaSolarSystem::equatorialToEcliptic()*orsa::Vector(0,0,1)).normalized();
   
   osg::ref_ptr<CustomMPCObservationsFile> obsFile =
     new CustomMPCObservationsFile;
@@ -558,11 +567,25 @@ int main(int argc, char ** argv) {
     // restore, important!
     orbit.M = original_M;
     // all in Ecliptic coords, as usual
-    const orsa::Vector orb2obs = obsPosition - orbitPosition;
-    const orsa::Vector orb2sun = sunPosition - orbitPosition;
+    const orsa::Vector orb2obs  = obsPosition - orbitPosition;
+    const orsa::Vector orb2sun  = sunPosition - orbitPosition;
+    const orsa::Vector obs2sun  = sunPosition - obsPosition;
+    const orsa::Vector obs2moon = moonPosition - obsPosition;
+    const orsa::Vector obs2orb  = -orb2obs;
+    const orsa::Vector moon2sun = sunPosition - moonPosition;
+    const orsa::Vector moon2obs = -obs2moon;
     const orsa::Vector orb2obs_dt = obsPosition_dt - orbitPosition_dt;
     const orsa::Vector orb2sun_dt = sunPosition_dt - orbitPosition_dt;
     const double phaseAngle = acos(orb2sun.normalized()*orb2obs.normalized());
+    const double solarElongation = acos(obs2sun.normalized()*obs2orb.normalized());
+    const double lunarElongation = acos(obs2moon.normalized()*obs2orb.normalized());
+    const double lunarPhase = acos(moon2sun.normalized()*moon2obs.normalized());
+    //
+    // airmass
+    const double orbLatitude = orsa::halfpi()-acos(northPole*obs2orb.normalized());
+    const double maxAltitude = orsa::halfpi()-fabs(orbLatitude-observatoryLatitude);
+    const double zenithAngle = orsa::halfpi()-maxAltitude;
+    const double minAirMass  = ((zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):-1.0);
     //
     bool observed=false;
     bool discovered=false;
@@ -613,6 +636,10 @@ int main(int argc, char ** argv) {
 			     orb2obs.length(),
 			     orb2sun.length()); 
     ed.apparentVelocity = acos(orb2obs_dt.normalized()*orb2obs.normalized())/dt.get_d();
+    ed.solarElongation = solarElongation;
+    ed.lunarElongation = lunarElongation;
+    ed.lunarPhase = lunarPhase;
+    ed.minAirMass = minAirMass;
     ed.observed = observed;
     ed.discovered = discovered;
     etaData.push_back(ed);
@@ -631,11 +658,15 @@ int main(int argc, char ** argv) {
 	sprintf(id,"%s",ed.designation.getRef().c_str());
       }
       fprintf(fp_allEta,
-	      "%5.2f %7s %5.2f %6.2f %1i %1i\n",
+	      "%5.2f %7s %5.2f %6.2f %6.2f %6.2f %6.2f %5.3f %1i %1i\n",
 	      ed.H.getRef(),
 	      id,
 	      ed.V.getRef(),
 	      orsa::FromUnits(ed.apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR), // arcsec/hour
+	      orsa::radToDeg()*ed.solarElongation.getRef(),
+	      orsa::radToDeg()*ed.lunarElongation.getRef(),
+	      orsa::radToDeg()*ed.lunarPhase.getRef(),
+	      ed.minAirMass.getRef(),
 	      ed.observed.getRef(),
 	      ed.discovered.getRef());
     }

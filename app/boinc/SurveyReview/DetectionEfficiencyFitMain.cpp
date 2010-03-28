@@ -43,19 +43,29 @@ int main(int argc, char ** argv) {
     }
     char line[1024];
     double H, V, apparentVelocity;
+    double solarElongation, lunarElongation;
+    double lunarPhase;
+    double minAirMass;
     char id[1024];
     int observed;
     int discovered;
     while (fgets(line,1024,fp)) {
-      sscanf(line,"%lf %s %lf %lf %i %i",
+      sscanf(line,"%lf %s %lf %lf %lf %lf %lf %lf %i %i",
 	     &H,
 	     id,
 	     &V,
 	     &apparentVelocity,
+	     &solarElongation,
+	     &lunarElongation,
+	     &lunarPhase,
+	     &minAirMass,
 	     &observed,
 	     &discovered);
       // convert
       apparentVelocity = orsa::FromUnits(apparentVelocity*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+      solarElongation = orsa::degToRad()*solarElongation;
+      lunarElongation = orsa::degToRad()*lunarElongation;
+      lunarPhase      = orsa::degToRad()*lunarPhase;
       //
       EfficiencyData ed;
       ed.H=H;
@@ -64,9 +74,13 @@ int main(int argc, char ** argv) {
       } else {
 	ed.designation = id;
       }
-      ed.V=V;
-      ed.apparentVelocity=apparentVelocity;
-      ed.observed = (observed==1);
+      ed.V = V;
+      ed.apparentVelocity = apparentVelocity;
+      ed.solarElongation  = solarElongation;
+      ed.lunarElongation  = lunarElongation;
+      ed.lunarPhase       = lunarPhase;
+      ed.minAirMass       = minAirMass;
+      ed.observed   = (observed==1);
       ed.discovered = (discovered==1);
       //
       etaData.push_back(ed);
@@ -227,7 +241,7 @@ int main(int argc, char ** argv) {
   if (1) {
     // output for testing
     typedef std::list< osg::ref_ptr<EfficiencyStatistics> > AllStat;
-    AllStat stat_V, stat_U;  
+    AllStat stat_V, stat_U; // stat_AM;  
     //
     for (unsigned int k=0; k<data.size(); ++k) {
       
@@ -264,6 +278,24 @@ int main(int argc, char ** argv) {
 	  stat_U.push_back(sU);
 	}
       }
+      
+      /* osg::ref_ptr<EfficiencyStatistics> sAM;
+	 {
+	 AllStat::const_iterator it = stat_AM.begin();
+	 while (it != stat_AM.end()) {
+	 if ((*it).get() != 0) {
+	 if ((*it)->center == data[k].minAirMass.getRef()) {
+	 sAM = (*it).get();
+	 }   
+	 }
+	 ++it;
+	 }
+	 if (sAM.get() == 0) {
+	 sAM = new EfficiencyStatistics(data[k].AM.getRef());
+	 stat_AM.push_back(sAM);
+	 }
+	 }
+      */
       
       const double eta = SkyCoverage::eta(data[k].V.getRef(),
 					  V_limit,

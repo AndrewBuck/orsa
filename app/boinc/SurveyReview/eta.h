@@ -10,6 +10,10 @@ class EfficiencyData {
   orsa::Cache<std::string> designation;
   orsa::Cache<double> V;
   orsa::Cache<double> apparentVelocity;
+  orsa::Cache<double> solarElongation;
+  orsa::Cache<double> lunarElongation;
+  orsa::Cache<double> lunarPhase;
+  orsa::Cache<double> minAirMass;
   orsa::Cache<bool>   observed;
   orsa::Cache<bool>   discovered;
 };
