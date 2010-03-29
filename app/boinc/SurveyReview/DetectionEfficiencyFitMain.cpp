@@ -108,69 +108,83 @@ int main(int argc, char ** argv) {
       while (apparentVelocity<orsa::FromUnits(300.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)) {
 	
 	double solarElongation=orsa::pi();
-	const double deltaSolarElongation=-5.0*orsa::degToRad(); // negative, as we go from 180 deg to 0
+	const double deltaSolarElongation=-10.0*orsa::degToRad(); // negative, as we go from 180 deg to 0
 	while (solarElongation>=0) {
 	  
 	  double lunarElongation=orsa::pi();
-	  const double deltaLunarElongation=-5.0*orsa::degToRad(); // negative, as we go from 180 deg to 0
+	  const double deltaLunarElongation=-10.0*orsa::degToRad(); // negative, as we go from 180 deg to 0
 	  while (lunarElongation>=0) {
 	    
-	    unsigned int Nobs=0,Ndsc=0,Ntot=0; // dsc=discovered
-	    for (unsigned int k=0; k<etaData.size(); ++k) {
-	      if ((etaData[k].V.getRef()>=V) && 
-		  (etaData[k].V.getRef()<V+dV) && 
-		  (etaData[k].apparentVelocity.getRef()>=apparentVelocity) &&
-		  (etaData[k].apparentVelocity.getRef()< apparentVelocityFactor*apparentVelocity) &&
-		  (etaData[k].solarElongation.getRef()<=solarElongation) && 
-		  (etaData[k].solarElongation.getRef()> solarElongation+deltaSolarElongation) &&
-		  (etaData[k].lunarElongation.getRef()<=lunarElongation) && 
-		  (etaData[k].lunarElongation.getRef()> lunarElongation+deltaLunarElongation)) {
-		++Ntot;
-		if (etaData[k].observed.getRef()) {
-		  ++Nobs;
+	    // airmass
+	    double AM=1.0;
+	    const double AMFactor=1.1;
+	    while (AM<10.0) {
+	      
+	      unsigned int Nobs=0,Ndsc=0,Ntot=0; // dsc=discovered
+	      for (unsigned int k=0; k<etaData.size(); ++k) {
+		if ((etaData[k].V.getRef()>=V) && 
+		    (etaData[k].V.getRef()< V+dV) && 
+		    (etaData[k].apparentVelocity.getRef()>=apparentVelocity) &&
+		    (etaData[k].apparentVelocity.getRef()< apparentVelocityFactor*apparentVelocity) &&
+		    (etaData[k].solarElongation.getRef()<=solarElongation) && 
+		    (etaData[k].solarElongation.getRef()> solarElongation+deltaSolarElongation) &&
+		    (etaData[k].lunarElongation.getRef()<=lunarElongation) && 
+		    (etaData[k].lunarElongation.getRef()> lunarElongation+deltaLunarElongation) && 
+		    (etaData[k].minAirMass.getRef()>=AM) &&
+		    (etaData[k].minAirMass.getRef()< AMFactor*AM)) {
+		  ++Ntot;
+		  if (etaData[k].observed.getRef()) {
+		    ++Nobs;
+		  }
+		  if (etaData[k].discovered.getRef()) {
+		    ++Ndsc;
+		  }	
 		}
-		if (etaData[k].discovered.getRef()) {
-		  ++Ndsc;
-		}	
-	      }
-	    }
-	    
-	    // write point only if Ntot != 0
-	    if (Ntot>=2) {
-	      const double      eta = (double)Nobs/(double)Ntot;
-	      const double sigmaEta = (double)(sqrt(Nobs+1))/(double)(Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
-	      
-	      if (write_fp_eta) {
-		fprintf(fp_eta,
-			"%5.2f %4.2f %6.2f %4.2f %6.2f %6.2f %6.2f %6.2f %5.3f %5.3f %5i %5i %5i\n",
-			V+0.5*dV, 
-			dV, 
-			orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToArcsec(),orsa::Unit::HOUR),
-			apparentVelocityFactor,
-			solarElongation+0.5*deltaSolarElongation,
-			deltaSolarElongation,
-			lunarElongation+0.5*deltaLunarElongation,
-			deltaLunarElongation,
-			eta,
-			sigmaEta,
-			Nobs,
-			Ndsc,
-			Ntot);
 	      }
 	      
-	      EfficiencyMultifit::DataElement el;
-	      //
-	      el.V=V+0.5*dV;
-	      el.U=apparentVelocity*0.5*(1.0+apparentVelocityFactor);		 
-	      el.SE=solarElongation+0.5*deltaSolarElongation;	 
-	      el.LE=lunarElongation+0.5*deltaLunarElongation;
-	      el.eta=eta;
-	      el.sigmaEta=sigmaEta;
-	      el.Nobs=Nobs;
-	      el.Ndsc=Ndsc;
-	      el.Ntot=Ntot;
-	      //
-	      data.push_back(el);
+	      // write point only if Ntot != 0
+	      if (Ntot>=2) {
+		const double      eta = (double)Nobs/(double)Ntot;
+		const double sigmaEta = (double)(sqrt(Nobs+1))/(double)(Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
+		
+		if (write_fp_eta) {
+		  fprintf(fp_eta,
+			  "%5.2f %4.2f %6.2f %4.2f %6.2f %6.2f %6.2f %6.2f %6.3f %6.3f %5.3f %5.3f %5i %5i %5i\n",
+			  V+0.5*dV, 
+			  dV, 
+			  orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToArcsec(),orsa::Unit::HOUR),
+			  apparentVelocityFactor,
+			  solarElongation+0.5*deltaSolarElongation,
+			  deltaSolarElongation,
+			  lunarElongation+0.5*deltaLunarElongation,
+			  deltaLunarElongation,
+			  AM*0.5*(1.0+AMFactor),
+			  AMFactor,
+			  eta,
+			  sigmaEta,
+			  Nobs,
+			  Ndsc,
+			  Ntot);
+		}
+		
+		EfficiencyMultifit::DataElement el;
+		//
+		el.V=V+0.5*dV;
+		el.U=apparentVelocity*0.5*(1.0+apparentVelocityFactor);		 
+		el.SE=solarElongation+0.5*deltaSolarElongation;	 
+		el.LE=lunarElongation+0.5*deltaLunarElongation;
+		// add lunar phase here
+		el.AM=AM;
+		el.eta=eta;
+		el.sigmaEta=sigmaEta;
+		el.Nobs=Nobs;
+		el.Ndsc=Ndsc;
+		el.Ntot=Ntot;
+		//
+		data.push_back(el);
+	      }
+	      
+	      AM *= AMFactor;
 	    }
 	    
 	    lunarElongation += deltaLunarElongation;
@@ -269,7 +283,7 @@ int main(int argc, char ** argv) {
     AllStat stat_V, stat_U; 
     AllStat stat_SE; // solarElongation
     AllStat stat_LE; // lunarElongation
-    AllStat stat_LP; // lunarPhase
+    // AllStat stat_LP; // lunarPhase
     AllStat stat_AM; // minAirMass
     //
     for (unsigned int k=0; k<data.size(); ++k) {
@@ -344,6 +358,24 @@ int main(int argc, char ** argv) {
 	}
       }
       
+      // minAirMass
+      osg::ref_ptr<EfficiencyStatistics> sAM;
+      {
+	AllStat::const_iterator it = stat_AM.begin();
+	while (it != stat_AM.end()) {
+	  if ((*it).get() != 0) {
+	    if ((*it)->center == data[k].AM.getRef()) {
+	      sAM = (*it).get();
+	    }   
+	  }
+	  ++it;
+	}
+	if (sAM.get() == 0) {
+	  sAM = new EfficiencyStatistics(data[k].AM.getRef());
+	  stat_AM.push_back(sAM);
+	}
+      }
+      
       const double eta = SkyCoverage::eta(data[k].V.getRef(),
 					  V_limit,
 					  eta0_V,
@@ -381,11 +413,14 @@ int main(int argc, char ** argv) {
 		      orsa::square(eta/(data[k].sigmaEta.getRef())));
 	  sLE->insert(data[k].eta.getRef()/eta,
 		      orsa::square(eta/(data[k].sigmaEta.getRef())));
+	  sAM->insert(data[k].eta.getRef()/eta,
+		      orsa::square(eta/(data[k].sigmaEta.getRef())));
 	}
 	if ( !sV->fit.isSet())  sV->fit = nominal_eta_V;
 	if ( !sU->fit.isSet())  sU->fit = nominal_eta_U;
 	if (!sSE->fit.isSet()) sSE->fit = 1.0;
  	if (!sLE->fit.isSet()) sLE->fit = 1.0;
+   	if (!sAM->fit.isSet()) sAM->fit = 1.0;
       }
     }
     
@@ -394,6 +429,7 @@ int main(int argc, char ** argv) {
     stat_U.sort(EfficiencyStatistics_ptr_cmp());
     stat_SE.sort(EfficiencyStatistics_ptr_cmp());
     stat_LE.sort(EfficiencyStatistics_ptr_cmp());
+    stat_AM.sort(EfficiencyStatistics_ptr_cmp());
     
     {
       FILE * fpv = fopen("v.fit.dat","w");
@@ -489,6 +525,30 @@ int main(int argc, char ** argv) {
 	++it;
       }
       fclose(fple);
+    }
+    
+    {
+      FILE * fpam = fopen("am.fit.dat","w");
+      AllStat::const_iterator it = stat_AM.begin();
+      while (it != stat_AM.end()) {
+	if (!(*it)->fit.isSet()) {
+	  ORSA_DEBUG("problems: fit value not set");
+	  ++it;
+	  continue;
+	}
+	if ((*it)->averageError()==0.0) {
+	  // ORSA_DEBUG("--SKIPPING--");
+	  ++it;
+	  continue;
+	}
+      	fprintf(fpam,"%g %g %g %g\n",
+		orsa::radToDeg()*(*it)->center,
+		(*it)->fit.getRef(),
+		(*it)->average(),
+		(*it)->averageError());
+	++it;
+      }
+      fclose(fpam);
     }
     
   }
