@@ -25,6 +25,7 @@ class EfficiencyMultifit : public orsa::Multifit {
     // V = apparent magnitude
     // U = apparent velocity
     orsa::Cache<double> V, U, eta, sigmaEta;
+    orsa::Cache<double> SE, LE, LP, AM;
     orsa::Cache<unsigned int> Nobs, Ndsc, Ntot;
   };
   typedef std::vector<DataElement> DataStorage;
