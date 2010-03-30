@@ -60,31 +60,6 @@ namespace orsaSolarSystem {
 			   const orsa::Time  & t) const = 0;
   };
   
-  class StandardObservatoryPositionCallback : public ObservatoryPositionCallback {
-  public:
-    StandardObservatoryPositionCallback(orsaInputOutput::MPCObsCodeFile * ocf);
-  public:
-    bool getPosition(orsa::Vector & position,
-		     const orsaSolarSystem::Observation * obs) const; 
-  public:
-    bool getPosition(orsa::Vector & position,
-		     const std::string & obsCode,
-		     const orsa::Time  & t) const;
-  public:
-    bool getPosVel(orsa::Vector      & position,
-		   orsa::Vector      & velocity,
-		   const orsaSolarSystem::Observation * obs) const;
-  public:
-    bool getPosVel(orsa::Vector & position,
-		   orsa::Vector & velocity,
-		   const std::string & obsCode,
-		   const orsa::Time  & t) const;
-  protected:
-    osg::ref_ptr<orsa::BodyGroup> bg;   
-    osg::ref_ptr<orsa::Body> earth; 
-    osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile;
-  };
-  
 }; // namespace orsaSolarSystem
 
 #endif // _ORSA_SOLAR_SYSTEM_OBSERVATORY_
