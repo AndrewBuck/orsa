@@ -58,7 +58,7 @@ namespace orsa {
   }
   
   inline void sincos(const Angle & angle, double * s, double * c) {
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__MINGW32__)
     (*s) = sin(angle.getRad());
     (*c) = cos(angle.getRad());
 #else

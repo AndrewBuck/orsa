@@ -1,8 +1,6 @@
 #ifndef _ORSA_DATETIME_H_
 #define _ORSA_DATETIME_H_
 
-#include <gmpxx.h>
-
 #include <orsa/double.h>
 #include <orsa/unit.h>
 

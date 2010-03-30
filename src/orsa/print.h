@@ -60,23 +60,7 @@ namespace orsa {
   }
   
   inline void print(const orsa::Time & t) {
-    
-    // ORSA_DEBUG("t: %20.14f [day]",orsa::FromUnits(t.get_d(),orsa::Unit::DAY,-1));
-    
-    int y,m,d,H,M,S,ms;
-    // double fd;
-    int y_UTC,m_UTC,d_UTC,H_UTC,M_UTC,S_UTC,ms_UTC;
-    orsaSolarSystem::gregorDay(t,y,m,d,H,M,S,ms);
-    // orsaSolarSystem::gregorDay(t,y,m,d,fd);
-    orsaSolarSystem::gregorDay(orsaSolarSystem::ToTimeScale(t,orsaSolarSystem::TS_UTC),
-			       y_UTC,m_UTC,d_UTC,H_UTC,M_UTC,S_UTC,ms_UTC);
-    ORSA_DEBUG("t: %Zi [musec] = %.12f [day] = JD %.5f (TDT) = JD %.5f (UTC) = %i %2i %2i %02i:%02i:%02i.%03i (TDT) = %i %2i %2i %02i:%02i:%02i.%03i (UTC)",
-	       t.getMuSec().get_mpz_t(),
-	       orsa::FromUnits(t.get_d(),orsa::Unit::DAY,-1),
-	       orsaSolarSystem::timeToJulian(t),
-	       orsaSolarSystem::timeToJulian(orsaSolarSystem::ToTimeScale(t,orsaSolarSystem::TS_UTC)),
-	       y,m,d,H,M,S,ms,
-	       y_UTC,m_UTC,d_UTC,H_UTC,M_UTC,S_UTC,ms_UTC);
+   	ORSA_DEBUG("t: %20.14f [day]",orsa::FromUnits(t.get_d(),orsa::Unit::DAY,-1));
   }
   
   inline void print(const orsa::Orbit & o) {
