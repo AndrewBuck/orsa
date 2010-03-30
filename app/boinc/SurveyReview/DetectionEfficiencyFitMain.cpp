@@ -21,6 +21,228 @@ public:
   }
 };
 
+class CountStatsElement {
+public:
+  CountStatsElement() {
+    Nobs=0;
+    Ndsc=0;
+    Ntot=0;
+  }
+public:
+  unsigned int Nobs, Ndsc, Ntot;  
+};
+
+
+class CountStats : public osg::Referenced {  
+  // first, the classes to handle linear and logarithmic variables
+public:
+  class Var : public osg::Referenced {
+  public:
+    Var() : osg::Referenced() { }
+  protected:
+    ~Var() { }
+  public:
+    size_t size() const { return histo.size(); }
+    virtual size_t bin(const double x) const = 0;
+    virtual double binStart(const size_t bin) const = 0;
+    virtual double binStop(const size_t bin) const = 0;
+    double binCenter(const size_t bin) const {
+      return (0.5*(binStart(bin)+binStop(bin)));
+    }
+  protected:
+    std::vector<CountStatsElement> histo;
+  };
+public:	
+  class LinearVar : public Var {
+  public:
+    LinearVar(const double startValue,
+	      const double stopValue,
+	      const double incrValue) : 
+      Var(),
+      start(startValue),
+      stop(stopValue),
+      incr(incrValue) {
+      histo.resize((size_t)(1+(stop-start)/incr));  
+    }
+  public:
+    size_t bin(const double x) const {
+      return (size_t)((x-start)/incr);
+    }
+    double binStart(const size_t bin) const {
+      return (start+bin*incr);
+    }
+    double binStop(const size_t bin) const {
+      return (start+(bin+1)*incr);
+    }
+  protected:
+    const double start, stop, incr;
+  };
+public:	
+  class LogarithmicVar : public Var {
+  public:
+    LogarithmicVar(const double startValue,
+		   const double stopValue,
+		   const double factorValue) : 
+      Var(),
+      start(startValue),
+      stop(stopValue),
+      factor(factorValue) {
+      histo.resize((size_t)(1+log(stop/start)/log(factor)));  
+    }
+  public:
+    size_t bin(const double x) const {
+      return (size_t)(log(x/start)/log(factor));
+    }
+    double binStart(const size_t bin) const {
+      return (start*orsa::int_pow(factor,bin));
+    }
+    double binStop(const size_t bin) const {
+      return (start*orsa::int_pow(factor,bin+1));
+    }
+  protected:
+    const double start, stop, factor;
+  };
+  
+public:
+  CountStats(const std::vector< osg::ref_ptr<Var> > & varDefinition) :
+    osg::Referenced(),
+    var(varDefinition) {
+    size_t totalSize=1;
+    for (unsigned int k=0; k<varDefinition.size(); ++k) {
+      totalSize *= varDefinition[k]->size();
+    }  
+    ORSA_DEBUG("totalSize: %i",totalSize);
+    data.resize(totalSize);
+  }
+protected:
+  ~CountStats() { }
+  
+public:
+  bool insert(const std::vector<double> & xVector,
+	      const bool obs, 
+	      const bool dsc) {
+    if (xVector.size() != var.size()) {
+      ORSA_DEBUG("dimension mismatch");
+      return false;
+    }
+    std::vector<size_t> binVector;
+    if (!bin(binVector,xVector)) {
+      return false;
+    }   
+    
+    
+    { 
+      // test only
+      ORSA_DEBUG("TEST: ---");
+      ORSA_DEBUG("original binVector:");
+      for (unsigned int k=0; k<binVector.size(); ++k) {
+	ORSA_DEBUG("binVector[%i] = %i",k,binVector[k]);
+      } 
+      const size_t idx = index(binVector);
+      ORSA_DEBUG("index: %i",idx);
+      bin(idx);
+      ORSA_DEBUG("reconstructed binVector:");
+      for (unsigned int k=0; k<binVector.size(); ++k) {
+	ORSA_DEBUG("binVector[%i] = %i",k,binVector[k]);
+      } 
+    }
+    
+    
+    data[index(binVector)].Ntot++;
+    if (obs) data[index(binVector)].Nobs++;
+    if (dsc) data[index(binVector)].Ndsc++;
+    return true; 
+  }
+public:
+  bool bin(std::vector<size_t> & binVector,
+	   const std::vector<double> & xVector) const {
+    binVector.resize(xVector.size());
+    for (unsigned int k=0; k<xVector.size(); ++k) {
+      binVector[k] = var[k]->bin(xVector[k]);
+      if (binVector[k] > var[k]->size()) {
+	// ORSA_DEBUG("bin larger than size, k: %i   bin: %i   size: %i",k,binVector[k],var[k]->size());
+	return false;
+      }	
+    }
+    return true;
+  }
+public:
+  // from binVector to index
+  size_t index(const std::vector<size_t> & binVector) const {
+    size_t idx=0;
+    size_t mul=1;
+    for (unsigned int k=0; k<var.size(); ++k) {
+      idx += binVector[k] * mul;
+      mul *= var[k]->size();
+    }
+    ORSA_DEBUG("index: %i",idx);
+    return idx;
+  }
+public:
+  // from index to binVector
+  std::vector<size_t> bin(size_t index) const {
+    size_t mul=1;
+    for (unsigned int k=0; k<var.size(); ++k) {
+      mul *= var[k]->size();
+    }
+    std::vector<size_t> binVector;
+    binVector.resize(var.size());
+    {
+      unsigned int k=var.size();
+      do {
+	--k;
+	mul /= var[k]->size();
+	binVector[k] = index/mul;
+	index -= binVector[k]*mul;
+      } while (k>0);
+    }
+    return binVector;
+  }
+protected:
+  const std::vector< osg::ref_ptr<Var> > & var;
+protected:
+  std::vector<CountStatsElement> data;
+};
+
+class LinearHisto_ES {
+public:
+  LinearHisto_ES(const double startValue,
+		 const double stopValue,
+		 const double incrValue) :
+    start(startValue),
+    stop(stopValue),
+    incr(incrValue) {
+    histo.resize((size_t)(1+(stop-start)/incr));  
+    for (unsigned int k=0; k< histo.size(); ++k) {
+      histo[k] = new EfficiencyStatistics(start+0.5*incr*k);
+    }
+  }
+public:
+  bool insert(const double x,
+	      const double val,
+	      const double sigma) {
+    const size_t histo_bin = bin(x);
+    if (histo_bin>=histo.size()) {
+      ORSA_DEBUG("problems...  bin: %i size: %i",histo_bin,histo.size());
+      return false;
+    }
+    histo[histo_bin]->insert(val,sigma);
+    return true;
+  }
+public:
+  size_t bin(const double x) const {
+    return (size_t)((x-start)/incr);
+  }
+public:
+  const std::vector< osg::ref_ptr< EfficiencyStatistics > > & getHisto() const {
+    return histo;
+  }
+public:
+  const double start, stop, incr;
+protected:
+  std::vector< osg::ref_ptr< EfficiencyStatistics > > histo;
+};
+
 int main(int argc, char ** argv) {
   
   orsa::Debug::instance()->initTimer();
@@ -88,7 +310,55 @@ int main(int argc, char ** argv) {
     fclose(fp);
   }
   
+  // minimum apparent magnitude
   const double V0=16.0;
+  
+  // alternative method using CountStats
+  std::vector< osg::ref_ptr<CountStats::Var> > varDefinition;
+  //
+  // apparent magnitude
+  varDefinition.push_back(new CountStats::LinearVar(V0,
+						    24,
+						    0.2));
+  // apparent velocity
+  varDefinition.push_back(new CountStats::LogarithmicVar(orsa::FromUnits(  0.1*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
+							 orsa::FromUnits(300.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
+							 1.2));
+  // solar elongation
+  varDefinition.push_back(new CountStats::LinearVar(0.0,
+						    orsa::pi(),
+						    10.0*orsa::degToRad()));
+  // lunar elongation
+  varDefinition.push_back(new CountStats::LinearVar(0.0,
+						    orsa::pi(),
+						    10.0*orsa::degToRad()));
+  // airmass
+  varDefinition.push_back(new CountStats::LogarithmicVar(1.0,
+							 10.0,
+							 1.1));
+  
+  osg::ref_ptr<CountStats> countStats = 
+    new CountStats(varDefinition);
+  
+  std::vector<double> xVector;
+  xVector.resize(varDefinition.size());
+  for (unsigned int k=0; k<etaData.size(); ++k) {
+    // keep vars aligned with varDefinition content
+    xVector[0] = etaData[k].V.getRef();
+    xVector[1] = etaData[k].apparentVelocity.getRef();
+    xVector[2] = etaData[k].solarElongation.getRef();
+    xVector[3] = etaData[k].lunarElongation.getRef();
+    xVector[4] = etaData[k].minAirMass.getRef();
+    const bool goodInsert = countStats->insert(xVector,
+					       etaData[k].observed.getRef(),
+					       etaData[k].discovered.getRef());
+    if (!goodInsert) {
+      // ORSA_DEBUG("problems with this one: V: %g",etaData[k].V.getRef())
+    }
+  }
+  ORSA_DEBUG("done");
+  
+  
   EfficiencyMultifit::DataStorage data;
   const bool write_fp_eta=false;
   {
