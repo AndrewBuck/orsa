@@ -1,11 +1,9 @@
 TEMPLATE = lib
 
-#CONFIG += staticlib
-
 CONFIG += qt
 QT -= gui
 
-CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include tbb_include
+CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib zlib_include zlib_lib
 
 include(../../orsa.pri)
 
@@ -37,7 +35,8 @@ HEADERS = attitude.h \
           obleq.h \
           observation.h \
           observatory.h \
-          orbit.h 
+          orbit.h \
+		  print.h
 
 SOURCES = attitude.cpp \
           datetime.cpp \
@@ -45,7 +44,7 @@ SOURCES = attitude.cpp \
           gmst.cpp \
           obleq.cpp \
           observatory.cpp \
-          orbit.cpp \
+		  orbit.cpp \
           sdncal.h \
           dow.c \
           gregor.c \

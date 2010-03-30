@@ -6,7 +6,7 @@ TEMPLATE = lib
 CONFIG += qt
 QT -= gui
 
-CONFIG += spice_include spice_lib gmp_include gmp_lib gsl_include gsl_lib osg_include tbb_include
+CONFIG += spice_include spice_lib gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib
 
 include(../../orsa.pri)
 

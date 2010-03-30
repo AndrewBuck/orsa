@@ -6,6 +6,7 @@
 #include <osg/Referenced>
 #include <osg/ref_ptr>
 
+#include <cstdio>
 #include <string>
 
 #include <errno.h>

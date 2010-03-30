@@ -8,4 +8,4 @@ TEMPLATE = subdirs
 	SUBDIRS += orsaEssentialOSG
 } 
 
-SUBDIRS += orsaTBB orsa orsaSolarSystem orsaInputOutput orsaOSG orsaQt orsaSPICE
+SUBDIRS += orsa orsaSolarSystem orsaSPICE orsaInputOutput orsaOSG orsaQt orsaUtil

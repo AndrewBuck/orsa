@@ -32,7 +32,7 @@ macx {
 	ORSA_PRI = /Users/tricaric/orsa/orsa.pri
 }
 win32 {
-	ORSA_PRI = E:\work\orsa\orsa.pri
+	ORSA_PRI = C:\orsa\orsa.pri
 }
 
 
@@ -225,20 +225,20 @@ win32 {
 		LIBS += -L$$ORSA_SUPPORT\gsl\lib -lgsl -lgslcblas
 	}
 	osg_include {
-        	INCLUDEPATH += E:\work\osg\include
+        	INCLUDEPATH += C:\OpenSceneGraph\include
 #		QMAKE_CXXFLAGS += -DOT_LIBRARY_STATIC -DOSG_LIBRARY_STATIC
 	}
 	osg_lib {
-		LIBS += -LE:\work\osg\lib -lOpenThreads -losg
+		LIBS += -LC:\OpenSceneGraph\lib -lOpenThreads -losg
 	}
 	osg_src {
 		OSG_SRC = 
 	}
 	qwt_include {
-		INCLUDEPATH += E:\work\qwt\src
+		INCLUDEPATH += C:\qwt\src
 	}
 	qwt_lib {
-		LIBS += -LE:\work\qwt\lib\ -lqwt5
+		LIBS += -LC:\qwt\lib\ -lqwt5
 	}
 	spice_include {
 		INCLUDEPATH += $$ORSA_SUPPORT\cspice\include
@@ -253,7 +253,7 @@ win32 {
 		LIBS +=
 	}
 	zlib_include {
-        	INCLUDEPATH += E:\work\Qt\4.4.0-rc1\src\3rdparty\zlib
+        	INCLUDEPATH += C:\Qt\2010.02.1\qt\src\3rdparty\zlib
 	}
 	zlib_lib {
 		LIBS +=

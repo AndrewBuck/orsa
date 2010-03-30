@@ -7,7 +7,7 @@ CONFIG += qt
 
 QT -= gui
 
-CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include tbb_include
+CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib
 
 include(../../orsa.pri)
 

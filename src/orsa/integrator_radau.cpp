@@ -2,7 +2,7 @@
 
 // #include <orsa/attitude.h>
 #include <orsa/bodygroup.h>
-#include <crash.h>
+#include <orsa/crash.h>
 #include <orsa/euler.h>
 #include <orsa/interaction.h>
 #include <orsa/print.h>
