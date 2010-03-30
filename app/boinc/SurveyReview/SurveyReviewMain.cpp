@@ -9,6 +9,8 @@
 #include <orsaSolarSystem/datetime.h>
 #include <orsaSolarSystem/observatory.h>
 
+#include <orsaUtil/observatory.h>
+
 #include <orsaSPICE/spice.h>
 #include <orsaSPICE/spiceBodyRotationalCallback.h>
 #include <orsaSPICE/spiceBodyTranslationalCallback.h>
@@ -117,8 +119,8 @@ int main() {
   obsCodeFile->setFileName(resolvedFileName);
   obsCodeFile->read();
   
-  osg::ref_ptr<orsaSolarSystem::StandardObservatoryPositionCallback> obsPosCB =
-    new orsaSolarSystem::StandardObservatoryPositionCallback(obsCodeFile.get());
+  osg::ref_ptr<orsaUtil::StandardObservatoryPositionCallback> obsPosCB =
+    new orsaUtil::StandardObservatoryPositionCallback(obsCodeFile.get());
   
   {
     // spice error file (should resolve filename?)

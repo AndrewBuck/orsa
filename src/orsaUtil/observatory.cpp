@@ -1,5 +1,6 @@
 #include <orsaSolarSystem/obleq.h>
 #include <orsaSolarSystem/gmst.h>
+
 #include <orsaUtil/observatory.h>
 
 #include <orsaInputOutput/MPC_obscode.h>
@@ -7,7 +8,7 @@
 #include <orsaSPICE/spiceBodyTranslationalCallback.h>
 
 using namespace orsa;
-using namespace orsaUti;;
+using namespace orsaUtil;
 
 StandardObservatoryPositionCallback::StandardObservatoryPositionCallback(orsaInputOutput::MPCObsCodeFile * ocf) :
   orsaSolarSystem::ObservatoryPositionCallback(),
@@ -102,3 +103,10 @@ bool StandardObservatoryPositionCallback::getPosVel(orsa::Vector & position,
   return getPosVel(position,velocity,obs.get());
 }
 
+const orsaSolarSystem::Observatory & StandardObservatoryPositionCallback::getObservatory(const std::string & obsCode) const {
+  return obsCodeFile->_data.observatory[obsCode];
+}
+
+const orsaSolarSystem::Observatory & StandardObservatoryPositionCallback::getObservatory(const orsaSolarSystem::Observation * obs) const {
+  return obsCodeFile->_data.observatory[obs->obsCode.getRef()];
+}

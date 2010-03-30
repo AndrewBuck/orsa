@@ -22,7 +22,7 @@ namespace orsaInputOutput {
 
 namespace orsaUtil {
   
-  class StandardObservatoryPositionCallback : public ObservatoryPositionCallback {
+  class StandardObservatoryPositionCallback : public orsaSolarSystem::ObservatoryPositionCallback {
   public:
     StandardObservatoryPositionCallback(orsaInputOutput::MPCObsCodeFile * ocf);
   public:
@@ -41,6 +41,9 @@ namespace orsaUtil {
 		   orsa::Vector & velocity,
 		   const std::string & obsCode,
 		   const orsa::Time  & t) const;
+  public:   
+    const orsaSolarSystem::Observatory & getObservatory(const std::string & obsCode) const;
+    const orsaSolarSystem::Observatory & getObservatory(const orsaSolarSystem::Observation * obs) const;
   protected:
     osg::ref_ptr<orsa::BodyGroup> bg;   
     osg::ref_ptr<orsa::Body> earth; 

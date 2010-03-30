@@ -23,7 +23,7 @@ OBJECTS_DIR = .obj/$${PLATFORM_NAME}
 DESTDIR     = ../../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
-	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads -lorsaTBB /home/tricaric/boinc/api/libboinc_api.a /home/tricaric/boinc/lib/libboinc.a -L/home/tricaric/sqlite -lsqlite3
+	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads -lorsaUtil /home/tricaric/boinc/api/libboinc_api.a /home/tricaric/boinc/lib/libboinc.a -L/home/tricaric/sqlite -lsqlite3
 }
 
 macx {
