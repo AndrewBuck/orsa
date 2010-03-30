@@ -1,6 +1,7 @@
 #ifndef _ORSA_DOUBLE_
 #define _ORSA_DOUBLE_
 
+#include <cstdio>
 #include <gmpxx.h>
 
 #include <complex>

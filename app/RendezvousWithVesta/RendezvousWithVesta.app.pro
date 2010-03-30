@@ -29,7 +29,7 @@ macx {
 }
 
 win32 {
-        LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE
+        LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -losg -losgViewer -losgGA
 }
 
 HEADERS += RendezvousWithVesta.h   RendezvousWithVestaVersion.h   mainThread.h   multiminPhase.h   vestaViz.h   plot.h vesta.h 
