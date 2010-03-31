@@ -21,17 +21,18 @@ public:
   }
 };
 
-class CountStatsElement {
+class CountStatsElement : public osg::Referenced {
 public:
-  CountStatsElement() {
+  CountStatsElement() : osg::Referenced() {
     Nobs=0;
     Ndsc=0;
     Ntot=0;
   }
+protected:
+  ~CountStatsElement() { }
 public:
   unsigned int Nobs, Ndsc, Ntot;  
 };
-
 
 class CountStats : public osg::Referenced {  
   // first, the classes to handle linear and logarithmic variables
@@ -42,15 +43,13 @@ public:
   protected:
     ~Var() { }
   public:
-    size_t size() const { return histo.size(); }
+    virtual size_t size() const = 0;
     virtual size_t bin(const double x) const = 0;
     virtual double binStart(const size_t bin) const = 0;
     virtual double binStop(const size_t bin) const = 0;
     double binCenter(const size_t bin) const {
       return (0.5*(binStart(bin)+binStop(bin)));
     }
-  protected:
-    std::vector<CountStatsElement> histo;
   };
 public:	
   class LinearVar : public Var {
@@ -62,9 +61,11 @@ public:
       start(startValue),
       stop(stopValue),
       incr(incrValue) {
-      histo.resize((size_t)(1+(stop-start)/incr));  
     }
   public:
+    size_t size() const {
+      return (size_t)(1+(stop-start)/incr);
+    }
     size_t bin(const double x) const {
       return (size_t)((x-start)/incr);
     }
@@ -87,9 +88,11 @@ public:
       start(startValue),
       stop(stopValue),
       factor(factorValue) {
-      histo.resize((size_t)(1+log(stop/start)/log(factor)));  
     }
   public:
+    size_t size() const {
+      return (size_t)(1+log(stop/start)/log(factor));
+    }
     size_t bin(const double x) const {
       return (size_t)(log(x/start)/log(factor));
     }
@@ -147,10 +150,13 @@ public:
       } 
     }
     
-    
-    data[index(binVector)].Ntot++;
-    if (obs) data[index(binVector)].Nobs++;
-    if (dsc) data[index(binVector)].Ndsc++;
+    const size_t idx = index(binVector);
+    if (data[idx].get()==0) {
+      data[idx] = new CountStatsElement;
+    }	
+    data[idx]->Ntot++;
+    if (obs) data[idx]->Nobs++;
+    if (dsc) data[idx]->Ndsc++;
     return true; 
   }
 public:
@@ -209,13 +215,13 @@ public:
 public:
   size_t size() const { return data.size(); }
 public:
-  const CountStatsElement & stats(const size_t index) const {
-    return data[index];
+  const CountStatsElement * stats(const size_t index) const {
+    return data[index].get();
   }
 protected:
   const std::vector< osg::ref_ptr<Var> > & var;
 protected:
-  std::vector<CountStatsElement> data;
+  std::vector< osg::ref_ptr<CountStatsElement> > data;
 };
 
 class LinearHisto_ES {
@@ -393,11 +399,12 @@ int main(int argc, char ** argv) {
   EfficiencyMultifit::DataStorage data;
   
   for (unsigned int index=0; index<countStats->size(); ++index) {
-    const CountStatsElement cs = countStats->stats(index);
+    const CountStatsElement * cs = countStats->stats(index);
+    if (cs==0) continue;
     // write point only if Ntot != 0
-    if (cs.Ntot>=2) {
-      const double      eta = (double)(cs.Nobs)/(double)(cs.Ntot);
-      const double sigmaEta = (double)(sqrt(cs.Nobs+1))/(double)(cs.Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
+    if (cs->Ntot>=2) {
+      const double      eta = (double)(cs->Nobs)/(double)(cs->Ntot);
+      const double sigmaEta = (double)(sqrt(cs->Nobs+1))/(double)(cs->Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
       
       const std::vector<double> xVector = countStats->binCenterVector(index); 
       
@@ -412,9 +419,9 @@ int main(int argc, char ** argv) {
       el.GL=xVector[5];
       el.eta=eta;
       el.sigmaEta=sigmaEta;
-      el.Nobs=cs.Nobs;
-      el.Ndsc=cs.Ndsc;
-      el.Ntot=cs.Ntot;
+      el.Nobs=cs->Nobs;
+      el.Ndsc=cs->Ndsc;
+      el.Ntot=cs->Ntot;
       //
       data.push_back(el);
     }
