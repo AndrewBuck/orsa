@@ -590,8 +590,14 @@ int Multifit::f_gsl (const gsl_vector * parameters,
   
   // ORSA_DEBUG("f...");
   
-  for(unsigned int k=0; k<_par->sizeNotFixed(); ++k) {
-    _par->set(k,gsl_vector_get(parameters,k));
+  {
+    unsigned int gslIndex=0; 
+    for (unsigned int k=0; k<_par->totalSize(); ++k) {
+      if (!_par->isFixed(k)) {
+	_par->set(k, gsl_vector_get(parameters,gslIndex));
+	++gslIndex;
+      }
+    }
   }
   
   const orsa::MultifitData * data = (orsa::MultifitData *) dataPoints;
@@ -633,8 +639,14 @@ int Multifit::df_gsl (const gsl_vector * v,
   
   // ORSA_DEBUG("df...");
   
-  for(unsigned int k=0; k<_par->sizeNotFixed(); ++k) {
-    _par->set(k,gsl_vector_get(v,k));
+  {
+    unsigned int gslIndex=0; 
+    for (unsigned int k=0; k<_par->totalSize(); ++k) {
+      if (!_par->isFixed(k)) {
+	_par->set(k, gsl_vector_get(v,gslIndex));
+	++gslIndex;
+      }
+    }
   }
   
   const orsa::MultifitData * data = (orsa::MultifitData *) dataPoints;
@@ -661,8 +673,14 @@ int Multifit::fdf_gsl (const gsl_vector * v,
   
   // ORSA_DEBUG("fdf...");
   
-  for(unsigned int k=0; k<_par->sizeNotFixed(); ++k) {
-    _par->set(k,gsl_vector_get(v,k));
+  {
+    unsigned int gslIndex=0; 
+    for (unsigned int k=0; k<_par->totalSize(); ++k) {
+      if (!_par->isFixed(k)) {
+	_par->set(k, gsl_vector_get(v,gslIndex));
+	++gslIndex;
+      }
+    }
   }
   
   const orsa::MultifitData * data = (orsa::MultifitData *) dataPoints;
@@ -809,21 +827,25 @@ bool Multifit::run() {
       gsl_matrix * covar = gsl_matrix_alloc(_par->sizeNotFixed(),_par->sizeNotFixed());
       gsl_multifit_covar(s->J, 0.0, covar);
       bool break_main_iteration=false;
-      for (unsigned int k=0; k<_par->totalSize(); ++k) {
-	if (_par->isFixed(k)) {
-	  continue;
-	}
-	if (!finite(gsl_vector_get(s->x, k))) {
-	  ORSA_DEBUG("interrupting because parameter [%s] is not finite.",
-		     _par->name(k).c_str());
-	  break_main_iteration=true;
-	  break;
-	}
-	if (!finite(gsl_matrix_get(covar,k,k))) {
-	  ORSA_DEBUG("interrupting because uncertainty of parameter [%s] is not finite.",
-		     _par->name(k).c_str());
-	  break_main_iteration=true;
-	  break;
+      {
+	unsigned int gslIndex=0;
+	for (unsigned int k=0; k<_par->totalSize(); ++k) {
+	  if (_par->isFixed(k)) {
+	    continue;
+	  }
+	  if (!finite(gsl_vector_get(s->x, gslIndex))) {
+	    ORSA_DEBUG("interrupting because parameter [%s] is not finite.",
+		       _par->name(k).c_str());
+	    break_main_iteration=true;
+	    break;
+	  }
+	  if (!finite(gsl_matrix_get(covar,gslIndex,gslIndex))) {
+	    ORSA_DEBUG("interrupting because uncertainty of parameter [%s] is not finite.",
+		       _par->name(k).c_str());
+	    break_main_iteration=true;
+	    break;
+	  } 
+	  ++gslIndex;
 	}
       }
       gsl_matrix_free(covar);	
