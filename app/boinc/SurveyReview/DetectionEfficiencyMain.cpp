@@ -10,6 +10,7 @@
 
 #include <orsaSolarSystem/datetime.h>
 #include <orsaSolarSystem/observatory.h>
+#include <orsaSolarSystem/obleq.h>
 #include <orsaSolarSystem/orbit.h>
 
 #include <orsaUtil/observatory.h>
@@ -588,6 +589,14 @@ int main(int argc, char ** argv) {
     const double maxAltitude = orsa::halfpi()-fabs(orbLatitude-observatoryLatitude);
     const double zenithAngle = orsa::halfpi()-maxAltitude;
     const double minAirMass  = ((zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):-1.0);
+    // galactic latitude
+    const orsa::Vector obs2orb_Equatorial = orsaSolarSystem::eclipticToEquatorial()*obs2orb;
+    const orsa::Vector dr_equatorial = obs2orb_Equatorial.normalized();
+    const double  ra = fmod(atan2(dr_equatorial.getY(),dr_equatorial.getX())+orsa::twopi(),orsa::twopi());
+    const double dec = asin(dr_equatorial.getZ()/dr_equatorial.length());
+    double l,b;
+    orsaSolarSystem::equatorialToGalactic(l,b,ra,dec);
+    const double galacticLatitude = b;
     //
     bool observed=false;
     bool discovered=false;
@@ -642,6 +651,7 @@ int main(int argc, char ** argv) {
     ed.lunarElongation = lunarElongation;
     ed.lunarPhase = lunarPhase;
     ed.minAirMass = minAirMass;
+    ed.galacticLatitude = galacticLatitude;
     ed.observed = observed;
     ed.discovered = discovered;
     etaData.push_back(ed);
@@ -660,7 +670,7 @@ int main(int argc, char ** argv) {
 	sprintf(id,"%s",ed.designation.getRef().c_str());
       }
       fprintf(fp_allEta,
-	      "%5.2f %7s %5.2f %6.2f %6.2f %6.2f %6.2f %5.3f %1i %1i\n",
+	      "%5.2f %7s %5.2f %6.2f %6.2f %6.2f %6.2f %5.3f %+6.3f %1i %1i\n",
 	      ed.H.getRef(),
 	      id,
 	      ed.V.getRef(),
@@ -669,6 +679,7 @@ int main(int argc, char ** argv) {
 	      orsa::radToDeg()*ed.lunarElongation.getRef(),
 	      orsa::radToDeg()*ed.lunarPhase.getRef(),
 	      ed.minAirMass.getRef(),
+	      orsa::radToDeg()*ed.galacticLatitude.getRef(),
 	      ed.observed.getRef(),
 	      ed.discovered.getRef());
     }

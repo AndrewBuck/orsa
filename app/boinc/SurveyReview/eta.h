@@ -14,6 +14,7 @@ class EfficiencyData {
   orsa::Cache<double> lunarElongation;
   orsa::Cache<double> lunarPhase;
   orsa::Cache<double> minAirMass;
+  orsa::Cache<double> galacticLatitude;
   orsa::Cache<bool>   observed;
   orsa::Cache<bool>   discovered;
 };
@@ -25,7 +26,7 @@ class EfficiencyMultifit : public orsa::Multifit {
     // V = apparent magnitude
     // U = apparent velocity
     orsa::Cache<double> V, U, eta, sigmaEta;
-    orsa::Cache<double> SE, LE, LP, AM;
+    orsa::Cache<double> SE, LE, LP, AM, GL;
     orsa::Cache<unsigned int> Nobs, Ndsc, Ntot;
   };
   typedef std::vector<DataElement> DataStorage;
