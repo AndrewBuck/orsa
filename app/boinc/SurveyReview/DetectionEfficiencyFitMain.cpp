@@ -573,12 +573,18 @@ int main(int argc, char ** argv) {
   par->insert("w_U",        initial_w_U,     0.01*initial_w_U); 
   // mixing 
   par->insert("beta",  0.0, 0.00001);
+  // Galactic latitude
+  par->insert("GL_limit",30.0*orsa::degToRad(),0.01*orsa::degToRad());
+  par->insert("c_GL",     0.000,               0.000001);
+  par->insert("w_GL",     1.0*orsa::degToRad(),0.001*orsa::degToRad());
   // ranges
   par->setRange("eta0_V",0.0,1.0);
+  par->setRangeMin("c_GL",0.0);
   // fixed?
   // par->setFixed("U_limit",true);
   // par->setFixed("w_U",true);
   // par->setFixed("beta",true);
+  par->setFixed("c_GL",true);
   
   if (non_zero_n < par->sizeNotFixed()) {
     ORSA_DEBUG("not enought data for fit, exiting");
@@ -613,6 +619,10 @@ int main(int argc, char ** argv) {
   const double     w_U = parFinal->get("w_U");
   //
   const double    beta = parFinal->get("beta");
+  //
+  const double GL_limit = parFinal->get("GL_limit");
+  const double     c_GL = parFinal->get("c_GL"); 
+  const double     w_GL = parFinal->get("w_GL");
   
   if (1) {
     // output for testing
@@ -741,7 +751,11 @@ int main(int argc, char ** argv) {
 					  data[k].U.getRef(),
 					  U_limit,
 					  w_U,
-					  beta);
+					  beta,
+					  data[k].GL.getRef(),
+					  GL_limit,
+					  c_GL,
+					  w_GL);
       
       const double nominal_eta_V = SkyCoverage::nominal_eta_V(data[k].V.getRef(),
 							      V_limit,
@@ -753,6 +767,11 @@ int main(int argc, char ** argv) {
       const double nominal_eta_U = SkyCoverage::nominal_eta_U(data[k].U.getRef(),
 							      U_limit,
 							      w_U);
+     
+      const double nominal_eta_GL = SkyCoverage::nominal_eta_GL(data[k].GL.getRef(),
+								GL_limit,
+								c_GL,
+								w_GL);
       
       // at this point, small sigmas can become very large because divided by a very small eta's
       if (data[k].sigmaEta.getRef() > 0) {
@@ -771,15 +790,17 @@ int main(int argc, char ** argv) {
 		      orsa::square(eta/(data[k].sigmaEta.getRef())));
 	  sAM->insert(data[k].eta.getRef()/eta,
 		      orsa::square(eta/(data[k].sigmaEta.getRef())));
-	  sGL->insert(data[k].eta.getRef()/eta,
-		      orsa::square(eta/(data[k].sigmaEta.getRef())));
+	  if (nominal_eta_GL != 0) {
+	    sGL->insert(data[k].eta.getRef()*nominal_eta_GL/eta,
+			orsa::square(eta/(nominal_eta_GL*data[k].sigmaEta.getRef())));
+	  }
 	}
 	if ( !sV->fit.isSet())  sV->fit = nominal_eta_V;
 	if ( !sU->fit.isSet())  sU->fit = nominal_eta_U;
 	if (!sSE->fit.isSet()) sSE->fit = 1.0;
  	if (!sLE->fit.isSet()) sLE->fit = 1.0;
    	if (!sAM->fit.isSet()) sAM->fit = 1.0;
-   	if (!sGL->fit.isSet()) sGL->fit = 1.0;
+   	if (!sGL->fit.isSet()) sGL->fit = nominal_eta_GL;
       }
     }
     

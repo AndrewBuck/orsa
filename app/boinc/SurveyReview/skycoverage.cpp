@@ -251,16 +251,19 @@ double SkyCoverage::minDistance(const orsa::Vector & u,
 
 double SkyCoverage::eta(const double & V,
 			const double & U) const {
-  return SkyCoverage::eta(V,
-			  V_limit.getRef(),
-			  eta0_V.getRef(),
-			  V0.getRef(),
-			  c_V.getRef(),
-			  w_V.getRef(),
-			  U,
-			  U_limit.getRef(),
-			  w_U.getRef(),
-			  beta.getRef());
+#warning UPDATE THIS
+  /*  return SkyCoverage::eta(V,
+      V_limit.getRef(),
+      eta0_V.getRef(),
+      V0.getRef(),
+      c_V.getRef(),
+      w_V.getRef(),
+      U,
+      U_limit.getRef(),
+      w_U.getRef(),
+      beta.getRef());
+  */
+  return 0;
 }
 
 double SkyCoverage::eta(const double & V,
@@ -272,15 +275,26 @@ double SkyCoverage::eta(const double & V,
 			const double & U,
 			const double & U_limit,
 			const double & w_U,
-			const double & beta) {
+			const double & beta,
+			const double & GL,
+			const double & GL_limit,
+			const double & c_GL,
+			const double & w_GL) {
   double retVal;
   if (V<V0) {
     retVal = eta0_V;
   } else {
+    /* retVal = 
+       (eta0_V-c_V*orsa::square(V-V0)) / 
+       (1.0+exp( cos(beta)*(V-V_limit)/w_V + sin(beta)*(U_limit-U)/w_U)) / 
+       (1.0+exp(-sin(beta)*(V-V_limit)/w_V + cos(beta)*(U_limit-U)/w_U));
+    */
+    //
     retVal = 
       (eta0_V-c_V*orsa::square(V-V0)) / 
       (1.0+exp( cos(beta)*(V-V_limit)/w_V + sin(beta)*(U_limit-U)/w_U)) / 
-      (1.0+exp(-sin(beta)*(V-V_limit)/w_V + cos(beta)*(U_limit-U)/w_U));
+      (1.0+exp(-sin(beta)*(V-V_limit)/w_V + cos(beta)*(U_limit-U)/w_U)) *
+      (1.0-c_GL*orsa::square(fabs(GL)-orsa::halfpi()))/(1.0+exp((GL_limit-fabs(GL))/w_GL));
   }
   if (retVal < 0.0) retVal=0.0;
   if (retVal > 1.0) retVal=1.0;
@@ -310,6 +324,13 @@ double SkyCoverage::nominal_eta_U(const double & U,
 				  const double & U_limit,
 				  const double & w_U) {
   return (1.0/(1.0+exp((U_limit-U)/w_U)));
+}
+
+double SkyCoverage::nominal_eta_GL(const double & GL,
+				   const double & GL_limit,
+				   const double & c_GL,
+				   const double & w_GL) {
+  return (1.0-c_GL*orsa::square(fabs(GL)-orsa::halfpi()))/(1.0+exp((GL_limit-fabs(GL))/w_GL));
 }
 
 std::string SkyCoverage::basename(const std::string & filename) {
