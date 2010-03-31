@@ -1,5 +1,5 @@
-#ifndef _ORSA_PRINT_
-#define _ORSA_PRINT_
+#ifndef _ORSA_SOLAR_SYSTEM_PRINT_
+#define _ORSA_SOLAR_SYSTEM_PRINT_
 
 #include <orsaSolarSystem/data.h>
 #include <orsaSolarSystem/datetime.h>
@@ -47,6 +47,6 @@ namespace orsaSolarSystem {
 	       orsa::FromUnits(o.mu/G,orsa::Unit::KG,-1));
   }
   
-} // namespace orsa
+} // namespace orsaSolarSystem
 
-#endif // _ORSA_PRINT_
+#endif // _ORSA_SOLAR_SYSTEM_PRINT_

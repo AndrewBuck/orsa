@@ -2,6 +2,7 @@
 #define _ORSA_DATETIME_H_
 
 #include <orsa/double.h>
+#include <orsa/debug.h>
 #include <orsa/unit.h>
 
 namespace orsa {
@@ -24,6 +25,15 @@ namespace orsa {
 	 (M + mpz_class("60") *
 	  (H + mpz_class("24") * d)));
     }
+  public:
+    /* inline Time & operator = (const mpz_class & rhs) {
+       if (rhs != 0) {
+       ORSA_DEBUG("warning: setting time from non-zero integer = %Zi",rhs.get_mpz_t());
+       }
+       _mu_sec = rhs;
+       return * this;
+       }
+    */
   public:
     ~Time() { }
   public:

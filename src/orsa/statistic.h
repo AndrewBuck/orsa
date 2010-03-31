@@ -22,8 +22,9 @@ namespace orsa {
     
   public:
     void reset() {
-      _s = _s2 = 0;
-      _n = 0;
+      _s  = 0;
+      _s2 = 0;
+      _n  = 0;
     }
   public:
     void insert(const T & val) {
