@@ -12,6 +12,7 @@
 #include <orsaSolarSystem/observatory.h>
 #include <orsaSolarSystem/obleq.h>
 #include <orsaSolarSystem/orbit.h>
+#include <orsaSolarSystem/print.h>
 
 #include <orsaUtil/observatory.h>
 
@@ -423,30 +424,30 @@ int main(int argc, char ** argv) {
   bg->addBody(sun.get());
   
   // EARTH
-  /* osg::ref_ptr<orsa::Body> earth = SPICEBody("EARTH",orsaSolarSystem::Data::MEarth());
-     bg->addBody(earth.get());
-  */
+  osg::ref_ptr<orsa::Body> earth = SPICEBody("EARTH",orsaSolarSystem::Data::MEarth());
+  bg->addBody(earth.get());
   
   // MOON
   osg::ref_ptr<orsa::Body> moon  = SPICEBody("MOON",orsaSolarSystem::Data::MMoon());
   bg->addBody(moon.get());
   
   orsa::Vector r;
+  
   bg->getInterpolatedPosition(r,sun.get(),epoch);
   const orsa::Vector sunPosition = r;
-  bg->getInterpolatedPosition(r,sun.get(),epoch+dt);
-  const orsa::Vector sunPosition_dt = r;
-  bg->getInterpolatedPosition(r,moon.get(),epoch);
-  const orsa::Vector moonPosition = r;
-  bg->getInterpolatedPosition(r,moon.get(),epoch+dt);
-  const orsa::Vector moonPosition_dt = r;
+  // bg->getInterpolatedPosition(r,sun.get(),epoch+dt);
+  // const orsa::Vector sunPosition_dt = r;
+  // bg->getInterpolatedPosition(r,moon.get(),epoch);
+  // const orsa::Vector moonPosition = r;
+  // bg->getInterpolatedPosition(r,moon.get(),epoch+dt);
+  // const orsa::Vector moonPosition_dt = r;
   obsPosCB->getPosition(r,obsCode,epoch);
   const orsa::Vector obsPosition = r;
-  obsPosCB->getPosition(r,obsCode,epoch+dt);
-  const orsa::Vector obsPosition_dt = r;
+  // obsPosCB->getPosition(r,obsCode,epoch+dt);
+  // const orsa::Vector obsPosition_dt = r;
   
-  const orsaSolarSystem::Observatory observatory = obsPosCB->getObservatory(obsCode);
-  const double observatoryLatitude = observatory.latitude();
+  // const orsaSolarSystem::Observatory observatory = obsPosCB->getObservatory(obsCode);
+  // const double observatoryLatitude = observatory.latitude();
   
   // earth north pole
   const orsa::Vector northPole = (orsaSolarSystem::equatorialToEcliptic()*orsa::Vector(0,0,1)).normalized();
@@ -457,8 +458,8 @@ int main(int argc, char ** argv) {
     obsFile->select_startEpoch = epoch - orsa::Time(0,12,0,0,0);
     obsFile->select_stopEpoch  = epoch + orsa::Time(0,12,0,0,0);
     ORSA_DEBUG("select start/stop:");
-    orsa::print(obsFile->select_startEpoch.getRef());
-    orsa::print(obsFile->select_stopEpoch.getRef());
+    orsaSolarSystem::print(obsFile->select_startEpoch.getRef());
+    orsaSolarSystem::print(obsFile->select_stopEpoch.getRef());
     obsFile->select_obsCode = obsCode;
     /* obsFile->setFileName("mpn.arc.gz");
        obsFile->read();
@@ -487,21 +488,11 @@ int main(int argc, char ** argv) {
 	if (skyCoverage->fastGet(obs->ra.getRef(),
 				 obs->dec.getRef())) {	
 	  ++inField;
-	  /* if (obs->number.isSet()) {
-	     ORSA_DEBUG("V field: %.1f   V obs: %.1f   obj: (%i)",V,obs->mag.getRef(),obs->number.getRef());
-	     } else if (obs->designation.isSet()) {
-	     ORSA_DEBUG("V field: %.1f   V obs: %.1f   obj: [%s]",V,obs->mag.getRef(),obs->designation.getRef().c_str());
-	     } else {
-	     ORSA_DEBUG("NONAME??");
-	     exit(0);
-	     }
+	  /* skyCoverage->insertFieldTime(obs->epoch.getRef(),
+	     obs->ra.getRef(),
+	     obs->dec.getRef());
 	  */
-	} else {
-	  // ORSA_DEBUG("this one out:");
-	  // orsa::print(obs->epoch.getRef());
-	  // orsa::print(obs->ra.getRef());
-	  // orsa::print(obs->dec.getRef());
-	}
+	} 
       }
     }
     // debug
@@ -554,16 +545,99 @@ int main(int argc, char ** argv) {
   // start to work at efficiency
   std::vector<EfficiencyData> etaData;
   for (unsigned int korb=0; korb<orbitFile->_data.size(); ++korb) {
+    
+    bool observed=false;
+    bool discovered=false;
+    orsa::Cache<orsa::Time> fieldEpoch;
+    {
+      orsaSolarSystem::OpticalObservation * obs;
+      for (unsigned int kobs=0; kobs<obsFile->_data.size(); ++kobs) {
+	obs = dynamic_cast<orsaSolarSystem::OpticalObservation *> (obsFile->_data[kobs].get());
+	if (obs) {
+	  /* 
+	     if (!obs->mag.isSet()) {
+	     // ORSA_DEBUG("mag not set, skipping");
+	     continue;
+	     }
+	  */
+	  if (obs->designation.isSet() && orbitFile->_data[korb].designation.isSet()) {
+	    if (obs->designation.getRef() == orbitFile->_data[korb].designation.getRef()) {
+	      observed=true;
+	      if (obs->discovery.isSet()) {
+		if (obs->discovery.getRef()) {
+		  discovered=true;
+		}
+	      }  
+	      fieldEpoch=obs->epoch.getRef();
+	      /* orsa::Time t;
+		 if (skyCoverage->getFieldTime(t,obs->ra.getRef(),obs->dec.getRef())) {
+		 fieldEpoch=obs->epoch.getRef();
+		 }	
+	      */
+	      // break; // no break, because it can skip the discovery asterisk
+	    }
+	  }
+	  if (obs->number.isSet() && orbitFile->_data[korb].number.isSet()) {
+	    if (obs->number.getRef() == orbitFile->_data[korb].number.getRef()) {
+	      observed=true;
+	      if (obs->discovery.isSet()) {
+		if (obs->discovery.getRef()) {
+		  discovered=true;
+		}
+	      }  
+	      fieldEpoch=obs->epoch.getRef();
+	      /* orsa::Time t;
+		 if (skyCoverage->getFieldTime(t,obs->ra.getRef(),obs->dec.getRef())) {
+		 fieldEpoch=t;
+		 }	
+	      */
+	      // break; // no break, because it can skip the discovery asterisk
+	    }
+	  }
+	}	  
+      }
+    }
+    
+    if (fieldEpoch.isSet()) {
+      // ORSA_DEBUG("fieldEpoch successfully set to:");
+      // orsaSolarSystem::print(fieldEpoch.getRef());
+    } else {
+      fieldEpoch = skyCoverage->epoch.getRef();
+    }
+    // update epoch
+    epoch = fieldEpoch.getRef();   
+    
+#warning try to call skyCoverage->getFieldTime for better time
+    
+    orsa::Vector r;
+    
+    // replace vectors for current epoch
+    bg->getInterpolatedPosition(r,sun.get(),epoch);
+    const orsa::Vector sunPosition = r;
+    bg->getInterpolatedPosition(r,sun.get(),epoch+dt);
+    const orsa::Vector sunPosition_dt = r;
+    bg->getInterpolatedPosition(r,earth.get(),epoch);
+    const orsa::Vector earthPosition = r;
+    bg->getInterpolatedPosition(r,earth.get(),epoch+dt);
+    const orsa::Vector earthPosition_dt = r;
+    bg->getInterpolatedPosition(r,moon.get(),epoch);
+    const orsa::Vector moonPosition = r;
+    bg->getInterpolatedPosition(r,moon.get(),epoch+dt);
+    const orsa::Vector moonPosition_dt = r;
+    obsPosCB->getPosition(r,obsCode,epoch);
+    const orsa::Vector obsPosition = r;
+    obsPosCB->getPosition(r,obsCode,epoch+dt);
+    const orsa::Vector obsPosition_dt = r;
+    
     orsaSolarSystem::OrbitWithEpoch orbit = orbitFile->_data[korb].orbit.getRef();
     const double orbitPeriod = orbit.period();
     const double original_M  = orbit.M;
     //
-    orbit.M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()-orbit.epoch.getRef()).get_d() / orbitPeriod, orsa::twopi());
-    orsa::Vector r;
+    orbit.M = original_M + fmod(orsa::twopi() * (epoch-orbit.epoch.getRef()).get_d() / orbitPeriod, orsa::twopi());
     orbit.relativePosition(r);
     const orsa::Vector orbitPosition = r + sunPosition;
     // not at t+dt
-    orbit.M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()+dt-orbit.epoch.getRef()).get_d() / orbitPeriod, orsa::twopi());
+    orbit.M = original_M + fmod(orsa::twopi() * (epoch+dt-orbit.epoch.getRef()).get_d() / orbitPeriod, orsa::twopi());
     orsa::Vector r_dt;
     orbit.relativePosition(r_dt);
     const orsa::Vector orbitPosition_dt = r_dt + sunPosition_dt;
@@ -579,16 +653,16 @@ int main(int argc, char ** argv) {
     const orsa::Vector moon2obs = -obs2moon;
     const orsa::Vector orb2obs_dt = obsPosition_dt - orbitPosition_dt;
     const orsa::Vector orb2sun_dt = sunPosition_dt - orbitPosition_dt;
+    //
     const double phaseAngle = acos(orb2sun.normalized()*orb2obs.normalized());
     const double solarElongation = acos(obs2sun.normalized()*obs2orb.normalized());
     const double lunarElongation = acos(obs2moon.normalized()*obs2orb.normalized());
     const double lunarPhase = acos(moon2sun.normalized()*moon2obs.normalized());
     //
     // airmass
-    const double orbLatitude = orsa::halfpi()-acos(northPole*obs2orb.normalized());
-    const double maxAltitude = orsa::halfpi()-fabs(orbLatitude-observatoryLatitude);
-    const double zenithAngle = orsa::halfpi()-maxAltitude;
-    const double minAirMass  = ((zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):-1.0);
+    const orsa::Vector zenith = (obsPosition - earthPosition).normalized();
+    const double zenithAngle = acos(zenith*obs2orb.normalized());
+    const double airMass  = ((zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):-1.0);
     // galactic latitude
     const orsa::Vector obs2orb_Equatorial = orsaSolarSystem::eclipticToEquatorial()*obs2orb;
     const orsa::Vector dr_equatorial = obs2orb_Equatorial.normalized();
@@ -597,43 +671,7 @@ int main(int argc, char ** argv) {
     double l,b;
     orsaSolarSystem::equatorialToGalactic(l,b,ra,dec);
     const double galacticLatitude = b;
-    //
-    bool observed=false;
-    bool discovered=false;
-    orsaSolarSystem::OpticalObservation * obs;
-    for (unsigned int kobs=0; kobs<obsFile->_data.size(); ++kobs) {
-      obs = dynamic_cast<orsaSolarSystem::OpticalObservation *> (obsFile->_data[kobs].get());
-      if (obs) {
-	/* 
-	   if (!obs->mag.isSet()) {
-	   // ORSA_DEBUG("mag not set, skipping");
-	   continue;
-	   }
-	*/
-	if (obs->designation.isSet() && orbitFile->_data[korb].designation.isSet()) {
-	  if (obs->designation.getRef() == orbitFile->_data[korb].designation.getRef()) {
-	    observed=true;
-	    if (obs->discovery.isSet()) {
-	      if (obs->discovery.getRef()) {
-		discovered=true;
-	      }
-	    }
-	    // break; // no break, because it can skip the discovery asterisk
-	  }
-	}
-	if (obs->number.isSet() && orbitFile->_data[korb].number.isSet()) {
-	  if (obs->number.getRef() == orbitFile->_data[korb].number.getRef()) {
-	    observed=true;
-	    if (obs->discovery.isSet()) {
-	      if (obs->discovery.getRef()) {
-		discovered=true;
-	      }
-	    }
-	    // break; // no break, because it can skip the discovery asterisk
-	  }
-	}
-      }	  
-    }
+    
     EfficiencyData ed;
     ed.H = orbitFile->_data[korb].H.getRef();
     if (orbitFile->_data[korb].number.isSet()) {
@@ -650,7 +688,7 @@ int main(int argc, char ** argv) {
     ed.solarElongation = solarElongation;
     ed.lunarElongation = lunarElongation;
     ed.lunarPhase = lunarPhase;
-    ed.minAirMass = minAirMass;
+    ed.airMass = airMass;
     ed.galacticLatitude = galacticLatitude;
     ed.observed = observed;
     ed.discovered = discovered;
@@ -678,7 +716,7 @@ int main(int argc, char ** argv) {
 	      orsa::radToDeg()*ed.solarElongation.getRef(),
 	      orsa::radToDeg()*ed.lunarElongation.getRef(),
 	      orsa::radToDeg()*ed.lunarPhase.getRef(),
-	      ed.minAirMass.getRef(),
+	      ed.airMass.getRef(),
 	      orsa::radToDeg()*ed.galacticLatitude.getRef(),
 	      ed.observed.getRef(),
 	      ed.discovered.getRef());

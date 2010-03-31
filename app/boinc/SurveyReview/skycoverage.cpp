@@ -179,6 +179,41 @@ bool SkyCoverage::fastGet(const orsa::Vector & u) const {
   return false;
 }
 
+bool SkyCoverage::insertFieldTime(const orsa::Time & epoch,
+				  const orsa::Vector & u) {
+  std::list<SkyCoverageElement>::const_iterator it = data.begin();
+  while (it != data.end()) {
+    if (u*(*it).u_centerField > (*it).minScalarProduct) {
+      if (fabs(asin(u*(*it).u_RA)) < (*it).halfFieldSize_RA) {
+	if (fabs(asin(u*(*it).u_DEC)) < (*it).halfFieldSize_DEC) {
+	  (*it).epochStat_JD->insert(orsaSolarSystem::timeToJulian(epoch));
+	  return true;
+	}
+      }
+    }
+    ++it;
+  }
+  return false;
+}
+
+bool SkyCoverage::getFieldTime(orsa::Time & epoch,
+			       const orsa::Vector & u) const {
+  std::list<SkyCoverageElement>::const_iterator it = data.begin();
+  while (it != data.end()) {
+    if (u*(*it).u_centerField > (*it).minScalarProduct) {
+      if (fabs(asin(u*(*it).u_RA)) < (*it).halfFieldSize_RA) {
+	if (fabs(asin(u*(*it).u_DEC)) < (*it).halfFieldSize_DEC) {
+	  epoch = orsaSolarSystem::julianToTime((*it).epochStat_JD->average());
+	  // ORSA_DEBUG("field time stdev: %g [hours]",24.0*(*it).epochStat_JD->standardDeviation());
+	  return true;
+	}
+      }
+    }
+    ++it;
+  }
+  return false;
+}
+
 double SkyCoverage::totalDegSq() const {
   double area=0;
   std::list<SkyCoverageElement>::const_iterator it = data.begin();

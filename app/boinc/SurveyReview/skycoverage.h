@@ -5,6 +5,7 @@
 #include <orsa/cache.h>
 #include <orsa/double.h>
 #include <orsa/datetime.h>
+#include <orsa/statistic.h>
 #include <orsa/vector.h>
 
 #include <orsaInputOutput/file.h>
@@ -79,6 +80,25 @@ class SkyCoverage : public osg::Referenced {
   }
   
  public:
+  // add the time of one observation to the interested field
+  bool insertFieldTime(const orsa::Time & epoch,
+		       const orsa::Vector & u);
+  bool insertFieldTime(const orsa::Time & epoch,
+		       const orsa::Angle & ra,
+		       const orsa::Angle & dec) {
+    return insertFieldTime(epoch,unitVector(ra,dec));
+  }
+ public:  
+  // estimate the field time as the average of all the inserted times
+  bool getFieldTime(orsa::Time & epoch,
+		    const orsa::Vector & u) const;
+  bool getFieldTime(orsa::Time & epoch,
+		    const orsa::Angle & ra,
+		    const orsa::Angle & dec) const {
+    return getFieldTime(epoch,unitVector(ra,dec));
+  }
+  
+ public:
   //! smallest distance (angle) between the u direction and any of the fields centers
   double minDistance(const orsa::Vector & u,
 		     const bool verbose=false) const;
@@ -90,6 +110,10 @@ class SkyCoverage : public osg::Referenced {
  public:
   class SkyCoverageElement {
   public:
+    SkyCoverageElement() {
+      epochStat_JD = new orsa::Statistic<double>;
+    }
+  public:
     orsa::Vector u_centerField;
     orsa::Vector u_RA;
     orsa::Vector u_DEC;
@@ -97,6 +121,9 @@ class SkyCoverage : public osg::Referenced {
     double halfFieldSize_DEC;
     double minScalarProduct;
     double limitingMagnitude;
+  public:
+    // per-field epoch, to be preferred to to global one
+    osg::ref_ptr< orsa::Statistic<double> > epochStat_JD;
   };
   
  protected:

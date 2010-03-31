@@ -287,7 +287,7 @@ int main(int argc, char ** argv) {
     double H, V, apparentVelocity;
     double solarElongation, lunarElongation;
     double lunarPhase;
-    double minAirMass;
+    double airMass;
     double galacticLatitude;
     char id[1024];
     int observed;
@@ -301,7 +301,7 @@ int main(int argc, char ** argv) {
 	     &solarElongation,
 	     &lunarElongation,
 	     &lunarPhase,
-	     &minAirMass,
+	     &airMass,
 	     &galacticLatitude,
 	     &observed,
 	     &discovered);
@@ -324,7 +324,7 @@ int main(int argc, char ** argv) {
       ed.solarElongation  = solarElongation;
       ed.lunarElongation  = lunarElongation;
       ed.lunarPhase       = lunarPhase;
-      ed.minAirMass       = minAirMass;
+      ed.airMass       = airMass;
       ed.galacticLatitude = galacticLatitude;
       ed.observed   = (observed==1);
       ed.discovered = (discovered==1);
@@ -350,17 +350,17 @@ int main(int argc, char ** argv) {
      1.2));
   */
   //
-  varDefinition.push_back(new CountStats::LinearVar(orsa::FromUnits(  0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-						    orsa::FromUnits( 50.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-						    orsa::FromUnits(  2.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)));
+  varDefinition.push_back(new CountStats::LinearVar(orsa::FromUnits( 0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
+						    orsa::FromUnits(50.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
+						    orsa::FromUnits( 2.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)));
   // solar elongation
   varDefinition.push_back(new CountStats::LinearVar(0.0,
 						    orsa::pi(),
-						    30.0*orsa::degToRad()));
+						    10.0*orsa::degToRad()));
   // lunar elongation
   varDefinition.push_back(new CountStats::LinearVar(0.0,
 						    orsa::pi(),
-						    30.0*orsa::degToRad()));
+						    10.0*orsa::degToRad()));
   // airmass
   /* varDefinition.push_back(new CountStats::LogarithmicVar(1.0,
      3.0,
@@ -368,7 +368,7 @@ int main(int argc, char ** argv) {
   */
   //
   varDefinition.push_back(new CountStats::LinearVar(1.0,
-						    2.5,
+						    3.0,
 						    0.1));
   // galactic latitude
   varDefinition.push_back(new CountStats::LinearVar(-orsa::halfpi(),
@@ -386,7 +386,7 @@ int main(int argc, char ** argv) {
     xVector[1] = etaData[k].apparentVelocity.getRef();
     xVector[2] = etaData[k].solarElongation.getRef();
     xVector[3] = etaData[k].lunarElongation.getRef();
-    xVector[4] = etaData[k].minAirMass.getRef();
+    xVector[4] = etaData[k].airMass.getRef();
     xVector[5] = etaData[k].galacticLatitude.getRef();
     const bool goodInsert = countStats->insert(xVector,
 					       etaData[k].observed.getRef(),
@@ -467,8 +467,8 @@ int main(int argc, char ** argv) {
 		    (etaData[k].solarElongation.getRef()> solarElongation+deltaSolarElongation) &&
 		    (etaData[k].lunarElongation.getRef()<=lunarElongation) && 
 		    (etaData[k].lunarElongation.getRef()> lunarElongation+deltaLunarElongation) && 
-		    (etaData[k].minAirMass.getRef()>=AM) &&
-		    (etaData[k].minAirMass.getRef()< AMFactor*AM)) {
+		    (etaData[k].airMass.getRef()>=AM) &&
+		    (etaData[k].airMass.getRef()< AMFactor*AM)) {
 		  ++Ntot;
 		  if (etaData[k].observed.getRef()) {
 		    ++Nobs;
@@ -621,7 +621,7 @@ int main(int argc, char ** argv) {
     AllStat stat_SE; // solarElongation
     AllStat stat_LE; // lunarElongation
     // AllStat stat_LP; // lunarPhase
-    AllStat stat_AM; // minAirMass
+    AllStat stat_AM; // airMass
     AllStat stat_GL; // galacticLatitude
     //
     for (unsigned int k=0; k<data.size(); ++k) {
@@ -696,7 +696,7 @@ int main(int argc, char ** argv) {
 	}
       }
       
-      // minAirMass
+      // airMass
       osg::ref_ptr<EfficiencyStatistics> sAM;
       {
 	AllStat::const_iterator it = stat_AM.begin();

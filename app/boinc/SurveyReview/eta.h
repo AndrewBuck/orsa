@@ -13,7 +13,7 @@ class EfficiencyData {
   orsa::Cache<double> solarElongation;
   orsa::Cache<double> lunarElongation;
   orsa::Cache<double> lunarPhase;
-  orsa::Cache<double> minAirMass;
+  orsa::Cache<double> airMass;
   orsa::Cache<double> galacticLatitude;
   orsa::Cache<bool>   observed;
   orsa::Cache<bool>   discovered;
