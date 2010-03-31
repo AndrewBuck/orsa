@@ -153,7 +153,7 @@ public:
     const size_t idx = index(binVector);
     if (data[idx].get()==0) {
       data[idx] = new CountStatsElement;
-    }	
+    }
     data[idx]->Ntot++;
     if (obs) data[idx]->Nobs++;
     if (dsc) data[idx]->Ndsc++;
@@ -368,8 +368,8 @@ int main(int argc, char ** argv) {
   */
   //
   varDefinition.push_back(new CountStats::LinearVar(1.0,
-						    3.0,
-						    0.1));
+						    2.0,
+						    0.05));
   // galactic latitude
   varDefinition.push_back(new CountStats::LinearVar(-orsa::halfpi(),
 						    orsa::halfpi(),

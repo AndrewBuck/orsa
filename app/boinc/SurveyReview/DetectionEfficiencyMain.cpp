@@ -488,10 +488,9 @@ int main(int argc, char ** argv) {
 	if (skyCoverage->fastGet(obs->ra.getRef(),
 				 obs->dec.getRef())) {	
 	  ++inField;
-	  /* skyCoverage->insertFieldTime(obs->epoch.getRef(),
-	     obs->ra.getRef(),
-	     obs->dec.getRef());
-	  */
+	  skyCoverage->insertFieldTime(obs->epoch.getRef(),
+				       obs->ra.getRef(),
+				       obs->dec.getRef());
 	} 
       }
     }
@@ -548,7 +547,6 @@ int main(int argc, char ** argv) {
     
     bool observed=false;
     bool discovered=false;
-    orsa::Cache<orsa::Time> fieldEpoch;
     {
       orsaSolarSystem::OpticalObservation * obs;
       for (unsigned int kobs=0; kobs<obsFile->_data.size(); ++kobs) {
@@ -568,12 +566,7 @@ int main(int argc, char ** argv) {
 		  discovered=true;
 		}
 	      }  
-	      fieldEpoch=obs->epoch.getRef();
-	      /* orsa::Time t;
-		 if (skyCoverage->getFieldTime(t,obs->ra.getRef(),obs->dec.getRef())) {
-		 fieldEpoch=obs->epoch.getRef();
-		 }	
-	      */
+	      epoch=obs->epoch.getRef();
 	      // break; // no break, because it can skip the discovery asterisk
 	    }
 	  }
@@ -585,12 +578,7 @@ int main(int argc, char ** argv) {
 		  discovered=true;
 		}
 	      }  
-	      fieldEpoch=obs->epoch.getRef();
-	      /* orsa::Time t;
-		 if (skyCoverage->getFieldTime(t,obs->ra.getRef(),obs->dec.getRef())) {
-		 fieldEpoch=t;
-		 }	
-	      */
+	      epoch=obs->epoch.getRef();
 	      // break; // no break, because it can skip the discovery asterisk
 	    }
 	  }
@@ -598,16 +586,24 @@ int main(int argc, char ** argv) {
       }
     }
     
-    if (fieldEpoch.isSet()) {
-      // ORSA_DEBUG("fieldEpoch successfully set to:");
-      // orsaSolarSystem::print(fieldEpoch.getRef());
-    } else {
-      fieldEpoch = skyCoverage->epoch.getRef();
+    if (!observed) {
+      
+      // retrieve epoch from field
+      
+      orsaSolarSystem::OrbitWithEpoch orbit = orbitFile->_data[korb].orbit.getRef();
+      const double orbitPeriod = orbit.period();
+      const double original_M  = orbit.M;
+      //
+      orbit.M = original_M + fmod(orsa::twopi() * (epoch-orbit.epoch.getRef()).get_d() / orbitPeriod, orsa::twopi());
+      orbit.relativePosition(r);
+      const orsa::Vector orbitPosition = r + sunPosition;
+      // restore, important!
+      orbit.M = original_M;
+      orsa::Vector dr = (orbitPosition - obsPosition).normalized();
+      if (!skyCoverage->getFieldTime(epoch,dr)) {
+	ORSA_DEBUG("problems retrieving epoch from field");
+      }
     }
-    // update epoch
-    epoch = fieldEpoch.getRef();   
-    
-#warning try to call skyCoverage->getFieldTime for better time
     
     orsa::Vector r;
     
@@ -636,7 +632,7 @@ int main(int argc, char ** argv) {
     orbit.M = original_M + fmod(orsa::twopi() * (epoch-orbit.epoch.getRef()).get_d() / orbitPeriod, orsa::twopi());
     orbit.relativePosition(r);
     const orsa::Vector orbitPosition = r + sunPosition;
-    // not at t+dt
+    // now at t+dt
     orbit.M = original_M + fmod(orsa::twopi() * (epoch+dt-orbit.epoch.getRef()).get_d() / orbitPeriod, orsa::twopi());
     orsa::Vector r_dt;
     orbit.relativePosition(r_dt);

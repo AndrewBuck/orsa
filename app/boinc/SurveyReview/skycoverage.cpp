@@ -181,19 +181,21 @@ bool SkyCoverage::fastGet(const orsa::Vector & u) const {
 
 bool SkyCoverage::insertFieldTime(const orsa::Time & epoch,
 				  const orsa::Vector & u) {
+  // sets time on ALL fields, not just the first one found
+  bool setSome=false;
   std::list<SkyCoverageElement>::const_iterator it = data.begin();
   while (it != data.end()) {
     if (u*(*it).u_centerField > (*it).minScalarProduct) {
       if (fabs(asin(u*(*it).u_RA)) < (*it).halfFieldSize_RA) {
 	if (fabs(asin(u*(*it).u_DEC)) < (*it).halfFieldSize_DEC) {
 	  (*it).epochStat_JD->insert(orsaSolarSystem::timeToJulian(epoch));
-	  return true;
+	  setSome=true;
 	}
       }
     }
     ++it;
   }
-  return false;
+  return setSome;
 }
 
 bool SkyCoverage::getFieldTime(orsa::Time & epoch,
@@ -203,9 +205,18 @@ bool SkyCoverage::getFieldTime(orsa::Time & epoch,
     if (u*(*it).u_centerField > (*it).minScalarProduct) {
       if (fabs(asin(u*(*it).u_RA)) < (*it).halfFieldSize_RA) {
 	if (fabs(asin(u*(*it).u_DEC)) < (*it).halfFieldSize_DEC) {
-	  epoch = orsaSolarSystem::julianToTime((*it).epochStat_JD->average());
-	  // ORSA_DEBUG("field time stdev: %g [hours]",24.0*(*it).epochStat_JD->standardDeviation());
-	  return true;
+	  ORSA_DEBUG("entries: %3Zi   average: %.3f   stdev: %.3f", 
+		     (*it).epochStat_JD->entries().get_mpz_t(),
+		     (*it).epochStat_JD->average(),
+		     (*it).epochStat_JD->standardDeviation());
+	  if ((*it).epochStat_JD->entries()>0) {
+	    epoch = orsaSolarSystem::julianToTime((*it).epochStat_JD->average());
+	    // ORSA_DEBUG("field time stdev: %g [hours]",24.0*(*it).epochStat_JD->standardDeviation());
+	    return true;
+	  } else {
+	    ORSA_DEBUG("zero entries");
+	    return false;
+	  }
 	}
       }
     }
