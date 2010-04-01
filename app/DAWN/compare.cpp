@@ -416,6 +416,13 @@ public:
   }
 };
 
+double deltaAngle(const double & x,
+		  const double & y) {
+  double delta = y-x;
+  if (fabs(delta+orsa::twopi())<fabs(delta)) delta += orsa::twopi();
+  if (fabs(delta-orsa::twopi())<fabs(delta)) delta -= orsa::twopi();
+  return delta;  
+}
 
 int main(int argc, char **argv) {
   
@@ -499,7 +506,7 @@ int main(int argc, char **argv) {
   
   /*** distance ***/
   
-  if (1) {
+  if (0) {
     
     orsa::Orbit orbit;
     orbit.mu = vestaMass*orsa::Unit::G(); // set once for all
@@ -543,6 +550,67 @@ int main(int argc, char **argv) {
 	     orsa::FromUnits(orsa::FromUnits((v2-v1).length(),orsa::Unit::METER,-1),orsa::Unit::SECOND));
       t += dt;
     }
+    
+  }
+  
+  /*** orbital elements ***/
+  
+  if (1) {
+    
+    orsa::Orbit orbit;
+    orbit.mu = vestaMass*orsa::Unit::G(); // set once for all
+    
+    osg::ref_ptr<BasicOrbitProxy> basicOrbitProxy1 = new BasicOrbitProxy;
+    for (unsigned int k=0; k<data[0].size(); ++k) {
+      orbit.a = data[0][k].a;
+      orbit.e = data[0][k].e;
+      orbit.i = data[0][k].i;
+      orbit.omega_node       = data[0][k].node;
+      orbit.omega_pericenter = data[0][k].peri;
+      orbit.M                = data[0][k].M;
+      //
+      basicOrbitProxy1->insertOrbit(orbit,orsa::Time(orsa::FromUnits(data[0][k].t,orsa::Unit::MICROSECOND,-1)));
+    }
+    
+    osg::ref_ptr<BasicOrbitProxy> basicOrbitProxy2 = new BasicOrbitProxy;
+    for (unsigned int k=0; k<data[1].size(); ++k) {
+      orbit.a = data[1][k].a;
+      orbit.e = data[1][k].e;
+      orbit.i = data[1][k].i;
+      orbit.omega_node       = data[1][k].node;
+      orbit.omega_pericenter = data[1][k].peri;
+      orbit.M                = data[1][k].M;
+      //
+      basicOrbitProxy2->insertOrbit(orbit,orsa::Time(orsa::FromUnits(data[1][k].t,orsa::Unit::MICROSECOND,-1)));
+    }
+    
+    const orsa::Time dt(0,0,10,0,0);
+    orsa::Time t = dt; // skip first point at 0
+    orsa::Orbit o1, o2;
+    // orsa::Vector r1, r2, v1, v2;
+    while (1) {
+      if (!basicOrbitProxy1->getOrbit(o1,t)) break;
+      if (!basicOrbitProxy2->getOrbit(o2,t)) break;
+      // if (!o1.relativePosVel(r1,v1)) break;
+      // if (!o2.relativePosVel(r2,v2)) break;
+      /* printf("%8.5f %12.3f %12.6f\n",
+	 orsa::FromUnits(t.get_d(),orsa::Unit::DAY,-1),
+	 orsa::FromUnits((r2-r1).length(),orsa::Unit::METER,-1),
+	 orsa::FromUnits(orsa::FromUnits((v2-v1).length(),orsa::Unit::METER,-1),orsa::Unit::SECOND));
+      */
+      //
+      printf("%8.5f %+12.3f %+8.6f %+12.6f %+12.6f %+12.6f %+12.6f\n",
+	     orsa::FromUnits(t.get_d(),orsa::Unit::DAY,-1),
+	     orsa::FromUnits((o2.a-o1.a),orsa::Unit::METER,-1),
+	     (o2.e-o1.e),
+	     (o2.i-o1.i)*orsa::radToDeg(),
+	     deltaAngle(o1.omega_node,o2.omega_node)*orsa::radToDeg(),
+	     deltaAngle(o1.omega_node+o1.omega_pericenter,o2.omega_node+o2.omega_pericenter)*orsa::radToDeg(),
+	     deltaAngle(o1.omega_node+o1.omega_pericenter+o1.M,o2.omega_node+o2.omega_pericenter+o2.M)*orsa::radToDeg());
+      t += dt;
+    }
+    
+    ORSA_DEBUG("REMINDER: the last three angles are not the standard orbital elements");
     
   }
   
