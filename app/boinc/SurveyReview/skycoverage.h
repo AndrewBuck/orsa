@@ -150,7 +150,7 @@ class SkyCoverage : public osg::Referenced {
 		    const double & beta,
 		    const double & GL,
 		    const double & GL_limit,
-		    const double & c_GL,
+		    // const double & c_GL,
 		    const double & w_GL);
   
  public:
@@ -166,7 +166,7 @@ class SkyCoverage : public osg::Referenced {
 			      const double & w_U);
   static double nominal_eta_GL(const double & GL,
 			       const double & GL_limit,
-			       const double & c_GL,
+			       // const double & c_GL,
 			       const double & w_GL);
  public:
   // coefficients for efficiency as function of apparent magnitude V

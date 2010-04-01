@@ -118,7 +118,7 @@ class EfficiencyMultifit : public orsa::Multifit {
 					localPar->get("beta"),
 					data->getD("GL",row),
 					localPar->get("GL_limit"),
-					localPar->get("c_GL"),
+					// localPar->get("c_GL"),
 					localPar->get("w_GL"));
     return eta;
   }

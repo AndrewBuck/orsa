@@ -586,9 +586,10 @@ int main(int argc, char ** argv) {
       }
     }
     
+    bool epochFromField=false;
     if (!observed) {
       
-      // retrieve epoch from field
+      // try to retrieve epoch from field
       
       orsaSolarSystem::OrbitWithEpoch orbit = orbitFile->_data[korb].orbit.getRef();
       const double orbitPeriod = orbit.period();
@@ -600,8 +601,10 @@ int main(int argc, char ** argv) {
       // restore, important!
       orbit.M = original_M;
       orsa::Vector dr = (orbitPosition - obsPosition).normalized();
-      if (!skyCoverage->getFieldTime(epoch,dr)) {
-	ORSA_DEBUG("problems retrieving epoch from field");
+      if (skyCoverage->getFieldTime(epoch,dr)) {
+	epochFromField=true;
+      } else {
+	// ORSA_DEBUG("problems retrieving epoch from field");
       }
     }
     
@@ -658,7 +661,7 @@ int main(int argc, char ** argv) {
     // airmass
     const orsa::Vector zenith = (obsPosition - earthPosition).normalized();
     const double zenithAngle = acos(zenith*obs2orb.normalized());
-    const double airMass  = ((zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):-1.0);
+    const double airMass  = ((observed||epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):-1.0);
     // galactic latitude
     const orsa::Vector obs2orb_Equatorial = orsaSolarSystem::eclipticToEquatorial()*obs2orb;
     const orsa::Vector dr_equatorial = obs2orb_Equatorial.normalized();

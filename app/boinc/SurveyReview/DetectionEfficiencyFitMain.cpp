@@ -224,6 +224,7 @@ protected:
   std::vector< osg::ref_ptr<CountStatsElement> > data;
 };
 
+#warning use this class?
 class LinearHisto_ES {
 public:
   LinearHisto_ES(const double startValue,
@@ -417,8 +418,10 @@ int main(int argc, char ** argv) {
       // add lunar phase here
       el.AM=xVector[4];
       el.GL=xVector[5];
+      //
       el.eta=eta;
       el.sigmaEta=sigmaEta;
+      //
       el.Nobs=cs->Nobs;
       el.Ndsc=cs->Ndsc;
       el.Ntot=cs->Ntot;
@@ -427,120 +430,30 @@ int main(int argc, char ** argv) {
     }
   }
   
-  const bool write_fp_eta=false;
-  if (0) {
-    FILE * fp_eta;
-    if (write_fp_eta) {
-      char filename[1024];
-      sprintf(filename,"%s.eta.dat",basename.c_str());
-      fp_eta = fopen(filename,"w"); 
-    }
-    
-    double V=V0;
-    const double dV=0.2;
-    while (V<=24.0) {
-      
-      double apparentVelocity=orsa::FromUnits(0.1*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-      const double apparentVelocityFactor=1.2;
-      while (apparentVelocity<orsa::FromUnits(300.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)) {
-	
-	double solarElongation=orsa::pi();
-	const double deltaSolarElongation=-10.0*orsa::degToRad(); // negative, as we go from 180 deg to 0
-	while (solarElongation>=0) {
-	  
-	  double lunarElongation=orsa::pi();
-	  const double deltaLunarElongation=-10.0*orsa::degToRad(); // negative, as we go from 180 deg to 0
-	  while (lunarElongation>=0) {
-	    
-	    // airmass
-	    double AM=1.0;
-	    const double AMFactor=1.1;
-	    while (AM<10.0) {
-	      
-	      unsigned int Nobs=0,Ndsc=0,Ntot=0; // dsc=discovered
-	      for (unsigned int k=0; k<etaData.size(); ++k) {
-		if ((etaData[k].V.getRef()>=V) && 
-		    (etaData[k].V.getRef()< V+dV) && 
-		    (etaData[k].apparentVelocity.getRef()>=apparentVelocity) &&
-		    (etaData[k].apparentVelocity.getRef()< apparentVelocityFactor*apparentVelocity) &&
-		    (etaData[k].solarElongation.getRef()<=solarElongation) && 
-		    (etaData[k].solarElongation.getRef()> solarElongation+deltaSolarElongation) &&
-		    (etaData[k].lunarElongation.getRef()<=lunarElongation) && 
-		    (etaData[k].lunarElongation.getRef()> lunarElongation+deltaLunarElongation) && 
-		    (etaData[k].airMass.getRef()>=AM) &&
-		    (etaData[k].airMass.getRef()< AMFactor*AM)) {
-		  ++Ntot;
-		  if (etaData[k].observed.getRef()) {
-		    ++Nobs;
-		  }
-		  if (etaData[k].discovered.getRef()) {
-		    ++Ndsc;
-		  }	
-		}
-	      }
-	      
-	      // write point only if Ntot != 0
-	      if (Ntot>=2) {
-		const double      eta = (double)Nobs/(double)Ntot;
-		const double sigmaEta = (double)(sqrt(Nobs+1))/(double)(Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
-		
-		if (write_fp_eta) {
-		  fprintf(fp_eta,
-			  "%5.2f %4.2f %6.2f %4.2f %6.2f %6.2f %6.2f %6.2f %6.3f %6.3f %5.3f %5.3f %5i %5i %5i\n",
-			  V+0.5*dV, 
-			  dV, 
-			  orsa::FromUnits(apparentVelocity*0.5*(1.0+apparentVelocityFactor)*orsa::radToArcsec(),orsa::Unit::HOUR),
-			  apparentVelocityFactor,
-			  solarElongation+0.5*deltaSolarElongation,
-			  deltaSolarElongation,
-			  lunarElongation+0.5*deltaLunarElongation,
-			  deltaLunarElongation,
-			  AM*0.5*(1.0+AMFactor),
-			  AMFactor,
-			  eta,
-			  sigmaEta,
-			  Nobs,
-			  Ndsc,
-			  Ntot);
-		}
-		
-		EfficiencyMultifit::DataElement el;
-		//
-		el.V=V+0.5*dV;
-		el.U=apparentVelocity*0.5*(1.0+apparentVelocityFactor);		 
-		el.SE=solarElongation+0.5*deltaSolarElongation;	 
-		el.LE=lunarElongation+0.5*deltaLunarElongation;
-		// add lunar phase here
-		el.AM=AM;
-		el.eta=eta;
-		el.sigmaEta=sigmaEta;
-		el.Nobs=Nobs;
-		el.Ndsc=Ndsc;
-		el.Ntot=Ntot;
-		//
-		data.push_back(el);
-	      }
-	      
-	      AM *= AMFactor;
-	    }
-	    
-	    lunarElongation += deltaLunarElongation;
-	  }
-	  
-	  solarElongation += deltaSolarElongation;
-	}
-	
-	apparentVelocity *= apparentVelocityFactor;
+  // write eta.dat file
+  if (1) {
+    char filename[1024];
+    sprintf(filename,"%s.eta.dat",basename.c_str());
+    FILE * fp_eta = fopen(filename,"w"); 
+    for (unsigned int k=0; k<data.size(); ++k) {
+      const EfficiencyMultifit::DataElement & el = data[k];
+      if (el.Ntot.getRef()>2) {
+	fprintf(fp_eta,
+		"%5.2f %6.2f %6.2f %6.2f %6.3f %5.3f %5.3f %5i %5i %5i\n",
+		el.V.getRef(),
+		orsa::FromUnits(el.U.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
+		el.SE.getRef()*orsa::radToDeg(),
+		el.LE.getRef()*orsa::radToDeg(),
+		el.AM.getRef(),
+		el.eta.getRef(),
+		el.sigmaEta.getRef(),
+		el.Nobs.getRef(),
+		el.Ndsc.getRef(),
+		el.Ntot.getRef());
       }
-      
-      V += dV;
     }
-    
-    if (write_fp_eta) {
-      fclose(fp_eta);
-    }
-    
-  }    
+    fclose(fp_eta);
+  }
   
   osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile = new orsaInputOutput::MPCObsCodeFile;
   obsCodeFile->setFileName("obscode.dat");
@@ -549,7 +462,7 @@ int main(int argc, char ** argv) {
   char fitFilename[1024];
   sprintf(fitFilename,"%s.fit.dat",basename.c_str());
   
-  unsigned int non_zero_n   = 0;
+  unsigned int non_zero_n = 0;
   for (unsigned int k=0; k<data.size(); ++k) {
     if (data[k].eta.getRef()>0.0) {
       ++non_zero_n;
@@ -571,24 +484,24 @@ int main(int argc, char ** argv) {
   // U pars
   par->insert("U_limit",    initial_U_limit, 0.01*initial_U_limit);
   par->insert("w_U",        initial_w_U,     0.01*initial_w_U); 
-  // mixing 
+  // mixing angle
   par->insert("beta",  0.0, 0.00001);
   // Galactic latitude
   par->insert("GL_limit",30.0*orsa::degToRad(),0.01*orsa::degToRad());
-  par->insert("c_GL",     0.000,               0.000001);
+  // par->insert("c_GL",     0.000,               0.000001);
   par->insert("w_GL",     1.0*orsa::degToRad(),0.001*orsa::degToRad());
   // ranges
   par->setRange("eta0_V",0.0,1.0);
-  par->setRangeMin("c_GL",0.0);
+  // par->setRangeMin("c_GL",0.0);
   // fixed?
   // par->setFixed("U_limit",true);
   // par->setFixed("w_U",true);
   // par->setFixed("beta",true);
-  par->setFixed("c_GL",true);
+  // par->setFixed("c_GL",true);
   
   if (non_zero_n < par->sizeNotFixed()) {
     ORSA_DEBUG("not enought data for fit, exiting");
-    // just "touch" the output file
+    // just create an empty output file
     FILE * fp = fopen(fitFilename,"w");
     fclose(fp);
     exit(0);
@@ -621,7 +534,7 @@ int main(int argc, char ** argv) {
   const double    beta = parFinal->get("beta");
   //
   const double GL_limit = parFinal->get("GL_limit");
-  const double     c_GL = parFinal->get("c_GL"); 
+  // const double     c_GL = parFinal->get("c_GL"); 
   const double     w_GL = parFinal->get("w_GL");
   
   if (1) {
@@ -754,7 +667,7 @@ int main(int argc, char ** argv) {
 					  beta,
 					  data[k].GL.getRef(),
 					  GL_limit,
-					  c_GL,
+					  // c_GL,
 					  w_GL);
       
       const double nominal_eta_V = SkyCoverage::nominal_eta_V(data[k].V.getRef(),
@@ -770,7 +683,7 @@ int main(int argc, char ** argv) {
      
       const double nominal_eta_GL = SkyCoverage::nominal_eta_GL(data[k].GL.getRef(),
 								GL_limit,
-								c_GL,
+								// c_GL,
 								w_GL);
       
       // at this point, small sigmas can become very large because divided by a very small eta's
