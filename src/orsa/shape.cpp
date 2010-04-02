@@ -610,7 +610,7 @@ bool orsa::rayIntersectsTriangle(orsa::Vector & intersectionPoint,
   //
   const double pDistance   = (t1-P)*planeNormal*((planeNormal*u > 0) ? 1 : -1);
   //
-  // ORSA_DEBUG("pDistance: %f",pDistance());
+  // ORSA_DEBUG("pDistance: %f",pDistance);
   //
   
   if ((!fullLine) && (pDistance <= 0)) {
@@ -650,8 +650,6 @@ bool orsa::rayIntersectsTriangle(orsa::Vector & intersectionPoint,
     return false;
     
   } else {
-    
-    // ORSA_DEBUG("off_plane component: %f",double(Qt1*planeNormal)());
     
     const Vector a = t21;
     const Vector b = t31;
@@ -726,9 +724,9 @@ bool orsa::rayIntersectsTriangle(orsa::Vector & intersectionPoint,
       
       /* 
 	 ORSA_DEBUG("alpha: %f   beta: %f   alpha+beta: %f",
-	 alpha(),
-	 beta(),
-	 double(alpha+beta)());
+	 alpha,
+	 beta,
+	 alpha+beta);
       */
       
       return true;

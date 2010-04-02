@@ -58,7 +58,7 @@ namespace orsa {
    * -  shape: the frame where the shape model is defined, usually offset and rotated with respect to "local"
    *
    * To transform between "local" and "shape", a translation and a rotation are needed in general
-   * rotation given by shapeToLocal and localToShape matrixes
+   * rotation given by shapeToLocal and localToShape matrices
    * translation by the centerOfMass vector
    *
    *
