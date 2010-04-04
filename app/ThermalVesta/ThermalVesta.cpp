@@ -255,8 +255,8 @@ int main(int argc,
   */
   
   // analysed period
-  const orsa::Time t0 = orsaSolarSystem::gregorTime(2011,8,14.0);
-  // const orsa::Time tF = orsaSolarSystem::gregorTime(2011,8,15.0);
+  const orsa::Time t0 = orsaSolarSystem::gregorTime(2011,8,15.0);
+  // const orsa::Time tF = orsaSolarSystem::gregorTime(2011,8,16.0);
   const orsa::Time tF = t0+orsa::Time(orsa::FromUnits(vestaPeriod,orsa::Unit::MICROSECOND,-1));
   
   const orsa::Time t = orsaSolarSystem::gregorTime(2010,1,1);
