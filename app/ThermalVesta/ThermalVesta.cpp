@@ -211,7 +211,7 @@ int main(int argc,
   
   if (0) {
     // Vesta's obliquity = angle between orbit pole and body pole
-    const orsa::Time t = orsaSolarSystem::gregorTime(2010,1,1);
+    const orsa::Time t = orsaSolarSystem::gregorTime(2009,1,1);
     osg::ref_ptr<orsa::Body> b = vesta.get();
     //
     orsa::Vector r,v;
@@ -256,7 +256,7 @@ int main(int argc,
   
   // period start
   // const orsa::Time t0 = orsaSolarSystem::gregorTime(2011,8,15.0);
-  const orsa::Time t0 = orsaSolarSystem::gregorTime(2010,1,1);
+  const orsa::Time t0 = orsaSolarSystem::gregorTime(2009,1,1);
   
   orsa::Orbit orbit;
   orbit.compute(vesta.get(),sun.get(),bg.get(),t0);
