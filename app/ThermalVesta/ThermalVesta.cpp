@@ -254,20 +254,21 @@ int main(int argc,
      orsaSolarSystem::gregorTime(2011,8,16.5)));
   */
   
-  // analysed period
-  /* 
-     const orsa::Time t0 = orsaSolarSystem::gregorTime(2011,8,15.0);
-     // const orsa::Time tF = orsaSolarSystem::gregorTime(2011,8,16.0);
-     const orsa::Time tF = t0+orsa::Time(orsa::FromUnits(vestaPeriod,orsa::Unit::MICROSECOND,-1));
-  */
-  // analysed period
-  const orsa::Time t0 = orsaSolarSystem::gregorTime(2011,8,15.0);
-  //
+  // period start
+  // const orsa::Time t0 = orsaSolarSystem::gregorTime(2011,8,15.0);
+  const orsa::Time t0 = orsaSolarSystem::gregorTime(2010,1,1);
+  
   orsa::Orbit orbit;
   orbit.compute(vesta.get(),sun.get(),bg.get(),t0);
   double orbitPeriod = orbit.period();
   ORSA_DEBUG("orbitPeriod: %g [year]",orsa::FromUnits(orbitPeriod,orsa::Unit::YEAR,-1));
+
+  // tF = period end
   //
+  // daily
+  // const orsa::Time tF = t0+orsa::Time(orsa::FromUnits(vestaPeriod,orsa::Unit::MICROSECOND,-1));
+  //
+  // seasonal
   const orsa::Time tF = t0+orsa::Time(orsa::FromUnits(orbitPeriod,orsa::Unit::MICROSECOND,-1));
   
   const double Q = orbit.a*(1.0+orbit.e);
@@ -309,7 +310,7 @@ int main(int argc,
   ORSA_DEBUG("history_skip: %i",history_skip);
   
   // initial temperature at max depth
-  double deep_T = 0.0; // K
+  double deep_T = 150.0; // K
   for (unsigned int k=0; k<profile.data.size(); ++k) {
     profile.data[k].T = deep_T;
   }
