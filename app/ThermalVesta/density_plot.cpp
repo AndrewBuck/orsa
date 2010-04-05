@@ -117,7 +117,13 @@ int main(int argc, char **argv) {
   pagmod("LAND");
   // page(3600,1400);
   // pagfll(255);
-  // winsiz(800,600);
+  winsiz(800,600);
+  
+  // output file name
+  char outfilename[1024];
+  // keep extension in sync with metafl command
+  sprintf(outfilename,"vesta.thermal_%.2f.gif",JD);
+  setfil(outfilename);
   
   // new files overwrite old ones
   filmod("DELETE");
