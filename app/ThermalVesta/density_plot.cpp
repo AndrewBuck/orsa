@@ -32,9 +32,17 @@ int main(int argc, char **argv) {
     exit(0);
   }
   
-  const double JD = atof(argv[1]);
+  // real requested epoch
+  const double JD_input = atof(argv[1]);
   
-  const orsa::Time t_JD = orsaSolarSystem::julianToTime(JD);
+  // orbit periodicity
+  double tmp_JD = JD_input;
+  if (tmp_JD < 2454832.50000) tmp_JD += 1325.51455;
+  if (tmp_JD > 2456158.01455) tmp_JD -= 1325.51455;
+  // lookup epoch in data files
+  const double JD = tmp_JD;
+  
+  const orsa::Time t_JD = orsaSolarSystem::julianToTime(JD_input);
   int y,m,d;
   double fd;
   orsaSolarSystem::gregorDay(t_JD,y,m,d,fd);
@@ -69,6 +77,9 @@ int main(int argc, char **argv) {
       // exclude some points
       if (jd < t0) continue;
       if (jd > t0+T_rot) continue;
+      
+      // if strictly time ordered, can break after jd > t0+T_rot
+      if (jd > t0+T_rot) break;
       
       const int i_x = (int)round((NX-1)*(x/360.0));
       const int i_y = (int)round((NY-1)*((y+90.0)/180.0));
@@ -122,7 +133,7 @@ int main(int argc, char **argv) {
   // output file name
   char outfilename[1024];
   // keep extension in sync with metafl command
-  sprintf(outfilename,"vesta.thermal_%.2f.gif",JD);
+  sprintf(outfilename,"vesta.thermal_%.2f.gif",JD_input);
   setfil(outfilename);
   
   // new files overwrite old ones
