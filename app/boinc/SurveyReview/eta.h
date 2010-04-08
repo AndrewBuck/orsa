@@ -157,11 +157,11 @@ class EfficiencyMultifit : public orsa::Multifit {
     gsl_multifit_covar(s->J, 0.0, covar);
     
     // call abort() if an uncertainty gets too large
-    {
+    if (0) {
       unsigned int gslIndex=0;
       for (unsigned int p=0; p<_par->totalSize(); ++p) {
 	if (!_par->isFixed(p)) {
-	  if  (factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)) > fabs(1.0e9*_par->get(p))) {
+	  if  (factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)) > fabs(1.0e9*(1.0e-3+_par->get(p)))) {
 	    ORSA_DEBUG("uncertainty of parameter [%s] is too large, aborting",
 		       _par->name(p).c_str());
 	    abort();

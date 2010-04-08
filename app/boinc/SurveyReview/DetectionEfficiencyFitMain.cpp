@@ -64,9 +64,11 @@ public:
     }
   public:
     size_t size() const {
-      return (size_t)(1+(stop-start)/incr);
+      return (size_t)ceil((stop-start)/incr);
     }
     size_t bin(const double x) const {
+      if (x<start) return -1;
+      if (x>stop)  return -1;
       return (size_t)((x-start)/incr);
     }
     double binStart(const size_t bin) const {
@@ -91,9 +93,11 @@ public:
     }
   public:
     size_t size() const {
-      return (size_t)(1+log(stop/start)/log(factor));
+      return (size_t)ceil(log(stop/start)/log(factor));
     }
     size_t bin(const double x) const {
+      if (x<start) return -1;
+      if (x>stop)  return -1;
       return (size_t)(log(x/start)/log(factor));
     }
     double binStart(const size_t bin) const {
@@ -124,15 +128,16 @@ public:
   bool insert(const std::vector<double> & xVector,
 	      const bool obs, 
 	      const bool dsc) {
+    
     if (xVector.size() != var.size()) {
       ORSA_DEBUG("dimension mismatch");
       return false;
     }
+    
     std::vector<size_t> binVector;
     if (!bin(binVector,xVector)) {
       return false;
     }   
-    
     
     if (0) { 
       // test only
@@ -152,6 +157,7 @@ public:
     
     const size_t idx = index(binVector);
     if (data[idx].get()==0) {
+      // lazy allocation
       data[idx] = new CountStatsElement;
     }
     data[idx]->Ntot++;
@@ -165,8 +171,8 @@ public:
     binVector.resize(xVector.size());
     for (unsigned int k=0; k<xVector.size(); ++k) {
       binVector[k] = var[k]->bin(xVector[k]);
-      if (binVector[k] > var[k]->size()) {
-	// ORSA_DEBUG("bin larger than size, k: %i   bin: %i   size: %i",k,binVector[k],var[k]->size());
+      if (binVector[k] == (size_t)-1) {
+	// ORSA_DEBUG("out of boundaries, k: %i   bin: %i   size: %i",k,binVector[k],var[k]->size());
 	return false;
       }	
     }
@@ -321,7 +327,7 @@ int main(int argc, char ** argv) {
       solarAltitude     = orsa::degToRad()*solarAltitude;
       lunarAltitude     = orsa::degToRad()*lunarAltitude;
       lunarPhase        = orsa::degToRad()*lunarPhase;
-      galacticLongitude = orsa::degToRad()*galacticLatitude;
+      galacticLongitude = orsa::degToRad()*galacticLongitude;
       galacticLatitude  = orsa::degToRad()*galacticLatitude;
       activeTime        = orsa::FromUnits(activeTime,orsa::Unit::HOUR);
       //
@@ -353,14 +359,14 @@ int main(int argc, char ** argv) {
   }
   
   // minimum apparent magnitude
-  const double V0=19.0;
+  const double V0=17.0;
   
   // alternative method using CountStats
   std::vector< osg::ref_ptr<CountStats::Var> > varDefinition;
   //
   // apparent magnitude
   varDefinition.push_back(new CountStats::LinearVar(V0,
-						    22,
+						    24,
 						    0.2));
   // apparent velocity
   /* varDefinition.push_back(new CountStats::LogarithmicVar(orsa::FromUnits(  0.1*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
@@ -369,8 +375,8 @@ int main(int argc, char ** argv) {
   */
   //
   varDefinition.push_back(new CountStats::LinearVar(orsa::FromUnits( 0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-						    orsa::FromUnits(75.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-						    orsa::FromUnits( 3.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)));
+						    orsa::FromUnits(60.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
+						    orsa::FromUnits( 2.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)));
   // solar elongation
   varDefinition.push_back(new CountStats::LinearVar(0.0,
 						    orsa::pi(),
@@ -387,11 +393,16 @@ int main(int argc, char ** argv) {
   //
   varDefinition.push_back(new CountStats::LinearVar(1.0,
 						    2.0,
-						    0.05));
+						    0.1));
+  // galactic longitude
+  varDefinition.push_back(new CountStats::LinearVar(-orsa::pi(),
+						    orsa::pi(),
+						    30.0*orsa::degToRad()));
+  
   // galactic latitude
   varDefinition.push_back(new CountStats::LinearVar(-orsa::halfpi(),
 						    orsa::halfpi(),
-						    5.0*orsa::degToRad()));
+						    10.0*orsa::degToRad()));
   
   osg::ref_ptr<CountStats> countStats = 
     new CountStats(varDefinition);
@@ -405,12 +416,13 @@ int main(int argc, char ** argv) {
     xVector[2] = etaData[k].solarElongation.getRef();
     xVector[3] = etaData[k].lunarElongation.getRef();
     xVector[4] = etaData[k].airMass.getRef();
-    xVector[5] = etaData[k].galacticLatitude.getRef();
+    xVector[5] = etaData[k].galacticLongitude.getRef();
+    xVector[6] = etaData[k].galacticLatitude.getRef();
     const bool goodInsert = countStats->insert(xVector,
 					       etaData[k].observed.getRef(),
 					       etaData[k].discovered.getRef());
     if (!goodInsert) {
-      // ORSA_DEBUG("problems with this one: V: %g",etaData[k].V.getRef())
+      // ORSA_DEBUG("problems inserting this one: V: %g",etaData[k].V.getRef());
     }
   }
   
@@ -420,7 +432,7 @@ int main(int argc, char ** argv) {
     const CountStatsElement * cs = countStats->stats(index);
     if (cs==0) continue;
     // write point only if Ntot != 0
-    if (cs->Ntot>=2) {
+    if (cs->Ntot>0) {
       const double      eta = (double)(cs->Nobs)/(double)(cs->Ntot);
       const double sigmaEta = (double)(sqrt(cs->Nobs+1))/(double)(cs->Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
       
@@ -434,7 +446,8 @@ int main(int argc, char ** argv) {
       el.LE=xVector[3];
       // add lunar phase here
       el.AM=xVector[4];
-      el.GL=xVector[5];
+      // add galactic longitude here
+      el.GL=xVector[6];
       //
       el.eta=eta;
       el.sigmaEta=sigmaEta;
@@ -454,20 +467,20 @@ int main(int argc, char ** argv) {
     FILE * fp_eta = fopen(filename,"w"); 
     for (unsigned int k=0; k<data.size(); ++k) {
       const EfficiencyMultifit::DataElement & el = data[k];
-      if (el.Ntot.getRef()>2) {
-	fprintf(fp_eta,
-		"%5.2f %6.2f %6.2f %6.2f %6.3f %5.3f %5.3f %5i %5i %5i\n",
-		el.V.getRef(),
-		orsa::FromUnits(el.U.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
-		el.SE.getRef()*orsa::radToDeg(),
-		el.LE.getRef()*orsa::radToDeg(),
-		el.AM.getRef(),
-		el.eta.getRef(),
-		el.sigmaEta.getRef(),
-		el.Nobs.getRef(),
-		el.Ndsc.getRef(),
-		el.Ntot.getRef());
-      }
+      // if (el.Ntot.getRef()>2) {
+      fprintf(fp_eta,
+	      "%5.2f %6.2f %6.2f %6.2f %6.3f %5.3f %5.3f %5i %5i %5i\n",
+	      el.V.getRef(),
+	      orsa::FromUnits(el.U.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
+	      el.SE.getRef()*orsa::radToDeg(),
+	      el.LE.getRef()*orsa::radToDeg(),
+	      el.AM.getRef(),
+	      el.eta.getRef(),
+	      el.sigmaEta.getRef(),
+	      el.Nobs.getRef(),
+	      el.Ndsc.getRef(),
+	      el.Ntot.getRef());
+      // }
     }
     fclose(fp_eta);
   }
@@ -504,17 +517,18 @@ int main(int argc, char ** argv) {
   // mixing angle
   par->insert("beta",  0.0, 0.00001);
   // Galactic latitude
-  par->insert("GL_limit",30.0*orsa::degToRad(),0.01*orsa::degToRad());
+  par->insert("GL_limit",10.0*orsa::degToRad(),0.01*orsa::degToRad());
   // par->insert("c_GL",     0.000,               0.000001);
   par->insert("w_GL",     1.0*orsa::degToRad(),0.001*orsa::degToRad());
   // ranges
-  par->setRange("eta0_V",0.0,1.0);
+  // par->setRange("eta0_V",0.0,1.0);
   // par->setRangeMin("c_GL",0.0);
   // fixed?
   // par->setFixed("U_limit",true);
   // par->setFixed("w_U",true);
   // par->setFixed("beta",true);
-  // par->setFixed("c_GL",true);
+  // par->setFixed("GL_limit",true);
+  // par->setFixed("w_GL",true);
   
   if (non_zero_n < par->sizeNotFixed()) {
     ORSA_DEBUG("not enought data for fit, exiting");
