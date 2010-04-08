@@ -287,31 +287,43 @@ int main(int argc, char ** argv) {
     char line[1024];
     double H, V, apparentVelocity;
     double solarElongation, lunarElongation;
+    double solarAltitude, lunarAltitude;
     double lunarPhase;
     double airMass;
-    double galacticLatitude;
+    double galacticLongitude, galacticLatitude;
+    double activeTime;
     char id[1024];
+    int epochFromField;
     int observed;
     int discovered;
     while (fgets(line,1024,fp)) {
-      sscanf(line,"%lf %s %lf %lf %lf %lf %lf %lf %lf %i %i",
+      sscanf(line,"%lf %s %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %i %i %i",
 	     &H,
 	     id,
 	     &V,
 	     &apparentVelocity,
 	     &solarElongation,
 	     &lunarElongation,
+	     &solarAltitude,
+	     &lunarAltitude,
 	     &lunarPhase,
 	     &airMass,
+	     &galacticLongitude,
 	     &galacticLatitude,
+	     &activeTime,
+	     &epochFromField,
 	     &observed,
 	     &discovered);
       // convert
-      apparentVelocity = orsa::FromUnits(apparentVelocity*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-      solarElongation  = orsa::degToRad()*solarElongation;
-      lunarElongation  = orsa::degToRad()*lunarElongation;
-      lunarPhase       = orsa::degToRad()*lunarPhase;
-      galacticLatitude = orsa::degToRad()*galacticLatitude;
+      apparentVelocity  = orsa::FromUnits(apparentVelocity*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+      solarElongation   = orsa::degToRad()*solarElongation;
+      lunarElongation   = orsa::degToRad()*lunarElongation;
+      solarAltitude     = orsa::degToRad()*solarAltitude;
+      lunarAltitude     = orsa::degToRad()*lunarAltitude;
+      lunarPhase        = orsa::degToRad()*lunarPhase;
+      galacticLongitude = orsa::degToRad()*galacticLatitude;
+      galacticLatitude  = orsa::degToRad()*galacticLatitude;
+      activeTime        = orsa::FromUnits(activeTime,orsa::Unit::HOUR);
       //
       EfficiencyData ed;
       ed.H=H;
@@ -321,14 +333,19 @@ int main(int argc, char ** argv) {
 	ed.designation = id;
       }
       ed.V = V;
-      ed.apparentVelocity = apparentVelocity;
-      ed.solarElongation  = solarElongation;
-      ed.lunarElongation  = lunarElongation;
-      ed.lunarPhase       = lunarPhase;
-      ed.airMass       = airMass;
-      ed.galacticLatitude = galacticLatitude;
-      ed.observed   = (observed==1);
-      ed.discovered = (discovered==1);
+      ed.apparentVelocity  = apparentVelocity;
+      ed.solarElongation   = solarElongation;
+      ed.lunarElongation   = lunarElongation;
+      ed.solarAltitude     = solarAltitude;
+      ed.lunarAltitude     = lunarAltitude;
+      ed.lunarPhase        = lunarPhase;
+      ed.airMass           = airMass;
+      ed.galacticLongitude = galacticLongitude;
+      ed.galacticLatitude  = galacticLatitude;
+      ed.activeTime        = activeTime;
+      ed.epochFromField    = (epochFromField==1);
+      ed.observed          = (observed==1);
+      ed.discovered        = (discovered==1);
       //
       etaData.push_back(ed);
     }
@@ -336,14 +353,14 @@ int main(int argc, char ** argv) {
   }
   
   // minimum apparent magnitude
-  const double V0=18.0;
+  const double V0=19.0;
   
   // alternative method using CountStats
   std::vector< osg::ref_ptr<CountStats::Var> > varDefinition;
   //
   // apparent magnitude
   varDefinition.push_back(new CountStats::LinearVar(V0,
-						    24,
+						    22,
 						    0.2));
   // apparent velocity
   /* varDefinition.push_back(new CountStats::LogarithmicVar(orsa::FromUnits(  0.1*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
@@ -352,16 +369,16 @@ int main(int argc, char ** argv) {
   */
   //
   varDefinition.push_back(new CountStats::LinearVar(orsa::FromUnits( 0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-						    orsa::FromUnits(50.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-						    orsa::FromUnits( 2.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)));
+						    orsa::FromUnits(75.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
+						    orsa::FromUnits( 3.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)));
   // solar elongation
   varDefinition.push_back(new CountStats::LinearVar(0.0,
 						    orsa::pi(),
-						    10.0*orsa::degToRad()));
+						    30.0*orsa::degToRad()));
   // lunar elongation
   varDefinition.push_back(new CountStats::LinearVar(0.0,
 						    orsa::pi(),
-						    10.0*orsa::degToRad()));
+						    30.0*orsa::degToRad()));
   // airmass
   /* varDefinition.push_back(new CountStats::LogarithmicVar(1.0,
      3.0,
@@ -411,8 +428,8 @@ int main(int argc, char ** argv) {
       
       EfficiencyMultifit::DataElement el;
       //
-      el.V=xVector[0];
-      el.U=xVector[1];		 
+      el.V =xVector[0];
+      el.U =xVector[1];		 
       el.SE=xVector[2];	 
       el.LE=xVector[3];
       // add lunar phase here

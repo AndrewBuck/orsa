@@ -541,6 +541,32 @@ int main(int argc, char ** argv) {
     }  
   }
   
+  // estimate of total time actively spent observing during the night
+  // measured as multiple of dt, if there are observations recorded within t and t+dt
+  orsa::Time activeTime(0);
+  {
+    orsa::Time           t = epoch - orsa::Time(0,12,0,0,0);
+    const orsa::Time tStop = epoch + orsa::Time(0,12,0,0,0);
+    const orsa::Time    dt = orsa::Time(0,0,15,0,0); // small for accurate estimate od activeTime, but not too small
+    while (t < tStop) {
+      for (unsigned int kobs=0; kobs<obsFile->_data.size(); ++kobs) {
+	const orsaSolarSystem::Observation * obs = obsFile->_data[kobs].get();
+	if (obs) {
+	  if (obs->epoch.isSet()) {
+	    if ( (obs->epoch.getRef()>=t) && 
+		 (obs->epoch.getRef()<=t+dt) ) {
+	      activeTime += dt;
+	      break;
+	    }
+	  }
+	}
+      }
+      t += dt;
+    }
+  }
+  //
+  ORSA_DEBUG("activeTime: %g [hour]",orsa::FromUnits(activeTime.get_d(),orsa::Unit::HOUR,-1));
+  
   // start to work at efficiency
   std::vector<EfficiencyData> etaData;
   for (unsigned int korb=0; korb<orbitFile->_data.size(); ++korb) {
@@ -662,6 +688,9 @@ int main(int argc, char ** argv) {
     const orsa::Vector zenith = (obsPosition - earthPosition).normalized();
     const double zenithAngle = acos(zenith*obs2orb.normalized());
     const double airMass  = ((observed||epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):-1.0);
+    // lunar altitude
+    const double solarAltitude = ((observed||epochFromField)?(orsa::halfpi()-acos(zenith*obs2sun.normalized())):-orsa::halfpi());
+    const double lunarAltitude = ((observed||epochFromField)?(orsa::halfpi()-acos(zenith*obs2moon.normalized())):-orsa::halfpi());
     // galactic latitude
     const orsa::Vector obs2orb_Equatorial = orsaSolarSystem::eclipticToEquatorial()*obs2orb;
     const orsa::Vector dr_equatorial = obs2orb_Equatorial.normalized();
@@ -669,7 +698,11 @@ int main(int argc, char ** argv) {
     const double dec = asin(dr_equatorial.getZ()/dr_equatorial.length());
     double l,b;
     orsaSolarSystem::equatorialToGalactic(l,b,ra,dec);
-    const double galacticLatitude = b;
+    // format longitude between -180 and +180 deg
+    l = fmod(l+2*orsa::twopi(),orsa::twopi());
+    if (l > orsa::pi()) l -= orsa::twopi();
+    const double galacticLongitude = l;
+    const double galacticLatitude  = b;
     
     EfficiencyData ed;
     ed.H = orbitFile->_data[korb].H.getRef();
@@ -686,9 +719,14 @@ int main(int argc, char ** argv) {
     ed.apparentVelocity = acos(orb2obs_dt.normalized()*orb2obs.normalized())/dt.get_d();
     ed.solarElongation = solarElongation;
     ed.lunarElongation = lunarElongation;
+    ed.solarAltitude = solarAltitude;
+    ed.lunarAltitude = lunarAltitude;
     ed.lunarPhase = lunarPhase;
     ed.airMass = airMass;
-    ed.galacticLatitude = galacticLatitude;
+    ed.galacticLongitude = galacticLongitude;
+    ed.galacticLatitude  = galacticLatitude;
+    ed.activeTime = activeTime.get_d();
+    ed.epochFromField = epochFromField;
     ed.observed = observed;
     ed.discovered = discovered;
     etaData.push_back(ed);
@@ -697,6 +735,7 @@ int main(int argc, char ** argv) {
   {
     char filename[1024];
     sprintf(filename,"%s.allEta.dat",basename.c_str());
+    ORSA_DEBUG("writing file: [%s]",filename);
     FILE * fp_allEta = fopen(filename,"w");
     for (unsigned int k=0; k<etaData.size(); ++k) {
       const EfficiencyData & ed = etaData[k];
@@ -707,16 +746,21 @@ int main(int argc, char ** argv) {
 	sprintf(id,"%s",ed.designation.getRef().c_str());
       }
       fprintf(fp_allEta,
-	      "%5.2f %7s %5.2f %6.2f %6.2f %6.2f %6.2f %5.3f %+6.3f %1i %1i\n",
+	      "%5.2f %7s %5.2f %7.2f %6.2f %6.2f %+7.2f %+7.2f %6.2f %6.3f %+8.3f %+7.3f %5.2f %1i %1i %1i\n",
 	      ed.H.getRef(),
 	      id,
 	      ed.V.getRef(),
 	      orsa::FromUnits(ed.apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR), // arcsec/hour
 	      orsa::radToDeg()*ed.solarElongation.getRef(),
 	      orsa::radToDeg()*ed.lunarElongation.getRef(),
+	      orsa::radToDeg()*ed.solarAltitude.getRef(),
+	      orsa::radToDeg()*ed.lunarAltitude.getRef(),
 	      orsa::radToDeg()*ed.lunarPhase.getRef(),
 	      ed.airMass.getRef(),
+	      orsa::radToDeg()*ed.galacticLongitude.getRef(),
 	      orsa::radToDeg()*ed.galacticLatitude.getRef(),
+	      orsa::FromUnits(ed.activeTime.getRef(),orsa::Unit::HOUR,-1), 
+	      ed.epochFromField.getRef(),
 	      ed.observed.getRef(),
 	      ed.discovered.getRef());
     }
