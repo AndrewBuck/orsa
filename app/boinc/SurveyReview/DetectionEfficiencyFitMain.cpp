@@ -1,6 +1,7 @@
 #include <orsa/statistic.h>
 #include "skycoverage.h"
 #include "eta.h"
+#include <map>
 
 class EfficiencyStatistics : public orsa::WeightedStatistic<double> {
 public:
@@ -114,12 +115,13 @@ public:
   CountStats(const std::vector< osg::ref_ptr<Var> > & varDefinition) :
     osg::Referenced(),
     var(varDefinition) {
-    size_t totalSize=1;
+    totalSize=1;
     for (unsigned int k=0; k<varDefinition.size(); ++k) {
       totalSize *= varDefinition[k]->size();
     }  
-    ORSA_DEBUG("totalSize: %i",totalSize);
-    data.resize(totalSize);
+    ORSA_DEBUG("totalSize: %Zi",totalSize.get_mpz_t());
+    // call resize if using std::vector
+    // data.resize(totalSize);
   }
 protected:
   ~CountStats() { }
@@ -146,8 +148,8 @@ public:
       for (unsigned int k=0; k<binVector.size(); ++k) {
 	ORSA_DEBUG("binVector[%i] = %i",k,binVector[k]);
       } 
-      const size_t idx = index(binVector);
-      ORSA_DEBUG("index: %i",idx);
+      const mpz_class idx = index(binVector);
+      ORSA_DEBUG("index: %Zi",idx.get_mpz_t());
       bin(idx);
       ORSA_DEBUG("reconstructed binVector:");
       for (unsigned int k=0; k<binVector.size(); ++k) {
@@ -155,10 +157,16 @@ public:
       } 
     }
     
-    const size_t idx = index(binVector);
+    const mpz_class idx = index(binVector);
     if (data[idx].get()==0) {
       // lazy allocation
       data[idx] = new CountStatsElement;
+    
+      { // testing only
+	static mpz_class numAllocated=0;
+	++numAllocated;
+	if (numAllocated%1000==0) ORSA_DEBUG("numAllocated: %Zi",numAllocated.get_mpz_t());
+      }
     }
     data[idx]->Ntot++;
     if (obs) data[idx]->Nobs++;
@@ -172,7 +180,7 @@ public:
     for (unsigned int k=0; k<xVector.size(); ++k) {
       binVector[k] = var[k]->bin(xVector[k]);
       if (binVector[k] == (size_t)-1) {
-	// ORSA_DEBUG("out of boundaries, k: %i   bin: %i   size: %i",k,binVector[k],var[k]->size());
+	// out of boundaries
 	return false;
       }	
     }
@@ -180,9 +188,9 @@ public:
   }
 public:
   // from binVector to index
-  size_t index(const std::vector<size_t> & binVector) const {
-    size_t idx=0;
-    size_t mul=1;
+  mpz_class index(const std::vector<size_t> & binVector) const {
+    mpz_class idx=0;
+    mpz_class mul=1;
     for (unsigned int k=0; k<var.size(); ++k) {
       idx += binVector[k] * mul;
       mul *= var[k]->size();
@@ -192,16 +200,18 @@ public:
   }
 public:
   // from index to binVector
-  std::vector<size_t> bin(size_t index) const {
-    size_t mul=data.size();
+  std::vector<size_t> bin(mpz_class index) const {
+    // mpz_class mul=data.size();
+    mpz_class mul=totalSize;
     std::vector<size_t> binVector;
     binVector.resize(var.size());
     {
       unsigned int k=var.size();
       do {
-	--k;
+       	--k;
 	mul /= var[k]->size();
-	binVector[k] = index/mul;
+	// ORSA_DEBUG("mul: %Zi",mul.get_mpz_t());
+	binVector[k] = mpz_class(index/mul).get_si();
 	index -= binVector[k]*mul;
       } while (k>0);
     }
@@ -209,7 +219,7 @@ public:
   }
 public:
   // vector of the center of each bin
-  std::vector<double> binCenterVector(const size_t index) const {
+  std::vector<double> binCenterVector(const mpz_class index) const {
     std::vector<size_t> binVector = bin(index);
     std::vector<double> xVector;
     xVector.resize(var.size());
@@ -219,15 +229,31 @@ public:
     return xVector;
   }
 public:
-  size_t size() const { return data.size(); }
+  mpz_class size() const { return totalSize; }
 public:
-  const CountStatsElement * stats(const size_t index) const {
-    return data[index].get();
+  const CountStatsElement * stats(const mpz_class index) {
+    // ORSA_DEBUG("data.size() = %i",data.size());
+    // return data[index].get();
+    DataType::iterator it = data.find(index);
+    if (it != data.end()) {
+      return (*it).second.get();
+    } else {
+      return 0;
+    }
   }
 protected:
   const std::vector< osg::ref_ptr<Var> > & var;
+public:
+  // std::vector< osg::ref_ptr<CountStatsElement> > data;
+  typedef std::map< mpz_class, osg::ref_ptr<CountStatsElement> > DataType;
 protected:
-  std::vector< osg::ref_ptr<CountStatsElement> > data;
+  DataType data;
+public:
+  const DataType & getData() const {
+    return data;
+  }
+protected:
+  mpz_class totalSize;
 };
 
 #warning use this class?
@@ -367,24 +393,24 @@ int main(int argc, char ** argv) {
   // apparent magnitude
   varDefinition.push_back(new CountStats::LinearVar(V0,
 						    24,
-						    0.2));
+						    0.1));
   // apparent velocity
   /* varDefinition.push_back(new CountStats::LogarithmicVar(orsa::FromUnits(  0.1*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
      orsa::FromUnits(300.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
      1.2));
   */
   //
-  varDefinition.push_back(new CountStats::LinearVar(orsa::FromUnits( 0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-						    orsa::FromUnits(60.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-						    orsa::FromUnits( 2.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)));
+  varDefinition.push_back(new CountStats::LinearVar(orsa::FromUnits(  0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
+						    orsa::FromUnits(100.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
+						    orsa::FromUnits(  1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)));
   // solar elongation
   varDefinition.push_back(new CountStats::LinearVar(0.0,
 						    orsa::pi(),
-						    30.0*orsa::degToRad()));
+						    2.0*orsa::degToRad()));
   // lunar elongation
   varDefinition.push_back(new CountStats::LinearVar(0.0,
 						    orsa::pi(),
-						    30.0*orsa::degToRad()));
+						    2.0*orsa::degToRad()));
   // airmass
   /* varDefinition.push_back(new CountStats::LogarithmicVar(1.0,
      3.0,
@@ -393,16 +419,16 @@ int main(int argc, char ** argv) {
   //
   varDefinition.push_back(new CountStats::LinearVar(1.0,
 						    2.0,
-						    0.1));
+						    0.05));
   // galactic longitude
   varDefinition.push_back(new CountStats::LinearVar(-orsa::pi(),
 						    orsa::pi(),
-						    30.0*orsa::degToRad()));
+						    2.0*orsa::degToRad()));
   
   // galactic latitude
   varDefinition.push_back(new CountStats::LinearVar(-orsa::halfpi(),
 						    orsa::halfpi(),
-						    10.0*orsa::degToRad()));
+						    2.0*orsa::degToRad()));
   
   osg::ref_ptr<CountStats> countStats = 
     new CountStats(varDefinition);
@@ -428,35 +454,42 @@ int main(int argc, char ** argv) {
   
   EfficiencyMultifit::DataStorage data;
   
-  for (unsigned int index=0; index<countStats->size(); ++index) {
-    const CountStatsElement * cs = countStats->stats(index);
-    if (cs==0) continue;
-    // write point only if Ntot != 0
-    if (cs->Ntot>0) {
-      const double      eta = (double)(cs->Nobs)/(double)(cs->Ntot);
-      const double sigmaEta = (double)(sqrt(cs->Nobs+1))/(double)(cs->Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
+  // for (unsigned int index=0; index<countStats->size(); ++index) {
+  {
+    const CountStats::DataType & csData = countStats->getData();
+    CountStats::DataType::const_iterator it = csData.begin();
+    while (it != csData.end()) {
       
-      const std::vector<double> xVector = countStats->binCenterVector(index); 
-      
-      EfficiencyMultifit::DataElement el;
-      //
-      el.V =xVector[0];
-      el.U =xVector[1];		 
-      el.SE=xVector[2];	 
-      el.LE=xVector[3];
-      // add lunar phase here
-      el.AM=xVector[4];
-      // add galactic longitude here
-      el.GL=xVector[6];
-      //
-      el.eta=eta;
-      el.sigmaEta=sigmaEta;
-      //
-      el.Nobs=cs->Nobs;
-      el.Ndsc=cs->Ndsc;
-      el.Ntot=cs->Ntot;
-      //
-      data.push_back(el);
+      const CountStatsElement * cs = (*it).second.get();
+      if (cs==0) continue;
+      // write point only if Ntot != 0
+      if (cs->Ntot>0) {
+	const double      eta = (double)(cs->Nobs)/(double)(cs->Ntot);
+	const double sigmaEta = (double)(sqrt(cs->Nobs+1))/(double)(cs->Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
+	
+	const std::vector<double> xVector = countStats->binCenterVector((*it).first); 
+	
+	EfficiencyMultifit::DataElement el;
+	//
+	el.V =xVector[0];
+	el.U =xVector[1];		 
+	el.SE=xVector[2];	 
+	el.LE=xVector[3];
+	// add lunar phase here
+	el.AM=xVector[4];
+	// add galactic longitude here
+	el.GL=xVector[6];
+	//
+	el.eta=eta;
+	el.sigmaEta=sigmaEta;
+	//
+	el.Nobs=cs->Nobs;
+	el.Ndsc=cs->Ndsc;
+	el.Ntot=cs->Ntot;
+	//
+	data.push_back(el);
+      }
+      ++it;
     }
   }
   
