@@ -157,7 +157,7 @@ class EfficiencyMultifit : public orsa::Multifit {
     gsl_multifit_covar(s->J, 0.0, covar);
     
     // call abort() if an uncertainty gets too large
-    if (0) {
+    if (1) {
       unsigned int gslIndex=0;
       for (unsigned int p=0; p<_par->totalSize(); ++p) {
 	if (!_par->isFixed(p)) {
