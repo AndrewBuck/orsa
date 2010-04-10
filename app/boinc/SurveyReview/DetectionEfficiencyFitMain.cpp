@@ -321,7 +321,7 @@ int main(int argc, char ** argv) {
     double solarElongation, lunarElongation;
     double solarAltitude, lunarAltitude;
     double lunarPhase;
-    double airMass;
+    double airMass, azimuth;
     double galacticLongitude, galacticLatitude;
     double activeTime;
     char id[1024];
@@ -329,7 +329,7 @@ int main(int argc, char ** argv) {
     int observed;
     int discovered;
     while (fgets(line,1024,fp)) {
-      sscanf(line,"%lf %s %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %i %i %i",
+      sscanf(line,"%lf %s %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %i %i %i",
 	     &H,
 	     id,
 	     &V,
@@ -340,6 +340,7 @@ int main(int argc, char ** argv) {
 	     &lunarAltitude,
 	     &lunarPhase,
 	     &airMass,
+	     &azimuth,
 	     &galacticLongitude,
 	     &galacticLatitude,
 	     &activeTime,
@@ -353,6 +354,7 @@ int main(int argc, char ** argv) {
       solarAltitude     = orsa::degToRad()*solarAltitude;
       lunarAltitude     = orsa::degToRad()*lunarAltitude;
       lunarPhase        = orsa::degToRad()*lunarPhase;
+      azimuth           = orsa::degToRad()*azimuth;
       galacticLongitude = orsa::degToRad()*galacticLongitude;
       galacticLatitude  = orsa::degToRad()*galacticLatitude;
       activeTime        = orsa::FromUnits(activeTime,orsa::Unit::HOUR);
@@ -372,6 +374,7 @@ int main(int argc, char ** argv) {
       ed.lunarAltitude     = lunarAltitude;
       ed.lunarPhase        = lunarPhase;
       ed.airMass           = airMass;
+      ed.azimuth           = azimuth;
       ed.galacticLongitude = galacticLongitude;
       ed.galacticLatitude  = galacticLatitude;
       ed.activeTime        = activeTime;
@@ -385,7 +388,7 @@ int main(int argc, char ** argv) {
   }
   
   // minimum apparent magnitude
-  const double V0=17.0;
+  const double V0=16.0;
   
   // alternative method using CountStats
   std::vector< osg::ref_ptr<CountStats::Var> > varDefinition;
@@ -611,6 +614,10 @@ int main(int argc, char ** argv) {
     AllStat stat_AM; // airMass
     AllStat stat_GL; // galacticLatitude
     //
+    
+    // test
+    // LinearHisto_ES histo_V(V0,24,0.1);
+    
     for (unsigned int k=0; k<data.size(); ++k) {
       
       osg::ref_ptr<EfficiencyStatistics> sV;

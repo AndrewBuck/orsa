@@ -684,10 +684,16 @@ int main(int argc, char ** argv) {
     const double lunarElongation = acos(obs2moon.normalized()*obs2orb.normalized());
     const double lunarPhase = acos(moon2sun.normalized()*moon2obs.normalized());
     //
-    // airmass
-    const orsa::Vector zenith = (obsPosition - earthPosition).normalized();
-    const double zenithAngle = acos(zenith*obs2orb.normalized());
-    const double airMass  = ((observed||epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):-1.0);
+    // airmass & azimuth
+    const orsa::Vector     zenith = (obsPosition - earthPosition).normalized();
+    const orsa::Vector localEast  = orsa::externalProduct(northPole,zenith).normalized();
+    const orsa::Vector localNorth = orsa::externalProduct(zenith,localEast).normalized();
+    const double obs2orb_zenith     =     zenith*obs2orb.normalized();
+    const double obs2orb_localEast  =  localEast*obs2orb.normalized();
+    const double obs2orb_localNorth = localNorth*obs2orb.normalized();
+    const double zenithAngle = acos(obs2orb_zenith);
+    const double airMass = ((observed||epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):-1.0);
+    const double azimuth = fmod(orsa::twopi()+atan2(obs2orb_localEast,obs2orb_localNorth),orsa::twopi());
     // lunar altitude
     const double solarAltitude = ((observed||epochFromField)?(orsa::halfpi()-acos(zenith*obs2sun.normalized())):-orsa::halfpi());
     const double lunarAltitude = ((observed||epochFromField)?(orsa::halfpi()-acos(zenith*obs2moon.normalized())):-orsa::halfpi());
@@ -723,6 +729,7 @@ int main(int argc, char ** argv) {
     ed.lunarAltitude = lunarAltitude;
     ed.lunarPhase = lunarPhase;
     ed.airMass = airMass;
+    ed.azimuth = azimuth;
     ed.galacticLongitude = galacticLongitude;
     ed.galacticLatitude  = galacticLatitude;
     ed.activeTime = activeTime.get_d();
@@ -746,7 +753,7 @@ int main(int argc, char ** argv) {
 	sprintf(id,"%s",ed.designation.getRef().c_str());
       }
       fprintf(fp_allEta,
-	      "%5.2f %7s %5.2f %7.2f %6.2f %6.2f %+7.2f %+7.2f %6.2f %6.3f %+8.3f %+7.3f %5.2f %1i %1i %1i\n",
+	      "%5.2f %7s %5.2f %7.2f %6.2f %6.2f %+7.2f %+7.2f %6.2f %6.3f %5.1 %+8.3f %+7.3f %5.2f %1i %1i %1i\n",
 	      ed.H.getRef(),
 	      id,
 	      ed.V.getRef(),
@@ -757,6 +764,7 @@ int main(int argc, char ** argv) {
 	      orsa::radToDeg()*ed.lunarAltitude.getRef(),
 	      orsa::radToDeg()*ed.lunarPhase.getRef(),
 	      ed.airMass.getRef(),
+	      orsa::radToDeg()*ed.azimuth.getRef(),
 	      orsa::radToDeg()*ed.galacticLongitude.getRef(),
 	      orsa::radToDeg()*ed.galacticLatitude.getRef(),
 	      orsa::FromUnits(ed.activeTime.getRef(),orsa::Unit::HOUR,-1), 

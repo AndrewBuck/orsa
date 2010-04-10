@@ -16,6 +16,7 @@ class EfficiencyData {
   orsa::Cache<double> lunarAltitude;
   orsa::Cache<double> lunarPhase;
   orsa::Cache<double> airMass;
+  orsa::Cache<double> azimuth;
   orsa::Cache<double> galacticLongitude;
   orsa::Cache<double> galacticLatitude;
   orsa::Cache<double> activeTime;
@@ -157,7 +158,7 @@ class EfficiencyMultifit : public orsa::Multifit {
     gsl_multifit_covar(s->J, 0.0, covar);
     
     // call abort() if an uncertainty gets too large, or if its zero
-    if (1) {
+    if (0) {
       unsigned int gslIndex=0;
       for (unsigned int p=0; p<_par->totalSize(); ++p) {
 	if (!_par->isFixed(p)) {
