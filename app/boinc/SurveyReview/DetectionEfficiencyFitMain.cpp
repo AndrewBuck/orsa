@@ -256,44 +256,43 @@ protected:
   mpz_class totalSize;
 };
 
-#warning use this class?
-class LinearHisto_ES {
+template <class T> class Histo : public T {
 public:
-  LinearHisto_ES(const double startValue,
-		 const double stopValue,
-		 const double incrValue) :
-    start(startValue),
-    stop(stopValue),
-    incr(incrValue) {
-    histo.resize((size_t)(1+(stop-start)/incr));  
+  // dx can be a factor if T is log
+  /* Histo(const double x1,
+     const double x2,
+     const double dx) : T(x1,x2,dx) {
+     histo.resize(T::size());
+     for (unsigned int k=0; k< histo.size(); ++k) {
+     histo[k] = new EfficiencyStatistics(T::binCenter(k));
+     }
+     }
+  */
+public:
+  Histo(const T * orig) : T(*orig) {
+    histo.resize(T::size());
     for (unsigned int k=0; k< histo.size(); ++k) {
-      histo[k] = new EfficiencyStatistics(start+0.5*incr*k);
+      histo[k] = new EfficiencyStatistics(T::binCenter(k));
     }
   }
 public:
   bool insert(const double x,
 	      const double val,
 	      const double sigma) {
-    const size_t histo_bin = bin(x);
-    if (histo_bin>=histo.size()) {
-      ORSA_DEBUG("problems...  bin: %i size: %i",histo_bin,histo.size());
+    const size_t histo_bin = T::bin(x);
+    if (histo_bin == (size_t)-1) {
+      // out of boundaries
       return false;
     }
     histo[histo_bin]->insert(val,sigma);
     return true;
   }
 public:
-  size_t bin(const double x) const {
-    return (size_t)((x-start)/incr);
-  }
-public:
-  const std::vector< osg::ref_ptr< EfficiencyStatistics > > & getHisto() const {
-    return histo;
-  }
-public:
-  const double start, stop, incr;
+  typedef std::vector< osg::ref_ptr< EfficiencyStatistics > > HistoDataType;
 protected:
-  std::vector< osg::ref_ptr< EfficiencyStatistics > > histo;
+  HistoDataType histo;
+public:
+  const HistoDataType & getData() const { return histo; }
 };
 
 int main(int argc, char ** argv) {
@@ -393,45 +392,45 @@ int main(int argc, char ** argv) {
   // alternative method using CountStats
   std::vector< osg::ref_ptr<CountStats::Var> > varDefinition;
   //
-  // apparent magnitude
-  varDefinition.push_back(new CountStats::LinearVar(V0,
-						    24,
-						    0.1));
-  // apparent velocity
-  /* varDefinition.push_back(new CountStats::LogarithmicVar(orsa::FromUnits(  0.1*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-     orsa::FromUnits(300.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-     1.2));
-  */
-  //
-  varDefinition.push_back(new CountStats::LinearVar(orsa::FromUnits(  0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-						    orsa::FromUnits(100.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-						    orsa::FromUnits(  1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)));
-  // solar elongation
-  varDefinition.push_back(new CountStats::LinearVar(0.0,
-						    orsa::pi(),
-						    2.0*orsa::degToRad()));
-  // lunar elongation
-  varDefinition.push_back(new CountStats::LinearVar(0.0,
-						    orsa::pi(),
-						    2.0*orsa::degToRad()));
-  // airmass
-  /* varDefinition.push_back(new CountStats::LogarithmicVar(1.0,
-     3.0,
-     1.03));
-  */
-  //
-  varDefinition.push_back(new CountStats::LinearVar(1.0,
-						    2.0,
-						    0.05));
-  // galactic longitude
-  varDefinition.push_back(new CountStats::LinearVar(-orsa::pi(),
-						    orsa::pi(),
-						    2.0*orsa::degToRad()));
+  // [0] apparent magnitude
+  osg::ref_ptr<CountStats::LinearVar> var_V = new CountStats::LinearVar(V0, 24, 0.1);
+  varDefinition.push_back(var_V.get());
   
-  // galactic latitude
-  varDefinition.push_back(new CountStats::LinearVar(-orsa::halfpi(),
-						    orsa::halfpi(),
-						    2.0*orsa::degToRad()));
+  // [1] apparent velocity
+  osg::ref_ptr<CountStats::LinearVar> var_U = new CountStats::LinearVar(orsa::FromUnits(  0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
+									orsa::FromUnits(100.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
+									orsa::FromUnits(  1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1));
+  varDefinition.push_back(var_U.get());
+  
+  // [2] solar elongation
+  osg::ref_ptr<CountStats::LinearVar> var_SE = new CountStats::LinearVar(0.0,
+									 orsa::pi(),
+									 2.0*orsa::degToRad());
+  varDefinition.push_back(var_SE.get());
+  
+  // [3] lunar elongation
+  osg::ref_ptr<CountStats::LinearVar> var_LE = new CountStats::LinearVar(0.0,
+									 orsa::pi(),
+									 2.0*orsa::degToRad());
+  varDefinition.push_back(var_LE.get());
+
+  // [4] airmass
+  osg::ref_ptr<CountStats::LinearVar> var_AM = new CountStats::LinearVar(1.0,
+									 2.0,
+									 0.05);
+  varDefinition.push_back(var_AM.get());
+
+  // [5] galactic longitude
+  osg::ref_ptr<CountStats::LinearVar> var_GL = new CountStats::LinearVar(-orsa::pi(),
+									 orsa::pi(),
+									 2.0*orsa::degToRad());
+  varDefinition.push_back(var_GL.get());
+  
+  // [6] galactic latitude
+  osg::ref_ptr<CountStats::LinearVar> var_GB = new CountStats::LinearVar(-orsa::halfpi(),
+									 orsa::halfpi(),
+									 2.0*orsa::degToRad());
+  varDefinition.push_back(var_GB.get());
   
   osg::ref_ptr<CountStats> countStats = 
     new CountStats(varDefinition);
@@ -480,8 +479,8 @@ int main(int argc, char ** argv) {
 	el.LE=xVector[3];
 	// add lunar phase here
 	el.AM=xVector[4];
-	// add galactic longitude here
-	el.GL=xVector[6];
+	el.GL=xVector[5];
+	el.GB=xVector[6];
 	//
 	el.eta=eta;
 	el.sigmaEta=sigmaEta;
@@ -553,9 +552,8 @@ int main(int argc, char ** argv) {
   // mixing angle
   par->insert("beta",  0.0, 0.00001);
   // Galactic latitude
-  par->insert("GL_limit",10.0*orsa::degToRad(),0.01*orsa::degToRad());
-  // par->insert("c_GL",     0.000,               0.000001);
-  par->insert("w_GL",     1.0*orsa::degToRad(),0.001*orsa::degToRad());
+  par->insert("GB_limit",10.0*orsa::degToRad(),0.01*orsa::degToRad());
+  par->insert("w_GB",     1.0*orsa::degToRad(),0.001*orsa::degToRad());
   // ranges
   // par->setRange("eta0_V",0.0,1.0);
   // par->setRangeMin("c_GL",0.0);
@@ -563,8 +561,6 @@ int main(int argc, char ** argv) {
   // par->setFixed("U_limit",true);
   // par->setFixed("w_U",true);
   // par->setFixed("beta",true);
-  // par->setFixed("GL_limit",true);
-  // par->setFixed("w_GL",true);
   
   if (non_zero_n < par->sizeNotFixed()) {
     ORSA_DEBUG("not enought data for fit, exiting");
@@ -600,131 +596,141 @@ int main(int argc, char ** argv) {
   //
   const double    beta = parFinal->get("beta");
   //
-  const double GL_limit = parFinal->get("GL_limit");
-  // const double     c_GL = parFinal->get("c_GL"); 
-  const double     w_GL = parFinal->get("w_GL");
+  const double GB_limit = parFinal->get("GB_limit");
+  const double     w_GB = parFinal->get("w_GB");
   
   if (1) {
     // output for testing
-    typedef std::list< osg::ref_ptr<EfficiencyStatistics> > AllStat;
-    AllStat stat_V, stat_U; 
-    AllStat stat_SE; // solarElongation
-    AllStat stat_LE; // lunarElongation
-    // AllStat stat_LP; // lunarPhase
-    AllStat stat_AM; // airMass
-    AllStat stat_GL; // galacticLatitude
+    /* typedef std::list< osg::ref_ptr<EfficiencyStatistics> > AllStat;
+       AllStat stat_V, stat_U; 
+       AllStat stat_SE; // solarElongation
+       AllStat stat_LE; // lunarElongation
+       // AllStat stat_LP; // lunarPhase
+       AllStat stat_AM; // airMass
+       AllStat stat_GL; // galacticLatitude
+    */
     //
-    
-    // test
-    // LinearHisto_ES histo_V(V0,24,0.1);
+    Histo<CountStats::LinearVar> histo_V (var_V.get());
+    Histo<CountStats::LinearVar> histo_U (var_U.get());
+    Histo<CountStats::LinearVar> histo_SE(var_SE.get());
+    Histo<CountStats::LinearVar> histo_LE(var_LE.get());
+    Histo<CountStats::LinearVar> histo_AM(var_AM.get());
+    Histo<CountStats::LinearVar> histo_GL(var_GL.get());
+    Histo<CountStats::LinearVar> histo_GB(var_GB.get());
     
     for (unsigned int k=0; k<data.size(); ++k) {
       
-      osg::ref_ptr<EfficiencyStatistics> sV;
-      {
-	AllStat::const_iterator it = stat_V.begin();
-	while (it != stat_V.end()) {
-	  if ((*it).get() != 0) {
-	    if ((*it)->center == data[k].V.getRef()) {
-	      sV = (*it).get();
-	    }   
-	  }
-	  ++it;
-	}
-	if (sV.get() == 0) {
-	  sV = new EfficiencyStatistics(data[k].V.getRef());
-	  stat_V.push_back(sV);
-	}
-      }
+      /* osg::ref_ptr<EfficiencyStatistics> sV;
+	 {
+	 AllStat::const_iterator it = stat_V.begin();
+	 while (it != stat_V.end()) {
+	 if ((*it).get() != 0) {
+	 if ((*it)->center == data[k].V.getRef()) {
+	 sV = (*it).get();
+	 }   
+	 }
+	 ++it;
+	 }
+	 if (sV.get() == 0) {
+	 sV = new EfficiencyStatistics(data[k].V.getRef());
+	 stat_V.push_back(sV);
+	 }
+	 }
+      */
       
-      osg::ref_ptr<EfficiencyStatistics> sU;
-      {
-	AllStat::const_iterator it = stat_U.begin();
-	while (it != stat_U.end()) {
-	  if ((*it).get() != 0) {
-	    if ((*it)->center == data[k].U.getRef()) {
-	      sU = (*it).get();
-	    }   
-	  }
-	  ++it;
-	}
-	if (sU.get() == 0) {
-	  sU = new EfficiencyStatistics(data[k].U.getRef());
-	  stat_U.push_back(sU);
-	}
-      }
+      /* osg::ref_ptr<EfficiencyStatistics> sU;
+	 {
+	 AllStat::const_iterator it = stat_U.begin();
+	 while (it != stat_U.end()) {
+	 if ((*it).get() != 0) {
+	 if ((*it)->center == data[k].U.getRef()) {
+	 sU = (*it).get();
+	 }   
+	 }
+	 ++it;
+	 }
+	 if (sU.get() == 0) {
+	 sU = new EfficiencyStatistics(data[k].U.getRef());
+	 stat_U.push_back(sU);
+	 }
+	 }
+      */
       
       // solarElongation
-      osg::ref_ptr<EfficiencyStatistics> sSE;
-      {
-	AllStat::const_iterator it = stat_SE.begin();
-	while (it != stat_SE.end()) {
-	  if ((*it).get() != 0) {
-	    if ((*it)->center == data[k].SE.getRef()) {
-	      sSE = (*it).get();
-	    }   
-	  }
-	  ++it;
-	}
-	if (sSE.get() == 0) {
-	  sSE = new EfficiencyStatistics(data[k].SE.getRef());
-	  stat_SE.push_back(sSE);
-	}
-      }
+      /* osg::ref_ptr<EfficiencyStatistics> sSE;
+	 {
+	 AllStat::const_iterator it = stat_SE.begin();
+	 while (it != stat_SE.end()) {
+	 if ((*it).get() != 0) {
+	 if ((*it)->center == data[k].SE.getRef()) {
+	 sSE = (*it).get();
+	 }   
+	 }
+	 ++it;
+	 }
+	 if (sSE.get() == 0) {
+	 sSE = new EfficiencyStatistics(data[k].SE.getRef());
+	 stat_SE.push_back(sSE);
+	 }
+	 }
+      */
       
       // lunarElongation
-      osg::ref_ptr<EfficiencyStatistics> sLE;
-      {
-	AllStat::const_iterator it = stat_LE.begin();
-	while (it != stat_LE.end()) {
-	  if ((*it).get() != 0) {
-	    if ((*it)->center == data[k].LE.getRef()) {
-	      sLE = (*it).get();
-	    }   
-	  }
-	  ++it;
-	}
-	if (sLE.get() == 0) {
-	  sLE = new EfficiencyStatistics(data[k].LE.getRef());
-	  stat_LE.push_back(sLE);
-	}
-      }
+      /* osg::ref_ptr<EfficiencyStatistics> sLE;
+	 {
+	 AllStat::const_iterator it = stat_LE.begin();
+	 while (it != stat_LE.end()) {
+	 if ((*it).get() != 0) {
+	 if ((*it)->center == data[k].LE.getRef()) {
+	 sLE = (*it).get();
+	 }   
+	 }
+	 ++it;
+	 }
+	 if (sLE.get() == 0) {
+	 sLE = new EfficiencyStatistics(data[k].LE.getRef());
+	 stat_LE.push_back(sLE);
+	 }
+	 }
+      */
       
       // airMass
-      osg::ref_ptr<EfficiencyStatistics> sAM;
-      {
-	AllStat::const_iterator it = stat_AM.begin();
-	while (it != stat_AM.end()) {
-	  if ((*it).get() != 0) {
-	    if ((*it)->center == data[k].AM.getRef()) {
-	      sAM = (*it).get();
-	    }   
-	  }
-	  ++it;
-	}
-	if (sAM.get() == 0) {
-	  sAM = new EfficiencyStatistics(data[k].AM.getRef());
-	  stat_AM.push_back(sAM);
-	}
-      }
+      /* osg::ref_ptr<EfficiencyStatistics> sAM;
+	 {
+	 AllStat::const_iterator it = stat_AM.begin();
+	 while (it != stat_AM.end()) {
+	 if ((*it).get() != 0) {
+	 if ((*it)->center == data[k].AM.getRef()) {
+	 sAM = (*it).get();
+	 }   
+	 }
+	 ++it;
+	 }
+	 if (sAM.get() == 0) {
+	 sAM = new EfficiencyStatistics(data[k].AM.getRef());
+	 stat_AM.push_back(sAM);
+	 }
+	 }
+      */
       
       // galacticLatitude
-      osg::ref_ptr<EfficiencyStatistics> sGL;
-      {
-	AllStat::const_iterator it = stat_GL.begin();
-	while (it != stat_GL.end()) {
-	  if ((*it).get() != 0) {
-	    if ((*it)->center == data[k].GL.getRef()) {
-	      sGL = (*it).get();
-	    }   
-	  }
-	  ++it;
-	}
-	if (sGL.get() == 0) {
-	  sGL = new EfficiencyStatistics(data[k].GL.getRef());
-	  stat_GL.push_back(sGL);
-	}
-      }
+      /* osg::ref_ptr<EfficiencyStatistics> sGL;
+	 {
+	 AllStat::const_iterator it = stat_GL.begin();
+	 while (it != stat_GL.end()) {
+	 if ((*it).get() != 0) {
+	 if ((*it)->center == data[k].GL.getRef()) {
+	 sGL = (*it).get();
+	 }   
+	 }
+	 ++it;
+	 }
+	 if (sGL.get() == 0) {
+	 sGL = new EfficiencyStatistics(data[k].GL.getRef());
+	 stat_GL.push_back(sGL);
+	 }
+	 }
+      */
       
       const double eta = SkyCoverage::eta(data[k].V.getRef(),
 					  V_limit,
@@ -737,9 +743,8 @@ int main(int argc, char ** argv) {
 					  w_U,
 					  beta,
 					  data[k].GL.getRef(),
-					  GL_limit,
-					  // c_GL,
-					  w_GL);
+					  GB_limit,
+					  w_GB);
       
       const double nominal_eta_V = SkyCoverage::nominal_eta_V(data[k].V.getRef(),
 							      V_limit,
@@ -751,68 +756,121 @@ int main(int argc, char ** argv) {
       const double nominal_eta_U = SkyCoverage::nominal_eta_U(data[k].U.getRef(),
 							      U_limit,
 							      w_U);
-     
-      const double nominal_eta_GL = SkyCoverage::nominal_eta_GL(data[k].GL.getRef(),
-								GL_limit,
+      
+      const double nominal_eta_GB = SkyCoverage::nominal_eta_GB(data[k].GB.getRef(),
+								GB_limit,
 								// c_GL,
-								w_GL);
+								w_GB);
       
       // at this point, small sigmas can become very large because divided by a very small eta's
+      /* if (data[k].sigmaEta.getRef() > 0) {
+	 if (eta != 0) {
+	 if (nominal_eta_V != 0) {
+	 sV->insert(data[k].eta.getRef()*nominal_eta_V/eta,
+	 orsa::square(eta/(nominal_eta_V*data[k].sigmaEta.getRef())));
+	 }
+	 if (nominal_eta_U != 0) {
+	 sU->insert(data[k].eta.getRef()*nominal_eta_U/eta,
+	 orsa::square(eta/(nominal_eta_U*data[k].sigmaEta.getRef())));
+	 }
+	 sSE->insert(data[k].eta.getRef()/eta,
+	 orsa::square(eta/(data[k].sigmaEta.getRef())));
+	 sLE->insert(data[k].eta.getRef()/eta,
+	 orsa::square(eta/(data[k].sigmaEta.getRef())));
+	 sAM->insert(data[k].eta.getRef()/eta,
+	 orsa::square(eta/(data[k].sigmaEta.getRef())));
+	 if (nominal_eta_GL != 0) {
+	 sGL->insert(data[k].eta.getRef()*nominal_eta_GL/eta,
+	 orsa::square(eta/(nominal_eta_GL*data[k].sigmaEta.getRef())));
+	 }
+	 }
+	 if ( !sV->fit.isSet())  sV->fit = nominal_eta_V;
+	 if ( !sU->fit.isSet())  sU->fit = nominal_eta_U;
+	 if (!sSE->fit.isSet()) sSE->fit = 1.0;
+	 if (!sLE->fit.isSet()) sLE->fit = 1.0;
+	 if (!sAM->fit.isSet()) sAM->fit = 1.0;
+	 if (!sGL->fit.isSet()) sGL->fit = nominal_eta_GL;
+	 } 
+      */
+      //
       if (data[k].sigmaEta.getRef() > 0) {
 	if (eta != 0) {
 	  if (nominal_eta_V != 0) {
-	    sV->insert(data[k].eta.getRef()*nominal_eta_V/eta,
-		       orsa::square(eta/(nominal_eta_V*data[k].sigmaEta.getRef())));
+	    histo_V.insert(data[k].V.getRef(),
+			   data[k].eta.getRef()*nominal_eta_V/eta,
+			   orsa::square(eta/(nominal_eta_V*data[k].sigmaEta.getRef())));
 	  }
 	  if (nominal_eta_U != 0) {
-	    sU->insert(data[k].eta.getRef()*nominal_eta_U/eta,
-		       orsa::square(eta/(nominal_eta_U*data[k].sigmaEta.getRef())));
+	    histo_U.insert(data[k].U.getRef(),
+			   data[k].eta.getRef()*nominal_eta_U/eta,
+			   orsa::square(eta/(nominal_eta_U*data[k].sigmaEta.getRef())));
 	  }
-	  sSE->insert(data[k].eta.getRef()/eta,
-		      orsa::square(eta/(data[k].sigmaEta.getRef())));
-	  sLE->insert(data[k].eta.getRef()/eta,
-		      orsa::square(eta/(data[k].sigmaEta.getRef())));
-	  sAM->insert(data[k].eta.getRef()/eta,
-		      orsa::square(eta/(data[k].sigmaEta.getRef())));
-	  if (nominal_eta_GL != 0) {
-	    sGL->insert(data[k].eta.getRef()*nominal_eta_GL/eta,
-			orsa::square(eta/(nominal_eta_GL*data[k].sigmaEta.getRef())));
+	  histo_SE.insert(data[k].SE.getRef(),
+			  data[k].eta.getRef()/eta,
+			  orsa::square(eta/(data[k].sigmaEta.getRef())));
+	  histo_LE.insert(data[k].LE.getRef(),
+			  data[k].eta.getRef()/eta,
+			  orsa::square(eta/(data[k].sigmaEta.getRef())));
+	  histo_AM.insert(data[k].AM.getRef(),
+			  data[k].eta.getRef()/eta,
+			  orsa::square(eta/(data[k].sigmaEta.getRef())));
+	  histo_GL.insert(data[k].GL.getRef(),
+			  data[k].eta.getRef()/eta,
+			  orsa::square(eta/(data[k].sigmaEta.getRef())));
+	  if (nominal_eta_GB != 0) {
+	    histo_GB.insert(data[k].GB.getRef(),
+			    data[k].eta.getRef()*nominal_eta_GB/eta,
+			    orsa::square(eta/(nominal_eta_GB*data[k].sigmaEta.getRef())));
 	  }
 	}
-	if ( !sV->fit.isSet())  sV->fit = nominal_eta_V;
-	if ( !sU->fit.isSet())  sU->fit = nominal_eta_U;
-	if (!sSE->fit.isSet()) sSE->fit = 1.0;
- 	if (!sLE->fit.isSet()) sLE->fit = 1.0;
-   	if (!sAM->fit.isSet()) sAM->fit = 1.0;
-   	if (!sGL->fit.isSet()) sGL->fit = nominal_eta_GL;
       }
     }
     
     // sort lists
-    stat_V.sort(EfficiencyStatistics_ptr_cmp());
-    stat_U.sort(EfficiencyStatistics_ptr_cmp());
-    stat_SE.sort(EfficiencyStatistics_ptr_cmp());
-    stat_LE.sort(EfficiencyStatistics_ptr_cmp());
-    stat_AM.sort(EfficiencyStatistics_ptr_cmp());
-    stat_GL.sort(EfficiencyStatistics_ptr_cmp());
+    /* stat_V.sort(EfficiencyStatistics_ptr_cmp());
+       stat_U.sort(EfficiencyStatistics_ptr_cmp());
+       stat_SE.sort(EfficiencyStatistics_ptr_cmp());
+       stat_LE.sort(EfficiencyStatistics_ptr_cmp());
+       stat_AM.sort(EfficiencyStatistics_ptr_cmp());
+       stat_GB.sort(EfficiencyStatistics_ptr_cmp());
+    */
+    
+    /* {
+       FILE * fpv = fopen("v.fit.dat","w");
+       AllStat::const_iterator it = stat_V.begin();
+       while (it != stat_V.end()) {
+       if (!(*it)->fit.isSet()) {
+       ORSA_DEBUG("problems: fit value not set");
+       ++it;
+       continue;
+       }
+       if ((*it)->standardDeviation()==0.0) {
+       // ORSA_DEBUG("--SKIPPING--");
+       ++it;
+       continue;
+       }
+       fprintf(fpv,"%g %g %g %g\n",
+       (*it)->center,
+       (*it)->fit.getRef(),
+       (*it)->average(),
+       (*it)->standardDeviation());
+       ++it;
+       }
+       fclose(fpv);
+       }
+    */
     
     {
       FILE * fpv = fopen("v.fit.dat","w");
-      AllStat::const_iterator it = stat_V.begin();
-      while (it != stat_V.end()) {
-	if (!(*it)->fit.isSet()) {
-	  ORSA_DEBUG("problems: fit value not set");
-	  ++it;
-	  continue;
-	}
+      Histo<CountStats::LinearVar>::HistoDataType::const_iterator it = histo_V.getData().begin();
+      while (it != histo_V.getData().end()) {
 	if ((*it)->standardDeviation()==0.0) {
 	  // ORSA_DEBUG("--SKIPPING--");
 	  ++it;
 	  continue;
 	}
-       	fprintf(fpv,"%g %g %g %g\n",
+	fprintf(fpv,"%g %g %g\n",
 		(*it)->center,
-		(*it)->fit.getRef(),
 		(*it)->average(),
 		(*it)->standardDeviation());
 	++it;
@@ -820,125 +878,127 @@ int main(int argc, char ** argv) {
       fclose(fpv);
     }
     
-    {
-      FILE * fpu = fopen("u.fit.dat","w");
-      AllStat::const_iterator it = stat_U.begin();
-      while (it != stat_U.end()) {
-	if (!(*it)->fit.isSet()) {
-	  ORSA_DEBUG("problems: fit value not set");
-	  ++it;
-	  continue;
-	}
-	if ((*it)->standardDeviation()==0.0) {
-	  // ORSA_DEBUG("--SKIPPING--");
-	  ++it;
-	  continue;
-	}
-      	fprintf(fpu,"%g %g %g %g\n",
-		orsa::FromUnits((*it)->center*orsa::radToArcsec(),orsa::Unit::HOUR), // arcsec/hour
-		(*it)->fit.getRef(),
-		(*it)->average(),
-		(*it)->standardDeviation());
-	++it;
-      }
-      fclose(fpu);
-    }
-    
-    {
-      FILE * fpse = fopen("se.fit.dat","w");
-      AllStat::const_iterator it = stat_SE.begin();
-      while (it != stat_SE.end()) {
-	if (!(*it)->fit.isSet()) {
-	  ORSA_DEBUG("problems: fit value not set");
-	  ++it;
-	  continue;
-	}
-	if ((*it)->standardDeviation()==0.0) {
-	  // ORSA_DEBUG("--SKIPPING--");
-	  ++it;
-	  continue;
-	}
-      	fprintf(fpse,"%g %g %g %g\n",
-		orsa::radToDeg()*(*it)->center,
-		(*it)->fit.getRef(),
-		(*it)->average(),
-		(*it)->standardDeviation());
-	++it;
-      }
-      fclose(fpse);
-    }
-    
-    {
-      FILE * fple = fopen("le.fit.dat","w");
-      AllStat::const_iterator it = stat_LE.begin();
-      while (it != stat_LE.end()) {
-	if (!(*it)->fit.isSet()) {
-	  ORSA_DEBUG("problems: fit value not set");
-	  ++it;
-	  continue;
-	}
-	if ((*it)->standardDeviation()==0.0) {
-	  // ORSA_DEBUG("--SKIPPING--");
-	  ++it;
-	  continue;
-	}
-      	fprintf(fple,"%g %g %g %g\n",
-		orsa::radToDeg()*(*it)->center,
-		(*it)->fit.getRef(),
-		(*it)->average(),
-		(*it)->standardDeviation());
-	++it;
-      }
-      fclose(fple);
-    }
-    
-    {
-      FILE * fpam = fopen("am.fit.dat","w");
-      AllStat::const_iterator it = stat_AM.begin();
-      while (it != stat_AM.end()) {
-	if (!(*it)->fit.isSet()) {
-	  ORSA_DEBUG("problems: fit value not set");
-	  ++it;
-	  continue;
-	}
-	if ((*it)->standardDeviation()==0.0) {
-	  // ORSA_DEBUG("--SKIPPING--");
-	  ++it;
-	  continue;
-	}
-      	fprintf(fpam,"%g %g %g %g\n",
-		(*it)->center,
-		(*it)->fit.getRef(),
-		(*it)->average(),
-		(*it)->standardDeviation());
-	++it;
-      }
-      fclose(fpam);
-    }
-    
-    {
-      FILE * fpgl = fopen("gl.fit.dat","w");
-      AllStat::const_iterator it = stat_GL.begin();
-      while (it != stat_GL.end()) {
-	if (!(*it)->fit.isSet()) {
-	  ORSA_DEBUG("problems: fit value not set");
-	  ++it;
-	  continue;
-	}
-	if ((*it)->standardDeviation()==0.0) {
-	  // ORSA_DEBUG("--SKIPPING--");
-	  ++it;
-	  continue;
-	}
-      	fprintf(fpgl,"%g %g %g %g\n",
-		orsa::radToDeg()*(*it)->center,
-		(*it)->fit.getRef(),
-		(*it)->average(),
-		(*it)->standardDeviation());
-	++it;
-      }
-      fclose(fpgl);
-    }
+    /* 
+       {
+       FILE * fpu = fopen("u.fit.dat","w");
+       AllStat::const_iterator it = stat_U.begin();
+       while (it != stat_U.end()) {
+       if (!(*it)->fit.isSet()) {
+       ORSA_DEBUG("problems: fit value not set");
+       ++it;
+       continue;
+       }
+       if ((*it)->standardDeviation()==0.0) {
+       // ORSA_DEBUG("--SKIPPING--");
+       ++it;
+       continue;
+       }
+       fprintf(fpu,"%g %g %g %g\n",
+       orsa::FromUnits((*it)->center*orsa::radToArcsec(),orsa::Unit::HOUR), // arcsec/hour
+       (*it)->fit.getRef(),
+       (*it)->average(),
+       (*it)->standardDeviation());
+       ++it;
+       }
+       fclose(fpu);
+       }
+       
+       {
+       FILE * fpse = fopen("se.fit.dat","w");
+       AllStat::const_iterator it = stat_SE.begin();
+       while (it != stat_SE.end()) {
+       if (!(*it)->fit.isSet()) {
+       ORSA_DEBUG("problems: fit value not set");
+       ++it;
+       continue;
+       }
+       if ((*it)->standardDeviation()==0.0) {
+       // ORSA_DEBUG("--SKIPPING--");
+       ++it;
+       continue;
+       }
+       fprintf(fpse,"%g %g %g %g\n",
+       orsa::radToDeg()*(*it)->center,
+       (*it)->fit.getRef(),
+       (*it)->average(),
+       (*it)->standardDeviation());
+       ++it;
+       }
+       fclose(fpse);
+       }
+       
+       {
+       FILE * fple = fopen("le.fit.dat","w");
+       AllStat::const_iterator it = stat_LE.begin();
+       while (it != stat_LE.end()) {
+       if (!(*it)->fit.isSet()) {
+       ORSA_DEBUG("problems: fit value not set");
+       ++it;
+       continue;
+       }
+       if ((*it)->standardDeviation()==0.0) {
+       // ORSA_DEBUG("--SKIPPING--");
+       ++it;
+       continue;
+       }
+       fprintf(fple,"%g %g %g %g\n",
+       orsa::radToDeg()*(*it)->center,
+       (*it)->fit.getRef(),
+       (*it)->average(),
+       (*it)->standardDeviation());
+       ++it;
+       }
+       fclose(fple);
+       }
+       
+       {
+       FILE * fpam = fopen("am.fit.dat","w");
+       AllStat::const_iterator it = stat_AM.begin();
+       while (it != stat_AM.end()) {
+       if (!(*it)->fit.isSet()) {
+       ORSA_DEBUG("problems: fit value not set");
+       ++it;
+       continue;
+       }
+       if ((*it)->standardDeviation()==0.0) {
+       // ORSA_DEBUG("--SKIPPING--");
+       ++it;
+       continue;
+       }
+       fprintf(fpam,"%g %g %g %g\n",
+       (*it)->center,
+       (*it)->fit.getRef(),
+       (*it)->average(),
+       (*it)->standardDeviation());
+       ++it;
+       }
+       fclose(fpam);
+       }
+       
+       {
+       FILE * fpgl = fopen("gl.fit.dat","w");
+       AllStat::const_iterator it = stat_GB.begin();
+       while (it != stat_GB.end()) {
+       if (!(*it)->fit.isSet()) {
+       ORSA_DEBUG("problems: fit value not set");
+       ++it;
+       continue;
+       }
+       if ((*it)->standardDeviation()==0.0) {
+       // ORSA_DEBUG("--SKIPPING--");
+       ++it;
+       continue;
+       }
+       fprintf(fpgl,"%g %g %g %g\n",
+       orsa::radToDeg()*(*it)->center,
+       (*it)->fit.getRef(),
+       (*it)->average(),
+       (*it)->standardDeviation());
+       ++it;
+       }
+       fclose(fpgl);
+       }
+    */
     
   }
   

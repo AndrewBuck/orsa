@@ -32,7 +32,7 @@ class EfficiencyMultifit : public orsa::Multifit {
     // V = apparent magnitude
     // U = apparent velocity
     orsa::Cache<double> V, U, eta, sigmaEta;
-    orsa::Cache<double> SE, LE, LP, AM, GL;
+    orsa::Cache<double> SE, LE, LP, AM, GL, GB;
     orsa::Cache<unsigned int> Nobs, Ndsc, Ntot;
   };
   typedef std::vector<DataElement> DataStorage;
@@ -63,12 +63,12 @@ class EfficiencyMultifit : public orsa::Multifit {
     //
     fitData->insertVariable("V");
     fitData->insertVariable("U");
-    fitData->insertVariable("GL");
+    fitData->insertVariable("GB");
     //
     for (unsigned int row=0; row<data.size(); ++row) {
       fitData->insertD("V",row,data[row].V.getRef());
       fitData->insertD("U",row,data[row].U.getRef());
-      fitData->insertD("GL",row,data[row].GL.getRef());
+      fitData->insertD("GB",row,data[row].GB.getRef());
       fitData->insertF(row,data[row].eta.getRef());
       fitData->insertSigma(row,data[row].sigmaEta.getRef());
     }
@@ -122,10 +122,9 @@ class EfficiencyMultifit : public orsa::Multifit {
 					localPar->get("U_limit"),
 					localPar->get("w_U"),
 					localPar->get("beta"),
-					data->getD("GL",row),
-					localPar->get("GL_limit"),
-					// localPar->get("c_GL"),
-					localPar->get("w_GL"));
+					data->getD("GB",row),
+					localPar->get("GB_limit"),
+					localPar->get("w_GB"));
     return eta;
   }
  protected: 
@@ -192,8 +191,8 @@ class EfficiencyMultifit : public orsa::Multifit {
 		     _par->name(p).c_str(),
 		     orsa::radToDeg()*_par->get(p),
 		     _par->isFixed(p)?0.0:orsa::radToDeg()*factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
-	} else if ( (_par->name(p) == "GL_limit") || 
-		    (_par->name(p) == "w_GL") ) {
+	} else if ( (_par->name(p) == "GB_limit") || 
+		    (_par->name(p) == "w_GB") ) {
 	  ORSA_DEBUG("%s: %g +/- %g [deg]",
 		     _par->name(p).c_str(),
 		     orsa::radToDeg()*_par->get(p),
@@ -309,8 +308,8 @@ class EfficiencyMultifit : public orsa::Multifit {
 		  "%+.3e %+.3e ",
 		  orsa::radToDeg()*_par->get(p),
 		  _par->isFixed(p)?0.0:orsa::radToDeg()*factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
-	} else if ( (_par->name(p) == "GL_limit") || 
-		    (_par->name(p) == "w_GL") ) {
+	} else if ( (_par->name(p) == "GB_limit") || 
+		    (_par->name(p) == "w_GB") ) {
 	  fprintf(fp,
 		  "%+.3e %+.3e ",
 		  orsa::radToDeg()*_par->get(p),

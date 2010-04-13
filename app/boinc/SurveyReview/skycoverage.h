@@ -148,10 +148,9 @@ class SkyCoverage : public osg::Referenced {
 		    const double & U_limit,
 		    const double & w_U,
 		    const double & beta,
-		    const double & GL,
-		    const double & GL_limit,
-		    // const double & c_GL,
-		    const double & w_GL);
+		    const double & GB,
+		    const double & GB_limit,
+		    const double & w_GB);
   
  public:
   // nominal eta values, mostly for plotting purposes, no mixing angle
@@ -164,10 +163,9 @@ class SkyCoverage : public osg::Referenced {
   static double nominal_eta_U(const double & U,
 			      const double & U_limit,
 			      const double & w_U);
-  static double nominal_eta_GL(const double & GL,
-			       const double & GL_limit,
-			       // const double & c_GL,
-			       const double & w_GL);
+  static double nominal_eta_GB(const double & GB,
+			       const double & GB_limit,
+			       const double & w_GB);
  public:
   // coefficients for efficiency as function of apparent magnitude V
   orsa::Cache<double> V_limit, eta0_V, V0, c_V, w_V;
