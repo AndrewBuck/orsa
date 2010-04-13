@@ -753,7 +753,7 @@ int main(int argc, char ** argv) {
 	sprintf(id,"%s",ed.designation.getRef().c_str());
       }
       fprintf(fp_allEta,
-	      "%5.2f %7s %5.2f %7.2f %6.2f %6.2f %+7.2f %+7.2f %6.2f %6.3f %5.1 %+8.3f %+7.3f %5.2f %1i %1i %1i\n",
+	      "%5.2f %7s %5.2f %7.2f %6.2f %6.2f %+7.2f %+7.2f %6.2f %6.3f %5.1f %+8.3f %+7.3f %5.2f %1i %1i %1i\n",
 	      ed.H.getRef(),
 	      id,
 	      ed.V.getRef(),
