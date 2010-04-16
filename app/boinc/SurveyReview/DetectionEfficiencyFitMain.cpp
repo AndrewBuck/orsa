@@ -147,7 +147,29 @@ int main(int argc, char ** argv) {
 					       etaData[k].observed.getRef(),
 					       etaData[k].discovered.getRef());
     if (!goodInsert) {
-      // ORSA_DEBUG("problems inserting this one: V: %g",etaData[k].V.getRef());
+      if (etaData[k].number.isSet()) {
+	ORSA_DEBUG("problems inserting: [%i] %.1f %.1f %.1f %.1f %.1f %.1f %.1f",
+		   etaData[k].number.getRef(),
+		   etaData[k].V.getRef(),
+		   orsa::FromUnits(etaData[k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
+		   etaData[k].solarElongation.getRef()*orsa::radToDeg(),
+		   etaData[k].lunarElongation.getRef()*orsa::radToDeg(),
+		   etaData[k].airMass.getRef(),
+		   etaData[k].galacticLongitude.getRef()*orsa::radToDeg(),
+		   etaData[k].galacticLatitude.getRef()*orsa::radToDeg());
+      } else if (etaData[k].designation.isSet()) {
+	ORSA_DEBUG("problems inserting: [%s] %.1f %.1f %.1f %.1f %.1f %.1f %.1f",
+		   etaData[k].designation.getRef().c_str(),
+		   etaData[k].V.getRef(),
+		   orsa::FromUnits(etaData[k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
+		   etaData[k].solarElongation.getRef()*orsa::radToDeg(),
+		   etaData[k].lunarElongation.getRef()*orsa::radToDeg(),
+		   etaData[k].airMass.getRef(),
+		   etaData[k].galacticLongitude.getRef()*orsa::radToDeg(),
+		   etaData[k].galacticLatitude.getRef()*orsa::radToDeg());
+      } else {
+	ORSA_DEBUG("problems inserting anonymous");
+      }
     }
   }
   
@@ -158,11 +180,12 @@ int main(int argc, char ** argv) {
     const CountStats::DataType & csData = countStats->getData();
     CountStats::DataType::const_iterator it = csData.begin();
     while (it != csData.end()) {
-      
       const CountStatsElement * cs = (*it).second.get();
-      if (cs==0) continue;
-      // write point only if Ntot != 0
-      if (cs->Ntot>0) {
+      if (cs==0) {
+	++it;
+	continue;
+      }
+      if (cs->Ntot!=0) {
 	const double      eta = (double)(cs->Nobs)/(double)(cs->Ntot);
 	const double sigmaEta = (double)(sqrt(cs->Nobs+1))/(double)(cs->Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
 	
