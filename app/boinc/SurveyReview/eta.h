@@ -219,9 +219,11 @@ class EfficiencyMultifit : public orsa::Multifit {
     gsl_matrix_free(covar);  
   }
  protected:
-  void success(const gsl_multifit_fdfsolver * s) const {
-    
-    if (!writeFile) return;
+  void runCompleted(const bool /* success */, const gsl_multifit_fdfsolver * s) const {
+    if (writeFile) writeOutputFile(s);
+  }
+ protected:
+  void writeOutputFile(const gsl_multifit_fdfsolver * s) const {
     
     std::string obsCode;
     orsa::Time epoch;
@@ -344,7 +346,7 @@ class EfficiencyMultifit : public orsa::Multifit {
     fclose(fp);
     
     gsl_matrix_free(covar);  
- }
+  } 
  protected:
   DataStorage data;
   double V0;

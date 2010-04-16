@@ -257,16 +257,6 @@ int main(int argc, char ** argv) {
   par->insert("w_GB",     1.0*orsa::degToRad(),0.000001*orsa::degToRad());
   // Galactic longitude-latitude mixing
   par->insert("Gmix",     0.0, 0.000001);
-  // ranges
-  // par->setRange("eta0_V",0.0,1.0);
-  // par->setRangeMin("c_V",0.0);
-  // fixed?
-  // par->setFixed("U_limit",true);
-  // par->setFixed("w_U",true);
-  // par->setFixed("GB_limit",true);
-  // par->setFixed("w_GB",true);
-  // par->setFixed("beta",true);
-  // par->setFixed("Gmix",true);
   
   osg::ref_ptr<orsa::MultifitParameters> lastGoodPar = new orsa::MultifitParameters;
   orsa::Cache<double> V0;
@@ -291,7 +281,6 @@ int main(int argc, char ** argv) {
   }
   
   {
-    // find good V0 value
     V0 = 14.0;
     while (V0.getRef() <= 20.0) {
       ORSA_DEBUG("V0: %g",V0.getRef());
@@ -327,7 +316,7 @@ int main(int argc, char ** argv) {
   
   if (non_zero_n < par->sizeNotFixed()) {
     // restore, fit saving file, end exit
-    (*par.get()) =  (*lastGoodPar.get());
+    (*par.get()) = (*lastGoodPar.get());
     etaFit->fit(par.get(),
 		data,
 		V0.getRef(),
@@ -339,14 +328,23 @@ int main(int argc, char ** argv) {
   }
   
   {
-    success = etaFit->fit(par.get(),
-			  data,
-			  V0.getRef(),
-			  fitFilename,
-			  basename,
-			  obsCodeFile.get(),
-			  false);
-    
+    V0 = 14.0;
+    while (V0.getRef() <= 20.0) {
+      ORSA_DEBUG("V0: %g",V0.getRef());
+      success = etaFit->fit(par.get(),
+			    data,
+			    V0.getRef(),
+			    fitFilename,
+			    basename,
+			    obsCodeFile.get(),
+			    false);
+      if ( (success || (etaFit->getIter() == etaFit->maxIter)) &&
+	   (par->get("c_V") > 0.0) ) {
+	break;
+      } else {
+	V0 += 1.0;
+      }
+    }
     if (success || (etaFit->getIter() == etaFit->maxIter)) {
       // deep copy
       (*lastGoodPar.get()) = (*par.get());
@@ -361,7 +359,7 @@ int main(int argc, char ** argv) {
       exit(0);
     }
   }
-
+  
   // now try including galactic latitude
   par->setFixed("GB_limit",false);
   par->setFixed("w_GB",false);
@@ -380,6 +378,45 @@ int main(int argc, char ** argv) {
   }
   
   {
+    V0 = 14.0;
+    while (V0.getRef() <= 20.0) {
+      ORSA_DEBUG("V0: %g",V0.getRef());
+      success = etaFit->fit(par.get(),
+			    data,
+			    V0.getRef(),
+			    fitFilename,
+			    basename,
+			    obsCodeFile.get(),
+			    false);
+      if ( (success || (etaFit->getIter() == etaFit->maxIter)) &&
+	   (par->get("c_V") > 0.0) ) {
+	break;
+      } else {
+	V0 += 1.0;
+      }
+    }
+    if (success || (etaFit->getIter() == etaFit->maxIter)) {
+      // deep copy
+      (*lastGoodPar.get()) = (*par.get());
+    } else {
+      etaFit->fit(par.get(),
+		  data,
+		  V0.getRef(),
+		  fitFilename,
+		  basename,
+		  obsCodeFile.get(),
+		  true);
+      exit(0);
+    }
+  }
+  
+  // now enforce range limits, call fabs() where needed
+  par->setRange("eta0_V",0.0,1.0);
+  par->setRangeMin("c_V",0.0);
+  par->set("U_limit",fabs(par->get("U_limit")));
+  par->set("GB_limit",fabs(par->get("GB_limit")));
+  
+  {
     success = etaFit->fit(par.get(),
 			  data,
 			  V0.getRef(),
@@ -403,15 +440,15 @@ int main(int argc, char ** argv) {
     }
   }
   
-  // now enforce range limits, call fabs() where needed
-
-
-  // finally, review uncertainties
+  // finally, review fit values and save if good
+  bool goodFit=true;
+  if (par->get("w_V")  < 0.0) goodFit=false;
+  if (par->get("w_U")  < 0.0) goodFit=false;
+  if (par->get("w_GB") < 0.0) goodFit=false;
   
-  
-  // finally, call fit to save
-  {
-    (*par.get()) =  (*lastGoodPar.get());
+  // save fit file
+  if (goodFit) {
+    (*par.get()) = (*lastGoodPar.get());
     etaFit->fit(par.get(),
 		data,
 		V0.getRef(),
@@ -419,7 +456,43 @@ int main(int argc, char ** argv) {
 		basename,
 		obsCodeFile.get(),
 		true);
+    exit(0);
+  } 
+  
+  // if we're here, goodFit is false, so we need to set the unfittable parameters
+  // so that the part of the function becomes unity
+  if (par->get("w_V") < 0.0) {
+    // just "touch" the output file
+    FILE * fp = fopen(fitFilename,"w");
+    fclose(fp);
+    exit(0);
   }
+  if (par->get("w_U") < 0.0) {
+    par->set("U_limit",orsa::FromUnits(0.000*orsa::arcsecToRad(),orsa::Unit::HOUR,-1));
+    par->set("w_U",    orsa::FromUnits(0.001*orsa::arcsecToRad(),orsa::Unit::HOUR,-1));
+    par->setFixed("U_limit",false);
+    par->setFixed("w_U",false);
+  }
+  if (par->get("w_GB") < 0.0) {
+    par->set("GB_limit",0.000*orsa::degToRad());
+    par->set("w_GB",    0.001*orsa::degToRad());
+    par->setFixed("GB_limit",false);
+    par->setFixed("w_GB",false);
+  }
+  
+  // last run and then save fit file
+  {
+    etaFit->fit(par.get(),
+		data,
+		V0.getRef(),
+		fitFilename,
+		basename,
+		obsCodeFile.get(),
+		true);
+    exit(0);
+  } 
+  
+#warning all code below needs to be updated and moved into the plotting program
   
   osg::ref_ptr<const orsa::MultifitParameters> parFinal = etaFit->getMultifitParameters();
   // save final parameters
