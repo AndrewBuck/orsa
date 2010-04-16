@@ -551,6 +551,11 @@ unsigned int MultifitData::vars() const {
 
 Multifit::Multifit() : Referenced(true) {
   doAbort=false;
+  
+  // public vars, tunable by users
+  maxIter=10000;
+  epsabs=1.0e-12;
+  epsrel=1.0e-12;
 }
 
 Multifit::~Multifit() { }
@@ -754,8 +759,7 @@ bool Multifit::run() {
   }
   gsl_multifit_fdfsolver_set(s,&mf,x);
   
-  unsigned int iter = 0;
-  const unsigned int local_max_iter = 100000;
+  iter = 0;
   int it_status;
   int cv_status;
   do {
@@ -766,7 +770,7 @@ bool Multifit::run() {
     //
     ORSA_DEBUG("itaration status = %s",gsl_strerror(it_status));
     
-    cv_status = gsl_multifit_test_delta(s->dx, s->x, 1.0e-12, 1.0e-12);
+    cv_status = gsl_multifit_test_delta(s->dx, s->x, epsabs, epsrel);
     //
     /* 
        {
@@ -979,7 +983,13 @@ bool Multifit::run() {
       break;
     }
     
-  } while (((cv_status == GSL_CONTINUE) || (it_status == GSL_CONTINUE)) && (iter < local_max_iter));
+    if (maxIter>0) {
+      if (iter>=maxIter) {
+	break;
+      }
+    }
+    
+  } while (((cv_status == GSL_CONTINUE) || (it_status == GSL_CONTINUE)));
   
   if (cv_status == GSL_SUCCESS) {
     success(s);

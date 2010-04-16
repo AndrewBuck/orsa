@@ -340,6 +340,18 @@ namespace orsa {
   private:
     mutable bool doAbort;
     
+  private:
+    unsigned int iter;
+  public:
+    unsigned int getIter() const { return iter; }
+  public:
+    // set to zero for unlimited iterations
+    unsigned int maxIter;
+    
+  public:
+    // users can change this 
+    double epsabs, epsrel;
+    
   protected:
     osg::ref_ptr<orsa::MultifitParameters> _par;
     osg::ref_ptr<orsa::MultifitData>       _data;
