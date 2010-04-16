@@ -93,6 +93,8 @@ int main(int argc, char ** argv) {
     fclose(fp);
   }
   
+  ORSA_DEBUG("etaData.size(): %i",etaData.size())
+  
   // minimum apparent magnitude
   // const double V0=start_V;
   
