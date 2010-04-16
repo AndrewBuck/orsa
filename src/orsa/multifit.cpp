@@ -1007,8 +1007,8 @@ bool Multifit::run() {
   }
   
   // call before cleaning up
-  runCompleted(s);
-  runCompleted(_par.get());
+  runCompleted(cv_status==GSL_SUCCESS,s);
+  runCompleted(cv_status==GSL_SUCCESS,_par.get());
   
   // covariance matrix here...
   /* 
