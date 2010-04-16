@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-TARGET = DetectionEfficiencyFit
+TARGET = DetectionEfficiencyPlot
 
 CONFIG += qt
 
@@ -27,4 +27,4 @@ unix:!macx {
 }
 
 HEADERS = skycoverage.h   eta.h   fit.h
-SOURCES = skycoverage.cpp DetectionEfficiencyFitMain.cpp
+SOURCES = skycoverage.cpp DetectionEfficiencyPlotMain.cpp

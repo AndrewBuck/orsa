@@ -276,18 +276,20 @@ double SkyCoverage::eta(const double & V,
 			const double & U_limit,
 			const double & w_U,
 			const double & beta,
+			const double & GL,
 			const double & GB,
 			const double & GB_limit,
-			const double & w_GB) {
+			const double & w_GB,
+			const double & Gmix) {
   double retVal;
   if (V<V0) {
     retVal = eta0_V;
   } else {
     retVal = 
       (eta0_V-c_V*orsa::square(V-V0)) / 
-      (1.0+exp( cos(beta)*(V-V_limit)/w_V + sin(beta)*(U_limit-U)/w_U)) / 
-      (1.0+exp(-sin(beta)*(V-V_limit)/w_V + cos(beta)*(U_limit-U)/w_U)) /
-      (1.0+exp((GB_limit-fabs(GB))/w_GB));
+      (1.0+exp( cos(beta)*(V-V_limit)/w_V + sin(beta)*(fabs(U_limit)-U)/w_U)) / 
+      (1.0+exp(-sin(beta)*(V-V_limit)/w_V + cos(beta)*(fabs(U_limit)-U)/w_U)) /
+      (1.0+exp((fabs(GB_limit)-fabs(GB)-Gmix*fabs(GL))/w_GB));
   }
   // if (retVal < 0.0) retVal=0.0;
   // if (retVal > 1.0) retVal=1.0;
@@ -316,13 +318,15 @@ double SkyCoverage::nominal_eta_V(const double & V,
 double SkyCoverage::nominal_eta_U(const double & U,
 				  const double & U_limit,
 				  const double & w_U) {
-  return (1.0/(1.0+exp((U_limit-U)/w_U)));
+  return (1.0/(1.0+exp((fabs(U_limit)-U)/w_U)));
 }
 
-double SkyCoverage::nominal_eta_GB(const double & GB,
+double SkyCoverage::nominal_eta_GB(const double & GL,
+				   const double & GB,
 				   const double & GB_limit,
-				   const double & w_GB) {
-  return 1.0/(1.0+exp((GB_limit-fabs(GB))/w_GB));
+				   const double & w_GB,
+				   const double & Gmix) {
+  return 1.0/(1.0+exp((fabs(GB_limit)-fabs(GB)-Gmix*fabs(GL))/w_GB));
 }
 
 std::string SkyCoverage::basename(const std::string & filename) {

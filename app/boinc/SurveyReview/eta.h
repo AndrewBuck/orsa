@@ -44,7 +44,8 @@ class EfficiencyMultifit : public orsa::Multifit {
 	   const double      & V0_in,
 	   const std::string & outputFile_in,
 	   const std::string & jobID_in,
-	   orsaInputOutput::MPCObsCodeFile * obsCodeFile_in) {
+	   orsaInputOutput::MPCObsCodeFile * obsCodeFile_in,
+	   const bool writeFile_in) {
     
     // local copies
     data = data_in;
@@ -53,6 +54,7 @@ class EfficiencyMultifit : public orsa::Multifit {
     outputFile  = outputFile_in;
     jobID       = jobID_in;
     obsCodeFile = obsCodeFile_in;
+    writeFile   = writeFile_in;
     
     // basic checks
     if (data.size()==0) return false;
@@ -63,11 +65,13 @@ class EfficiencyMultifit : public orsa::Multifit {
     //
     fitData->insertVariable("V");
     fitData->insertVariable("U");
+    fitData->insertVariable("GL");
     fitData->insertVariable("GB");
     //
     for (unsigned int row=0; row<data.size(); ++row) {
       fitData->insertD("V",row,data[row].V.getRef());
       fitData->insertD("U",row,data[row].U.getRef());
+      fitData->insertD("GL",row,data[row].GL.getRef());
       fitData->insertD("GB",row,data[row].GB.getRef());
       fitData->insertF(row,data[row].eta.getRef());
       fitData->insertSigma(row,data[row].sigmaEta.getRef());
@@ -122,9 +126,11 @@ class EfficiencyMultifit : public orsa::Multifit {
 					localPar->get("U_limit"),
 					localPar->get("w_U"),
 					localPar->get("beta"),
+					data->getD("GL",row),
 					data->getD("GB",row),
 					localPar->get("GB_limit"),
-					localPar->get("w_GB"));
+					localPar->get("w_GB"),
+					localPar->get("Gmix"));
     return eta;
   }
  protected: 
@@ -214,6 +220,8 @@ class EfficiencyMultifit : public orsa::Multifit {
   }
  protected:
   void success(const gsl_multifit_fdfsolver * s) const {
+    
+    if (!writeFile) return;
     
     std::string obsCode;
     orsa::Time epoch;
@@ -343,6 +351,7 @@ class EfficiencyMultifit : public orsa::Multifit {
   std::string outputFile;
   std::string jobID;
   orsaInputOutput::MPCObsCodeFile * obsCodeFile;
+  bool writeFile;
 };
 
 #endif // __ETA_H_

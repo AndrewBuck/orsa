@@ -1,299 +1,6 @@
-#include <orsa/statistic.h>
 #include "skycoverage.h"
 #include "eta.h"
-#include <map>
-
-class EfficiencyStatistics : public orsa::WeightedStatistic<double> {
-public:
-  EfficiencyStatistics(const double & aux) : 
-    orsa::WeightedStatistic<double>(),
-    center(aux) { }
-public:
-  const double center; // V or U
-  orsa::Cache<double> fit; // eta_V or eta_U
-};
-
-// for sorting
-class EfficiencyStatistics_ptr_cmp {
-public:
-  bool operator() (EfficiencyStatistics * lhs,
-		   EfficiencyStatistics * rhs) const {
-    return (lhs->center < rhs->center);
-  }
-};
-
-class CountStatsElement : public osg::Referenced {
-public:
-  CountStatsElement() : osg::Referenced() {
-    Nobs=0;
-    Ndsc=0;
-    Ntot=0;
-  }
-protected:
-  ~CountStatsElement() { }
-public:
-  unsigned int Nobs, Ndsc, Ntot;  
-};
-
-class CountStats : public osg::Referenced {  
-  // first, the classes to handle linear and logarithmic variables
-public:
-  class Var : public osg::Referenced {
-  public:
-    Var() : osg::Referenced() { }
-  protected:
-    ~Var() { }
-  public:
-    virtual size_t size() const = 0;
-    virtual size_t bin(const double x) const = 0;
-    virtual double binStart(const size_t bin) const = 0;
-    virtual double binStop(const size_t bin) const = 0;
-    double binCenter(const size_t bin) const {
-      return (0.5*(binStart(bin)+binStop(bin)));
-    }
-  };
-public:	
-  class LinearVar : public Var {
-  public:
-    LinearVar(const double startValue,
-	      const double stopValue,
-	      const double incrValue) : 
-      Var(),
-      start(startValue),
-      stop(stopValue),
-      incr(incrValue) {
-    }
-  public:
-    size_t size() const {
-      return (size_t)ceil((stop-start)/incr);
-    }
-    size_t bin(const double x) const {
-      if (x<start) return -1;
-      if (x>stop)  return -1;
-      return (size_t)((x-start)/incr);
-    }
-    double binStart(const size_t bin) const {
-      return (start+bin*incr);
-    }
-    double binStop(const size_t bin) const {
-      return (start+(bin+1)*incr);
-    }
-  protected:
-    const double start, stop, incr;
-  };
-public:	
-  class LogarithmicVar : public Var {
-  public:
-    LogarithmicVar(const double startValue,
-		   const double stopValue,
-		   const double factorValue) : 
-      Var(),
-      start(startValue),
-      stop(stopValue),
-      factor(factorValue) {
-    }
-  public:
-    size_t size() const {
-      return (size_t)ceil(log(stop/start)/log(factor));
-    }
-    size_t bin(const double x) const {
-      if (x<start) return -1;
-      if (x>stop)  return -1;
-      return (size_t)(log(x/start)/log(factor));
-    }
-    double binStart(const size_t bin) const {
-      return (start*orsa::int_pow(factor,bin));
-    }
-    double binStop(const size_t bin) const {
-      return (start*orsa::int_pow(factor,bin+1));
-    }
-  protected:
-    const double start, stop, factor;
-  };
-  
-public:
-  CountStats(const std::vector< osg::ref_ptr<Var> > & varDefinition) :
-    osg::Referenced(),
-    var(varDefinition) {
-    totalSize=1;
-    for (unsigned int k=0; k<varDefinition.size(); ++k) {
-      totalSize *= varDefinition[k]->size();
-    }  
-    ORSA_DEBUG("totalSize: %Zi",totalSize.get_mpz_t());
-    // call resize if using std::vector
-    // data.resize(totalSize);
-  }
-protected:
-  ~CountStats() { }
-  
-public:
-  bool insert(const std::vector<double> & xVector,
-	      const bool obs, 
-	      const bool dsc) {
-    
-    if (xVector.size() != var.size()) {
-      ORSA_DEBUG("dimension mismatch");
-      return false;
-    }
-    
-    std::vector<size_t> binVector;
-    if (!bin(binVector,xVector)) {
-      return false;
-    }   
-    
-    if (0) { 
-      // test only
-      ORSA_DEBUG("TEST: ---");
-      ORSA_DEBUG("original binVector:");
-      for (unsigned int k=0; k<binVector.size(); ++k) {
-	ORSA_DEBUG("binVector[%i] = %i",k,binVector[k]);
-      } 
-      const mpz_class idx = index(binVector);
-      ORSA_DEBUG("index: %Zi",idx.get_mpz_t());
-      bin(idx);
-      ORSA_DEBUG("reconstructed binVector:");
-      for (unsigned int k=0; k<binVector.size(); ++k) {
-	ORSA_DEBUG("binVector[%i] = %i",k,binVector[k]);
-      } 
-    }
-    
-    const mpz_class idx = index(binVector);
-    if (data[idx].get()==0) {
-      // lazy allocation
-      data[idx] = new CountStatsElement;
-    
-      { // testing only
-	static mpz_class numAllocated=0;
-	++numAllocated;
-	if (numAllocated%1000==0) ORSA_DEBUG("numAllocated: %Zi",numAllocated.get_mpz_t());
-      }
-    }
-    data[idx]->Ntot++;
-    if (obs) data[idx]->Nobs++;
-    if (dsc) data[idx]->Ndsc++;
-    return true; 
-  }
-public:
-  bool bin(std::vector<size_t> & binVector,
-	   const std::vector<double> & xVector) const {
-    binVector.resize(xVector.size());
-    for (unsigned int k=0; k<xVector.size(); ++k) {
-      binVector[k] = var[k]->bin(xVector[k]);
-      if (binVector[k] == (size_t)-1) {
-	// out of boundaries
-	return false;
-      }	
-    }
-    return true;
-  }
-public:
-  // from binVector to index
-  mpz_class index(const std::vector<size_t> & binVector) const {
-    mpz_class idx=0;
-    mpz_class mul=1;
-    for (unsigned int k=0; k<var.size(); ++k) {
-      idx += binVector[k] * mul;
-      mul *= var[k]->size();
-    }
-    // ORSA_DEBUG("index: %i",idx);
-    return idx;
-  }
-public:
-  // from index to binVector
-  std::vector<size_t> bin(mpz_class index) const {
-    // mpz_class mul=data.size();
-    mpz_class mul=totalSize;
-    std::vector<size_t> binVector;
-    binVector.resize(var.size());
-    {
-      unsigned int k=var.size();
-      do {
-       	--k;
-	mul /= var[k]->size();
-	// ORSA_DEBUG("mul: %Zi",mul.get_mpz_t());
-	binVector[k] = mpz_class(index/mul).get_si();
-	index -= binVector[k]*mul;
-      } while (k>0);
-    }
-    return binVector;
-  }
-public:
-  // vector of the center of each bin
-  std::vector<double> binCenterVector(const mpz_class index) const {
-    std::vector<size_t> binVector = bin(index);
-    std::vector<double> xVector;
-    xVector.resize(var.size());
-    for (unsigned int k=0; k<var.size(); ++k) {
-      xVector[k] = var[k]->binCenter(binVector[k]);
-    }
-    return xVector;
-  }
-public:
-  mpz_class size() const { return totalSize; }
-public:
-  const CountStatsElement * stats(const mpz_class index) {
-    // ORSA_DEBUG("data.size() = %i",data.size());
-    // return data[index].get();
-    DataType::iterator it = data.find(index);
-    if (it != data.end()) {
-      return (*it).second.get();
-    } else {
-      return 0;
-    }
-  }
-protected:
-  const std::vector< osg::ref_ptr<Var> > & var;
-public:
-  // std::vector< osg::ref_ptr<CountStatsElement> > data;
-  typedef std::map< mpz_class, osg::ref_ptr<CountStatsElement> > DataType;
-protected:
-  DataType data;
-public:
-  const DataType & getData() const {
-    return data;
-  }
-protected:
-  mpz_class totalSize;
-};
-
-template <class T> class Histo : public T {
-public:
-  // dx can be a factor if T is log
-  /* Histo(const double x1,
-     const double x2,
-     const double dx) : T(x1,x2,dx) {
-     histo.resize(T::size());
-     for (unsigned int k=0; k< histo.size(); ++k) {
-     histo[k] = new EfficiencyStatistics(T::binCenter(k));
-     }
-     }
-  */
-public:
-  Histo(const T * orig) : T(*orig) {
-    histo.resize(T::size());
-    for (unsigned int k=0; k< histo.size(); ++k) {
-      histo[k] = new EfficiencyStatistics(T::binCenter(k));
-    }
-  }
-public:
-  bool insert(const double x,
-	      const double val,
-	      const double sigma) {
-    const size_t histo_bin = T::bin(x);
-    if (histo_bin == (size_t)-1) {
-      // out of boundaries
-      return false;
-    }
-    histo[histo_bin]->insert(val,sigma);
-    return true;
-  }
-public:
-  typedef std::vector< osg::ref_ptr< EfficiencyStatistics > > HistoDataType;
-protected:
-  HistoDataType histo;
-public:
-  const HistoDataType & getData() const { return histo; }
-};
+#include "fit.h"
 
 int main(int argc, char ** argv) {
   
@@ -387,49 +94,37 @@ int main(int argc, char ** argv) {
   }
   
   // minimum apparent magnitude
-  const double V0=16.0;
+  // const double V0=start_V;
   
   // alternative method using CountStats
   std::vector< osg::ref_ptr<CountStats::Var> > varDefinition;
   //
   // [0] apparent magnitude
-  osg::ref_ptr<CountStats::LinearVar> var_V = new CountStats::LinearVar(V0, 24, 0.1);
+  osg::ref_ptr<CountStats::LinearVar> var_V = new CountStats::LinearVar(start_V,stop_V,step_V);
   varDefinition.push_back(var_V.get());
   
   // [1] apparent velocity
-  osg::ref_ptr<CountStats::LinearVar> var_U = new CountStats::LinearVar(orsa::FromUnits(  0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-									orsa::FromUnits(100.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-									orsa::FromUnits(  1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1));
+  osg::ref_ptr<CountStats::LinearVar> var_U = new CountStats::LinearVar(start_U,stop_U,step_U);
   varDefinition.push_back(var_U.get());
   
   // [2] solar elongation
-  osg::ref_ptr<CountStats::LinearVar> var_SE = new CountStats::LinearVar(0.0,
-									 orsa::pi(),
-									 2.0*orsa::degToRad());
+  osg::ref_ptr<CountStats::LinearVar> var_SE = new CountStats::LinearVar(start_SE,stop_SE,step_SE);
   varDefinition.push_back(var_SE.get());
   
   // [3] lunar elongation
-  osg::ref_ptr<CountStats::LinearVar> var_LE = new CountStats::LinearVar(0.0,
-									 orsa::pi(),
-									 2.0*orsa::degToRad());
+  osg::ref_ptr<CountStats::LinearVar> var_LE = new CountStats::LinearVar(start_LE,stop_LE,step_LE);
   varDefinition.push_back(var_LE.get());
-
+  
   // [4] airmass
-  osg::ref_ptr<CountStats::LinearVar> var_AM = new CountStats::LinearVar(1.0,
-									 2.0,
-									 0.05);
+  osg::ref_ptr<CountStats::LinearVar> var_AM = new CountStats::LinearVar(start_AM,stop_AM,step_AM);
   varDefinition.push_back(var_AM.get());
-
+  
   // [5] galactic longitude
-  osg::ref_ptr<CountStats::LinearVar> var_GL = new CountStats::LinearVar(-orsa::pi(),
-									 orsa::pi(),
-									 2.0*orsa::degToRad());
+  osg::ref_ptr<CountStats::LinearVar> var_GL = new CountStats::LinearVar(start_GL,stop_GL,step_GL);
   varDefinition.push_back(var_GL.get());
   
   // [6] galactic latitude
-  osg::ref_ptr<CountStats::LinearVar> var_GB = new CountStats::LinearVar(-orsa::halfpi(),
-									 orsa::halfpi(),
-									 2.0*orsa::degToRad());
+  osg::ref_ptr<CountStats::LinearVar> var_GB = new CountStats::LinearVar(start_GB,stop_GB,step_GB);
   varDefinition.push_back(var_GB.get());
   
   osg::ref_ptr<CountStats> countStats = 
@@ -496,7 +191,7 @@ int main(int argc, char ** argv) {
   }
   
   // write eta.dat file
-  if (1) {
+  if (0) {
     char filename[1024];
     sprintf(filename,"%s.eta.dat",basename.c_str());
     FILE * fp_eta = fopen(filename,"w"); 
@@ -535,32 +230,57 @@ int main(int argc, char ** argv) {
   }
   ORSA_DEBUG("non_zero_n: %i",non_zero_n);
   
+  osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
+  //
+  etaFit->maxIter=100;
+  etaFit->epsabs=1.0e-6;
+  etaFit->epsrel=1.0e-6;
+  
   // multifit parameters  
   osg::ref_ptr<orsa::MultifitParameters> par = new orsa::MultifitParameters;
   //
-  const double initial_U_limit = orsa::FromUnits( 40.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
-  const double initial_w_U     = orsa::FromUnits( 10.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
+  const double initial_U_limit = orsa::FromUnits(5.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
+  const double initial_w_U     = orsa::FromUnits(1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
   //    
   // V pars
-  par->insert("eta0_V",  0.90, 0.0001);
-  par->insert("c_V",     0.01, 0.00001);
-  par->insert("V_limit",19.00, 0.001);
-  par->insert("w_V",     0.50, 0.0001); 
+  par->insert("V_limit",19.00, 0.000001);
+  par->insert("eta0_V",  0.90, 0.000001);
+  par->insert("c_V",     0.00, 0.000001);
+  par->insert("w_V",     0.50, 0.000001); 
   // U pars
-  par->insert("U_limit",    initial_U_limit, 0.01*initial_U_limit);
-  par->insert("w_U",        initial_w_U,     0.01*initial_w_U); 
+  par->insert("U_limit",    initial_U_limit, 0.000001*initial_U_limit);
+  par->insert("w_U",        initial_w_U,     0.000001*initial_w_U); 
   // mixing angle
-  par->insert("beta",  0.0, 0.00001);
+  par->insert("beta",     0.0, 0.000001);
   // Galactic latitude
-  par->insert("GB_limit",10.0*orsa::degToRad(),0.01*orsa::degToRad());
-  par->insert("w_GB",     1.0*orsa::degToRad(),0.001*orsa::degToRad());
+  par->insert("GB_limit",10.0*orsa::degToRad(),0.000001*orsa::degToRad());
+  par->insert("w_GB",     1.0*orsa::degToRad(),0.000001*orsa::degToRad());
+  // Galactic longitude-latitude mixing
+  par->insert("Gmix",     0.0, 0.000001);
   // ranges
   // par->setRange("eta0_V",0.0,1.0);
-  // par->setRangeMin("c_GL",0.0);
+  // par->setRangeMin("c_V",0.0);
   // fixed?
   // par->setFixed("U_limit",true);
   // par->setFixed("w_U",true);
+  // par->setFixed("GB_limit",true);
+  // par->setFixed("w_GB",true);
   // par->setFixed("beta",true);
+  // par->setFixed("Gmix",true);
+  
+  osg::ref_ptr<orsa::MultifitParameters> lastGoodPar = new orsa::MultifitParameters;
+  orsa::Cache<double> V0;
+  bool success;
+  
+  // some parameters are not used now, fixed to a "null" value
+  par->setFixed("beta",true);
+  par->setFixed("Gmix",true);
+  
+  // first, try to fit apparent magnitude only
+  par->setFixed("U_limit",true);
+  par->setFixed("w_U",true);
+  par->setFixed("GB_limit",true);
+  par->setFixed("w_GB",true);
   
   if (non_zero_n < par->sizeNotFixed()) {
     ORSA_DEBUG("not enought data for fit, exiting");
@@ -570,20 +290,137 @@ int main(int argc, char ** argv) {
     exit(0);
   }
   
-  osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
-  const bool success = etaFit->fit(par.get(),
-				   data,
-				   V0,
-				   fitFilename,
-				   basename,
-				   obsCodeFile.get());
-  if (!success) { 
-    ORSA_DEBUG("fitting did not converge, exiting");
-    // just "touch" the output file
-    FILE * fp = fopen(fitFilename,"w");
-    fclose(fp);
+  {
+    // find good V0 value
+    V0 = 14.0;
+    while (V0.getRef() <= 20.0) {
+      ORSA_DEBUG("V0: %g",V0.getRef());
+      success = etaFit->fit(par.get(),
+			    data,
+			    V0.getRef(),
+			    fitFilename,
+			    basename,
+			    obsCodeFile.get(),
+			    false);
+      if ( (success || (etaFit->getIter() == etaFit->maxIter)) &&
+	   (par->get("c_V") > 0.0) ) {
+	break;
+      } else {
+	V0 += 1.0;
+      }
+    }
+    if (success || (etaFit->getIter() == etaFit->maxIter)) {
+      // deep copy
+      (*lastGoodPar.get()) = (*par.get());
+    } else {
+      ORSA_DEBUG("fitting did not converge, exiting");
+      // just "touch" the output file
+      FILE * fp = fopen(fitFilename,"w");
+      fclose(fp);
+      exit(0);
+    }
+  }
+  
+  // now try including apparent velocity
+  par->setFixed("U_limit",false);
+  par->setFixed("w_U",false);
+  
+  if (non_zero_n < par->sizeNotFixed()) {
+    // restore, fit saving file, end exit
+    (*par.get()) =  (*lastGoodPar.get());
+    etaFit->fit(par.get(),
+		data,
+		V0.getRef(),
+		fitFilename,
+		basename,
+		obsCodeFile.get(),
+		true);
     exit(0);
   }
+  
+  {
+    success = etaFit->fit(par.get(),
+			  data,
+			  V0.getRef(),
+			  fitFilename,
+			  basename,
+			  obsCodeFile.get(),
+			  false);
+    
+    if (success || (etaFit->getIter() == etaFit->maxIter)) {
+      // deep copy
+      (*lastGoodPar.get()) = (*par.get());
+    } else {
+      etaFit->fit(par.get(),
+		  data,
+		  V0.getRef(),
+		  fitFilename,
+		  basename,
+		  obsCodeFile.get(),
+		  true);
+      exit(0);
+    }
+  }
+
+  // now try including galactic latitude
+  par->setFixed("GB_limit",false);
+  par->setFixed("w_GB",false);
+  
+  if (non_zero_n < par->sizeNotFixed()) {
+    // restore, fit saving file, end exit
+    (*par.get()) =  (*lastGoodPar.get());
+    etaFit->fit(par.get(),
+		data,
+		V0.getRef(),
+		fitFilename,
+		basename,
+		obsCodeFile.get(),
+		true);
+    exit(0);
+  }
+  
+  {
+    success = etaFit->fit(par.get(),
+			  data,
+			  V0.getRef(),
+			  fitFilename,
+			  basename,
+			  obsCodeFile.get(),
+			  false);
+    
+    if (success || (etaFit->getIter() == etaFit->maxIter)) {
+      // deep copy
+      (*lastGoodPar.get()) = (*par.get());
+    } else {
+      etaFit->fit(par.get(),
+		  data,
+		  V0.getRef(),
+		  fitFilename,
+		  basename,
+		  obsCodeFile.get(),
+		  true);
+      exit(0);
+    }
+  }
+  
+  // now enforce range limits, call fabs() where needed
+
+
+  // finally, review uncertainties
+  
+  
+  // finally, call fit to save
+  {
+    (*par.get()) =  (*lastGoodPar.get());
+    etaFit->fit(par.get(),
+		data,
+		V0.getRef(),
+		fitFilename,
+		basename,
+		obsCodeFile.get(),
+		true);
+  }
+  
   osg::ref_ptr<const orsa::MultifitParameters> parFinal = etaFit->getMultifitParameters();
   // save final parameters
   const double  eta0_V = parFinal->get("eta0_V");
@@ -598,18 +435,10 @@ int main(int argc, char ** argv) {
   //
   const double GB_limit = parFinal->get("GB_limit");
   const double     w_GB = parFinal->get("w_GB");
+  const double     Gmix = parFinal->get("Gmix");
   
   if (1) {
-    // output for testing
-    /* typedef std::list< osg::ref_ptr<EfficiencyStatistics> > AllStat;
-       AllStat stat_V, stat_U; 
-       AllStat stat_SE; // solarElongation
-       AllStat stat_LE; // lunarElongation
-       // AllStat stat_LP; // lunarPhase
-       AllStat stat_AM; // airMass
-       AllStat stat_GL; // galacticLatitude
-    */
-    //
+    // output for plots
     Histo<CountStats::LinearVar> histo_V (var_V.get());
     Histo<CountStats::LinearVar> histo_U (var_U.get());
     Histo<CountStats::LinearVar> histo_SE(var_SE.get());
@@ -735,7 +564,7 @@ int main(int argc, char ** argv) {
       const double eta = SkyCoverage::eta(data[k].V.getRef(),
 					  V_limit,
 					  eta0_V,
-					  V0,
+					  V0.getRef(),
 					  c_V,
 					  w_V,
 					  data[k].U.getRef(),
@@ -743,13 +572,15 @@ int main(int argc, char ** argv) {
 					  w_U,
 					  beta,
 					  data[k].GL.getRef(),
+					  data[k].GB.getRef(),
 					  GB_limit,
-					  w_GB);
+					  w_GB,
+					  Gmix);
       
       const double nominal_eta_V = SkyCoverage::nominal_eta_V(data[k].V.getRef(),
 							      V_limit,
 							      eta0_V,
-							      V0,
+							      V0.getRef(),
 							      c_V,
 							      w_V);
       
@@ -757,10 +588,11 @@ int main(int argc, char ** argv) {
 							      U_limit,
 							      w_U);
       
-      const double nominal_eta_GB = SkyCoverage::nominal_eta_GB(data[k].GB.getRef(),
+      const double nominal_eta_GB = SkyCoverage::nominal_eta_GB(data[k].GL.getRef(),
+								data[k].GB.getRef(),
 								GB_limit,
-								// c_GL,
-								w_GB);
+								w_GB,
+								Gmix);
       
       // at this point, small sigmas can become very large because divided by a very small eta's
       /* if (data[k].sigmaEta.getRef() > 0) {
@@ -861,7 +693,9 @@ int main(int argc, char ** argv) {
     */
     
     {
-      FILE * fpv = fopen("v.fit.dat","w");
+      char filename[1024];
+      sprintf(filename,"%s.histo.V.dat",basename.c_str());
+      FILE * fp = fopen("V.fit.dat","w");
       Histo<CountStats::LinearVar>::HistoDataType::const_iterator it = histo_V.getData().begin();
       while (it != histo_V.getData().end()) {
 	if ((*it)->standardDeviation()==0.0) {
@@ -869,13 +703,53 @@ int main(int argc, char ** argv) {
 	  ++it;
 	  continue;
 	}
-	fprintf(fpv,"%g %g %g\n",
+	fprintf(fp,"%g %g %g\n",
 		(*it)->center,
 		(*it)->average(),
 		(*it)->standardDeviation());
 	++it;
       }
-      fclose(fpv);
+      fclose(fp);
+    }
+    
+    {
+      char filename[1024];
+      sprintf(filename,"%s.histo.U.dat",basename.c_str());
+      FILE * fp = fopen("U.fit.dat","w");
+      Histo<CountStats::LinearVar>::HistoDataType::const_iterator it = histo_U.getData().begin();
+      while (it != histo_U.getData().end()) {
+	if ((*it)->standardDeviation()==0.0) {
+	  // ORSA_DEBUG("--SKIPPING--");
+	  ++it;
+	  continue;
+	}
+	fprintf(fp,"%g %g %g\n",
+		orsa::FromUnits((*it)->center*orsa::radToArcsec(),orsa::Unit::HOUR), // arcsec/hour
+ 		(*it)->average(),
+		(*it)->standardDeviation());
+	++it;
+      }
+      fclose(fp);
+    }
+    
+    {
+      char filename[1024];
+      sprintf(filename,"%s.histo.GB.dat",basename.c_str());
+      FILE * fp = fopen("GB.fit.dat","w");
+      Histo<CountStats::LinearVar>::HistoDataType::const_iterator it = histo_GB.getData().begin();
+      while (it != histo_GB.getData().end()) {
+	if ((*it)->standardDeviation()==0.0) {
+	  // ORSA_DEBUG("--SKIPPING--");
+	  ++it;
+	  continue;
+	}
+	fprintf(fp,"%g %g %g\n",
+		orsa::radToDeg()*(*it)->center,
+		(*it)->average(),
+		(*it)->standardDeviation());
+	++it;
+      }
+      fclose(fp);
     }
     
     /* 
