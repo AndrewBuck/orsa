@@ -1006,6 +1006,10 @@ bool Multifit::run() {
     }
   }
   
+  // call before cleaning up
+  runCompleted(s);
+  runCompleted(_par.get());
+  
   // covariance matrix here...
   /* 
      {

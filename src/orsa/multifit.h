@@ -309,6 +309,11 @@ namespace orsa {
     virtual void success(const gsl_multifit_fdfsolver *) const { }
     virtual void success(const orsa::MultifitParameters *) const { }
     
+  protected:
+    // called when run is done, before cleaning up
+    virtual void runCompleted(const gsl_multifit_fdfsolver *) const { }
+    virtual void runCompleted(const orsa::MultifitParameters *) const { }
+    
   public:
     void setMultifitParameters(orsa::MultifitParameters *);
   public:
