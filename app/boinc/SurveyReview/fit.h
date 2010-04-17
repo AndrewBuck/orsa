@@ -26,7 +26,12 @@ const double  step_GL = 1.0*orsa::degToRad();
 const double start_GB = -orsa::halfpi();
 const double  stop_GB =  orsa::halfpi();
 const double  step_GB = 1.0*orsa::degToRad();
-
+const double start_AZ = 0.0*orsa::degToRad();
+const double  stop_AZ = orsa::twopi();
+const double  step_AZ = 1.0*orsa::degToRad();
+const double start_LA = -orsa::halfpi();
+const double  stop_LA =  orsa::halfpi();
+const double  step_LA = 1.0*orsa::degToRad();
 
 class EfficiencyStatistics : public orsa::WeightedStatistic<double> {
  public:

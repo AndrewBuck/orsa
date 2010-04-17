@@ -29,16 +29,12 @@ class EfficiencyMultifit : public orsa::Multifit {
  public:
   class DataElement {
   public:
-    // V = apparent magnitude
-    // U = apparent velocity
     orsa::Cache<double> V, U, eta, sigmaEta;
-    orsa::Cache<double> SE, LE, LP, AM, GL, GB;
+    orsa::Cache<double> SE, LE, LP, AM, GL, GB, AZ, LA;
     orsa::Cache<unsigned int> Nobs, Ndsc, Ntot;
   };
   typedef std::vector<DataElement> DataStorage;
- public:
-  // V = apparent magnitude
-  // U = apparent velocity
+ public: 
   bool fit(orsa::MultifitParameters * par,
 	   const DataStorage & data_in,
 	   const double      & V0_in,
