@@ -2,6 +2,8 @@
 #include "eta.h"
 #include "fit.h"
 
+#include "dislin.h"
+
 int main(int argc, char ** argv) {
   
   orsa::Debug::instance()->initTimer();
@@ -202,9 +204,6 @@ int main(int argc, char ** argv) {
      obsCodeFile->setFileName("obscode.dat");
      obsCodeFile->read();
   */
-  
-  char plotFilename[1024];
-  sprintf(plotFilename,"%s.fit.png",basename.c_str());
   
   // read fit file
   double JD, year;
@@ -409,6 +408,129 @@ int main(int argc, char ** argv) {
       fclose(fp);
     }
     
+    // dislin
+    // metafl("PNG");
+    metafl("PDF"); 
+    page(3000,6000);
+    // setpag("USAP"); // USAP = US letter portrait
+    
+    // output file name
+    char plotFilename[1024];
+    sprintf(plotFilename,"%s.fit.pdf",basename.c_str());
+    setfil(plotFilename);
+    // new files overwrite old ones
+    filmod("DELETE");
+    
+    disini();
+    simplx();
+    // helve();
+    // psfont("AvantGarde-Book");
+    height(20); // chars height
+    color("fore");
+    
+    hwmode("ON","LINE");
+    // hwmode("ON","SHADING");
+    // linwid(1);    
+    // barmod("VARIABLE","WIDTH");
+    // barwth(4.0);
+    
+#warning keep updating penwid()
+    
+    axspos(200,1000);
+    axslen(1600,800);
+    
+    graf(14.0,24.0,14.0,2.0,-0.5,1.5,-0.5,0.5);
+    
+    {
+      const int nPoints=1000;
+      float xray[nPoints], yray[nPoints];
+      for (int j=0; j<nPoints; ++j) {
+	const double V   = 14.0+j*(24.0-14.0)/nPoints;
+	const double eta = SkyCoverage::nominal_eta_V(V,
+						      V_limit,
+						      eta0_V,
+						      V0,
+						      c_V,
+						      w_V);
+	xray[j]=V;
+	yray[j]=eta;
+      }
+      penwid(2.0);
+      curve(xray,yray,nPoints);
+    }
+    
+    {
+      const int nPoints=histo_V.getData().size();
+      float xray[nPoints], yray[nPoints];  
+      float eray[nPoints];
+      for (int j=0; j<nPoints; ++j) {
+	xray[j]=histo_V.getData()[j]->center;
+	yray[j]=histo_V.getData()[j]->average();
+	eray[j]=histo_V.getData()[j]->standardDeviation();
+      }
+      marker(1); // marker type
+      hsymbl(3); // marker size
+      // smaller pen for smaller lines
+      penwid(0.2); 
+      errbar(xray,yray,eray,eray,nPoints);
+    }
+    
+    /* {
+       const int nPoints=histo_V.getData().size();
+       float xray[nPoints], y1ray[nPoints], y2ray[nPoints];
+       for (int j=0; j<nPoints; ++j) {
+       xray[j]=histo_V.getData()[j]->center;
+       y1ray[j]=histo_V.getData()[j]->average()-histo_V.getData()[j]->standardDeviation();
+       y2ray[j]=histo_V.getData()[j]->average()+histo_V.getData()[j]->standardDeviation();
+       }
+       marker(1); // marker type
+       hsymbl(3); // marker size
+       bars(xray,y1ray,y2ray,nPoints);
+       }
+    */
+    
+    endgrf();
+    
+    axspos(200,2000);
+    axslen(1600,800);
+    
+    graf(0.0,100.0,0.0,10.0,-0.5,1.5,-0.5,0.5);
+    
+    {
+      const int nPoints=1000;
+      float xray[nPoints], yray[nPoints];
+      for (int j=0; j<nPoints; ++j) {
+	const double U   = orsa::FromUnits(0.0+j*(100.0-0.0)/nPoints*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+	const double eta = SkyCoverage::nominal_eta_U(U,
+						      U_limit,
+						      w_U);
+	xray[j]=orsa::FromUnits(U*orsa::radToArcsec(),orsa::Unit::HOUR); 
+	yray[j]=eta;
+      }
+      penwid(2.0);
+      curve(xray,yray,nPoints);
+    }
+    
+    {
+      const int nPoints=histo_U.getData().size();
+      float xray[nPoints], yray[nPoints];  
+      float eray[nPoints];
+      for (int j=0; j<nPoints; ++j) {
+       	xray[j]=orsa::FromUnits(histo_U.getData()[j]->center*orsa::radToArcsec(),orsa::Unit::HOUR);
+    	yray[j]=histo_U.getData()[j]->average();
+    	eray[j]=histo_U.getData()[j]->standardDeviation();
+      }
+      marker(1); // marker type
+      hsymbl(3); // marker size
+      // smaller pen for smaller lines
+      penwid(0.2);
+      errbar(xray,yray,eray,eray,nPoints);
+    }
+    
+    endgrf();
+    
+    title();
+    disfin();
   }
   
   exit(0);
