@@ -179,7 +179,7 @@ int main(int argc, char ** argv) {
       }
     }
     
-    if (goodInsert) {
+    if (0) if (goodInsert) {
       if (etaData[k].number.isSet()) {
 	gmp_printf("inserting: [%i] %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n",
 		   etaData[k].number.getRef(),
@@ -256,29 +256,23 @@ int main(int argc, char ** argv) {
     }
   }
   
-  // write eta.dat file
-  if (0) {
-    char filename[1024];
-    sprintf(filename,"%s.eta.dat",basename.c_str());
-    FILE * fp_eta = fopen(filename,"w"); 
+  // debug
+  if (1) {
     for (unsigned int k=0; k<data.size(); ++k) {
       const EfficiencyMultifit::DataElement & el = data[k];
       // if (el.Ntot.getRef()>2) {
-      fprintf(fp_eta,
-	      "%5.2f %6.2f %6.2f %6.2f %6.3f %5.3f %5.3f %5i %5i %5i\n",
-	      el.V.getRef(),
-	      orsa::FromUnits(el.U.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
-	      el.SE.getRef()*orsa::radToDeg(),
-	      el.LE.getRef()*orsa::radToDeg(),
-	      el.AM.getRef(),
-	      el.eta.getRef(),
-	      el.sigmaEta.getRef(),
-	      el.Nobs.getRef(),
-	      el.Ndsc.getRef(),
-	      el.Ntot.getRef());
-      // }
+      gmp_printf("%5.2f %6.2f %6.2f %6.2f %6.3f %5.3f %5.3f %5i %5i %5i\n",
+		 el.V.getRef(),
+		 orsa::FromUnits(el.U.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
+		 el.SE.getRef()*orsa::radToDeg(),
+		 el.LE.getRef()*orsa::radToDeg(),
+		 el.AM.getRef(),
+		 el.eta.getRef(),
+		 el.sigmaEta.getRef(),
+		 el.Nobs.getRef(),
+		 el.Ndsc.getRef(),
+		 el.Ntot.getRef());
     }
-    fclose(fp_eta);
   }
   
   osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile = new orsaInputOutput::MPCObsCodeFile;
