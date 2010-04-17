@@ -212,6 +212,41 @@ int main(int argc, char ** argv) {
       }
     }
     
+    // specific cases
+    if ( (etaData[k].V.getRef()>=10.0) && 
+	 (etaData[k].V.getRef()< 10.1) )	 {
+      if (etaData[k].number.isSet()) {
+	gmp_printf("special: [%i] %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n",
+		   etaData[k].number.getRef(),
+		   etaData[k].V.getRef(),
+		   orsa::FromUnits(etaData[k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
+		   etaData[k].solarElongation.getRef()*orsa::radToDeg(),
+		   etaData[k].lunarElongation.getRef()*orsa::radToDeg(),
+		   etaData[k].airMass.getRef(),
+		   etaData[k].galacticLongitude.getRef()*orsa::radToDeg(),
+		   etaData[k].galacticLatitude.getRef()*orsa::radToDeg());
+      } else if (etaData[k].designation.isSet()) {
+	gmp_printf("special: [%s] %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n",
+		   etaData[k].designation.getRef().c_str(),
+		   etaData[k].V.getRef(),
+		   orsa::FromUnits(etaData[k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
+		   etaData[k].solarElongation.getRef()*orsa::radToDeg(),
+		   etaData[k].lunarElongation.getRef()*orsa::radToDeg(),
+		   etaData[k].airMass.getRef(),
+		   etaData[k].galacticLongitude.getRef()*orsa::radToDeg(),
+		   etaData[k].galacticLatitude.getRef()*orsa::radToDeg());
+      } else {
+	gmp_printf("special: [anonymous] %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n",
+		   etaData[k].V.getRef(),
+		   orsa::FromUnits(etaData[k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
+		   etaData[k].solarElongation.getRef()*orsa::radToDeg(),
+		   etaData[k].lunarElongation.getRef()*orsa::radToDeg(),
+		   etaData[k].airMass.getRef(),
+		   etaData[k].galacticLongitude.getRef()*orsa::radToDeg(),
+		   etaData[k].galacticLatitude.getRef()*orsa::radToDeg());
+      }
+    }
+    
   }
   
   EfficiencyMultifit::DataStorage data;
