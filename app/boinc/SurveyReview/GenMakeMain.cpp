@@ -30,11 +30,11 @@ int main(int argc, char ** argv) {
   
   // now the rules
   printf("%%.allEta.dat: %%.txt\n");
-  printf("\t./DetectionEfficiency $*.txt\n");
+  printf("\t./DetectionEfficiency $*.txt > $*.allEta.log 2>&1\n");
   printf("\n");
   //
   printf("%%.fit.dat: %%.allEta.dat\n");
-  printf("\t./DetectionEfficiencyFit $*.allEta.dat\n");
+  printf("\t./DetectionEfficiencyFit $*.allEta.dat > $*.fit.log 2>&1\n");
   printf("\n");
   //
   /* printf("%%.eta.dat: %%.allEta.dat\n");
