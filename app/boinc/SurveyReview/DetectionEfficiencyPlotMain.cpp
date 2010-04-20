@@ -1,7 +1,7 @@
 #include "skycoverage.h"
 #include "eta.h"
 #include "fit.h"
-
+#include <vector>
 #include "dislin.h"
 
 // read fit file
@@ -18,6 +18,10 @@ double degSq;
 double V0;
 char jobID[1024];
 
+class XYE {
+public:
+    double x,y,e;
+};
 // create one class to add a plot
 class PlotUtil {
 public:
@@ -54,16 +58,29 @@ public:
             curve(xray,yray,nPoints);
         }        
         {
-            const int nPoints=histo.getData().size();
+            std::vector<XYE> xye_vec;
+            for (int j=0; j<histo.getData().size(); ++j) {
+                XYE xye;
+                xye.x=xfactor*histo.getData()[j]->center;
+                xye.y=histo.getData()[j]->average();
+                xye.e=histo.getData()[j]->standardDeviation();
+                if ( (xye.x>=x1) &&
+                     (xye.x<=x2) &&
+                     (xye.y>=y1) &&
+                     (xye.y<=y2) ) {
+                    xye_vec.push_back(xye);
+                }
+            }
+            const int nPoints=xye_vec.size();
             float xray[nPoints], yray[nPoints];  
             float eray[nPoints];
             for (int j=0; j<nPoints; ++j) {
-                xray[j]=xfactor*histo.getData()[j]->center;
-                yray[j]=histo.getData()[j]->average();
-                eray[j]=histo.getData()[j]->standardDeviation();
+                xray[j]=xye_vec[j].x;
+                yray[j]=xye_vec[j].y;
+                eray[j]=xye_vec[j].e;
             }
             marker(1); // marker type
-            hsymbl(3); // marker size
+            hsymbl(5); // marker size
             // smaller pen for smaller lines
             penwid(0.2); 
             errbar(xray,yray,eray,eray,nPoints);
@@ -85,6 +102,11 @@ double PlotUtil_fun_U(const double U) {
     return SkyCoverage::nominal_eta_U(U,
                                       U_limit,
                                       w_U);
+    //
+    /* return SkyCoverage::nominal_eta_U(orsa::FromUnits(U*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
+       U_limit,
+       w_U);
+    */
 }
 
 double PlotUtil_fun_GB(const double GB) {
@@ -485,13 +507,16 @@ int main(int argc, char ** argv) {
             }
             fclose(fp);
         }
-    
+        
         // dislin
-        // metafl("PNG");
-        metafl("PDF"); 
         page(3000,6000);
+        // page(2390,3092); // approx letter size, since setpag("USAP") does not seem to work properly
         // setpag("USAP"); // USAP = US letter portrait
-    
+        pagmod("PORT");
+        //
+        // metafl("PNG");
+        metafl("PDF");
+        
         // output file name
         char plotFilename[1024];
         sprintf(plotFilename,"%s.fit.pdf",basename.c_str());
@@ -505,6 +530,7 @@ int main(int argc, char ** argv) {
         // psfont("AvantGarde-Book");
         height(20); // chars height
         color("fore");
+        // paghdr("preceding","following",4,0); // page header
     
         hwmode("ON","LINE");
         // hwmode("ON","SHADING");
@@ -517,7 +543,7 @@ int main(int argc, char ** argv) {
         PlotUtil((&PlotUtil_fun_V),
                  histo_V,
                  1.0,
-                 200,1000,1600,800,
+                 200,800,1200,600,
                  14,24,14,1.0,
                  -0.5,1.5,-0.5,0.5,
                  "",
@@ -580,8 +606,8 @@ int main(int argc, char ** argv) {
         
         PlotUtil((&PlotUtil_fun_U),
                  histo_U,
-                 orsa::FromUnits(orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-                 200,2000,1600,800,
+                 orsa::FromUnits(orsa::radToArcsec(),orsa::Unit::HOUR),
+                 200,1600,1200,600,
                  0,100,0,10,
                  -0.5,1.5,-0.5,0.5,
                  "",
@@ -630,7 +656,7 @@ int main(int argc, char ** argv) {
         PlotUtil((&PlotUtil_fun_GB),
                  histo_GB,
                  orsa::radToDeg(),
-                 200,3000,1600,800,
+                 200,2400,1200,600,
                  -90,90,-90,30,
                  -0.5,1.5,-0.5,0.5,
                  "",

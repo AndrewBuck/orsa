@@ -190,11 +190,12 @@ public:
             // lazy allocation
             data[idx] = new CountStatsElement;
             
-            { // testing only
-                static mpz_class numAllocated=0;
-                ++numAllocated;
-                if (numAllocated%1000==0) ORSA_DEBUG("numAllocated: %6Zi",numAllocated.get_mpz_t());
-            }
+            /* { // testing only
+               static mpz_class numAllocated=0;
+               ++numAllocated;
+               if (numAllocated%1000==0) ORSA_DEBUG("numAllocated: %6Zi",numAllocated.get_mpz_t());
+               }
+            */
         }
         data[idx]->Ntot++;
         if (obs) data[idx]->Nobs++;
