@@ -22,72 +22,77 @@ class XYE {
 public:
     double x,y,e;
 };
-// create one class to add a plot
-class PlotUtil {
-public:
-    PlotUtil(double (*fun)(const double),
-             const Histo<CountStats::LinearVar> & histo,
-             const double xfactor,
-             const int xpos,
-             const int ypos,
-             const int xlen,
-             const int ylen,
-             const double x1,
-             const double x2,
-             const double xo,
-             const double dx,
-             const double y1,
-             const double y2,
-             const double yo,
-             const double dy,
-             const std::string & xlabel,
-             const std::string & ylabel) {
-        penwid(0.2);
-        axslen(xlen,ylen);
-        axspos(xpos,ypos);
-        graf(x1,x2,xo,dx,y1,y2,yo,dy);
-        {
-            const int nPoints=1000;
-            float xray[nPoints], yray[nPoints];
-            for (int j=0; j<nPoints; ++j) {
-                xray[j] = x1+(j*(x2-x1))/nPoints;
-                yray[j] = fun(xray[j]/xfactor);
-                // ORSA_DEBUG("x: %g  y: %g",xray[j],yray[j]);
-            }
-            penwid(2.0);
-            curve(xray,yray,nPoints);
-        }        
-        {
-            std::vector<XYE> xye_vec;
-            for (int j=0; j<histo.getData().size(); ++j) {
-                XYE xye;
-                xye.x=xfactor*histo.getData()[j]->center;
-                xye.y=histo.getData()[j]->average();
-                xye.e=histo.getData()[j]->standardDeviation();
-                if ( (xye.x>=x1) &&
-                     (xye.x<=x2) &&
-                     (xye.y>=y1) &&
-                     (xye.y<=y2) ) {
-                    xye_vec.push_back(xye);
-                }
-            }
-            const int nPoints=xye_vec.size();
-            float xray[nPoints], yray[nPoints];  
-            float eray[nPoints];
-            for (int j=0; j<nPoints; ++j) {
-                xray[j]=xye_vec[j].x;
-                yray[j]=xye_vec[j].y;
-                eray[j]=xye_vec[j].e;
-            }
-            marker(1); // marker type
-            hsymbl(5); // marker size
-            // smaller pen for smaller lines
-            penwid(0.2); 
-            errbar(xray,yray,eray,eray,nPoints);
+
+void PlotUtil(double (*fun)(const double),
+              const Histo<CountStats::LinearVar> & histo,
+              const double xfactor,
+              const int xpos,
+              const int ypos,
+              const int xlen,
+              const int ylen,
+              const double x1,
+              const double x2,
+              const double dx,
+              const int xdigits,
+              const int xticks,
+              const std::string & xlabel,
+              const double y1,
+              const double y2,
+              const double dy,
+              const int ydigits,
+              const int yticks,
+              const std::string & ylabel) {
+    penwid(0.2);
+    axslen(xlen,ylen);
+    axspos(xpos,ypos);
+    digits(xdigits,"x");
+    digits(ydigits,"y");
+    ticks(xticks,"x");
+    ticks(yticks,"y");
+    name(xlabel.c_str(),"x");
+    name(ylabel.c_str(),"y");
+    graf(x1,x2,x1,dx,y1,y2,y1,dy);
+    {
+        const int nPoints=1000;
+        float xray[nPoints], yray[nPoints];
+        for (int j=0; j<nPoints; ++j) {
+            xray[j] = x1+(j*(x2-x1))/nPoints;
+            yray[j] = fun(xray[j]/xfactor);
+            // ORSA_DEBUG("x: %g  y: %g",xray[j],yray[j]);
         }
-        endgrf();
+        penwid(2.0);
+        curve(xray,yray,nPoints);
+    }        
+    {
+        std::vector<XYE> xye_vec;
+        for (int j=0; j<histo.getData().size(); ++j) {
+            XYE xye;
+            xye.x=xfactor*histo.getData()[j]->center;
+            xye.y=histo.getData()[j]->average();
+            xye.e=histo.getData()[j]->standardDeviation();
+            if ( (xye.x>=x1) &&
+                 (xye.x<=x2) &&
+                 (xye.y>=y1) &&
+                 (xye.y<=y2) ) {
+                xye_vec.push_back(xye);
+            }
+        }
+        const int nPoints=xye_vec.size();
+        float xray[nPoints], yray[nPoints];  
+        float eray[nPoints];
+        for (int j=0; j<nPoints; ++j) {
+            xray[j]=xye_vec[j].x;
+            yray[j]=xye_vec[j].y;
+            eray[j]=xye_vec[j].e;
+        }
+        marker(1); // marker type
+        hsymbl(5); // marker size
+        // smaller pen for smaller lines
+        penwid(0.2); 
+        errbar(xray,yray,eray,eray,nPoints);
     }
-};
+    endgrf();
+}
 
 double PlotUtil_fun_V(const double V) {
     return SkyCoverage::nominal_eta_V(V,
@@ -115,6 +120,10 @@ double PlotUtil_fun_GB(const double GB) {
                                        GB_limit,
                                        w_GB,
                                        Gmix);
+}
+
+double PlotUtil_fun_one(const double) {
+    return 1.0;
 }
 
 int main(int argc, char ** argv) {
@@ -531,23 +540,29 @@ int main(int argc, char ** argv) {
         height(20); // chars height
         color("fore");
         // paghdr("preceding","following",4,0); // page header
-    
+        pagera(); // border around page
+        
         hwmode("ON","LINE");
         // hwmode("ON","SHADING");
         // linwid(1);    
         // barmod("VARIABLE","WIDTH");
         // barwth(4.0);
-    
+
+        const double etaMin=-0.2;
+        const double etaMax= 2.0;
+        const double etaStep=0.2;
+        const int etaDigits=1;
+        const int etaTicks=2;
+        const std::string etaLabel="detection efficiency";
+        
 #warning keep updating penwid()
         
         PlotUtil((&PlotUtil_fun_V),
                  histo_V,
                  1.0,
                  200,800,1200,600,
-                 14,24,14,1.0,
-                 -0.5,1.5,-0.5,0.5,
-                 "",
-                 "");
+                 14,24,1.0,0,1,"apparent magnitude",
+                 etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
 
         /* 
            axspos(200,1000);
@@ -608,10 +623,8 @@ int main(int argc, char ** argv) {
                  histo_U,
                  orsa::FromUnits(orsa::radToArcsec(),orsa::Unit::HOUR),
                  200,1600,1200,600,
-                 0,100,0,10,
-                 -0.5,1.5,-0.5,0.5,
-                 "",
-                 "");
+                 0,100,10,0,0,"apparent velocity [arcsec/hour]",
+                 etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
 
         /* 
            axspos(200,2000);
@@ -657,10 +670,41 @@ int main(int argc, char ** argv) {
                  histo_GB,
                  orsa::radToDeg(),
                  200,2400,1200,600,
-                 -90,90,-90,30,
-                 -0.5,1.5,-0.5,0.5,
-                 "",
-                 "");
+                 -90,90,30,0,3,"galactic latitude [deg]",
+                 etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+        
+        
+        PlotUtil((&PlotUtil_fun_one),
+                 histo_AZ,
+                 orsa::radToDeg(),
+                 1600,800,1200,600,
+                 0,360,30,0,3,"azimuth [deg]",
+                 etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+        
+        
+        PlotUtil((&PlotUtil_fun_one),
+                 histo_AM,
+                 1.0,
+                 1600,1600,1200,600,
+                 1.0,2.2,0.1,1,1,"airmass",
+                 etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+        
+        
+        PlotUtil((&PlotUtil_fun_one),
+                 histo_LA,
+                 orsa::radToDeg(),
+                 1600,2400,1200,600,
+                 -90,90,30,0,3,"lunar altitude [deg]",
+                 etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+        
+        
+        PlotUtil((&PlotUtil_fun_one),
+                 histo_LE,
+                 orsa::radToDeg(),
+                 1600,3200,1200,600,
+                 0,180,30,0,3,"lunar elongation [deg]",
+                 etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+        
         
         disfin();
     }
