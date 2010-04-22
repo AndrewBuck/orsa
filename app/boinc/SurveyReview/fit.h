@@ -7,19 +7,19 @@
 // CountStats::LinearVar ranges
 const double start_V  = 10.0;
 const double  stop_V  = 24.0;
-const double  step_V  =  0.1;
+const double  step_V  =  0.05;
 const double start_U  = orsa::FromUnits(  0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
 const double  stop_U  = orsa::FromUnits(100.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
 const double  step_U  = orsa::FromUnits(  1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
 const double start_SE = 0.0*orsa::degToRad();
 const double  stop_SE = orsa::pi();
-const double  step_SE = 1.0*orsa::degToRad();
+const double  step_SE = 2.0*orsa::degToRad();
 const double start_LE = 0.0*orsa::degToRad();
 const double  stop_LE = orsa::pi();
-const double  step_LE = 1.0*orsa::degToRad();
+const double  step_LE = 2.0*orsa::degToRad();
 const double start_AM = 1.0;
 const double  stop_AM = 3.0;
-const double  step_AM = 0.02;
+const double  step_AM = 0.01;
 const double start_GL = -orsa::pi();
 const double  stop_GL =  orsa::pi();
 const double  step_GL = 1.0*orsa::degToRad();
@@ -28,10 +28,13 @@ const double  stop_GB =  orsa::halfpi();
 const double  step_GB = 1.0*orsa::degToRad();
 const double start_AZ = 0.0*orsa::degToRad();
 const double  stop_AZ = orsa::twopi();
-const double  step_AZ = 5.0*orsa::degToRad();
+const double  step_AZ = 2.0*orsa::degToRad();
 const double start_LA = -orsa::halfpi();
 const double  stop_LA =  orsa::halfpi();
 const double  step_LA = 1.0*orsa::degToRad();
+const double start_SA = -orsa::halfpi();
+const double  stop_SA =  orsa::halfpi();
+const double  step_SA = 1.0*orsa::degToRad();
 
 class EfficiencyStatistics : public orsa::WeightedStatistic<double> {
 public:

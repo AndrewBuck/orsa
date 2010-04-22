@@ -30,7 +30,7 @@ public:
     class DataElement {
     public:
         orsa::Cache<double> V, U, eta, sigmaEta;
-        orsa::Cache<double> SE, LE, LP, AM, GL, GB, AZ, LA;
+        orsa::Cache<double> SE, LE, LP, AM, GL, GB, AZ, LA, SA;
         orsa::Cache<unsigned int> Nobs, Ndsc, Ntot;
     };
     typedef std::vector<DataElement> DataStorage;
@@ -62,13 +62,13 @@ public:
         fitData->insertVariable("V");
         fitData->insertVariable("U");
         fitData->insertVariable("GL");
-        fitData->insertVariable("GB");
+        // fitData->insertVariable("GB");
         //
         for (unsigned int row=0; row<data.size(); ++row) {
             fitData->insertD("V",row,data[row].V.getRef());
             fitData->insertD("U",row,data[row].U.getRef());
-            fitData->insertD("GL",row,data[row].GL.getRef());
-            fitData->insertD("GB",row,data[row].GB.getRef());
+            // fitData->insertD("GL",row,data[row].GL.getRef());
+            // fitData->insertD("GB",row,data[row].GB.getRef());
             fitData->insertF(row,data[row].eta.getRef());
             fitData->insertSigma(row,data[row].sigmaEta.getRef());
         }
@@ -120,13 +120,15 @@ protected:
                                             localPar->get("w_V"),
                                             data->getD("U",row),
                                             localPar->get("U_limit"),
-                                            localPar->get("w_U"),
-                                            localPar->get("beta"),
-                                            data->getD("GL",row),
-                                            data->getD("GB",row),
-                                            localPar->get("GB_limit"),
-                                            localPar->get("w_GB"),
-                                            localPar->get("Gmix"));
+                                            localPar->get("w_U"));
+        /* localPar->get("beta"),
+           data->getD("GL",row),
+           data->getD("GB",row),
+           localPar->get("GB_limit"),
+           localPar->get("w_GB"),
+           localPar->get("Gmix"));
+        */
+        
         return eta;
     }
 protected: 
@@ -193,12 +195,13 @@ protected:
                                _par->name(p).c_str(),
                                orsa::radToDeg()*_par->get(p),
                                _par->isFixed(p)?0.0:orsa::radToDeg()*factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
-                } else if ( (_par->name(p) == "GB_limit") || 
-                            (_par->name(p) == "w_GB") ) {
-                    ORSA_DEBUG("%s: %g +/- %g [deg]",
-                               _par->name(p).c_str(),
-                               orsa::radToDeg()*_par->get(p),
-                               _par->isFixed(p)?0.0:orsa::radToDeg()*factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
+                    /* } else if ( (_par->name(p) == "GB_limit") || 
+                       (_par->name(p) == "w_GB") ) {
+                       ORSA_DEBUG("%s: %g +/- %g [deg]",
+                       _par->name(p).c_str(),
+                       orsa::radToDeg()*_par->get(p),
+                       _par->isFixed(p)?0.0:orsa::radToDeg()*factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
+                    */
                 } else {
                     // generic one
                     ORSA_DEBUG("%s: %g +/- %g",
@@ -314,12 +317,13 @@ protected:
                             "%+.3e %+.3e ",
                             orsa::radToDeg()*_par->get(p),
                             _par->isFixed(p)?0.0:orsa::radToDeg()*factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
-                } else if ( (_par->name(p) == "GB_limit") || 
-                            (_par->name(p) == "w_GB") ) {
-                    fprintf(fp,
-                            "%+.3e %+.3e ",
-                            orsa::radToDeg()*_par->get(p),
-                            _par->isFixed(p)?0.0:orsa::radToDeg()*factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
+                    /* } else if ( (_par->name(p) == "GB_limit") || 
+                       (_par->name(p) == "w_GB") ) {
+                       fprintf(fp,
+                       "%+.3e %+.3e ",
+                       orsa::radToDeg()*_par->get(p),
+                       _par->isFixed(p)?0.0:orsa::radToDeg()*factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
+                    */
                 } else {
                     // generic one
                     fprintf(fp,
