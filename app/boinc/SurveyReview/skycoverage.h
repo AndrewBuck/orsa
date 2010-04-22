@@ -192,7 +192,7 @@ public:
     // coefficients for efficiency as function of apparent velocity U
     orsa::Cache<double> U_limit, w_U;
     // mixing angle
-    orsa::Cache<double> beta;
+    // orsa::Cache<double> beta;
 public:
     // return filename, stripping path and suffix (after first dot)
     static std::string basename(const std::string & filename);

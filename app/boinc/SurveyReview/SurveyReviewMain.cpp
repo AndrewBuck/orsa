@@ -135,82 +135,111 @@ int main() {
         orsaSPICE::SPICE::instance()->loadKernel(resolvedFileName);
         // fclose(fp_dummy);
     }
-  
-    osg::ref_ptr<SkyCoverage> skyCoverage = new SkyCoverage;
-    //
+
+    osg::ref_ptr<SkyCoverageFile> skyCoverageFile = new SkyCoverageFile;
+    boinc_resolve_filename_s("field.dat",resolvedFileName);
+    skyCoverageFile->setFileName(resolvedFileName);
+    skyCoverageFile->read();
+    
+    osg::ref_ptr<SkyCoverage> skyCoverage = skyCoverageFile->_data;
+
     {
-    
-        FILE * fp;
+        // read fit.dat file
+        // global, bad but straightforward
+        double JD, year;
+        double V_limit, eta0_V, c_V, w_V;
+        double U_limit, w_U;
+        /* double beta;
+           double GB_limit, w_GB;
+           double Gmix;
+        */
+        double chisq_dof;
+        unsigned int Nobs, Ndsc, Ntot;
+        double degSq;
+        double V0;
+        char jobID[1024];
+        
+        // read fit.dat file
+        
+        boinc_resolve_filename_s("fit.dat",resolvedFileName);
+        FILE * fp = boinc_fopen(resolvedFileName.c_str(),"r"); 
+        if (!fp) {
+            ORSA_DEBUG("cannot open file [%s]",resolvedFileName.c_str());
+            boinc_finish(0); 
+        }
+        
         char line[1024];
-    
-        {
-      
-            // add into obs.dat info like range of apparent motion, apparent magnitude efficiency
-      
-            boinc_resolve_filename_s("obs.dat",resolvedFileName);
-            FILE * fp = boinc_fopen(resolvedFileName.c_str(),"r"); 
-            if (fp) { 
-#warning RE-INCLUDE THIS CODE!
-                /* char obscode[1024], epoch[1024];
-                   double eta0, c, V0, w;
-                   if (6 != gmp_fscanf(fp,"%s %s %lf %lf %lf %lf",
-                   obscode,
-                   epoch,
-                   &eta0,&c,&V0,&w)) {
-                   ORSA_DEBUG("problems...");
-                   boinc_finish(0); 
-                   } 
-                   fclose(fp);
-                   if (strlen(obscode) != 3) {
-                   ORSA_DEBUG("check possibly wrong obscode: [%s]",obscode);
-                   boinc_finish(0); 
-                   }
-	 
-                   skyCoverage->obscode = obscode;
-                   skyCoverage->epoch   = orsa::Time(mpz_class(epoch));
-	   
-                   skyCoverage->eta0 = eta0;
-                   skyCoverage->c    = c;
-                   skyCoverage->V0   = V0;
-                   skyCoverage->w    = w;
+        while (fgets(line,1024,fp)) {
+            if (line[0]=='#') continue; // comment
+            // UPDATE THIS NUMBER
+            if (15 == sscanf(line,
+                             // "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                             &JD,
+                             &year,
+                             &V_limit,
+                             &eta0_V,
+                             &c_V,
+                             &w_V,
+                             &U_limit,
+                             &w_U,
+                             /* &beta,
+                                &GB_limit,
+                                &w_GB,
+                                &Gmix,
+                             */
+                             &chisq_dof,
+                             &Nobs,
+                             &Ndsc,
+                             &Ntot,
+                             &degSq,
+                             &V0,
+                             jobID)) {
+                // conversion
+                U_limit   = orsa::FromUnits(U_limit*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+                w_U       = orsa::FromUnits(    w_U*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+                /* beta     *= orsa::degToRad();
+                   GB_limit *= orsa::degToRad();
+                   w_GB     *= orsa::degToRad();
                 */
+                
+                std::string obsCode;
+                orsa::Time epoch;
+                int int_year;
+                int int_dayOfYear;
+                if (!SkyCoverage::processFilename(jobID,
+                                                  obsCodeFile.get(),
+                                                  obsCode,
+                                                  epoch,
+                                                  int_year,
+                                                  int_dayOfYear)) {
+                    ORSA_DEBUG("problems...");
+                    boinc_finish(0); 
+                }
+                
+                // update skyCoverage
+                skyCoverage->obscode = obsCode;
+                skyCoverage->epoch   = epoch;
+                //
+                skyCoverage->V_limit = V_limit;
+                skyCoverage->eta0_V  = eta0_V;
+                skyCoverage->V0      = V0;
+                skyCoverage->c_V     = c_V;
+                skyCoverage->w_V     = w_V;
+                //
+                skyCoverage->U_limit = U_limit;
+                skyCoverage->w_U     = w_U;
+                
+                break;
             } else {
-                ORSA_DEBUG("cannot open observatory file");
-                boinc_finish(0);   
+                ORSA_DEBUG("empty fit.dat file");
+                boinc_finish(0); 
             }
         }
-    
-        {
-            boinc_resolve_filename_s("field.dat",resolvedFileName);
-            fp = fopen(resolvedFileName.c_str(),"r");
-            if (fp == 0) {
-                ORSA_DEBUG("cannot open field file");
-                boinc_finish(0);
-            }
-            double x1,x2,x3,x4; // ra
-            double y1,y2,y3,y4; // dec
-            double V;           // limiting mag
-            //
-            while (fgets(line,1024,fp)) {
-                if (9 == gmp_sscanf(line,"%lf %lf %lf %lf %lf %lf %lf %lf %lf",
-                                    &x1,&y1,
-                                    &x2,&y2,
-                                    &x3,&y3,
-                                    &x4,&y4,
-                                    &V)) {
-                    SkyCoverage::normalize(x1,y1);
-                    SkyCoverage::normalize(x2,y2);
-                    SkyCoverage::normalize(x3,y3);
-                    SkyCoverage::normalize(x4,y4);
-                    //
-                    skyCoverage->setField(x1,y1,x2,y2,x3,y3,x4,y4,V);
-                } 
-            }
-            fclose(fp);
-        }
-    
+        
+        fclose(fp);
     }
-  
+    
     // orsa::Vector sunPosition, earthPosition, moonPosition;
     // orsa::Vector sunVelocity, earthVelocity, moonVelocity;
     //
