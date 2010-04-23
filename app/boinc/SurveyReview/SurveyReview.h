@@ -23,18 +23,18 @@
 // alpha = solar phase angle = angle Sun-Asteroid-Observer
 // G = slope parameter (G ~= 0.15)
 inline double P (const double & alpha, 
-		       const double & G = 0.15) {
-  // ORSA_DEBUG("P:   alpha = %f",alpha.get_mpf_t());
-  const double phi_1 = exp(-3.33*pow(tan(0.5*alpha),0.63));
-  const double phi_2 = exp(-1.87*pow(tan(0.5*alpha),1.22));
-  /* 
-     ORSA_DEBUG("P = %f   alpha: %f   p1: %f   p2: %f",
-     -2.5*log10((1.0-G)*phi_1+G*phi_2),
-     alpha.get_mpf_t(),
-     phi_1,
-     phi_2);
-  */
-  return (-2.5*log10((1.0-G)*phi_1+G*phi_2));
+                 const double & G = 0.15) {
+    // ORSA_DEBUG("P:   alpha = %f",alpha.get_mpf_t());
+    const double phi_1 = exp(-3.33*pow(tan(0.5*alpha),0.63));
+    const double phi_2 = exp(-1.87*pow(tan(0.5*alpha),1.22));
+    /* 
+       ORSA_DEBUG("P = %f   alpha: %f   p1: %f   p2: %f",
+       -2.5*log10((1.0-G)*phi_1+G*phi_2),
+       alpha.get_mpf_t(),
+       phi_1,
+       phi_2);
+    */
+    return (-2.5*log10((1.0-G)*phi_1+G*phi_2));
 }
 
 /**** function interpolation, inspired from OrbitProxy ****/
@@ -42,142 +42,142 @@ inline double P (const double & alpha,
 // to be moved into ORSA library when tested and working
 
 template <class X, class Y> class FunctionProxyEntry {
- public:
-  virtual ~FunctionProxyEntry() { }
- public:
-  virtual double delta(const FunctionProxyEntry * e1,
-			     const FunctionProxyEntry * e2) const = 0;
- public:	
-  X x;
-  Y y;
- public:
-  inline bool operator == (const FunctionProxyEntry & rhs) const { return (x == rhs.x); }
-  inline bool operator != (const FunctionProxyEntry & rhs) const { return (x != rhs.x); }
-  inline bool operator <  (const FunctionProxyEntry & rhs) const { return (x <  rhs.x); }
-  inline bool operator >  (const FunctionProxyEntry & rhs) const { return (x >  rhs.x); }
-  inline bool operator <= (const FunctionProxyEntry & rhs) const { return (x <= rhs.x); }
-  inline bool operator >= (const FunctionProxyEntry & rhs) const { return (x >= rhs.x); }
- public:
-  inline virtual bool interpolatedEntry(FunctionProxyEntry       * e0,      
-					const X                  & x0,
-					const FunctionProxyEntry * e1,
-					const FunctionProxyEntry * e2) const {
-    const X beta1 = (e2->x-x0) / (e2->x-e1->x);
-    const X beta2 = (x0-e1->x) / (e2->x-e1->x);
+public:
+    virtual ~FunctionProxyEntry() { }
+public:
+    virtual double delta(const FunctionProxyEntry * e1,
+                         const FunctionProxyEntry * e2) const = 0;
+public:	
+    X x;
+    Y y;
+public:
+    inline bool operator == (const FunctionProxyEntry & rhs) const { return (x == rhs.x); }
+    inline bool operator != (const FunctionProxyEntry & rhs) const { return (x != rhs.x); }
+    inline bool operator <  (const FunctionProxyEntry & rhs) const { return (x <  rhs.x); }
+    inline bool operator >  (const FunctionProxyEntry & rhs) const { return (x >  rhs.x); }
+    inline bool operator <= (const FunctionProxyEntry & rhs) const { return (x <= rhs.x); }
+    inline bool operator >= (const FunctionProxyEntry & rhs) const { return (x >= rhs.x); }
+public:
+    inline virtual bool interpolatedEntry(FunctionProxyEntry       * e0,      
+                                          const X                  & x0,
+                                          const FunctionProxyEntry * e1,
+                                          const FunctionProxyEntry * e2) const {
+        const X beta1 = (e2->x-x0) / (e2->x-e1->x);
+        const X beta2 = (x0-e1->x) / (e2->x-e1->x);
     
-    e0->x = x0;
-    e0->y = beta1*e1->y + beta2*e2->y;
+        e0->x = x0;
+        e0->y = beta1*e1->y + beta2*e2->y;
     
-    return true;
-  }
+        return true;
+    }
 };
 
 template <class X, class Y, class E> class FunctionProxy : public osg::Referenced {
- public:
-  FunctionProxy(const double & accuracy_in) :
-    osg::Referenced(),
-    accuracy(accuracy_in) {
-    if (accuracy <= 0) {
-      ORSA_ERROR("non-positive accuracy");
+public:
+    FunctionProxy(const double & accuracy_in) :
+        osg::Referenced(),
+        accuracy(accuracy_in) {
+        if (accuracy <= 0) {
+            ORSA_ERROR("non-positive accuracy");
+        }
+        entryInterval = new orsa::Interval<E>;
+        entryInterval->enableDataStoring();
     }
-    entryInterval = new orsa::Interval<E>;
-    entryInterval->enableDataStoring();
-  }
- protected:
-  ~FunctionProxy() { }
- public:
-  inline virtual bool get(Y & y,
-			  const X & x) const {
-    E e;
-    e.x = x;
-    if (!entryInterval->size()) {
-      if (insert(e,x)) {
-	y = e.y;
-	return true;
-      } else {
-	return false;
-      }
+protected:
+    ~FunctionProxy() { }
+public:
+    inline virtual bool get(Y & y,
+                            const X & x) const {
+        E e;
+        e.x = x;
+        if (!entryInterval->size()) {
+            if (insert(e,x)) {
+                y = e.y;
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if ( (x < entryInterval->min().x) ||
+             (x > entryInterval->max().x) )  {
+            if (insert(e,x)) {
+                y = e.y;
+                return true;
+            } else {
+                return false;
+            }
+        }
+        E eMin;
+        E eMax;
+        if (!entryInterval->getSubInterval(e,eMin,eMax)) {
+            return false;
+        }
+        if (eMin.x == eMax.x) {
+            y = eMin.y;
+            return true;
+        }
+        if (e.delta(&eMin,&eMax) > accuracy) {
+            if (insert(e,x)) {
+                y = e.y;
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            if (e.interpolatedEntry(&e,      
+                                    x,
+                                    &eMin,
+                                    &eMax)) {
+                y = e.y;
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
-    if ( (x < entryInterval->min().x) ||
-	 (x > entryInterval->max().x) )  {
-      if (insert(e,x)) {
-	y = e.y;
-	return true;
-      } else {
-	return false;
-      }
+protected:	
+    virtual Y function(const X &) const = 0;
+protected:
+    // computes new entry and inserts it into interval
+    virtual bool insert(E & e,
+                        const X & x) const {
+        e.x = x;
+        e.y = function(x);
+        ORSA_DEBUG("-- inserted new entry, size: %i --",entryInterval->size()+1);
+        return entryInterval->insert(e);
     }
-    E eMin;
-    E eMax;
-    if (!entryInterval->getSubInterval(e,eMin,eMax)) {
-      return false;
-    }
-    if (eMin.x == eMax.x) {
-      y = eMin.y;
-      return true;
-    }
-    if (e.delta(&eMin,&eMax) > accuracy) {
-      if (insert(e,x)) {
-	y = e.y;
-	return true;
-      } else {
-	return false;
-      }
-    } else {
-      if (e.interpolatedEntry(&e,      
-			      x,
-			      &eMin,
-			      &eMax)) {
-	y = e.y;
-	return true;
-      } else {
-	return false;
-      }
-    }
-  }
- protected:	
-  virtual Y function(const X &) const = 0;
- protected:
-  // computes new entry and inserts it into interval
-  virtual bool insert(E & e,
-		      const X & x) const {
-    e.x = x;
-    e.y = function(x);
-    ORSA_DEBUG("-- inserted new entry, size: %i --",entryInterval->size()+1);
-    return entryInterval->insert(e);
-  }
- protected:
-  // virtual osg::ref_ptr<E> createEntry() const { return new E; }
- protected:
-  const double accuracy;
- protected:
-  // mutable osg::ref_ptr< orsa::Interval< osg::ref_ptr<E> > > entryInterval;
-  mutable osg::ref_ptr< orsa::Interval<E> > entryInterval;
+protected:
+    // virtual osg::ref_ptr<E> createEntry() const { return new E; }
+protected:
+    const double accuracy;
+protected:
+    // mutable osg::ref_ptr< orsa::Interval< osg::ref_ptr<E> > > entryInterval;
+    mutable osg::ref_ptr< orsa::Interval<E> > entryInterval;
 };
 
 /**** FunctionProxy: using it for the P(phase,G) function ****/
 
 class PhaseComponentProxyEntry : public FunctionProxyEntry < double, double > {
- public:
-  PhaseComponentProxyEntry() : FunctionProxyEntry<double,double>() { }
- public:
-  double delta(const FunctionProxyEntry<double,double> * e1,
-		     const FunctionProxyEntry<double,double> * e2) const {
-    const PhaseComponentProxyEntry * p1 = dynamic_cast<const PhaseComponentProxyEntry *> (e1);
-    const PhaseComponentProxyEntry * p2 = dynamic_cast<const PhaseComponentProxyEntry *> (e2);
-    const double d = fabs((p2->y-p1->y)/(std::min(fabs(p1->y),fabs(p2->y))+orsa::epsilon()));
-    return d;
-  }
+public:
+    PhaseComponentProxyEntry() : FunctionProxyEntry<double,double>() { }
+public:
+    double delta(const FunctionProxyEntry<double,double> * e1,
+                 const FunctionProxyEntry<double,double> * e2) const {
+        const PhaseComponentProxyEntry * p1 = dynamic_cast<const PhaseComponentProxyEntry *> (e1);
+        const PhaseComponentProxyEntry * p2 = dynamic_cast<const PhaseComponentProxyEntry *> (e2);
+        const double d = fabs((p2->y-p1->y)/(std::min(fabs(p1->y),fabs(p2->y))+orsa::epsilon()));
+        return d;
+    }
 };
 
 class PhaseComponentProxy : public FunctionProxy <double,double,PhaseComponentProxyEntry> { 
- public:
-  PhaseComponentProxy(const double & accuracy) : 
-    FunctionProxy<double,double,PhaseComponentProxyEntry>(accuracy) { }
- protected:
-  double function(const double & x) const {
-    return P(x);
-  }	
+public:
+    PhaseComponentProxy(const double & accuracy) : 
+        FunctionProxy<double,double,PhaseComponentProxyEntry>(accuracy) { }
+protected:
+    double function(const double & x) const {
+        return P(x);
+    }	
 };
 
 // globaly accessible proxy
@@ -186,26 +186,26 @@ extern osg::ref_ptr<PhaseComponentProxy> phaseComponentProxy;
 /**** FunctionProxy: using it for the log10(x) function ****/
 
 class Log10ProxyEntry : public FunctionProxyEntry < double, double > {
- public:
-  Log10ProxyEntry() : FunctionProxyEntry<double,double>() { }
- public:
-  double delta(const FunctionProxyEntry<double,double> * e1,
-		     const FunctionProxyEntry<double,double> * e2) const {
-    const Log10ProxyEntry * p1 = dynamic_cast<const Log10ProxyEntry *> (e1);
-    const Log10ProxyEntry * p2 = dynamic_cast<const Log10ProxyEntry *> (e2);
-    const double d = fabs((p2->y-p1->y)/(std::min(fabs(p1->y),fabs(p2->y))+orsa::epsilon()));
-    return d;
-  }
+public:
+    Log10ProxyEntry() : FunctionProxyEntry<double,double>() { }
+public:
+    double delta(const FunctionProxyEntry<double,double> * e1,
+                 const FunctionProxyEntry<double,double> * e2) const {
+        const Log10ProxyEntry * p1 = dynamic_cast<const Log10ProxyEntry *> (e1);
+        const Log10ProxyEntry * p2 = dynamic_cast<const Log10ProxyEntry *> (e2);
+        const double d = fabs((p2->y-p1->y)/(std::min(fabs(p1->y),fabs(p2->y))+orsa::epsilon()));
+        return d;
+    }
 };
 
 class Log10Proxy : public FunctionProxy <double,double,Log10ProxyEntry> { 
- public:
-  Log10Proxy(const double & accuracy) : 
-    FunctionProxy<double,double,Log10ProxyEntry>(accuracy) { }
- protected:
-  double function(const double & x) const {
-    return log10(x);
-  }	
+public:
+    Log10Proxy(const double & accuracy) : 
+        FunctionProxy<double,double,Log10ProxyEntry>(accuracy) { }
+protected:
+    double function(const double & x) const {
+        return log10(x);
+    }	
 };
 
 // globaly accessible proxy
@@ -235,119 +235,143 @@ extern osg::ref_ptr<Log10Proxy> log10Proxy;
 */
 //
 inline double apparentMagnitude(const double & H,
-				const double & phaseAngle,
-				const double & neo2obs,
-				const double & neo2sun) {
+                                const double & phaseAngle,
+                                const double & neo2obs,
+                                const double & neo2sun) {
   
-  const double V = H + P(phaseAngle) + 
-    5*log10(FromUnits(neo2obs,orsa::Unit::AU,-1)*FromUnits(neo2sun,orsa::Unit::AU,-1));
+    const double V = H + P(phaseAngle) + 
+        5*log10(FromUnits(neo2obs,orsa::Unit::AU,-1)*FromUnits(neo2sun,orsa::Unit::AU,-1));
   
-  return V;
+    return V;
 }
 
 /****/
 
 orsa::Body * SPICEBody (const std::string  & bodyName,
-			const double & bodyMass);
+                        const double & bodyMass);
 
 class OrbitID : public orsa::Orbit, public osg::Referenced {
- public:  
-  OrbitID(const unsigned int id_in,
-	  const orsa::Orbit & earthOrbit_in) :
-    // const          int random_seed) : 
-    orsa::Orbit(),
-    osg::Referenced(),
-    id(id_in),
-    earthOrbit(earthOrbit_in),
-    // randomSeed(random_seed),
-    NEO_max_q(FromUnits(1.3,  orsa::Unit::AU)),
-    ONE_AU(   FromUnits(1.0,  orsa::Unit::AU)),
-    EARTH_q(  FromUnits(0.983,orsa::Unit::AU)),
-    EARTH_Q(  FromUnits(1.017,orsa::Unit::AU))
-      { }
- protected:
-  virtual ~OrbitID() { }
- public:
-  bool isNEO()    const;
-  bool isIEO()    const;
-  bool isAten()   const;
-  bool isApollo() const;
-  bool isAmor()   const;
-  bool isPHO()    const;
- public:
-  const unsigned int id;
-  const orsa::Orbit & earthOrbit;
-  // const          int randomSeed;
- public:
-  double H;
- protected:
-  const double NEO_max_q, ONE_AU, EARTH_q, EARTH_Q;
+public:  
+    OrbitID(const unsigned int id_in,
+            const orsa::Orbit & earthOrbit_in) :
+        // const          int random_seed) : 
+        orsa::Orbit(),
+        osg::Referenced(),
+        id(id_in),
+        earthOrbit(earthOrbit_in),
+        // randomSeed(random_seed),
+        NEO_max_q(FromUnits(1.3,  orsa::Unit::AU)),
+        ONE_AU(   FromUnits(1.0,  orsa::Unit::AU)),
+        EARTH_q(  FromUnits(0.983,orsa::Unit::AU)),
+        EARTH_Q(  FromUnits(1.017,orsa::Unit::AU))
+        { }
+protected:
+    virtual ~OrbitID() { }
+public:
+    bool isNEO()    const;
+    bool isIEO()    const;
+    bool isAten()   const;
+    bool isApollo() const;
+    bool isAmor()   const;
+    bool isPHO()    const;
+public:
+    const unsigned int id;
+    const orsa::Orbit & earthOrbit;
+    // const          int randomSeed;
+public:
+    double H;
+protected:
+    const double NEO_max_q, ONE_AU, EARTH_q, EARTH_Q;
 };
 
 class OrbitFactory : public osg::Referenced {
- public:
-  OrbitFactory(const double & a_AU_min_in,
-	       const double & a_AU_max_in,
-	       const double & e_min_in,
-	       const double & e_max_in,
-	       const double & i_DEG_min_in,
-	       const double & i_DEG_max_in,
-	       const double & H_min_in,
-	       const double & H_max_in,
-	       const orsa::RNG * rnd_in,
-	       const orsa::Orbit & earthOrbit_in) :
-    osg::Referenced(),
-    a_AU_min(a_AU_min_in),
-    a_AU_max(a_AU_max_in),
-    e_min(e_min_in),
-    e_max(e_max_in),
-    i_DEG_min(i_DEG_min_in),
-    i_DEG_max(i_DEG_max_in),
-    H_min(H_min_in),
-    H_max(H_max_in),
-    rnd(rnd_in),
-    earthOrbit(earthOrbit_in),
-    GMSun(orsaSolarSystem::Data::GMSun()) {
-    idCounter = 0;
+public:
+    OrbitFactory(const double & a_AU_min_in,
+                 const double & a_AU_max_in,
+                 const double & e_min_in,
+                 const double & e_max_in,
+                 const double & i_DEG_min_in,
+                 const double & i_DEG_max_in,
+                 const double & node_DEG_min_in,
+                 const double & node_DEG_max_in,
+                 const double & peri_DEG_min_in,
+                 const double & peri_DEG_max_in,
+                 const double & M_DEG_min_in,
+                 const double & M_DEG_max_in,
+                 const double & H_min_in,
+                 const double & H_max_in,
+                 const orsa::RNG * rnd_in,
+                 const orsa::Orbit & earthOrbit_in) :
+        osg::Referenced(),
+        a_AU_min(a_AU_min_in),
+        a_AU_max(a_AU_max_in),
+        e_min(e_min_in),
+        e_max(e_max_in),
+        i_DEG_min(i_DEG_min_in),
+        i_DEG_max(i_DEG_max_in),
+        node_DEG_min(node_DEG_min_in),
+        node_DEG_max(node_DEG_max_in),
+        peri_DEG_min(peri_DEG_min_in),
+        peri_DEG_max(peri_DEG_max_in),
+        M_DEG_min(M_DEG_min_in),
+        M_DEG_max(M_DEG_max_in),
+        H_min(H_min_in),
+        H_max(H_max_in),
+        rnd(rnd_in),
+        earthOrbit(earthOrbit_in),
+        GMSun(orsaSolarSystem::Data::GMSun()) {
+        idCounter = 0;
     
-    // debug
-    ORSA_DEBUG("new factory object: %g-%g %g-%g %g-%g %g-%g",
-	       a_AU_min,
-	       a_AU_max,
-	       e_min,
-	       e_max,
-	       i_DEG_min,
-	       i_DEG_max,
-	       H_min,
-	       H_max);
-  }
- protected:
-  virtual ~OrbitFactory() { }
+        // debug
+        ORSA_DEBUG("new factory object: %g-%g %g-%g %g-%g %g-%g %g-%g %g-%g %g-%g",
+                   a_AU_min,
+                   a_AU_max,
+                   e_min,
+                   e_max,
+                   i_DEG_min,
+                   i_DEG_max,
+                   node_DEG_min,
+                   node_DEG_max,
+                   peri_DEG_min,
+                   peri_DEG_max,
+                   M_DEG_min,
+                   M_DEG_max,
+                   H_min,
+                   H_max);
+    }
+protected:
+    virtual ~OrbitFactory() { }
   
- public:
-  virtual OrbitID * sample() const;
+public:
+    virtual OrbitID * sample() const;
   
- protected:
-  const double a_AU_min;
-  const double a_AU_max;
-  const double e_min;
-  const double e_max;
-  const double i_DEG_min;
-  const double i_DEG_max;
-  const double H_min;
-  const double H_max;
+protected:
+    const double a_AU_min;
+    const double a_AU_max;
+    const double e_min;
+    const double e_max;
+    const double i_DEG_min;
+    const double i_DEG_max;
+    const double node_DEG_min;
+    const double node_DEG_max;
+    const double peri_DEG_min;
+    const double peri_DEG_max;
+    const double M_DEG_min;
+    const double M_DEG_max;
+    const double H_min;
+    const double H_max;
   
- protected:
-  osg::ref_ptr<const orsa::RNG> rnd;
+protected:
+    osg::ref_ptr<const orsa::RNG> rnd;
   
- protected:
-  const orsa::Orbit & earthOrbit;
+protected:
+    const orsa::Orbit & earthOrbit;
   
- private:
-  const double GMSun;
+private:
+    const double GMSun;
   
- private:
-  mutable unsigned int idCounter;
+private:
+    mutable unsigned int idCounter;
 };
 
 #endif // SURVEY_REVIEW_H
