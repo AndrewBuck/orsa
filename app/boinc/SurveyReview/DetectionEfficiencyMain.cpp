@@ -369,8 +369,9 @@ int main(int argc, char ** argv) {
   
     ORSA_DEBUG("process ID: %i",getpid());
     
-    // OK to use PID as random seed?
-    osg::ref_ptr<orsa::RNG> rnd = new orsa::RNG(getpid());
+    // change random seed...
+    // osg::ref_ptr<orsa::RNG> rnd = new orsa::RNG(getpid());
+    osg::ref_ptr<orsa::RNG> rnd = new orsa::RNG(85719);
     
     const std::string basename = SkyCoverage::basename(argv[1]);
   
@@ -692,6 +693,7 @@ int main(int argc, char ** argv) {
         const orsa::Vector moon2obs = -obs2moon;
         const orsa::Vector orb2obs_dt = obsPosition_dt - orbitPosition_dt;
         const orsa::Vector orb2sun_dt = sunPosition_dt - orbitPosition_dt;
+        const orsa::Vector obs2orb_dt = -orb2obs_dt;
         //
         const double phaseAngle = acos(orb2sun.normalized()*orb2obs.normalized());
         const double solarElongation = acos(obs2sun.normalized()*obs2orb.normalized());
@@ -736,7 +738,7 @@ int main(int argc, char ** argv) {
                                  phaseAngle,
                                  orb2obs.length(),
                                  orb2sun.length()); 
-        ed.apparentVelocity = acos(orb2obs_dt.normalized()*orb2obs.normalized())/dt.get_d();
+        ed.apparentVelocity = acos(obs2orb_dt.normalized()*obs2orb.normalized())/dt.get_d();
         ed.solarElongation = solarElongation;
         ed.lunarElongation = lunarElongation;
         ed.solarAltitude = solarAltitude;
