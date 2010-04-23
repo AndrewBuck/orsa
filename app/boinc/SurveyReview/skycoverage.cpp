@@ -318,7 +318,7 @@ double SkyCoverage::eta(const double & V,
            (1.0+exp((fabs(GB_limit)-fabs(GB)-Gmix*fabs(GL))/w_GB));
         */
     }
-    // if (retVal < 0.0) retVal=0.0;
+    if (retVal < 0.0) retVal=0.0;
     // if (retVal > 1.0) retVal=1.0;
     return retVal;
 }
@@ -337,7 +337,7 @@ double SkyCoverage::nominal_eta_V(const double & V,
             (eta0_V-c_V*orsa::square(V-V0)) / 
             (1.0+exp((V-V_limit)/w_V));
     }
-    // if (retVal < 0.0) retVal=0.0;
+    if (retVal < 0.0) retVal=0.0;
     // if (retVal > 1.0) retVal=1.0;
     return retVal;
 }
