@@ -224,17 +224,17 @@ public:
         orsa::Time epoch;
         int year;
         int dayOfYear;
-        if (!SkyCoverage::processFilename(filename,
-                                          obsCodeFile.get(),
-                                          obsCode,
-                                          epoch,
-                                          year,
-                                          dayOfYear)) {
+        if (SkyCoverage::processFilename(filename,
+                                         obsCodeFile.get(),
+                                         obsCode,
+                                         epoch,
+                                         year,
+                                         dayOfYear)) {
+            _data->obscode=obsCode;
+            _data->epoch=epoch;
+        } else {
             // ORSA_DEBUG("problems...");
-            return;
         }
-        _data->obscode=obsCode;
-        _data->epoch=epoch;
         // now, regular call
         orsaInputOutput::InputFile < orsaInputOutput::PlainFile, osg::ref_ptr<SkyCoverage> >::setFileName(filename);
     }
