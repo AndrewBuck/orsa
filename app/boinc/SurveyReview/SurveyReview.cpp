@@ -29,6 +29,12 @@ orsa::Body * SPICEBody (const std::string  & bodyName,
 
 // Taking definitons from: http://neo.jpl.nasa.gov/neo/groups.html
 
+// static members of OrbitID
+const double OrbitID::NEO_max_q = FromUnits(1.3,  orsa::Unit::AU);
+const double OrbitID::ONE_AU    = FromUnits(1.0,  orsa::Unit::AU);
+const double OrbitID::EARTH_q   = FromUnits(0.983,orsa::Unit::AU);
+const double OrbitID::EARTH_Q   = FromUnits(1.017,orsa::Unit::AU);
+
 // it looks like only q<1.3 AU is required in the definition
 bool OrbitID::isNEO() const {
     if (a*(1-e) < NEO_max_q) {

@@ -26,13 +26,19 @@
 #include "sqlite3.h"
 
 int main() {
-  
+    
     orsa::Debug::instance()->initTimer();
-  
+    
     boinc_init();
-  
+    
     ORSA_DEBUG("process ID: %i",getpid());
-  
+    
+    /* 
+       ORSA_DEBUG("NEO_max_q: %g = %g [AU]",
+       OrbitID::NEO_max_q,
+       orsa::FromUnits(OrbitID::NEO_max_q,orsa::Unit::AU,-1));
+    */
+    
     std::string resolvedFileName;
   
     // needed to work with SQLite database
@@ -392,6 +398,16 @@ int main() {
                     for (int z_peri=z_peri_min; z_peri<z_peri_max; z_peri+=z_peri_delta) {
                         for (int z_M=z_M_min; z_M<z_M_max; z_M+=z_M_delta) {
                             for (int z_H=z_H_min; z_H<z_H_max; z_H+=z_H_delta) {
+
+                                {
+                                    // quick check if NEO
+                                    // minimum perihelion: q = a_min*(1-e_max), with min and max of this specific interval
+                                    const double q_min = orsa::FromUnits(grain_a_AU*z_a*(1.0-grain_e*(z_e+z_e_delta)),orsa::Unit::AU);
+                                    if (q_min > OrbitID::NEO_max_q) {
+                                        // ORSA_DEBUG("skipping, no NEOs in this interval");
+                                        continue;
+                                    }
+                                }                                
                                 
                                 {
                                     // check if already computed this one
@@ -430,6 +446,15 @@ int main() {
                                     bool skip=false;
                                     //
                                     if (nrows==1) {
+                                        // ORSA_DEBUG("skipping value already computed...");
+                                        ORSA_DEBUG("skipping: (%i,%i,%i,%i,%i,%i,%i)",
+                                                   z_a,
+                                                   z_e,
+                                                   z_i,
+                                                   z_node,
+                                                   z_peri,
+                                                   z_M,
+                                                   z_H);
                                         skip=true;
                                     } else if (nrows>1) {
                                         ORSA_ERROR("database corrupted, only one entry per grid element is admitted");
@@ -443,7 +468,7 @@ int main() {
                                         continue;
                                     }
                                 }
-	  
+                                
                                 osg::ref_ptr<OrbitFactory> orbitFactory =
                                     new OrbitFactory(grain_a_AU* z_a,
                                                      grain_a_AU*(z_a+z_a_delta),

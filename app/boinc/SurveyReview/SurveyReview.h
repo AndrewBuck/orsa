@@ -258,13 +258,14 @@ public:
         orsa::Orbit(),
         osg::Referenced(),
         id(id_in),
-        earthOrbit(earthOrbit_in),
-        // randomSeed(random_seed),
-        NEO_max_q(FromUnits(1.3,  orsa::Unit::AU)),
-        ONE_AU(   FromUnits(1.0,  orsa::Unit::AU)),
-        EARTH_q(  FromUnits(0.983,orsa::Unit::AU)),
-        EARTH_Q(  FromUnits(1.017,orsa::Unit::AU))
-        { }
+        earthOrbit(earthOrbit_in) { }
+    // randomSeed(random_seed),
+    /* NEO_max_q(FromUnits(1.3,  orsa::Unit::AU)),
+       ONE_AU(   FromUnits(1.0,  orsa::Unit::AU)),
+       EARTH_q(  FromUnits(0.983,orsa::Unit::AU)),
+       EARTH_Q(  FromUnits(1.017,orsa::Unit::AU))
+       { }
+    */
 protected:
     virtual ~OrbitID() { }
 public:
@@ -280,8 +281,8 @@ public:
     // const          int randomSeed;
 public:
     double H;
-protected:
-    const double NEO_max_q, ONE_AU, EARTH_q, EARTH_Q;
+public:
+    static const double NEO_max_q, ONE_AU, EARTH_q, EARTH_Q;
 };
 
 class OrbitFactory : public osg::Referenced {
