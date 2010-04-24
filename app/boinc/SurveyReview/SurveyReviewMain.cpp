@@ -391,6 +391,7 @@ int main() {
     //
     double V_field;
     
+    bool firstIter=true;
     for (int z_a=z_a_min; z_a<z_a_max; z_a+=z_a_delta) {
         for (int z_e=z_e_min; z_e<z_e_max; z_e+=z_e_delta) {
             for (int z_i=z_i_min; z_i<z_i_max; z_i+=z_i_delta) {
@@ -398,7 +399,52 @@ int main() {
                     for (int z_peri=z_peri_min; z_peri<z_peri_max; z_peri+=z_peri_delta) {
                         for (int z_M=z_M_min; z_M<z_M_max; z_M+=z_M_delta) {
                             for (int z_H=z_H_min; z_H<z_H_max; z_H+=z_H_delta) {
-
+                                
+                                if (firstIter) {
+                                    // if grid table is already populated,
+                                    // then this is a restore, and we skip directly to the last row
+                                    char **result;
+                                    int nrows, ncols;
+                                    char sql_line[1024];
+                                    // select last inserted row
+                                    sprintf(sql_line,"SELECT * FROM grid ORDER BY rowid desc LIMIT 1");
+                                    rc = sqlite3_get_table(db,sql_line,&result,&nrows,&ncols,&zErr);
+                                    //
+                                    if (rc != SQLITE_OK) {
+                                        if (zErr != NULL) {
+                                            fprintf(stderr,"SQL error: %s\n",zErr);
+                                            sqlite3_free(zErr);
+                                            boinc_finish(0); 
+                                        }
+                                    }
+                                    // ORSA_DEBUG("nrows: %i  ncols: %i",nrows, ncols);
+                                    //
+                                    /* for (int i=0; i<nrows; ++i) {
+                                       for (int j=0; j<ncols; ++j) {
+                                       // i=0 is the header
+                                       const int index = (i+1)*ncols+j;
+                                       ORSA_DEBUG("result[%i] = %s = %s",j,result[j],result[index]);
+                                       }
+                                       }
+                                    */
+                                    //
+                                    if (nrows==1) {
+                                        ORSA_DEBUG("skipping to last row");
+                                        for (int j=0; j<ncols; ++j) {
+                                            // first row is the header
+                                            if (std::string(result[j])=="z_a_min")    { z_a    = atoi(result[ncols+j]); continue; }
+                                            if (std::string(result[j])=="z_e_min")    { z_e    = atoi(result[ncols+j]); continue; }
+                                            if (std::string(result[j])=="z_i_min")    { z_i    = atoi(result[ncols+j]); continue; }
+                                            if (std::string(result[j])=="z_node_min") { z_node = atoi(result[ncols+j]); continue; }
+                                            if (std::string(result[j])=="z_peri_min") { z_peri = atoi(result[ncols+j]); continue; }
+                                            if (std::string(result[j])=="z_M_min")    { z_M    = atoi(result[ncols+j]); continue; }
+                                            if (std::string(result[j])=="z_H_min")    { z_H    = atoi(result[ncols+j]); continue; }
+                                        }
+                                    }
+                                    sqlite3_free_table(result);
+                                    firstIter=false;
+                                }
+                                
                                 {
                                     // quick check if NEO
                                     // minimum perihelion: q = a_min*(1-e_max), with min and max of this specific interval
@@ -519,10 +565,10 @@ int main() {
                         
                                     const orsa::Vector dr_epoch          = (orbitPosition_epoch         - observerPosition_epoch);
                                     const orsa::Vector dr_epoch_plus_dt  = (orbitPosition_epoch_plus_dt - observerPosition_epoch_plus_dt);
-	    
+                                    
                                     // orsa::print(dr_nightStart);
                                     // orsa::print(dr_nightStop);
-	    
+                                    
                                     // if (skyCoverage->get(dr_nightStart.normalized(),V_nightStart) && 
                                     // skyCoverage->get(dr_nightStop.normalized(), V_nightStop)) {
                                     if (skyCoverage->get(dr_epoch.normalized(),V_field)) {
