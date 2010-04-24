@@ -390,7 +390,7 @@ bool SkyCoverage::processFilename(const std::string & filename_in,
     size_t found_underscore = std::string(::basename(filename)).find("_",0);
     size_t found_dot        = std::string(::basename(filename)).find(".",0);
     if (found_underscore == std::string::npos) {
-        ORSA_DEBUG("no underscore found in filename: %s",::basename(filename));
+        // ORSA_DEBUG("no underscore found in filename: %s",::basename(filename));
         return false;
     }
     if (found_dot == std::string::npos) {
