@@ -230,7 +230,8 @@ public:
                                           epoch,
                                           year,
                                           dayOfYear)) {
-            ORSA_DEBUG("problems...");
+            // ORSA_DEBUG("problems...");
+            return;
         }
         _data->obscode=obsCode;
         _data->epoch=epoch;
