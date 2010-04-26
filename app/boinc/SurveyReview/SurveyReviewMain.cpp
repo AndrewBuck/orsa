@@ -329,36 +329,38 @@ int main() {
     {
         boinc_resolve_filename_s("grid.dat",resolvedFileName);
         FILE * fp = boinc_fopen(resolvedFileName.c_str(),"r"); 
-        if (fp) {
-            bool done=false;
-            char line[1024];
-            while (fgets(line,1024,fp)) {
-                if (strlen(line) > 0) {
-                    if (line[0] == '#') {
-                        continue;
-                    }
-                }
-                if (22 == gmp_sscanf(line,
-                                     "%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
-                                     &z_a_min, &z_a_max, &z_a_delta,
-                                     &z_e_min, &z_e_max, &z_e_delta,
-                                     &z_i_min, &z_i_max, &z_i_delta,
-                                     &z_node_min, &z_node_max, &z_node_delta,
-                                     &z_peri_min, &z_peri_max, &z_peri_delta,
-                                     &z_M_min, &z_M_max, &z_M_delta,
-                                     &z_H_min, &z_H_max, &z_H_delta,
-                                     &numGen)) {
-                    done=true;
+        if (!fp) {
+            ORSA_DEBUG("cannot open grid.dat file");
+            boinc_finish(0);   
+        }
+        bool done=false;
+        char line[1024];
+        while (fgets(line,1024,fp)) {
+            if (strlen(line) > 0) {
+                if (line[0] == '#') {
+                    continue;
                 }
             }
-            fclose(fp);
-            if (!done) {
-                ORSA_DEBUG("cannot parse file");
-                boinc_finish(0);   
+            if (22 == gmp_sscanf(line,
+                                 "%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
+                                 &z_a_min, &z_a_max, &z_a_delta,
+                                 &z_e_min, &z_e_max, &z_e_delta,
+                                 &z_i_min, &z_i_max, &z_i_delta,
+                                 &z_node_min, &z_node_max, &z_node_delta,
+                                 &z_peri_min, &z_peri_max, &z_peri_delta,
+                                 &z_M_min, &z_M_max, &z_M_delta,
+                                 &z_H_min, &z_H_max, &z_H_delta,
+                                 &numGen)) {
+                done=true;
             }
         }
+        fclose(fp);
+        if (!done) {
+            ORSA_DEBUG("cannot parse file");
+            boinc_finish(0);   
+        }
     }
-  
+    
     const orsa::Time apparentMotion_dt_T = orsa::Time(0,0,1,0,0);
     //
     const double apparentMotion_dt = apparentMotion_dt_T.get_d();
