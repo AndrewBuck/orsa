@@ -391,6 +391,18 @@ int main() {
     //
     double V_field;
     
+    // estimate total number of iterations, to report progress
+    mpz_class znum = 1;
+    znum *= (z_a_max-z_a_min)/z_a_delta;
+    znum *= (z_e_max-z_e_min)/z_e_delta;
+    znum *= (z_i_max-z_i_min)/z_i_delta;
+    znum *= (z_node_max-z_node_min)/z_node_delta;
+    znum *= (z_peri_max-z_peri_min)/z_peri_delta;
+    znum *= (z_M_max-z_M_min)/z_M_delta;
+    znum *= (z_H_max-z_H_min)/z_H_delta;
+    const mpz_class totalIterations = znum;
+    ORSA_DEBUG("maximum expected iterations: %Zi",totalIterations.get_mpz_t());
+    
     bool firstIter=true;
     for (int z_a=z_a_min; z_a<z_a_max; z_a+=z_a_delta) {
         for (int z_e=z_e_min; z_e<z_e_max; z_e+=z_e_delta) {
@@ -399,6 +411,46 @@ int main() {
                     for (int z_peri=z_peri_min; z_peri<z_peri_max; z_peri+=z_peri_delta) {
                         for (int z_M=z_M_min; z_M<z_M_max; z_M+=z_M_delta) {
                             for (int z_H=z_H_min; z_H<z_H_max; z_H+=z_H_delta) {
+                                
+                                {
+                                    // report progress
+                                    mpz_class idx=0;
+                                    mpz_class mul=totalIterations;
+                                    //
+                                    mul /= (z_a_max-z_a_min) / z_a_delta;
+                                    idx += mul*(z_a-z_a_min) / z_a_delta;
+                                    //
+                                    mul /= (z_e_max-z_e_min) / z_e_delta;
+                                    idx += mul*(z_e-z_e_min) / z_e_delta;
+                                    //
+                                    mul /= (z_i_max-z_i_min) / z_i_delta;
+                                    idx += mul*(z_i-z_i_min) / z_i_delta;
+                                    //
+                                    mul /= (z_node_max-z_node_min) / z_node_delta;
+                                    idx += mul*(z_node-z_node_min) / z_node_delta;
+                                    //
+                                    mul /= (z_peri_max-z_peri_min) / z_peri_delta;
+                                    idx += mul*(z_peri-z_peri_min) / z_peri_delta;
+                                    //
+                                    mul /= (z_M_max-z_M_min) / z_M_delta;
+                                    idx += mul*(z_M-z_M_min) / z_M_delta;
+                                    //
+                                    mul /= (z_H_max-z_H_min) / z_H_delta;
+                                    idx += mul*(z_H-z_H_min) / z_H_delta;
+                                    //
+                                    const double fractionDone = idx.get_d()/totalIterations.get_d();
+                                    //
+                                    boinc_fraction_done(fractionDone);
+                                    if (boinc_is_standalone()) {
+                                        ORSA_DEBUG("fraction completed: %5.2f%%",100*fractionDone);
+                                        /* ORSA_DEBUG("fraction completed: %5.2f%%    idx: %Zi mul: %Zi totalIterations: %Zi",
+                                           100*fractionDone,
+                                           idx.get_mpz_t(),
+                                           mul.get_mpz_t(),
+                                           totalIterations.get_mpz_t());
+                                        */
+                                    }
+                                }
                                 
                                 if (firstIter) {
                                     // if grid table is already populated,
@@ -429,7 +481,7 @@ int main() {
                                     */
                                     //
                                     if (nrows==1) {
-                                        ORSA_DEBUG("skipping to last row");
+                                        ORSA_DEBUG("skipping to last computed row");
                                         for (int j=0; j<ncols; ++j) {
                                             // first row is the header
                                             if (std::string(result[j])=="z_a_min")    { z_a    = atoi(result[ncols+j]); continue; }
@@ -493,14 +545,15 @@ int main() {
                                     //
                                     if (nrows==1) {
                                         // ORSA_DEBUG("skipping value already computed...");
-                                        ORSA_DEBUG("skipping: (%i,%i,%i,%i,%i,%i,%i)",
-                                                   z_a,
-                                                   z_e,
-                                                   z_i,
-                                                   z_node,
-                                                   z_peri,
-                                                   z_M,
-                                                   z_H);
+                                        /* ORSA_DEBUG("skipping: (%i,%i,%i,%i,%i,%i,%i)",
+                                           z_a,
+                                           z_e,
+                                           z_i,
+                                           z_node,
+                                           z_peri,
+                                           z_M,
+                                           z_H);
+                                        */
                                         skip=true;
                                     } else if (nrows>1) {
                                         ORSA_ERROR("database corrupted, only one entry per grid element is admitted");
@@ -704,9 +757,9 @@ int main() {
                                             good_sigma_eta_NEO,
                                             good_eta_PHO,
                                             good_sigma_eta_PHO);
-                                    ORSA_DEBUG("executing: [%s]",sql_line);
-                                    ORSA_DEBUG("eta_NEO->entries(): %Zi",eta_NEO->entries().get_mpz_t());
-                                    ORSA_DEBUG("eta_PHO->entries(): %Zi",eta_PHO->entries().get_mpz_t());
+                                    // ORSA_DEBUG("executing: [%s]",sql_line);
+                                    // ORSA_DEBUG("eta_NEO->entries(): %Zi",eta_NEO->entries().get_mpz_t());
+                                    // ORSA_DEBUG("eta_PHO->entries(): %Zi",eta_PHO->entries().get_mpz_t());
                                     // do {
                                     rc = sqlite3_exec(db,sql_line,NULL,NULL,&zErr);
                                     // if (rc==SQLITE_BUSY) {
@@ -777,7 +830,7 @@ int main() {
                                     } while (rc==SQLITE_BUSY);
 	    
                                 }
-	  
+                                
                                 // seven "for" iterations...
                             }
                         }
@@ -786,6 +839,9 @@ int main() {
             }
         }
     }
+    
+    // 100% done
+    boinc_fraction_done(1.0);
     
     // cleanup
     do {
