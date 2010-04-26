@@ -6,7 +6,7 @@ CONFIG += qt
 
 QT -= gui
 
-CONFIG += boinc_include boinc_lib gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib spice_include spice_lib tbb_include tbb_lib zlib_include
+CONFIG += boinc_include boinc_lib gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib spice_include spice_lib zlib_include
 
 win32 {
 	CONFIG += osg_lib
@@ -23,7 +23,7 @@ OBJECTS_DIR = .obj/$${PLATFORM_NAME}
 DESTDIR     = ../../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
-	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads -lorsaTBB /home/tricaric/boinc/api/libboinc_api.a /home/tricaric/boinc/lib/libboinc.a
+	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads /home/tricaric/boinc/api/libboinc_api.a /home/tricaric/boinc/lib/libboinc.a
 }
 
 macx {
