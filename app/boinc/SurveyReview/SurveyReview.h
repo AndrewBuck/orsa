@@ -324,21 +324,22 @@ public:
         idCounter = 0;
     
         // debug
-        ORSA_DEBUG("new factory object: %g-%g %g-%g %g-%g %g-%g %g-%g %g-%g %g-%g",
-                   a_AU_min,
-                   a_AU_max,
-                   e_min,
-                   e_max,
-                   i_DEG_min,
-                   i_DEG_max,
-                   node_DEG_min,
-                   node_DEG_max,
-                   peri_DEG_min,
-                   peri_DEG_max,
-                   M_DEG_min,
-                   M_DEG_max,
-                   H_min,
-                   H_max);
+        /* ORSA_DEBUG("new factory object: %g-%g %g-%g %g-%g %g-%g %g-%g %g-%g %g-%g",
+           a_AU_min,
+           a_AU_max,
+           e_min,
+           e_max,
+           i_DEG_min,
+           i_DEG_max,
+           node_DEG_min,
+           node_DEG_max,
+           peri_DEG_min,
+           peri_DEG_max,
+           M_DEG_min,
+           M_DEG_max,
+           H_min,
+           H_max);
+        */
     }
 protected:
     virtual ~OrbitFactory() { }
