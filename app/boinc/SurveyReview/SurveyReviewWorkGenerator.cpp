@@ -4,6 +4,9 @@
 #include "backend_lib.h"
 #include "lib/util.h"
 
+#include <orsa/datetime.h>
+#include <orsaSolarSystem/datetime.h>
+
 #include <osg/ref_ptr>
 
 std::string inputTemplateFileName(const std::string  & baseName,
@@ -97,20 +100,22 @@ bool writeInputTemplate(const std::string  & fileName,
     return true;
 }
 
-std::string outputTemplateFileName(const std::string  & baseName,
-                                   const unsigned int   numRealNEO,
-                                   const unsigned int   numSyntheticNEO,
-                                   const int          & tp_lines) {
-    char fileName[1024];
-    gmp_snprintf(fileName,
-                 1024,
-                 "templates/wu.SR.output.%s.%i_%i_%i.xml",  
-                 baseName.c_str(),
-                 numRealNEO,
-                 numSyntheticNEO,
-                 tp_lines);
-    return fileName;
-}
+/* 
+   std::string outputTemplateFileName(const std::string  & baseName,
+   const unsigned int   numRealNEO,
+   const unsigned int   numSyntheticNEO,
+   const int          & tp_lines) {
+   char fileName[1024];
+   gmp_snprintf(fileName,
+   1024,
+   "templates/wu.SR.output.%s.%i_%i_%i.xml",  
+   baseName.c_str(),
+   numRealNEO,
+   numSyntheticNEO,
+   tp_lines);
+   return fileName;
+   }
+*/
 
 bool writeOutputTemplate(const std::string          & fileName,
                          const OutputTemplateVector & outputTemplateVector) {
@@ -172,108 +177,24 @@ int main(int argc, char ** argv) {
     
     const std::string baseName = argv[1];
     
-    // keep this in sync with other source files in this dir!
-    const orsa::Time genEpoch = orsaSolarSystem::J2000();
-    
-    osg::ref_ptr<ParameterFile> parFile = new ParameterFile;
-    parFile->mainRead("param.conf");
-    
-    TelescopeList telescopeList;
-    //
-    if (!readTelescope(telescopeList,"telescope.conf")) {
-        ORSA_ERROR("cannot read telescope configuration file");
-        exit(0);
-    }
-    
-    orsa::Time endSimulation = genEpoch;
-    { 
-        TelescopeList::const_iterator it = telescopeList.begin();
-        while (it != telescopeList.end()) {
-            endSimulation = std::max((*it)->tStop,endSimulation);
-            ++it;
-        }
-    }
-    
-    FILE         * fp_gen;
-    char           line[1024];
-    unsigned int   num;
-    int            randomSeed;
-    
-    int numRealNEO=0;
-    //
-    fp_gen = boinc_fopen("realNEO.gen","r");
-    if (!fp_gen) {
-        ORSA_ERROR("cannot open file");
-        return 0;
-    } 
-    while (fgets(line,1024,fp_gen) != 0) {
-        if (2 == gmp_sscanf(line,"%d %d",
-                            &num,
-                            &randomSeed)) {
-            numRealNEO += num;
-        }
-    }
-    fclose(fp_gen);
-    
-    int numSyntheticNEO=0;
-    orsa::Cache<int> firstSyntheticRandomSeed;
-    //
-    fp_gen = boinc_fopen("syntheticNEO.gen","r");
-    if (!fp_gen) {
-        ORSA_ERROR("cannot open file");
-        return 0;
-    } 
-    while (fgets(line,1024,fp_gen) != 0) {
-        if (2 == gmp_sscanf(line,"%d %d",
-                            &num,
-                            &randomSeed)) {
-            numSyntheticNEO += num;
-            if (!firstSyntheticRandomSeed.isSet()) {
-                firstSyntheticRandomSeed = randomSeed;
-            }
-        }
-    }
-    fclose(fp_gen);
-    
     OutputTemplateVector outputTemplateVector;
     //
-    int total_tp_lines = 0;
-    double total_FOV_DEG_SQ = 0;
-    // visits = observing time / recycle time
-    int total_visits = 0;
-    {
-        TelescopeList::const_iterator it = telescopeList.begin();
-        while (it != telescopeList.end()) {
-      
-            const double local_tp_lines = ((*it)->tStop - (*it)->tStart).get_d() / (*it)->effectiveDutyCycle.get_d();
-            //
-            total_tp_lines += 1 + local_tp_lines;
-      
-            total_FOV_DEG_SQ += orsa::int_pow((*it)->FOV_DEG,2);
-      
-            total_visits += 1 + ((*it)->tStop - (*it)->tStart).get_d() / (*it)->recycleTime.get_d();
-      
-            outputTemplateVector.push_back(OutputTemplateEntry((*it)->logFileName(), 1024*local_tp_lines, false, true));
-      
-            ++it;
-        }
-    }
-    //
-    outputTemplateVector.push_back(OutputTemplateEntry("NEO.real.dat",      1024*total_visits*numRealNEO,      true, true));
-    outputTemplateVector.push_back(OutputTemplateEntry("NEO.synthetic.dat", 1024*total_visits*numSyntheticNEO, true, true));
-  
-    // tentative value
-    const double flops_est = 
-        1e12 * 
-        (std::max(512,numRealNEO)/1024.0) * 
-        (std::max(512,numSyntheticNEO)/1024.0) * 
-        (total_tp_lines/3600.0) *
-        (total_FOV_DEG_SQ/4.0);
-  
+    outputTemplateVector.push_back(OutputTemplateEntry("results.db", 100*1024*1024, true, true));
+    
+    // tentative values
+    const double flops_est = 1e20;
+    /* const double flops_est = 
+       1e12 * 
+       (std::max(512,numRealNEO)/1024.0) * 
+       (std::max(512,numSyntheticNEO)/1024.0) * 
+       (total_tp_lines/3600.0) *
+       (total_FOV_DEG_SQ/4.0);
+    */
+    
     const unsigned int min_quorum       = 2;
     const unsigned int target_nresults  = 2;
-    const double rsc_fpops_est    =    flops_est;
-    const double rsc_fpops_bound  = 32*flops_est;
+    const double rsc_fpops_est          =    flops_est;
+    const double rsc_fpops_bound        = 32*flops_est;
     const orsa::Time   delay_bound      = std::max(orsa::Time(0,0,0,flops_est/1e8,0),
                                                    orsa::Time(1,0,0,0,0)); 
     const double rsc_memory_bound = 134217728;
@@ -282,7 +203,7 @@ int main(int argc, char ** argv) {
     for (unsigned int k=0; k<outputTemplateVector.size(); ++k) {
         rsc_disk_bound += outputTemplateVector[k].fileSize.getRef();
     }
-  
+    
     const std::string inTemplateName = 
         inputTemplateFileName(baseName,
                               min_quorum,
@@ -304,12 +225,14 @@ int main(int argc, char ** argv) {
         exit(0);
     }
   
-    const std::string outTemplateName = 
-        outputTemplateFileName(baseName,
-                               numRealNEO,
-                               numSyntheticNEO,
-                               total_tp_lines);
-  
+    const std::string outTemplateName = "templates/wu.SR.output.TESTING.xml";
+    /* const std::string outTemplateName = 
+       outputTemplateFileName(baseName,
+       numRealNEO,
+       numSyntheticNEO,
+       total_tp_lines);
+    */
+    
     if (!writeOutputTemplate(outTemplateName,
                              outputTemplateVector)) {
         exit(0);
@@ -327,23 +250,25 @@ int main(int argc, char ** argv) {
                                ms);
     
     char wuName[1024];
-    if (firstSyntheticRandomSeed.isSet()) {
-        gmp_snprintf(wuName,
-                     1024,
-                     "%s_%i_%i_%i.%02i.%02i_%02i.%02i.%02i",
-                     baseName.c_str(),
-                     firstSyntheticRandomSeed.getRef(),
-                     getpid(),
-                     y,m,d,H,M,S);
-    } else {
-        gmp_snprintf(wuName,
-                     1024,
-                     "%s_%i_%i.%02i.%02i_%02i.%02i.%02i",
-                     baseName.c_str(),
-                     getpid(),
-                     y,m,d,H,M,S);
-    }
-  
+    /* if (firstSyntheticRandomSeed.isSet()) {
+       gmp_snprintf(wuName,
+       1024,
+       "%s_%i_%i_%i.%02i.%02i_%02i.%02i.%02i",
+       baseName.c_str(),
+       firstSyntheticRandomSeed.getRef(),
+       getpid(),
+       y,m,d,H,M,S);
+       } else {
+    */
+    //
+    gmp_snprintf(wuName,
+                 1024,
+                 "%s_%i_%i.%02i.%02i_%02i.%02i.%02i",
+                 baseName.c_str(),
+                 getpid(),
+                 y,m,d,H,M,S);
+    // }
+    
     ORSA_DEBUG("[%s]",wuName);
   
     int retVal;
