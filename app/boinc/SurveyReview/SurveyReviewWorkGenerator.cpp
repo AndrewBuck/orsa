@@ -182,7 +182,7 @@ int main(int argc, char ** argv) {
     outputTemplateVector.push_back(OutputTemplateEntry("results.db", 100*1024*1024, true, true));
     
     // tentative values
-    const double flops_est = 1e20;
+    const double flops_est = 1e15;
     /* const double flops_est = 
        1e12 * 
        (std::max(512,numRealNEO)/1024.0) * 
@@ -195,7 +195,7 @@ int main(int argc, char ** argv) {
     const unsigned int target_nresults  = 2;
     const double rsc_fpops_est          =    flops_est;
     const double rsc_fpops_bound        = 32*flops_est;
-    const orsa::Time   delay_bound      = std::max(orsa::Time(0,0,0,flops_est/1e8,0),
+    const orsa::Time   delay_bound      = std::max(orsa::Time(flops_est/1e12,0,0,0,0),
                                                    orsa::Time(1,0,0,0,0)); 
     const double rsc_memory_bound = 134217728;
     //
