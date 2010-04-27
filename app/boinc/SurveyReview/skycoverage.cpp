@@ -433,7 +433,7 @@ bool SkyCoverage::processFilename(const std::string & filename_in,
                                             dayOfYear+1.0-observatory.lon.getRef()/orsa::twopi());
         // orsa::print(epoch);
     } else {
-        ORSA_DEBUG("problems...");
+        // ORSA_DEBUG("problems...");
         return false;
     }   
     return true;
