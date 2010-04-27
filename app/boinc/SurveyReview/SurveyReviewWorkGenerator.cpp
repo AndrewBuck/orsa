@@ -249,6 +249,7 @@ int main(int argc, char ** argv) {
                                S,
                                ms);
     
+    // unique!
     char wuName[1024];
     /* if (firstSyntheticRandomSeed.isSet()) {
        gmp_snprintf(wuName,
@@ -296,49 +297,64 @@ int main(int argc, char ** argv) {
     char cmd[1024];
     char path[1024];
   
-    char copyParamConf[1024];
+    char copyFieldDat[1024];
     //
-    gmp_snprintf(copyParamConf,1024,"param.conf.%s",wuName);
-    config.download_path(copyParamConf,path);
-    gmp_snprintf(cmd,1024,"cp -f param.conf %s",path);
-    system(cmd);
-  
-    char copyTelescopeConf[1024];
+    gmp_snprintf(copyFieldDat,1024,"field.dat.%s",wuName);
+    config.download_path(copyFieldDat,path);
+    gmp_snprintf(cmd,1024,"cp -f field.dat %s",path);
+    if (system(cmd) == -1) {
+        ORSA_DEBUG("problems with system call: [%s]",cmd);
+        exit(0);
+    }   
+    
+    char copyFitDat[1024];
     //
-    gmp_snprintf(copyTelescopeConf,1024,"telescope.conf.%s",wuName);
-    config.download_path(copyTelescopeConf,path);
-    gmp_snprintf(cmd,1024,"cp -f telescope.conf %s",path);
-    system(cmd);
-  
+    gmp_snprintf(copyFitDat,1024,"fit.dat.%s",wuName);
+    config.download_path(copyFitDat,path);
+    gmp_snprintf(cmd,1024,"cp -f fit.dat %s",path);
+    if (system(cmd) == -1) {
+        ORSA_DEBUG("problems with system call: [%s]",cmd);
+        exit(0);
+    }   
+    
+    char copyGridDat[1024];
+    //
+    gmp_snprintf(copyGridDat,1024,"grid.dat.%s",wuName);
+    config.download_path(copyGridDat,path);
+    gmp_snprintf(cmd,1024,"cp -f grid.dat %s",path);
+    if (system(cmd) == -1) {
+        ORSA_DEBUG("problems with system call: [%s]",cmd);
+        exit(0);
+    }   
+    
     char copyObscodeDat[1024];
     //
     gmp_snprintf(copyObscodeDat,1024,"obscode.dat.%s",wuName);
     config.download_path(copyObscodeDat,path);
     gmp_snprintf(cmd,1024,"cp -f obscode.dat %s",path);
-    system(cmd);
-  
-    char copyRealNEOGen[1024];
+    if (system(cmd) == -1) {
+        ORSA_DEBUG("problems with system call: [%s]",cmd);
+        exit(0);
+    }   
+    
+    char copyRandomSeedDat[1024];
     //
-    gmp_snprintf(copyRealNEOGen,1024,"realNEO.gen.%s",wuName);
-    config.download_path(copyRealNEOGen,path);
-    gmp_snprintf(cmd,1024,"cp -f realNEO.gen %s",path);
-    system(cmd);
-  
-    char copySyntheticNEOGen[1024];
-    //
-    gmp_snprintf(copySyntheticNEOGen,1024,"syntheticNEO.gen.%s",wuName);
-    config.download_path(copySyntheticNEOGen,path);
-    gmp_snprintf(cmd,1024,"cp -f syntheticNEO.gen %s",path);
-    system(cmd);
-  
+    gmp_snprintf(copyRandomSeedDat,1024,"randomSeed.dat.%s",wuName);
+    config.download_path(copyRandomSeedDat,path);
+    gmp_snprintf(cmd,1024,"cp -f randomSeed.dat %s",path);
+    if (system(cmd) == -1) {
+        ORSA_DEBUG("problems with system call: [%s]",cmd);
+        exit(0);
+    }   
+    
     const char * infiles[] = 
-        { copyParamConf,
-          copyTelescopeConf,
+        { copyFieldDat,
+          copyFitDat,
+          copyGridDat,
           copyObscodeDat,
-          copyRealNEOGen,
-          copySyntheticNEOGen 
+          copyRandomSeedDat 
         };
-  
+    
     char * wu_template;
     read_file_malloc(inTemplateName.c_str(), wu_template);
   
