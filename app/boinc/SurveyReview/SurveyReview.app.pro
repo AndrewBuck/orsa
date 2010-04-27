@@ -28,14 +28,20 @@ unix:!macx {
 
 macx {
         QMAKE_LFLAGS += -static-libgcc
-        LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads /Users/tricaric/boinc/api/libboinc_api.a /Users/tricaric/boinc/lib/libboinc.a
+        LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads /Users/tricaric/boinc/api/libboinc_api.a /Users/tricaric/boinc/lib/libboinc.a 
 }
 
 win32 {
-        LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE
+        LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaUtil -LC:\sqlite -lsqlite3
 }
 
 HEADERS = skycoverage.h   SurveyReview.h   grain.h
 SOURCES = skycoverage.cpp SurveyReview.cpp grain.cpp SurveyReviewMain.cpp
 
 HEADERS += sqlite3.h sqlite3ext.h
+
+win32 {
+		# on win32, instead of compiling and linking to libboinc*, we include the boinc sources in the binary directly
+		# BOINC
+		SOURCES += C:\boinc\api\boinc_api.cpp C:\boinc\lib\util.cpp C:\boinc\lib\filesys.cpp C:\boinc\lib\str_util.cpp C:\boinc\lib\diagnostics.cpp C:\boinc\lib\diagnostics_win.cpp C:\boinc\lib\proxy_info.cpp C:\boinc\lib\hostinfo.cpp C:\boinc\lib\mfile.cpp C:\boinc\lib\prefs.cpp C:\boinc\lib\win_util.cpp C:\boinc\lib\miofile.cpp C:\boinc\lib\parse.cpp C:\boinc\lib\stackwalker_win.cpp C:\boinc\lib\app_ipc.cpp C:\boinc\lib\shmem.cpp
+}
