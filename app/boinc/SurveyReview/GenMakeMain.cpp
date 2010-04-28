@@ -21,7 +21,9 @@ int main(int argc, char ** argv) {
     // first, the targets
     printf("all:");
     for (int arg=1; arg<argc; ++arg) {
-        printf(" %s/%s.fit.dat %s/%s.fit.pdf",
+        printf(" %s/%s.fit.dat %s/%s.fit.pdf %s/%s.fit.jpg",
+               dirname(argv[arg]),
+               SkyCoverage::basename(argv[arg]).c_str(),
                dirname(argv[arg]),
                SkyCoverage::basename(argv[arg]).c_str(),
                dirname(argv[arg]),
@@ -41,6 +43,10 @@ int main(int argc, char ** argv) {
     //
     printf("%%.fit.pdf: %%.allEta.dat %%.fit.dat\n");
     printf("\t./DetectionEfficiencyPlot $*.allEta.dat $*.fit.dat > $*.fit.pdf.log 2>&1\n");
+    printf("\n");
+    //
+    printf("%%.fit.jpg: %%.fit.pdf\n");
+    printf("\tconvert -density 400 $*.fit.pdf $*.fit.jpg\n");
     printf("\n");
     
     return 0;
