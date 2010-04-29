@@ -285,23 +285,20 @@ protected:
 
 template <class T> class Histo : public T {
 public:
-    // dx can be a factor if T is log
-    /* Histo(const double x1,
-       const double x2,
-       const double dx) : T(x1,x2,dx) {
-       histo.resize(T::size());
-       for (unsigned int k=0; k< histo.size(); ++k) {
-       histo[k] = new EfficiencyStatistics(T::binCenter(k));
-       }
-       }
-    */
-public:
     Histo(const T * orig) : T(*orig) {
         histo.resize(T::size());
         for (unsigned int k=0; k< histo.size(); ++k) {
             histo[k] = new EfficiencyStatistics(T::binCenter(k));
         }
     }
+public:
+    /* Histo(const Histo & h) : T(h) {
+       histo.resize(h.size);
+       for (unsigned int k=0; k< h.size(); ++k) {
+       histo[k] = new EfficiencyStatistics(h.binCenter(k));
+       }
+       }
+    */
 public:
     bool insert(const double x,
                 const double val,

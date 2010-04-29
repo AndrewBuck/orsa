@@ -29,8 +29,8 @@ class EfficiencyMultifit : public orsa::Multifit {
 public:
     class DataElement {
     public:
-        orsa::Cache<double> V, U, eta, sigmaEta;
-        orsa::Cache<double> SE, LE, LP, AM, GL, GB, AZ, LA, SA;
+        orsa::Cache<double> V, U, AM, eta, sigmaEta;
+        orsa::Cache<double> SE, LE, LP, GL, GB, AZ, LA, SA;
         orsa::Cache<unsigned int> Nobs, Ndsc, Ntot;
     };
     typedef std::vector<DataElement> DataStorage;
@@ -61,12 +61,14 @@ public:
         //
         fitData->insertVariable("V");
         fitData->insertVariable("U");
-        fitData->insertVariable("GL");
+        fitData->insertVariable("AM");
+        // fitData->insertVariable("GL");
         // fitData->insertVariable("GB");
         //
         for (unsigned int row=0; row<data.size(); ++row) {
-            fitData->insertD("V",row,data[row].V.getRef());
-            fitData->insertD("U",row,data[row].U.getRef());
+            fitData->insertD("V", row,data[row].V.getRef());
+            fitData->insertD("U", row,data[row].U.getRef());
+            fitData->insertD("AM",row,data[row].AM.getRef());
             // fitData->insertD("GL",row,data[row].GL.getRef());
             // fitData->insertD("GB",row,data[row].GB.getRef());
             fitData->insertF(row,data[row].eta.getRef());
@@ -120,7 +122,9 @@ protected:
                                             localPar->get("w_V"),
                                             data->getD("U",row),
                                             localPar->get("U_limit"),
-                                            localPar->get("w_U"));
+                                            localPar->get("w_U"),
+                                            data->getD("AM",row),
+                                            localPar->get("c_AM"));
         /* localPar->get("beta"),
            data->getD("GL",row),
            data->getD("GB",row),

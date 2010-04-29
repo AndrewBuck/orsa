@@ -12,9 +12,9 @@ int main(int argc, char ** argv) {
     }
   
     ORSA_DEBUG("process ID: %i",getpid());
-  
+    
     const std::string basename = SkyCoverage::basename(argv[1]);
-  
+    
     std::vector<EfficiencyData> etaData;
     {
         FILE * fp = fopen(argv[1],"r");
@@ -116,11 +116,11 @@ int main(int argc, char ** argv) {
     // [ ] lunar elongation
     // osg::ref_ptr<CountStats::LinearVar> var_LE = new CountStats::LinearVar(start_LE,stop_LE,step_LE);
     // varDefinition.push_back(var_LE.get());
-  
-    // [ ] airmass
-    // osg::ref_ptr<CountStats::LinearVar> var_AM = new CountStats::LinearVar(start_AM,stop_AM,step_AM);
-    // varDefinition.push_back(var_AM.get());
-  
+    
+    // [2] airmass
+    osg::ref_ptr<CountStats::LinearVar> var_AM = new CountStats::LinearVar(start_AM,stop_AM,step_AM);
+    varDefinition.push_back(var_AM.get());
+    
     // [ ] galactic longitude
     /* osg::ref_ptr<CountStats::LinearVar> var_GL = new CountStats::LinearVar(start_GL,stop_GL,step_GL);
        varDefinition.push_back(var_GL.get());
@@ -142,7 +142,7 @@ int main(int argc, char ** argv) {
         xVector[1] = etaData[k].apparentVelocity.getRef();
         // xVector[ ] = etaData[k].solarElongation.getRef();
         // xVector[ ] = etaData[k].lunarElongation.getRef();
-        // xVector[ ] = etaData[k].airMass.getRef();
+        xVector[2] = etaData[k].airMass.getRef();
         // xVector[ ] = etaData[k].galacticLongitude.getRef();
         // xVector[ ] = etaData[k].galacticLatitude.getRef();
         const bool goodInsert = countStats->insert(xVector,
@@ -276,7 +276,7 @@ int main(int argc, char ** argv) {
                 // el.SE=xVector[ ];	 
                 // el.LE=xVector[ ];
                 // add lunar phase here
-                // el.AM=xVector[ ];
+                el.AM=xVector[2];
                 // el.GL=xVector[ ];
                 // el.GB=xVector[ ];
                 //
@@ -288,6 +288,7 @@ int main(int argc, char ** argv) {
                 el.Ntot=cs->Ntot;
                 //
                 data.push_back(el);
+                // ORSA_DEBUG("set el.AM to %g",el.AM.getRef());
             }
             ++it;
         }
@@ -337,17 +338,19 @@ int main(int argc, char ** argv) {
     // multifit parameters  
     osg::ref_ptr<orsa::MultifitParameters> par = new orsa::MultifitParameters;
     //
-    const double initial_U_limit = orsa::FromUnits(20.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
-    const double initial_w_U     = orsa::FromUnits( 2.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
+    const double initial_U_limit = orsa::FromUnits( 8.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
+    const double initial_w_U     = orsa::FromUnits( 1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
     //    
     // V pars
-    par->insert("V_limit",19.20, 0.000001);
+    par->insert("V_limit",19.00, 0.000001);
     par->insert("eta0_V",  1.00, 0.000001);
-    par->insert("c_V",     0.01, 0.000001);
+    par->insert("c_V",     0.00, 0.000001);
     par->insert("w_V",     1.00, 0.000001); 
     // U pars
     par->insert("U_limit",    initial_U_limit, 0.000001*initial_U_limit);
     par->insert("w_U",        initial_w_U,     0.000001*initial_w_U); 
+    // AM
+    par->insert("c_AM",    0.00, 0.000001); 
     // mixing angle
     // par->insert("beta",     0.0, 0.000001);
     // Galactic latitude
@@ -364,6 +367,8 @@ int main(int argc, char ** argv) {
        par->setFixed("eta0_V",true);
        par->setFixed("c_V",true);
     */
+    //
+    par->setFixed("c_AM",true);
     
     osg::ref_ptr<orsa::MultifitParameters> lastGoodPar = new orsa::MultifitParameters;
     orsa::Cache<double> V0;
@@ -391,13 +396,13 @@ int main(int argc, char ** argv) {
     }
   
     {
-        V0 = 15.0;
+        V0 = 16.0;
         while (V0.getRef() <= 21.0) {
             // reset initial values
             par->set("V_limit",19.00);
-            par->set("eta0_V",  0.90);
-            par->set("c_V",     0.00);
-            par->set("w_V",     1.00);
+            par->set("eta0_V",  0.99);
+            par->set("c_V",     0.001);
+            par->set("w_V",     0.3);
             par->set("U_limit",    initial_U_limit);
             par->set("w_U",        initial_w_U);
             
@@ -438,6 +443,7 @@ int main(int argc, char ** argv) {
     // par->setRangeMin("w_V",0.0);
     par->set("U_limit",fabs(par->get("U_limit")));
     // par->setRangeMin("w_U",0.0);
+    par->setRangeMin("c_AM",0.0);
     
     {
         success = etaFit->fit(par.get(),

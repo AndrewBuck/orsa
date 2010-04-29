@@ -159,7 +159,9 @@ public:
                       const double & w_V,
                       const double & U,
                       const double & U_limit,
-                      const double & w_U);
+                      const double & w_U,
+                      const double & AM,
+                      const double & c_AM);
     /* const double & beta,
        const double & GL,
        const double & GB,
@@ -179,6 +181,8 @@ public:
     static double nominal_eta_U(const double & U,
                                 const double & U_limit,
                                 const double & w_U);
+    static double nominal_eta_AM(const double & AM,
+                                 const double & c_AM);
     /* static double nominal_eta_GB(const double & GL,
        const double & GB,
        const double & GB_limit,

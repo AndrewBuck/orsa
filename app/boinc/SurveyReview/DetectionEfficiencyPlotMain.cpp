@@ -9,6 +9,7 @@
 double JD, year;
 double V_limit, eta0_V, c_V, w_V;
 double U_limit, w_U;
+double c_AM;
 /* double beta;
    double GB_limit, w_GB;
    double Gmix;
@@ -115,11 +116,11 @@ double PlotUtil_fun_U(const double U) {
     return SkyCoverage::nominal_eta_U(U,
                                       U_limit,
                                       w_U);
-    //
-    /* return SkyCoverage::nominal_eta_U(orsa::FromUnits(U*orsa::arcsecToRad(),orsa::Unit::HOUR,-1),
-       U_limit,
-       w_U);
-    */
+}
+
+double PlotUtil_fun_AM(const double AM) {
+    return SkyCoverage::nominal_eta_AM(AM,
+                                       c_AM);
 }
 
 /* double PlotUtil_fun_GB(const double GB) {
@@ -147,7 +148,9 @@ int main(int argc, char ** argv) {
     ORSA_DEBUG("process ID: %i",getpid());
   
     const std::string basename = SkyCoverage::basename(argv[1]);
-  
+    
+    ORSA_DEBUG("basename: [%s]",basename.c_str());
+    
     std::vector<EfficiencyData> etaData;
     {
         FILE * fp = fopen(argv[1],"r");
@@ -348,14 +351,14 @@ int main(int argc, char ** argv) {
             ORSA_DEBUG("cannot open file [%s]",argv[1]);
             exit(0);
         }
-    
+        
         char line[1024];
         while (fgets(line,1024,fp)) {
             if (line[0]=='#') continue; // comment
             // UPDATE THIS NUMBER
-            if (15 == sscanf(line,
+            if (16 == sscanf(line,
                              // "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
                              &JD,
                              &year,
                              &V_limit,
@@ -364,6 +367,7 @@ int main(int argc, char ** argv) {
                              &w_V,
                              &U_limit,
                              &w_U,
+                             &c_AM,
                              /* &beta,
                                 &GB_limit,
                                 &w_GB,
@@ -417,7 +421,9 @@ int main(int argc, char ** argv) {
                                                 w_V,
                                                 data[k].U.getRef(),
                                                 U_limit,
-                                                w_U);
+                                                w_U,
+                                                data[k].AM.getRef(),
+                                                c_AM);
             /* beta,
                data[k].GL.getRef(),
                data[k].GB.getRef(),
@@ -436,7 +442,10 @@ int main(int argc, char ** argv) {
             const double nominal_eta_U = SkyCoverage::nominal_eta_U(data[k].U.getRef(),
                                                                     U_limit,
                                                                     w_U);
-      
+            
+            const double nominal_eta_AM = SkyCoverage::nominal_eta_AM(data[k].AM.getRef(),
+                                                                      c_AM);
+            
             /* const double nominal_eta_GB = SkyCoverage::nominal_eta_GB(data[k].GL.getRef(),
                data[k].GB.getRef(),
                GB_limit,
@@ -463,9 +472,11 @@ int main(int argc, char ** argv) {
                     histo_LE.insert(data[k].LE.getRef(),
                                     data[k].eta.getRef()/eta,
                                     orsa::square(eta/(data[k].sigmaEta.getRef())));
-                    histo_AM.insert(data[k].AM.getRef(),
-                                    data[k].eta.getRef()/eta,
-                                    orsa::square(eta/(data[k].sigmaEta.getRef())));
+                    if (nominal_eta_AM != 0) {
+                        histo_AM.insert(data[k].AM.getRef(),
+                                        data[k].eta.getRef()*nominal_eta_AM/eta,
+                                        orsa::square(eta/(nominal_eta_AM*data[k].sigmaEta.getRef())));
+                    }
                     histo_GB.insert(data[k].GB.getRef(),
                                     data[k].eta.getRef()/eta,
                                     orsa::square(eta/(data[k].sigmaEta.getRef())));
@@ -488,7 +499,7 @@ int main(int argc, char ** argv) {
         /* {
            char filename[1024];
            sprintf(filename,"%s.histo.V.dat",basename.c_str());
-           FILE * fp = fopen("V.fit.dat","w");
+           FILE * fp = fopen(filename,"w");
            Histo<CountStats::LinearVar>::HistoDataType::const_iterator it = histo_V.getData().begin();
            while (it != histo_V.getData().end()) {
            if ((*it)->standardDeviation()==0.0) {
@@ -510,7 +521,7 @@ int main(int argc, char ** argv) {
            {
            char filename[1024];
            sprintf(filename,"%s.histo.U.dat",basename.c_str());
-           FILE * fp = fopen("U.fit.dat","w");
+           FILE * fp = fopen(filename,"w");
            Histo<CountStats::LinearVar>::HistoDataType::const_iterator it = histo_U.getData().begin();
            while (it != histo_U.getData().end()) {
            if ((*it)->standardDeviation()==0.0) {
@@ -532,7 +543,7 @@ int main(int argc, char ** argv) {
            {
            char filename[1024];
            sprintf(filename,"%s.histo.GB.dat",basename.c_str());
-           FILE * fp = fopen("GB.fit.dat","w");
+           FILE * fp = fopen(filename,"w");
            Histo<CountStats::LinearVar>::HistoDataType::const_iterator it = histo_GB.getData().begin();
            while (it != histo_GB.getData().end()) {
            if ((*it)->standardDeviation()==0.0) {
@@ -549,6 +560,27 @@ int main(int argc, char ** argv) {
            fclose(fp);
            }
         */
+        
+        {
+            char filename[1024];
+            sprintf(filename,"%s.histo.AM.dat",basename.c_str());
+            ORSA_DEBUG("writing file [%s]",filename);
+            FILE * fp = fopen(filename,"w");
+            Histo<CountStats::LinearVar>::HistoDataType::const_iterator it = histo_AM.getData().begin();
+            while (it != histo_AM.getData().end()) {
+                if ((*it)->standardDeviation()==0.0) {
+                    // ORSA_DEBUG("--SKIPPING--");
+                    ++it;
+                    continue;
+                }
+                fprintf(fp,"%g %g %g\n",
+                        (*it)->center,
+                        (*it)->average(),
+                        (*it)->standardDeviation());
+                ++it;
+            }
+            fclose(fp);
+        }
         
         // dislin
         page(3000,6000);
@@ -582,7 +614,7 @@ int main(int argc, char ** argv) {
         // barwth(4.0);
         
         const double etaMin  = 0.0;
-        const double etaMax  = 3.0;
+        const double etaMax  = 2.0;
         const double etaStep = 0.2;
         const int etaDigits  = 1;
         const int etaTicks   = 2;
@@ -620,7 +652,7 @@ int main(int argc, char ** argv) {
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
         
-        PlotUtil((&PlotUtil_fun_one),
+        PlotUtil((&PlotUtil_fun_AM),
                  histo_AM,
                  1.0,
                  1600,1600,1200,600,
