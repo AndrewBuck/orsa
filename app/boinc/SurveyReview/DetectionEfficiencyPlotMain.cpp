@@ -601,7 +601,9 @@ int main(int argc, char ** argv) {
                 if (eta_V>=0.99&&old_eta_V<=0.99) V99=V;
                 old_eta_V=eta_V;
             }
-            fprintf(fp,"%5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f\n",V01,V05,V10,V50,V90,V95,V99);
+            fprintf(fp,"%.3f %.6f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f\n",
+                    JD,year,
+                    V01,V05,V10,V50,V90,V95,V99);
             fclose(fp);
         }
         
@@ -633,7 +635,9 @@ int main(int argc, char ** argv) {
                 if (eta_U>=0.99&&old_eta_U<=0.99) U99=U;
                 old_eta_U=eta_U;
             }
-            fprintf(fp,"%5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f\n",
+            fprintf(fp,"%.3f %.6f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f\n",
+                    JD,
+                    year,
                     U01/arcsecPerHour,
                     U05/arcsecPerHour,
                     U10/arcsecPerHour,
@@ -665,6 +669,9 @@ int main(int argc, char ** argv) {
            fclose(fp);
            }
         */
+        
+#warning remove this exit() call to generate PDF!
+        exit(0);
         
         // dislin
         page(3000,4000);
