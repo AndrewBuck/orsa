@@ -576,7 +576,7 @@ int main(int argc, char ** argv) {
         
         {
             char filename[1024];
-            sprintf(filename,"%s.histo.Vxx.dat",basename.c_str());
+            sprintf(filename,"%s.fit.Vxx.dat",basename.c_str());
             ORSA_DEBUG("writing file [%s]",filename);
             FILE * fp = fopen(filename,"w");
             double V01=0.0;
@@ -607,7 +607,7 @@ int main(int argc, char ** argv) {
         
         {
             char filename[1024];
-            sprintf(filename,"%s.histo.Uxx.dat",basename.c_str());
+            sprintf(filename,"%s.fit.Uxx.dat",basename.c_str());
             ORSA_DEBUG("writing file [%s]",filename);
             FILE * fp = fopen(filename,"w");
             const double arcsecPerHour = orsa::FromUnits(orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
