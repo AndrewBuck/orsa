@@ -590,7 +590,7 @@ int main(int argc, char ** argv) {
             double V=24.0;
             double old_eta_V = SkyCoverage::nominal_eta_V(V,V_limit,eta0_V,V0,c_V,w_V);
             while (V>=14.0) {
-                V -= 0.1;
+                V -= 0.01;
                 const double eta_V = SkyCoverage::nominal_eta_V(V,V_limit,eta0_V,V0,c_V,w_V);
                 if (eta_V>=0.01&&old_eta_V<=0.01) V01=V;
                 if (eta_V>=0.05&&old_eta_V<=0.05) V05=V;
@@ -601,9 +601,19 @@ int main(int argc, char ** argv) {
                 if (eta_V>=0.99&&old_eta_V<=0.99) V99=V;
                 old_eta_V=eta_V;
             }
-            fprintf(fp,"%.3f %.6f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f\n",
-                    JD,year,
-                    V01,V05,V10,V50,V90,V95,V99);
+            // check for consinstency
+            bool doPrint=true;
+            if ( (eta0_V>0.99) && (V99>=V95) ) doPrint=false;
+            if ( (eta0_V>0.95) && (V95>=V90) ) doPrint=false;
+            if ( (eta0_V>0.90) && (V90>=V50) ) doPrint=false;
+            if ( (eta0_V>0.50) && (V50>=V10) ) doPrint=false;
+            if ( (eta0_V>0.10) && (V10>=V05) ) doPrint=false;
+            if ( (eta0_V>0.05) && (V05>=V01) ) doPrint=false;
+            if (doPrint) {
+                fprintf(fp,"%.3f %.6f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f\n",
+                        JD,year,
+                        V01,V05,V10,V50,V90,V95,V99);
+            }
             fclose(fp);
         }
         
@@ -624,7 +634,7 @@ int main(int argc, char ** argv) {
             double U=0.0;
             double old_eta_U = SkyCoverage::nominal_eta_U(U,U_limit,w_U);
             while (U<=100.0*arcsecPerHour) {
-                U += 0.1*arcsecPerHour;
+                U += 0.01*arcsecPerHour;
                 const double eta_U = SkyCoverage::nominal_eta_U(U,U_limit,w_U);
                 if (eta_U>=0.01&&old_eta_U<=0.01) U01=U;
                 if (eta_U>=0.05&&old_eta_U<=0.05) U05=U;
@@ -635,16 +645,24 @@ int main(int argc, char ** argv) {
                 if (eta_U>=0.99&&old_eta_U<=0.99) U99=U;
                 old_eta_U=eta_U;
             }
-            fprintf(fp,"%.3f %.6f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f\n",
-                    JD,
-                    year,
-                    U01/arcsecPerHour,
-                    U05/arcsecPerHour,
-                    U10/arcsecPerHour,
-                    U50/arcsecPerHour,
-                    U90/arcsecPerHour,
-                    U95/arcsecPerHour,
-                    U99/arcsecPerHour);
+            // check for consinstency
+            if ( (U01<U05) &&
+                 (U05<U10) &&
+                 (U10<U50) &&
+                 (U50<U90) &&
+                 (U90<U95) &&
+                 (U95<U99) ) { 
+                fprintf(fp,"%.3f %.6f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f\n",
+                        JD,
+                        year,
+                        U01/arcsecPerHour,
+                        U05/arcsecPerHour,
+                        U10/arcsecPerHour,
+                        U50/arcsecPerHour,
+                        U90/arcsecPerHour,
+                        U95/arcsecPerHour,
+                        U99/arcsecPerHour);
+            }
             fclose(fp);
         }
         
