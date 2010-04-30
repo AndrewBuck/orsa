@@ -52,6 +52,8 @@ void PlotUtil(double (*fun)(const double),
     digits(ydigits,"y");
     ticks(xticks,"x");
     ticks(yticks,"y");
+    namdis(25,"x"); // distance between axis name and labels
+    namdis(25,"y");
     name(xlabel.c_str(),"x");
     name(ylabel.c_str(),"y");
     frame(0);
@@ -275,6 +277,10 @@ int main(int argc, char ** argv) {
     osg::ref_ptr<CountStats::LinearVar> var_SA = new CountStats::LinearVar(start_SA,stop_SA,step_SA);
     varDefinition.push_back(var_SA.get());
   
+    // [10] lunar phase
+    osg::ref_ptr<CountStats::LinearVar> var_LP = new CountStats::LinearVar(start_LP,stop_LP,step_LP);
+    varDefinition.push_back(var_LP.get());
+    
     osg::ref_ptr<CountStats> countStats = 
         new CountStats(varDefinition);
   
@@ -292,6 +298,7 @@ int main(int argc, char ** argv) {
         xVector[7] = etaData[k].azimuth.getRef();
         xVector[8] = etaData[k].lunarAltitude.getRef();
         xVector[9] = etaData[k].solarAltitude.getRef();
+        xVector[10]= etaData[k].lunarPhase.getRef();
         countStats->insert(xVector,
                            etaData[k].observed.getRef(),
                            etaData[k].discovered.getRef());
@@ -326,6 +333,7 @@ int main(int argc, char ** argv) {
                 el.AZ=xVector[7];
                 el.LA=xVector[8];
                 el.SA=xVector[9];
+                el.LP=xVector[10];
                 //
                 el.eta=eta;
                 el.sigmaEta=sigmaEta;
@@ -411,6 +419,7 @@ int main(int argc, char ** argv) {
         Histo<CountStats::LinearVar> histo_AZ(var_AZ.get());
         Histo<CountStats::LinearVar> histo_LA(var_LA.get());
         Histo<CountStats::LinearVar> histo_SA(var_SA.get());
+        Histo<CountStats::LinearVar> histo_LP(var_LP.get());
         
         for (unsigned int k=0; k<data.size(); ++k) {
       
@@ -490,6 +499,9 @@ int main(int argc, char ** argv) {
                     histo_SA.insert(data[k].SA.getRef(),
                                     data[k].eta.getRef()/eta,
                                     orsa::square(eta/(data[k].sigmaEta.getRef())));
+                    histo_LP.insert(data[k].LP.getRef(),
+                                    data[k].eta.getRef()/eta,
+                                    orsa::square(eta/(data[k].sigmaEta.getRef())));
                 }
             }
       
@@ -564,24 +576,95 @@ int main(int argc, char ** argv) {
         
         {
             char filename[1024];
-            sprintf(filename,"%s.histo.AM.dat",basename.c_str());
+            sprintf(filename,"%s.histo.Vxx.dat",basename.c_str());
             ORSA_DEBUG("writing file [%s]",filename);
             FILE * fp = fopen(filename,"w");
-            Histo<CountStats::LinearVar>::HistoDataType::const_iterator it = histo_AM.getData().begin();
-            while (it != histo_AM.getData().end()) {
-                if ((*it)->standardDeviation()==0.0) {
-                    // ORSA_DEBUG("--SKIPPING--");
-                    ++it;
-                    continue;
-                }
-                fprintf(fp,"%g %g %g\n",
-                        (*it)->center,
-                        (*it)->average(),
-                        (*it)->standardDeviation());
-                ++it;
+            double V01=0.0;
+            double V05=0.0;
+            double V10=0.0;
+            double V50=0.0;
+            double V90=0.0;
+            double V95=0.0;
+            double V99=0.0;
+            // 
+            double V=24.0;
+            double old_eta_V = SkyCoverage::nominal_eta_V(V,V_limit,eta0_V,V0,c_V,w_V);
+            while (V>=14.0) {
+                V -= 0.1;
+                const double eta_V = SkyCoverage::nominal_eta_V(V,V_limit,eta0_V,V0,c_V,w_V);
+                if (eta_V>=0.01&&old_eta_V<=0.01) V01=V;
+                if (eta_V>=0.05&&old_eta_V<=0.05) V05=V;
+                if (eta_V>=0.10&&old_eta_V<=0.10) V10=V;
+                if (eta_V>=0.50&&old_eta_V<=0.50) V50=V;
+                if (eta_V>=0.90&&old_eta_V<=0.90) V90=V;
+                if (eta_V>=0.95&&old_eta_V<=0.95) V95=V;
+                if (eta_V>=0.99&&old_eta_V<=0.99) V99=V;
+                old_eta_V=eta_V;
             }
+            fprintf(fp,"%5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f\n",V01,V05,V10,V50,V90,V95,V99);
             fclose(fp);
         }
+        
+        {
+            char filename[1024];
+            sprintf(filename,"%s.histo.Uxx.dat",basename.c_str());
+            ORSA_DEBUG("writing file [%s]",filename);
+            FILE * fp = fopen(filename,"w");
+            const double arcsecPerHour = orsa::FromUnits(orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+            double U01=0.0;
+            double U05=0.0;
+            double U10=0.0;
+            double U50=0.0;
+            double U90=0.0;
+            double U95=0.0;
+            double U99=0.0;
+            // 
+            double U=0.0;
+            double old_eta_U = SkyCoverage::nominal_eta_U(U,U_limit,w_U);
+            while (U<=100.0*arcsecPerHour) {
+                U += 0.1*arcsecPerHour;
+                const double eta_U = SkyCoverage::nominal_eta_U(U,U_limit,w_U);
+                if (eta_U>=0.01&&old_eta_U<=0.01) U01=U;
+                if (eta_U>=0.05&&old_eta_U<=0.05) U05=U;
+                if (eta_U>=0.10&&old_eta_U<=0.10) U10=U;
+                if (eta_U>=0.50&&old_eta_U<=0.50) U50=U;
+                if (eta_U>=0.90&&old_eta_U<=0.90) U90=U;
+                if (eta_U>=0.95&&old_eta_U<=0.95) U95=U;
+                if (eta_U>=0.99&&old_eta_U<=0.99) U99=U;
+                old_eta_U=eta_U;
+            }
+            fprintf(fp,"%5.2f %5.2f %5.2f %5.2f %5.2f %5.2f %5.2f\n",
+                    U01/arcsecPerHour,
+                    U05/arcsecPerHour,
+                    U10/arcsecPerHour,
+                    U50/arcsecPerHour,
+                    U90/arcsecPerHour,
+                    U95/arcsecPerHour,
+                    U99/arcsecPerHour);
+            fclose(fp);
+        }
+        
+        /* {
+           char filename[1024];
+           sprintf(filename,"%s.histo.AM.dat",basename.c_str());
+           ORSA_DEBUG("writing file [%s]",filename);
+           FILE * fp = fopen(filename,"w");
+           Histo<CountStats::LinearVar>::HistoDataType::const_iterator it = histo_AM.getData().begin();
+           while (it != histo_AM.getData().end()) {
+           if ((*it)->standardDeviation()==0.0) {
+           // ORSA_DEBUG("--SKIPPING--");
+           ++it;
+           continue;
+           }
+           fprintf(fp,"%g %g %g\n",
+           (*it)->center,
+           (*it)->average(),
+           (*it)->standardDeviation());
+           ++it;
+           }
+           fclose(fp);
+           }
+        */
         
         // dislin
         page(3000,4000);
@@ -664,6 +747,44 @@ int main(int argc, char ** argv) {
         
         ny += ly;
         
+        PlotUtil((&PlotUtil_fun_AM),
+                 histo_AM,
+                 1.0,
+                 nx,ny,px,py, // 1600,1600,1200,600,
+                 1.0,3.0,0.1,1,1,"airmass",
+                 etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+        
+        ny += ly;
+        
+        PlotUtil((&PlotUtil_fun_one),
+                 histo_AZ,
+                 orsa::radToDeg(),
+                 nx,ny,px,py, // 1600,800,1200,600,
+                 0,360,30,0,3,"azimuth [deg]",
+                 etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+        
+        ny += ly;
+        
+        PlotUtil((&PlotUtil_fun_one),
+                 histo_SA,
+                 orsa::radToDeg(),
+                 nx,ny,px,py, // 1600,2400,1200,600,
+                 -90,90,30,0,3,"solar altitude [deg]",
+                 etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+        
+        ny += ly;
+        
+        PlotUtil((&PlotUtil_fun_one),
+                 histo_SE,
+                 orsa::radToDeg(),
+                 nx,ny,px,py, // 1600,4000,1200,600,
+                 0,180,30,0,3,"solar elongation [deg]",
+                 etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+        
+        // second row of plots
+        nx += lx;
+        ny  = ny0;
+        
         PlotUtil((&PlotUtil_fun_U),
                  histo_U,
                  orsa::FromUnits(orsa::radToArcsec(),orsa::Unit::HOUR),
@@ -680,33 +801,13 @@ int main(int argc, char ** argv) {
                  -90,90,30,0,3,"galactic latitude [deg]",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
-        // second row of plots
-        nx += lx;
-        ny  = ny0;
-        
-        PlotUtil((&PlotUtil_fun_one),
-                 histo_AZ,
-                 orsa::radToDeg(),
-                 nx,ny,px,py, // 1600,800,1200,600,
-                 0,360,30,0,3,"azimuth [deg]",
-                 etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
-        
-        ny += ly;
-        
-        PlotUtil((&PlotUtil_fun_AM),
-                 histo_AM,
-                 1.0,
-                 nx,ny,px,py, // 1600,1600,1200,600,
-                 1.0,3.0,0.1,1,1,"airmass",
-                 etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
-        
         ny += ly;
         
         PlotUtil((&PlotUtil_fun_one),
-                 histo_SA,
+                 histo_LP,
                  orsa::radToDeg(),
-                 nx,ny,px,py, // 1600,2400,1200,600,
-                 -90,90,30,0,3,"solar altitude [deg]",
+                 nx,ny,px,py, // 1600,4000,1200,600,
+                 0,180,30,0,3,"lunar phase [deg]",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
         ny += ly;
@@ -726,7 +827,6 @@ int main(int argc, char ** argv) {
                  nx,ny,px,py, // 1600,4000,1200,600,
                  0,180,30,0,3,"lunar elongation [deg]",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
-        
         
         disfin();
     }
