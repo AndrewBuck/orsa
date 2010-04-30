@@ -688,8 +688,8 @@ int main(int argc, char ** argv) {
            }
         */
         
-#warning remove this exit() call to generate PDF!
-        exit(0);
+        // #warning remove this exit() call to generate PDF!
+        // exit(0);
         
         // dislin
         page(3000,4000);
