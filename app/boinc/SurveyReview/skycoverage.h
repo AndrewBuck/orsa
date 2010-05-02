@@ -161,7 +161,9 @@ public:
                       const double & U_limit,
                       const double & w_U,
                       const double & AM,
-                      const double & c_AM);
+                      const double & peak_AM,
+                      const double & scale_AM,
+                      const double & shape_AM);
     /* const double & beta,
        const double & GL,
        const double & GB,
@@ -182,7 +184,9 @@ public:
                                 const double & U_limit,
                                 const double & w_U);
     static double nominal_eta_AM(const double & AM,
-                                 const double & c_AM);
+                                 const double & peak_AM,
+                                 const double & scale_AM,
+                                 const double & shape_AM);
     /* static double nominal_eta_GB(const double & GL,
        const double & GB,
        const double & GB_limit,

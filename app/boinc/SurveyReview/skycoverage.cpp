@@ -300,7 +300,9 @@ double SkyCoverage::eta(const double & V,
                         const double & U_limit,
                         const double & w_U,
                         const double & AM,
-                        const double & c_AM) {
+                        const double & peak_AM,
+                        const double & scale_AM,
+                        const double & shape_AM) {
     /* const double & beta,
        const double & GL,
        const double & GB,
@@ -325,7 +327,7 @@ double SkyCoverage::eta(const double & V,
     double retVal =
         nominal_eta_V(V,V_limit,eta0_V,V0,c_V,w_V) *
         nominal_eta_U(U,U_limit,w_U) *
-        nominal_eta_AM(AM,c_AM);
+        nominal_eta_AM(AM,peak_AM,scale_AM,shape_AM);
     if (retVal < 0.0) retVal=0.0;
     if (retVal > 1.0) retVal=1.0;
     return retVal;
@@ -360,8 +362,11 @@ double SkyCoverage::nominal_eta_U(const double & U,
 }
 
 double SkyCoverage::nominal_eta_AM(const double & AM,
-                                   const double & c_AM) {
-    double retVal = (1.0-c_AM*(AM-1.0));
+                                   const double & peak_AM,
+                                   const double & scale_AM,
+                                   const double & shape_AM) {
+    // double retVal = (1.0-c_AM*(AM-1.0));
+    double retVal = 1+shape_AM-sqrt(orsa::square((AM-peak_AM)/scale_AM)+orsa::square(shape_AM));
     if (retVal < 0.0) retVal=0.0;
     if (retVal > 1.0) retVal=1.0;
     // ORSA_DEBUG("AM: %g  c_AM: %g  retVal: %g",AM,c_AM,retVal);

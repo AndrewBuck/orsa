@@ -124,7 +124,9 @@ protected:
                                             localPar->get("U_limit"),
                                             localPar->get("w_U"),
                                             data->getD("AM",row),
-                                            localPar->get("c_AM"));
+                                            localPar->get("peak_AM"),
+                                            localPar->get("scale_AM"),
+                                            localPar->get("shape_AM"));
         /* localPar->get("beta"),
            data->getD("GL",row),
            data->getD("GB",row),

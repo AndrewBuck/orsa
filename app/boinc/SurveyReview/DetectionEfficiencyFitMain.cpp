@@ -331,7 +331,7 @@ int main(int argc, char ** argv) {
   
     osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
     //
-    etaFit->maxIter=100;
+    etaFit->maxIter=32;
     etaFit->epsabs=1.0e-9;
     etaFit->epsrel=1.0e-9;
   
@@ -350,7 +350,10 @@ int main(int argc, char ** argv) {
     par->insert("U_limit",    initial_U_limit, 0.000001*initial_U_limit);
     par->insert("w_U",        initial_w_U,     0.000001*initial_w_U); 
     // AM
-    par->insert("c_AM",    0.00, 0.000001); 
+    // par->insert("c_AM",    0.00, 0.000001); 
+    par->insert("peak_AM", 1.10, 0.000001);
+    par->insert("scale_AM",0.80, 0.000001);
+    par->insert("shape_AM",1.00, 0.000001);
     // mixing angle
     // par->insert("beta",     0.0, 0.000001);
     // Galactic latitude
@@ -368,7 +371,7 @@ int main(int argc, char ** argv) {
        par->setFixed("c_V",true);
     */
     //
-    par->setFixed("c_AM",true);
+    // par->setFixed("c_AM",true);
     
     osg::ref_ptr<orsa::MultifitParameters> lastGoodPar = new orsa::MultifitParameters;
     orsa::Cache<double> V0;
@@ -443,7 +446,8 @@ int main(int argc, char ** argv) {
     // par->setRangeMin("w_V",0.0);
     par->set("U_limit",fabs(par->get("U_limit")));
     // par->setRangeMin("w_U",0.0);
-    par->setRangeMin("c_AM",0.0);
+    // par->setRangeMin("c_AM",0.0);
+    par->setRangeMin("peak_AM",1.0);
     
     {
         success = etaFit->fit(par.get(),

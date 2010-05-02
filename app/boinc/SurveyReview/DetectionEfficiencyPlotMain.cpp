@@ -9,7 +9,8 @@
 double JD, year;
 double V_limit, eta0_V, c_V, w_V;
 double U_limit, w_U;
-double c_AM;
+// double c_AM;
+double peak_AM, scale_AM, shape_AM;
 /* double beta;
    double GB_limit, w_GB;
    double Gmix;
@@ -123,7 +124,9 @@ double PlotUtil_fun_U(const double U) {
 
 double PlotUtil_fun_AM(const double AM) {
     return SkyCoverage::nominal_eta_AM(AM,
-                                       c_AM);
+                                       peak_AM,
+                                       scale_AM,
+                                       shape_AM);
 }
 
 /* double PlotUtil_fun_GB(const double GB) {
@@ -365,9 +368,9 @@ int main(int argc, char ** argv) {
         while (fgets(line,1024,fp)) {
             if (line[0]=='#') continue; // comment
             // UPDATE THIS NUMBER
-            if (16 == sscanf(line,
+            if (18 == sscanf(line,
                              // "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
                              &JD,
                              &year,
                              &V_limit,
@@ -376,7 +379,10 @@ int main(int argc, char ** argv) {
                              &w_V,
                              &U_limit,
                              &w_U,
-                             &c_AM,
+                             // &c_AM,
+                             &peak_AM,
+                             &scale_AM,
+                             &shape_AM,
                              /* &beta,
                                 &GB_limit,
                                 &w_GB,
@@ -433,7 +439,9 @@ int main(int argc, char ** argv) {
                                                 U_limit,
                                                 w_U,
                                                 data[k].AM.getRef(),
-                                                c_AM);
+                                                peak_AM,
+                                                scale_AM,
+                                                shape_AM);
             /* beta,
                data[k].GL.getRef(),
                data[k].GB.getRef(),
@@ -454,7 +462,9 @@ int main(int argc, char ** argv) {
                                                                     w_U);
             
             const double nominal_eta_AM = SkyCoverage::nominal_eta_AM(data[k].AM.getRef(),
-                                                                      c_AM);
+                                                                      peak_AM,
+                                                                      scale_AM,
+                                                                      shape_AM);
             
             /* const double nominal_eta_GB = SkyCoverage::nominal_eta_GB(data[k].GL.getRef(),
                data[k].GB.getRef(),
