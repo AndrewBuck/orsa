@@ -257,7 +257,6 @@ void SkyCoverage::readFieldTimeFile(const std::string & filename) {
     double JD;
     while (fgets(line,1024,fp)) {
         if (2 == sscanf(line,"%i %lf",&fieldID,&JD)) {
-            ORSA_DEBUG("reading: %3i %.5f",fieldID,JD);
             if (fieldID >= data.size()) {
                 ORSA_DEBUG("fieldID outside range");
                 continue;
