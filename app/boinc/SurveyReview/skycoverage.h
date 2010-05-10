@@ -140,8 +140,9 @@ public:
     };
     
 protected:
-    std::list<SkyCoverageElement> data;
-  
+    typedef std::vector<SkyCoverageElement> DataType;
+    DataType data;
+    
 public:
     orsa::Cache<orsa::Time>  epoch;   // local midnight epoch
     orsa::Cache<std::string> obscode;

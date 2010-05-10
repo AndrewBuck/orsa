@@ -130,7 +130,7 @@ bool SkyCoverage::get(const orsa::Vector & u,
                       double & V,
                       const bool verbose) const {
     orsa::Cache<double> local_V;
-    std::list<SkyCoverageElement>::const_iterator it = data.begin();
+    DataType::const_iterator it = data.begin();
     while (it != data.end()) {
         if (verbose) {
             ORSA_DEBUG("acos(u*(*it).u_centerField): %7.3f [deg]",orsa::radToDeg()*acos(u*(*it).u_centerField));
@@ -166,7 +166,7 @@ bool SkyCoverage::get(const orsa::Vector & u,
 
 bool SkyCoverage::fastGet(const orsa::Vector & u) const {
     orsa::Cache<double> local_V;
-    std::list<SkyCoverageElement>::const_iterator it = data.begin();
+    DataType::const_iterator it = data.begin();
     while (it != data.end()) {
         if (u*(*it).u_centerField > (*it).minScalarProduct) {
             if (fabs(asin(u*(*it).u_RA)) < (*it).halfFieldSize_RA) {
@@ -184,7 +184,7 @@ bool SkyCoverage::insertFieldTime(const orsa::Time & epoch,
                                   const orsa::Vector & u) {
     // sets time on ALL interested fields, not just the first one found
     bool setSome=false;
-    std::list<SkyCoverageElement>::iterator it = data.begin();
+    DataType::iterator it = data.begin();
     while (it != data.end()) {
         if (u*(*it).u_centerField > (*it).minScalarProduct) {
             if (fabs(asin(u*(*it).u_RA)) < (*it).halfFieldSize_RA) {
@@ -203,7 +203,7 @@ bool SkyCoverage::getFieldAverageTime(orsa::Time & epoch,
                                       const orsa::Vector & u) const {
     // average on all entries in all fields
     osg::ref_ptr< orsa::Statistic<double> > epochStat_JD = new orsa::Statistic<double>;
-    std::list<SkyCoverageElement>::const_iterator it = data.begin();
+    DataType::const_iterator it = data.begin();
     while (it != data.end()) {
         if (u*(*it).u_centerField > (*it).minScalarProduct) {
             if (fabs(asin(u*(*it).u_RA)) < (*it).halfFieldSize_RA) {
@@ -230,7 +230,7 @@ bool SkyCoverage::pickFieldTime(orsa::Time & epoch,
     // average on all entries in all fields
     // osg::ref_ptr< orsa::Statistic<double> > epochStat_JD = new orsa::Statistic<double>;
     std::vector<orsa::Time> epochVec;
-    std::list<SkyCoverageElement>::const_iterator it = data.begin();
+    DataType::const_iterator it = data.begin();
     while (it != data.end()) {
         if (u*(*it).u_centerField > (*it).minScalarProduct) {
             if (fabs(asin(u*(*it).u_RA)) < (*it).halfFieldSize_RA) {
@@ -253,7 +253,7 @@ bool SkyCoverage::pickFieldTime(orsa::Time & epoch,
 
 double SkyCoverage::totalDegSq() const {
     double area=0;
-    std::list<SkyCoverageElement>::const_iterator it = data.begin();
+    DataType::const_iterator it = data.begin();
     while (it != data.end()) {
         area += (*it).halfFieldSize_RA*(*it).halfFieldSize_DEC;
         ++it;
@@ -266,7 +266,7 @@ double SkyCoverage::totalDegSq() const {
 double SkyCoverage::minDistance(const orsa::Vector & u,
                                 const bool /* verbose */ ) const {
     double minArc=orsa::pi();
-    std::list<SkyCoverageElement>::const_iterator it = data.begin();
+    DataType::const_iterator it = data.begin();
     while (it != data.end()) {
         minArc=std::min(minArc,acos(u*(*it).u_centerField));
         ++it;
