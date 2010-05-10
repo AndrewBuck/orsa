@@ -4,6 +4,9 @@
 #include <orsaSPICE/spiceBodyRotationalCallback.h>
 #include <orsaSPICE/spiceBodyTranslationalCallback.h>
 
+// BOINC API
+#include <boinc_api.h>
+
 // globaly accessible proxy
 osg::ref_ptr<PhaseComponentProxy> phaseComponentProxy = new PhaseComponentProxy(0.01);
 
@@ -97,9 +100,9 @@ bool OrbitID::isPHO() const {
 }
 
 OrbitID * OrbitFactory::sample() const {
-  
+    
     OrbitID * orbit = new OrbitID(idCounter++,earthOrbit);
-  
+    
     orbit->a = FromUnits(a_AU_min+(a_AU_max-a_AU_min)*rnd->gsl_rng_uniform(),orsa::Unit::AU);  
     orbit->e = e_min+(e_max-e_min)*rnd->gsl_rng_uniform();
     orbit->i = orsa::degToRad()*(i_DEG_min+(i_DEG_max-i_DEG_min)*rnd->gsl_rng_uniform());
@@ -110,6 +113,12 @@ OrbitID * OrbitFactory::sample() const {
     orbit->H = H_min+(H_max-H_min)*rnd->gsl_rng_uniform();
     
     orbit->mu = GMSun;
+    
+    // debug
+    /* if (boinc_is_standalone()) {
+       if (idCounter%100==0) ORSA_DEBUG("idCounter: %Zi",idCounter.get_mpz_t());
+       }
+    */
     
     return orbit;
 }

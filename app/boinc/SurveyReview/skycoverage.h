@@ -163,15 +163,10 @@ public:
                       const double & AM,
                       const double & peak_AM,
                       const double & scale_AM,
-                      const double & shape_AM);
-    /* const double & beta,
-       const double & GL,
-       const double & GB,
-       const double & GB_limit,
-       const double & w_GB,
-       const double & Gmix);
-    */
-    
+                      const double & shape_AM,
+                      const double & GB,
+                      const double & drop_GB,
+                      const double & scale_GB);
 public:
     // nominal eta values, mostly for plotting purposes, no mixing angle
     static double nominal_eta_V(const double & V,
@@ -187,13 +182,9 @@ public:
                                  const double & peak_AM,
                                  const double & scale_AM,
                                  const double & shape_AM);
-    /* static double nominal_eta_GB(const double & GL,
-       const double & GB,
-       const double & GB_limit,
-       const double & w_GB,
-       const double & Gmix);
-    */
-    
+    static double nominal_eta_GB(const double & GB,
+                                 const double & drop_GB,
+                                 const double & scale_GB);
 public:
     // coefficients for efficiency as function of apparent magnitude V
     orsa::Cache<double> V_limit, eta0_V, V0, c_V, w_V;

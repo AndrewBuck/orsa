@@ -9,12 +9,8 @@
 double JD, year;
 double V_limit, eta0_V, c_V, w_V;
 double U_limit, w_U;
-// double c_AM;
 double peak_AM, scale_AM, shape_AM;
-/* double beta;
-   double GB_limit, w_GB;
-   double Gmix;
-*/
+double drop_GB, scale_GB;
 double chisq_dof;
 unsigned int Nobs, Ndsc, Ntot;
 double degSq;
@@ -71,7 +67,7 @@ void PlotUtil(double (*fun)(const double),
             yray[j] = std::max(0.0,fun(xray[j]/xfactor));
             // ORSA_DEBUG("x: %g  y: %g",xray[j],yray[j]);
         }
-        penwid(1.0);
+        penwid(0.3);
         dashl();
         curve(xray,yray,nPoints);
     }        
@@ -129,14 +125,11 @@ double PlotUtil_fun_AM(const double AM) {
                                        shape_AM);
 }
 
-/* double PlotUtil_fun_GB(const double GB) {
-   return SkyCoverage::nominal_eta_GB(0.0, // GL
-   GB,
-   GB_limit,
-   w_GB,
-   Gmix);
-   }
-*/
+double PlotUtil_fun_GB(const double GB) {
+    return SkyCoverage::nominal_eta_GB(GB,
+                                       drop_GB,
+                                       scale_GB);
+}
 
 double PlotUtil_fun_one(const double) {
     return 1.0;
@@ -319,9 +312,17 @@ int main(int argc, char ** argv) {
                 continue;
             }
             if (cs->Ntot!=0) {
+                // const double      eta = (double)(cs->Nobs)/(double)(cs->Ntot);
+                // const double sigmaEta = (double)(sqrt(cs->Nobs+1))/(double)(cs->Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
+                // const double sigmaEta = (double)(sqrt(cs->Ntot))/(double)(cs->Ntot);
+                // #warning fix sigmaEta!
+                // 
+                // p = probability of binomial distribution
+                // const double      eta = p*cs->Ntot;
                 const double      eta = (double)(cs->Nobs)/(double)(cs->Ntot);
-                const double sigmaEta = (double)(sqrt(cs->Nobs+1))/(double)(cs->Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
-	
+                const double        p = (double)(cs->Nobs+1)/(double)(cs->Ntot+2);;
+                const double sigmaEta = sqrt(p*(1-p)*cs->Ntot);
+                
                 const std::vector<double> xVector = countStats->binCenterVector((*it).first); 
 	
                 EfficiencyMultifit::DataElement el;
@@ -368,9 +369,9 @@ int main(int argc, char ** argv) {
         while (fgets(line,1024,fp)) {
             if (line[0]=='#') continue; // comment
             // UPDATE THIS NUMBER
-            if (18 == sscanf(line,
+            if (20 == sscanf(line,
                              // "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
                              &JD,
                              &year,
                              &V_limit,
@@ -383,11 +384,8 @@ int main(int argc, char ** argv) {
                              &peak_AM,
                              &scale_AM,
                              &shape_AM,
-                             /* &beta,
-                                &GB_limit,
-                                &w_GB,
-                                &Gmix,
-                             */
+                             &drop_GB,
+                             &scale_GB,
                              &chisq_dof,
                              &Nobs,
                              &Ndsc,
@@ -398,11 +396,8 @@ int main(int argc, char ** argv) {
                 // conversion
                 U_limit   = orsa::FromUnits(U_limit*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
                 w_U       = orsa::FromUnits(    w_U*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-                /* beta     *= orsa::degToRad();
-                   GB_limit *= orsa::degToRad();
-                   w_GB     *= orsa::degToRad();
-                */
-
+                scale_GB  = orsa::degToRad()*scale_GB;
+                
                 ORSA_DEBUG("year: %g  V_limit: %g  ID: %s",year,V_limit,jobID);
                 
                 break;
@@ -441,14 +436,10 @@ int main(int argc, char ** argv) {
                                                 data[k].AM.getRef(),
                                                 peak_AM,
                                                 scale_AM,
-                                                shape_AM);
-            /* beta,
-               data[k].GL.getRef(),
-               data[k].GB.getRef(),
-               GB_limit,
-               w_GB,
-               Gmix);
-            */
+                                                shape_AM,
+                                                data[k].GB.getRef(),
+                                                drop_GB,
+                                                scale_GB);
             
             const double nominal_eta_V = SkyCoverage::nominal_eta_V(data[k].V.getRef(),
                                                                     V_limit,
@@ -466,12 +457,9 @@ int main(int argc, char ** argv) {
                                                                       scale_AM,
                                                                       shape_AM);
             
-            /* const double nominal_eta_GB = SkyCoverage::nominal_eta_GB(data[k].GL.getRef(),
-               data[k].GB.getRef(),
-               GB_limit,
-               w_GB,
-               Gmix);
-            */
+            const double nominal_eta_GB = SkyCoverage::nominal_eta_GB(data[k].GB.getRef(),
+                                                                      drop_GB,
+                                                                      scale_GB);
             
             // at this point, small sigmas can become very large because divided by a very small eta's
             if (data[k].sigmaEta.getRef() > 0) {
@@ -497,9 +485,11 @@ int main(int argc, char ** argv) {
                                         data[k].eta.getRef()*nominal_eta_AM/eta,
                                         orsa::square(eta/(nominal_eta_AM*data[k].sigmaEta.getRef())));
                     }
-                    histo_GB.insert(data[k].GB.getRef(),
-                                    data[k].eta.getRef()/eta,
-                                    orsa::square(eta/(data[k].sigmaEta.getRef())));
+                    if (nominal_eta_GB != 0) {
+                        histo_GB.insert(data[k].GB.getRef(),
+                                        data[k].eta.getRef()*nominal_eta_GB/eta,
+                                        orsa::square(eta/(nominal_eta_GB*data[k].sigmaEta.getRef())));
+                    }
                     histo_AZ.insert(data[k].AZ.getRef(),
                                     data[k].eta.getRef()/eta,
                                     orsa::square(eta/(data[k].sigmaEta.getRef())));
@@ -829,7 +819,7 @@ int main(int argc, char ** argv) {
         
         ny += ly;
         
-        PlotUtil((&PlotUtil_fun_one),
+        PlotUtil((&PlotUtil_fun_GB),
                  histo_GB,
                  orsa::radToDeg(),
                  nx,ny,px,py, // 200,2400,1200,600,

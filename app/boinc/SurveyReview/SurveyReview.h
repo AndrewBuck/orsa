@@ -252,7 +252,7 @@ orsa::Body * SPICEBody (const std::string  & bodyName,
 
 class OrbitID : public orsa::Orbit, public osg::Referenced {
 public:  
-    OrbitID(const unsigned int id_in,
+    OrbitID(const mpz_class id_in,
             const orsa::Orbit & earthOrbit_in) :
         // const          int random_seed) : 
         orsa::Orbit(),
@@ -276,7 +276,7 @@ public:
     bool isAmor()   const;
     bool isPHO()    const;
 public:
-    const unsigned int id;
+    const mpz_class id;
     const orsa::Orbit & earthOrbit;
     // const          int randomSeed;
 public:
@@ -373,7 +373,7 @@ private:
     const double GMSun;
   
 private:
-    mutable unsigned int idCounter;
+    mutable mpz_class idCounter;
 };
 
 #endif // SURVEY_REVIEW_H

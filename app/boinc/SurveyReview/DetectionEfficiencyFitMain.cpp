@@ -3,9 +3,9 @@
 #include "fit.h"
 
 int main(int argc, char ** argv) {
-  
+    
     orsa::Debug::instance()->initTimer();
-  
+    
     if (argc != 2) {
         printf("Usage: %s <allEta-file>\n",argv[0]);
         exit(0);
@@ -126,10 +126,9 @@ int main(int argc, char ** argv) {
        varDefinition.push_back(var_GL.get());
     */
     
-    // [ ] galactic latitude
-    /* osg::ref_ptr<CountStats::LinearVar> var_GB = new CountStats::LinearVar(start_GB,stop_GB,step_GB);
-       varDefinition.push_back(var_GB.get());
-    */
+    // [3] galactic latitude
+    osg::ref_ptr<CountStats::LinearVar> var_GB = new CountStats::LinearVar(start_GB,stop_GB,step_GB);
+    varDefinition.push_back(var_GB.get());
     
     osg::ref_ptr<CountStats> countStats = 
         new CountStats(varDefinition);
@@ -143,8 +142,7 @@ int main(int argc, char ** argv) {
         // xVector[ ] = etaData[k].solarElongation.getRef();
         // xVector[ ] = etaData[k].lunarElongation.getRef();
         xVector[2] = etaData[k].airMass.getRef();
-        // xVector[ ] = etaData[k].galacticLongitude.getRef();
-        // xVector[ ] = etaData[k].galacticLatitude.getRef();
+        xVector[3] = etaData[k].galacticLatitude.getRef();
         const bool goodInsert = countStats->insert(xVector,
                                                    etaData[k].observed.getRef(),
                                                    etaData[k].discovered.getRef());
@@ -264,11 +262,19 @@ int main(int argc, char ** argv) {
                 continue;
             }
             if (cs->Ntot!=0) {
+                // const double      eta = (double)(cs->Nobs)/(double)(cs->Ntot);
+                // const double sigmaEta = (double)(sqrt(cs->Nobs+1))/(double)(cs->Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
+                // const double sigmaEta = (double)(sqrt(cs->Ntot))/(double)(cs->Ntot);
+                // #warning fix sigmaEta!
+                // 
+                // p = probability of binomial distribution
+                // const double      eta = p*cs->Ntot;
                 const double      eta = (double)(cs->Nobs)/(double)(cs->Ntot);
-                const double sigmaEta = (double)(sqrt(cs->Nobs+1))/(double)(cs->Ntot); // Poisson counting statistics; using Nobs+1 instead of Nobs to have positive sigma even when Nobs=0
-	
+                const double        p = (double)(cs->Nobs+1)/(double)(cs->Ntot+2);;
+                const double sigmaEta = sqrt(p*(1-p)*cs->Ntot);
+                
                 const std::vector<double> xVector = countStats->binCenterVector((*it).first); 
-	
+                
                 EfficiencyMultifit::DataElement el;
                 //
                 el.V =xVector[0];
@@ -277,8 +283,7 @@ int main(int argc, char ** argv) {
                 // el.LE=xVector[ ];
                 // add lunar phase here
                 el.AM=xVector[2];
-                // el.GL=xVector[ ];
-                // el.GB=xVector[ ];
+                el.GB=xVector[3];
                 //
                 el.eta=eta;
                 el.sigmaEta=sigmaEta;
@@ -328,13 +333,13 @@ int main(int argc, char ** argv) {
         }	
     }
     ORSA_DEBUG("non_zero_n: %i",non_zero_n);
-  
+    
     osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
     //
-    etaFit->maxIter=32;
-    etaFit->epsabs=1.0e-9;
-    etaFit->epsrel=1.0e-9;
-  
+    etaFit->maxIter=16;
+    etaFit->epsabs=1.0e-6;
+    etaFit->epsrel=1.0e-6;
+    
     // multifit parameters  
     osg::ref_ptr<orsa::MultifitParameters> par = new orsa::MultifitParameters;
     //
@@ -351,9 +356,12 @@ int main(int argc, char ** argv) {
     par->insert("w_U",        initial_w_U,     0.000001*initial_w_U); 
     // AM
     // par->insert("c_AM",    0.00, 0.000001); 
-    par->insert("peak_AM", 1.10, 0.000001);
-    par->insert("scale_AM",0.80, 0.000001);
-    par->insert("shape_AM",1.00, 0.000001);
+    par->insert("peak_AM", 1.00, 0.000001);
+    par->insert("scale_AM",1.00,0.000001);
+    par->insert("shape_AM",0.00, 0.000001);
+    // GB
+    par->insert("drop_GB", 0.00, 0.000001);
+    par->insert("scale_GB",25.6*orsa::degToRad(), 0.000001); // rad
     // mixing angle
     // par->insert("beta",     0.0, 0.000001);
     // Galactic latitude
@@ -372,6 +380,15 @@ int main(int argc, char ** argv) {
     */
     //
     // par->setFixed("c_AM",true);
+    //
+    /* par->setFixed("peak_AM",true);
+       par->set("scale_AM",1.0e3);
+       par->setFixed("scale_AM",true);
+       par->setFixed("shape_AM",true);
+       //
+       par->setFixed("drop_GB",true);
+       par->setFixed("scale_GB",true);
+    */
     
     osg::ref_ptr<orsa::MultifitParameters> lastGoodPar = new orsa::MultifitParameters;
     orsa::Cache<double> V0;
@@ -400,30 +417,33 @@ int main(int argc, char ** argv) {
   
     {
         V0 = 16.0;
-        while (V0.getRef() <= 21.0) {
-            // reset initial values
-            par->set("V_limit",19.00);
-            par->set("eta0_V",  0.99);
-            par->set("c_V",     0.001);
-            par->set("w_V",     0.3);
-            par->set("U_limit",    initial_U_limit);
-            par->set("w_U",        initial_w_U);
-            
-            ORSA_DEBUG("V0: %g",V0.getRef());
-            success = etaFit->fit(par.get(),
-                                  data,
-                                  V0.getRef(),
-                                  fitFilename,
-                                  basename,
-                                  obsCodeFile.get(),
-                                  false);
-            if ( (success || (etaFit->getIter() == etaFit->maxIter)) &&
-                 (par->get("c_V") >= 0.0) ) {
-                break;
-            } else {
-                V0 += 1.0;
-            }
-        }
+        /* while (V0.getRef() <= 21.0) {
+        // reset initial values
+        par->set("V_limit",19.00);
+        par->set("eta0_V",  0.99);
+        par->set("c_V",     0.001);
+        par->set("w_V",     0.3);
+        par->set("U_limit",    initial_U_limit);
+        par->set("w_U",        initial_w_U);
+        
+        ORSA_DEBUG("V0: %g",V0.getRef());
+        */
+        success = etaFit->fit(par.get(),
+                              data,
+                              V0.getRef(),
+                              fitFilename,
+                              basename,
+                              obsCodeFile.get(),
+                              false);
+        /* if ( (success || (etaFit->getIter() == etaFit->maxIter)) &&
+           (par->get("c_V") >= 0.0) ) {
+           break;
+           } else {
+           V0 += 1.0;
+           }
+           }
+        */
+        
         if (success || (etaFit->getIter() == etaFit->maxIter)) {
             // deep copy
             (*lastGoodPar.get()) = (*par.get());
@@ -448,6 +468,9 @@ int main(int argc, char ** argv) {
     // par->setRangeMin("w_U",0.0);
     // par->setRangeMin("c_AM",0.0);
     par->setRangeMin("peak_AM",1.0);
+    par->setRange("drop_GB",0.0,1.0);
+    par->set("scale_GB",fabs(par->get("scale_GB")));
+    par->setRangeMin("scale_GB",0.0);
     
     {
         success = etaFit->fit(par.get(),
