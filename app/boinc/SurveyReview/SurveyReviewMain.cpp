@@ -141,24 +141,26 @@ int main() {
         orsaSPICE::SPICE::instance()->loadKernel(resolvedFileName);
         // fclose(fp_dummy);
     }
-
+    
     osg::ref_ptr<SkyCoverageFile> skyCoverageFile = new SkyCoverageFile;
+    //
     boinc_resolve_filename_s("field.dat",resolvedFileName);
     skyCoverageFile->setFileName(resolvedFileName);
     skyCoverageFile->read();
-    
+    //
+    boinc_resolve_filename_s("fieldTime.dat",resolvedFileName);
+    skyCoverageFile->_data->readFieldTimeFile(resolvedFileName);
+    //
     osg::ref_ptr<SkyCoverage> skyCoverage = skyCoverageFile->_data;
-
+    
     {
         // read fit.dat file
         // global, bad but straightforward
         double JD, year;
         double V_limit, eta0_V, c_V, w_V;
         double U_limit, w_U;
-        /* double beta;
-           double GB_limit, w_GB;
-           double Gmix;
-        */
+        double peak_AM, scale_AM, shape_AM;
+        double drop_GB, scale_GB;
         double chisq_dof;
         unsigned int Nobs, Ndsc, Ntot;
         double degSq;
@@ -178,9 +180,9 @@ int main() {
         while (fgets(line,1024,fp)) {
             if (line[0]=='#') continue; // comment
             // UPDATE THIS NUMBER
-            if (15 == sscanf(line,
+            if (20 == sscanf(line,
                              // "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
                              &JD,
                              &year,
                              &V_limit,
@@ -189,11 +191,11 @@ int main() {
                              &w_V,
                              &U_limit,
                              &w_U,
-                             /* &beta,
-                                &GB_limit,
-                                &w_GB,
-                                &Gmix,
-                             */
+                             &peak_AM,
+                             &scale_AM,
+                             &shape_AM,
+                             &drop_GB,
+                             &scale_GB,
                              &chisq_dof,
                              &Nobs,
                              &Ndsc,
@@ -204,10 +206,7 @@ int main() {
                 // conversion
                 U_limit   = orsa::FromUnits(U_limit*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
                 w_U       = orsa::FromUnits(    w_U*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-                /* beta     *= orsa::degToRad();
-                   GB_limit *= orsa::degToRad();
-                   w_GB     *= orsa::degToRad();
-                */
+                scale_GB  = orsa::degToRad()*scale_GB;
                 
                 std::string obsCode;
                 orsa::Time epoch;

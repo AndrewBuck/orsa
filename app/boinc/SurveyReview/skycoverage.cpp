@@ -189,8 +189,17 @@ bool SkyCoverage::insertFieldTime(const orsa::Time & epoch,
         if (u*(*it).u_centerField > (*it).minScalarProduct) {
             if (fabs(asin(u*(*it).u_RA)) < (*it).halfFieldSize_RA) {
                 if (fabs(asin(u*(*it).u_DEC)) < (*it).halfFieldSize_DEC) {
-                    (*it).epochVec.push_back(epoch);
-                    setSome=true;
+                    bool unique=true;
+                    for (unsigned int z=0; z<(*it).epochVec.size(); ++z) {
+                        if (epoch == (*it).epochVec[z]) {
+                            unique=false;
+                            break;
+                        }
+                    }
+                    if (unique) {
+                        (*it).epochVec.push_back(epoch);
+                        setSome=true;
+                    }
                 }
             }
         }
@@ -222,6 +231,43 @@ bool SkyCoverage::getFieldAverageTime(orsa::Time & epoch,
     } else {
         return false;
     }
+}
+
+void SkyCoverage::writeFieldTimeFile(const std::string & filename) const {
+    FILE * fp = fopen(filename.c_str(),"w");
+    if (!fp) {
+        ORSA_DEBUG("cannot write file [%s]",filename.c_str());
+    }
+    for (unsigned int k=0; k<data.size(); ++k) {
+        for (unsigned int z=0; z<data[k].epochVec.size(); ++z) {
+            fprintf(fp,"%3i %.5f\n",k,orsaSolarSystem::timeToJulian(data[k].epochVec[z]));
+        }
+    }
+    fclose(fp);
+}
+
+void SkyCoverage::readFieldTimeFile(const std::string & filename) {
+    FILE * fp = fopen(filename.c_str(),"r");
+    if (!fp) {
+        ORSA_DEBUG("cannot read file [%s]",filename.c_str());
+    }
+    unsigned int goodEntries=0;
+    char line[1024];
+    unsigned int fieldID;
+    double JD;
+    while (fgets(line,1024,fp)) {
+        if (2 == sscanf(line,"%i %lf",&fieldID,&JD)) {
+            ORSA_DEBUG("reading: %3i %.5f",fieldID,JD);
+            if (fieldID >= data.size()) {
+                ORSA_DEBUG("fieldID outside range");
+                continue;
+            }
+            data[fieldID].epochVec.push_back(orsaSolarSystem::julianToTime(JD));
+            ++goodEntries;
+        }
+    }
+    fclose(fp);
+    ORSA_DEBUG("read %i field times",goodEntries);
 }
 
 bool SkyCoverage::pickFieldTime(orsa::Time & epoch,

@@ -461,10 +461,13 @@ int main(int argc, char ** argv) {
     {
         obsFile->select_startEpoch = epoch - orsa::Time(0,12,0,0,0);
         obsFile->select_stopEpoch  = epoch + orsa::Time(0,12,0,0,0);
-        ORSA_DEBUG("select start/stop:");
-        orsaSolarSystem::print(obsFile->select_startEpoch.getRef());
-        orsaSolarSystem::print(obsFile->select_stopEpoch.getRef());
+        /* ORSA_DEBUG("select start/stop:");
+           orsaSolarSystem::print(obsFile->select_startEpoch.getRef());
+           orsaSolarSystem::print(obsFile->select_stopEpoch.getRef());
+        */
+        //
         obsFile->select_obsCode = obsCode;
+        //
         /* obsFile->setFileName("mpn.arc.gz");
            obsFile->read();
            obsFile->setFileName("mpu.arc.gz");
@@ -503,7 +506,14 @@ int main(int argc, char ** argv) {
         // this ratio should be smaller than 1.0, because the field declared
         // in the sky coverage files is smaller than the real data CCD field.
     }
-  
+    
+    {
+        char filename[1024];
+        sprintf(filename,"%s.fieldTime.dat",basename.c_str());
+        ORSA_DEBUG("writing file: [%s]",filename);
+        skyCoverage->writeFieldTimeFile(filename);
+    }
+    
     osg::ref_ptr<CustomMPCAsteroidFile> orbitFile = 
         new CustomMPCAsteroidFile(sunPosition,obsPosition);
     orbitFile->skyCoverage = skyCoverage.get();

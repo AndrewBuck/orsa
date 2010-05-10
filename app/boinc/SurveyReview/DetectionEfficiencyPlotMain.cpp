@@ -380,7 +380,6 @@ int main(int argc, char ** argv) {
                              &w_V,
                              &U_limit,
                              &w_U,
-                             // &c_AM,
                              &peak_AM,
                              &scale_AM,
                              &shape_AM,
@@ -397,9 +396,7 @@ int main(int argc, char ** argv) {
                 U_limit   = orsa::FromUnits(U_limit*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
                 w_U       = orsa::FromUnits(    w_U*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
                 scale_GB  = orsa::degToRad()*scale_GB;
-                
-                ORSA_DEBUG("year: %g  V_limit: %g  ID: %s",year,V_limit,jobID);
-                
+                // ORSA_DEBUG("year: %g  V_limit: %g  ID: %s",year,V_limit,jobID);
                 break;
             } else {
                 ORSA_DEBUG("empty fit file");

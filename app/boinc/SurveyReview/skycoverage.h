@@ -111,6 +111,10 @@ public:
     }
     
 public:
+    void writeFieldTimeFile(const std::string & filename) const;
+    void  readFieldTimeFile(const std::string & filename);
+    
+public:
     //! smallest distance (angle) between the u direction and any of the fields centers
     double minDistance(const orsa::Vector & u,
                        const bool verbose=false) const;
@@ -118,7 +122,7 @@ public:
 public:
     // total area of sky covered, as declared in file, no check for overlaps is performed
     double totalDegSq() const;
-  
+    
 public:
     class SkyCoverageElement {
     public:
