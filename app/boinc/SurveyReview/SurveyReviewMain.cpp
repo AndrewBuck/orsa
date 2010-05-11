@@ -95,7 +95,8 @@ int main() {
     
         if (createTable) {
             // create results table
-            sql = "CREATE TABLE grid(z_a_min INTEGER, z_a_max INTEGER, z_e_min INTEGER, z_e_max INTEGER, z_i_min INTEGER, z_i_max INTEGER, z_node_min INTEGER, z_node_max INTEGER, z_peri_min INTEGER, z_peri_max INTEGER, z_M_min INTEGER, z_M_max INTEGER, z_H_min INTEGER, z_H_max INTEGER, eta_NEO REAL, sigma_eta_NEO REAL, eta_PHO REAL, sigma_eta_PHO REAL)";
+            // sql = "CREATE TABLE grid(z_a_min INTEGER, z_a_max INTEGER, z_e_min INTEGER, z_e_max INTEGER, z_i_min INTEGER, z_i_max INTEGER, z_node_min INTEGER, z_node_max INTEGER, z_peri_min INTEGER, z_peri_max INTEGER, z_M_min INTEGER, z_M_max INTEGER, z_H_min INTEGER, z_H_max INTEGER, eta_NEO REAL, sigma_eta_NEO REAL, eta_PHO REAL, sigma_eta_PHO REAL)";
+            sql = "CREATE TABLE grid(z_a_min INTEGER, z_a_max INTEGER, z_e_min INTEGER, z_e_max INTEGER, z_i_min INTEGER, z_i_max INTEGER, z_node_min INTEGER, z_node_max INTEGER, z_peri_min INTEGER, z_peri_max INTEGER, z_M_min INTEGER, z_M_max INTEGER, z_H INTEGER, eta_NEO REAL, sigma_eta_NEO REAL, eta_PHO REAL, sigma_eta_PHO REAL)";
             rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
             //
             if (rc != SQLITE_OK) {
@@ -412,9 +413,24 @@ int main() {
     znum *= (z_node_max-z_node_min)/z_node_delta;
     znum *= (z_peri_max-z_peri_min)/z_peri_delta;
     znum *= (z_M_max-z_M_min)/z_M_delta;
-    znum *= (z_H_max-z_H_min)/z_H_delta;
+    // znum *= (z_H_max-z_H_min)/z_H_delta;
     const mpz_class totalIterations = znum;
     ORSA_DEBUG("maximum expected iterations: %Zi",totalIterations.get_mpz_t());
+    
+    // H not included in totalIterations; each iteration runs all H values
+    const int size_H = 1 + (z_H_max-z_H_min)/z_H_delta;
+
+    // defined outside the loop for better performance, but cleared at every loop iteration
+    std::vector< osg::ref_ptr< orsa::Statistic<double> > > eta_NEO;
+    std::vector< osg::ref_ptr< orsa::Statistic<double> > > eta_PHO;
+    {
+        eta_NEO.resize(size_H);
+        eta_PHO.resize(size_H);
+        for (int h=0; h<size_H; ++h) {
+            eta_NEO[h] = new orsa::Statistic<double>;
+            eta_PHO[h] = new orsa::Statistic<double>;
+        }
+    }
     
     bool firstIter=true;
     for (int z_a=z_a_min; z_a<z_a_max; z_a+=z_a_delta) {
@@ -423,364 +439,412 @@ int main() {
                 for (int z_node=z_node_min; z_node<z_node_max; z_node+=z_node_delta) {
                     for (int z_peri=z_peri_min; z_peri<z_peri_max; z_peri+=z_peri_delta) {
                         for (int z_M=z_M_min; z_M<z_M_max; z_M+=z_M_delta) {
-                            for (int z_H=z_H_min; z_H<z_H_max; z_H+=z_H_delta) {
-                                
-                                {
-                                    // report progress
-                                    mpz_class idx=0;
-                                    mpz_class mul=totalIterations;
-                                    //
-                                    mul /= (z_a_max-z_a_min) / z_a_delta;
-                                    idx += mul*(z_a-z_a_min) / z_a_delta;
-                                    //
-                                    mul /= (z_e_max-z_e_min) / z_e_delta;
-                                    idx += mul*(z_e-z_e_min) / z_e_delta;
-                                    //
-                                    mul /= (z_i_max-z_i_min) / z_i_delta;
-                                    idx += mul*(z_i-z_i_min) / z_i_delta;
-                                    //
-                                    mul /= (z_node_max-z_node_min) / z_node_delta;
-                                    idx += mul*(z_node-z_node_min) / z_node_delta;
-                                    //
-                                    mul /= (z_peri_max-z_peri_min) / z_peri_delta;
-                                    idx += mul*(z_peri-z_peri_min) / z_peri_delta;
-                                    //
-                                    mul /= (z_M_max-z_M_min) / z_M_delta;
-                                    idx += mul*(z_M-z_M_min) / z_M_delta;
-                                    //
-                                    mul /= (z_H_max-z_H_min) / z_H_delta;
-                                    idx += mul*(z_H-z_H_min) / z_H_delta;
-                                    //
-                                    const double fractionDone = idx.get_d()/totalIterations.get_d();
-                                    //
-                                    boinc_fraction_done(fractionDone);
-                                    if (boinc_is_standalone()) {
-                                        ORSA_DEBUG("fraction completed: %5.2f%%",100*fractionDone);
-                                        /* ORSA_DEBUG("fraction completed: %5.2f%%    idx: %Zi mul: %Zi totalIterations: %Zi",
-                                           100*fractionDone,
-                                           idx.get_mpz_t(),
-                                           mul.get_mpz_t(),
-                                           totalIterations.get_mpz_t());
-                                        */
-                                    }
-                                }
-                                
-                                if (firstIter) {
-                                    // if grid table is already populated,
-                                    // then this is a restore, and we skip directly to the last row
-                                    char **result;
-                                    int nrows, ncols;
-                                    char sql_line[1024];
-                                    // select last inserted row
-                                    sprintf(sql_line,"SELECT * FROM grid ORDER BY rowid desc LIMIT 1");
-                                    rc = sqlite3_get_table(db,sql_line,&result,&nrows,&ncols,&zErr);
-                                    //
-                                    if (rc != SQLITE_OK) {
-                                        if (zErr != NULL) {
-                                            fprintf(stderr,"SQL error: %s\n",zErr);
-                                            sqlite3_free(zErr);
-                                            boinc_finish(0); 
-                                        }
-                                    }
-                                    // ORSA_DEBUG("nrows: %i  ncols: %i",nrows, ncols);
-                                    //
-                                    /* for (int i=0; i<nrows; ++i) {
-                                       for (int j=0; j<ncols; ++j) {
-                                       // i=0 is the header
-                                       const int index = (i+1)*ncols+j;
-                                       ORSA_DEBUG("result[%i] = %s = %s",j,result[j],result[index]);
-                                       }
-                                       }
+
+                            // for (int z_H=z_H_min; z_H<z_H_max; z_H+=z_H_delta) {
+                            
+                            {
+                                // report progress
+                                mpz_class idx=0;
+                                mpz_class mul=totalIterations;
+                                //
+                                mul /= (z_a_max-z_a_min) / z_a_delta;
+                                idx += mul*(z_a-z_a_min) / z_a_delta;
+                                //
+                                mul /= (z_e_max-z_e_min) / z_e_delta;
+                                idx += mul*(z_e-z_e_min) / z_e_delta;
+                                //
+                                mul /= (z_i_max-z_i_min) / z_i_delta;
+                                idx += mul*(z_i-z_i_min) / z_i_delta;
+                                //
+                                mul /= (z_node_max-z_node_min) / z_node_delta;
+                                idx += mul*(z_node-z_node_min) / z_node_delta;
+                                //
+                                mul /= (z_peri_max-z_peri_min) / z_peri_delta;
+                                idx += mul*(z_peri-z_peri_min) / z_peri_delta;
+                                //
+                                mul /= (z_M_max-z_M_min) / z_M_delta;
+                                idx += mul*(z_M-z_M_min) / z_M_delta;
+                                //
+                                /* mul /= (z_H_max-z_H_min) / z_H_delta;
+                                   idx += mul*(z_H-z_H_min) / z_H_delta;
+                                */
+                                //
+                                const double fractionDone = idx.get_d()/totalIterations.get_d();
+                                //
+                                boinc_fraction_done(fractionDone);
+                                if (boinc_is_standalone()) {
+                                    ORSA_DEBUG("fraction completed: %5.2f%%",100*fractionDone);
+                                    /* ORSA_DEBUG("fraction completed: %5.2f%%    idx: %Zi mul: %Zi totalIterations: %Zi",
+                                       100*fractionDone,
+                                       idx.get_mpz_t(),
+                                       mul.get_mpz_t(),
+                                       totalIterations.get_mpz_t());
                                     */
-                                    //
-                                    if (nrows==1) {
-                                        ORSA_DEBUG("skipping to last computed row");
-                                        for (int j=0; j<ncols; ++j) {
-                                            // first row is the header
-                                            if (std::string(result[j])=="z_a_min")    { z_a    = atoi(result[ncols+j]); continue; }
-                                            if (std::string(result[j])=="z_e_min")    { z_e    = atoi(result[ncols+j]); continue; }
-                                            if (std::string(result[j])=="z_i_min")    { z_i    = atoi(result[ncols+j]); continue; }
-                                            if (std::string(result[j])=="z_node_min") { z_node = atoi(result[ncols+j]); continue; }
-                                            if (std::string(result[j])=="z_peri_min") { z_peri = atoi(result[ncols+j]); continue; }
-                                            if (std::string(result[j])=="z_M_min")    { z_M    = atoi(result[ncols+j]); continue; }
-                                            if (std::string(result[j])=="z_H_min")    { z_H    = atoi(result[ncols+j]); continue; }
-                                        }
-                                    }
-                                    sqlite3_free_table(result);
-                                    firstIter=false;
                                 }
-                                
-                                {
-                                    // quick check if NEO
-                                    // minimum perihelion: q = a_min*(1-e_max), with min and max of this specific interval
-                                    const double q_min = orsa::FromUnits(grain_a_AU*z_a*(1.0-grain_e*(z_e+z_e_delta)),orsa::Unit::AU);
-                                    if (q_min > OrbitID::NEO_max_q) {
-                                        // ORSA_DEBUG("skipping, no NEOs in this interval");
-                                        continue;
-                                    }
-                                }                                
-                                
-                                {
-                                    // check if already computed this one
-                                    char **result;
-                                    int nrows, ncols;
-                                    char sql_line[1024];
-                                    sprintf(sql_line,
-                                            "SELECT * FROM grid WHERE z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i and z_H_min=%i and z_H_max=%i",
-                                            z_a,z_a+z_a_delta,
-                                            z_e,z_e+z_e_delta,
-                                            z_i,z_i+z_i_delta,
-                                            z_node,z_node+z_node_delta,
-                                            z_peri,z_peri+z_peri_delta,
-                                            z_M,z_M+z_M_delta,
-                                            z_H,z_H+z_H_delta);
-                                    rc = sqlite3_get_table(db,sql_line,&result,&nrows,&ncols,&zErr);
-                                    //
-                                    if (rc != SQLITE_OK) {
-                                        if (zErr != NULL) {
-                                            fprintf(stderr,"SQL error: %s\n",zErr);
-                                            sqlite3_free(zErr);
-                                            boinc_finish(0); 
-                                        }
-                                    }
-                                    // ORSA_DEBUG("nrows: %i  ncols: %i",nrows, ncols);
-                                    //
-                                    /* for (int i=0; i<nrows; ++i) {
-                                       for (int j=0; j<ncols; ++j) {
-                                       // i=0 is the header
-                                       const int index = (i+1)*ncols+j;
-                                       ORSA_DEBUG("result[%i] = %s",index, result[index]);
-                                       }
-                                       } 
-                                    */
-                                    //
-                                    bool skip=false;
-                                    //
-                                    if (nrows==1) {
-                                        // ORSA_DEBUG("skipping value already computed...");
-                                        /* ORSA_DEBUG("skipping: (%i,%i,%i,%i,%i,%i,%i)",
-                                           z_a,
-                                           z_e,
-                                           z_i,
-                                           z_node,
-                                           z_peri,
-                                           z_M,
-                                           z_H);
-                                        */
-                                        skip=true;
-                                    } else if (nrows>1) {
-                                        ORSA_ERROR("database corrupted, only one entry per grid element is admitted");
+                            }
+                            
+                            if (firstIter) {
+                                // if grid table is already populated,
+                                // then this is a restore, and we skip directly to the last row
+                                char **result;
+                                int nrows, ncols;
+                                char sql_line[1024];
+                                // select last inserted row
+                                sprintf(sql_line,"SELECT * FROM grid ORDER BY rowid desc LIMIT 1");
+                                rc = sqlite3_get_table(db,sql_line,&result,&nrows,&ncols,&zErr);
+                                //
+                                if (rc != SQLITE_OK) {
+                                    if (zErr != NULL) {
+                                        fprintf(stderr,"SQL error: %s\n",zErr);
+                                        sqlite3_free(zErr);
                                         boinc_finish(0); 
                                     }
-                                    //
-                                    sqlite3_free_table(result);
-                                    //
-                                    if (skip) {
-                                        // ORSA_DEBUG("skipping...");
-                                        continue;
+                                }
+                                // ORSA_DEBUG("nrows: %i  ncols: %i",nrows, ncols);
+                                //
+                                /* for (int i=0; i<nrows; ++i) {
+                                   for (int j=0; j<ncols; ++j) {
+                                   // i=0 is the header
+                                   const int index = (i+1)*ncols+j;
+                                   ORSA_DEBUG("result[%i] = %s = %s",j,result[j],result[index]);
+                                   }
+                                   }
+                                */
+                                //
+                                if (nrows==1) {
+                                    ORSA_DEBUG("skipping to last computed row");
+                                    for (int j=0; j<ncols; ++j) {
+                                        // first row is the header
+                                        if (std::string(result[j])=="z_a_min")    { z_a    = atoi(result[ncols+j]); continue; }
+                                        if (std::string(result[j])=="z_e_min")    { z_e    = atoi(result[ncols+j]); continue; }
+                                        if (std::string(result[j])=="z_i_min")    { z_i    = atoi(result[ncols+j]); continue; }
+                                        if (std::string(result[j])=="z_node_min") { z_node = atoi(result[ncols+j]); continue; }
+                                        if (std::string(result[j])=="z_peri_min") { z_peri = atoi(result[ncols+j]); continue; }
+                                        if (std::string(result[j])=="z_M_min")    { z_M    = atoi(result[ncols+j]); continue; }
+                                        // if (std::string(result[j])=="z_H_min")    { z_H    = atoi(result[ncols+j]); continue; }
                                     }
                                 }
-                                
-                                osg::ref_ptr<OrbitFactory> orbitFactory =
-                                    new OrbitFactory(grain_a_AU* z_a,
-                                                     grain_a_AU*(z_a+z_a_delta),
-                                                     grain_e* z_e,
-                                                     grain_e*(z_e+z_e_delta),
-                                                     grain_i_DEG* z_i,
-                                                     grain_i_DEG*(z_i+z_i_delta),
-                                                     grain_node_DEG* z_node,
-                                                     grain_node_DEG*(z_node+z_node_delta),
-                                                     grain_peri_DEG* z_peri,
-                                                     grain_peri_DEG*(z_peri+z_peri_delta),
-                                                     grain_M_DEG* z_M,
-                                                     grain_M_DEG*(z_M+z_M_delta),
-                                                     grain_H* z_H,
-                                                     grain_H*(z_H+z_H_delta),
-                                                     rnd.get(),
-                                                     earthOrbit);
-	  
-                                unsigned int count=0;
-                                unsigned int inField=0;
-                                osg::ref_ptr< orsa::Statistic<double> > eta_NEO = new orsa::Statistic<double>;
-                                osg::ref_ptr< orsa::Statistic<double> > eta_PHO = new orsa::Statistic<double>;
-                                for (unsigned int j=0; j<numGen; ++j) {
-	    
-                                    orbit = orbitFactory->sample();
-                                    
-                                    if (!orbit->isNEO()) {
-                                        continue;
+                                sqlite3_free_table(result);
+                                firstIter=false;
+                            }
+                            
+                            {
+                                // quick check if NEO
+                                // minimum perihelion: q = a_min*(1-e_max), with min and max of this specific interval
+                                const double q_min = orsa::FromUnits(grain_a_AU*z_a*(1.0-grain_e*(z_e+z_e_delta)),orsa::Unit::AU);
+                                if (q_min > OrbitID::NEO_max_q) {
+                                    // ORSA_DEBUG("skipping, no NEOs in this interval");
+                                    continue;
+                                }
+                            }                                
+                            
+                            {
+                                // check if already computed this one
+                                char **result;
+                                int nrows, ncols;
+                                char sql_line[1024];
+                                /* sprintf(sql_line,
+                                   "SELECT * FROM grid WHERE z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i and z_H_min=%i and z_H_max=%i",
+                                   z_a,z_a+z_a_delta,
+                                   z_e,z_e+z_e_delta,
+                                   z_i,z_i+z_i_delta,
+                                   z_node,z_node+z_node_delta,
+                                   z_peri,z_peri+z_peri_delta,
+                                   z_M,z_M+z_M_delta,
+                                   z_H,z_H+z_H_delta);
+                                */
+                                //
+                                sprintf(sql_line,
+                                        "SELECT * FROM grid WHERE z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i",
+                                        z_a,z_a+z_a_delta,
+                                        z_e,z_e+z_e_delta,
+                                        z_i,z_i+z_i_delta,
+                                        z_node,z_node+z_node_delta,
+                                        z_peri,z_peri+z_peri_delta,
+                                        z_M,z_M+z_M_delta);
+                                // z_H,z_H+z_H_delta);
+                                rc = sqlite3_get_table(db,sql_line,&result,&nrows,&ncols,&zErr);
+                                //
+                                if (rc != SQLITE_OK) {
+                                    if (zErr != NULL) {
+                                        fprintf(stderr,"SQL error: %s\n",zErr);
+                                        sqlite3_free(zErr);
+                                        boinc_finish(0); 
                                     }
+                                }
+                                // ORSA_DEBUG("nrows: %i  ncols: %i",nrows, ncols);
+                                //
+                                /* for (int i=0; i<nrows; ++i) {
+                                   for (int j=0; j<ncols; ++j) {
+                                   // i=0 is the header
+                                   const int index = (i+1)*ncols+j;
+                                   ORSA_DEBUG("result[%i] = %s",index, result[index]);
+                                   }
+                                   } 
+                                */
+                                //
+                                bool skip=false;
+                                //
+#warning <= or == ??
+                                if (nrows<=size_H) {
+                                    // can be < size_H because some entries may be below threshold and ignored (or zero)
+                                    // ORSA_DEBUG("skipping value already computed...");
+                                    /* ORSA_DEBUG("skipping: (%i,%i,%i,%i,%i,%i,%i)",
+                                       z_a,
+                                       z_e,
+                                       z_i,
+                                       z_node,
+                                       z_peri,
+                                       z_M,
+                                       z_H);
+                                    */
+                                    skip=true;
+                                } else if (nrows>size_H) {
+                                    ORSA_ERROR("database corrupted, only (size_H=%i) entries per grid element are admitted",size_H);
+                                    boinc_finish(0); 
+                                }
+                                //
+                                sqlite3_free_table(result);
+                                //
+                                if (skip) {
+                                    // ORSA_DEBUG("skipping...");
+                                    continue;
+                                }
+                            }
+                            
+                            osg::ref_ptr<OrbitFactory> orbitFactory =
+                                new OrbitFactory(grain_a_AU* z_a,
+                                                 grain_a_AU*(z_a+z_a_delta),
+                                                 grain_e* z_e,
+                                                 grain_e*(z_e+z_e_delta),
+                                                 grain_i_DEG* z_i,
+                                                 grain_i_DEG*(z_i+z_i_delta),
+                                                 grain_node_DEG* z_node,
+                                                 grain_node_DEG*(z_node+z_node_delta),
+                                                 grain_peri_DEG* z_peri,
+                                                 grain_peri_DEG*(z_peri+z_peri_delta),
+                                                 grain_M_DEG* z_M,
+                                                 grain_M_DEG*(z_M+z_M_delta),
+                                                 // grain_H* z_H,
+                                                 // grain_H*(z_H+z_H_delta),
+                                                 rnd.get(),
+                                                 earthOrbit);
+                            
+                            unsigned int count=0;
+                            unsigned int inField=0;
+                            // 
+                            // now defined outside the loop
+                            //
+                            // std::vector< osg::ref_ptr< orsa::Statistic<double> > > eta_NEO;
+                            // std::vector< osg::ref_ptr< orsa::Statistic<double> > > eta_PHO;
+                            {
+                                // eta_NEO.resize(size_H);
+                                // eta_PHO.resize(size_H);
+                                for (int h=0; h<size_H; ++h) {
+                                    eta_NEO[h]->reset();
+                                    eta_PHO[h]->reset();
+                                }
+                            }
+                            
+                            for (unsigned int j=0; j<numGen; ++j) {
+                                
+                                // if (j%10==0) ORSA_DEBUG("j: %i",j);
+                                
+                                orbit = orbitFactory->sample();
                                     
-                                    ++count;
+                                if (!orbit->isNEO()) {
+                                    continue;
+                                }
+                                
+                                ++count;
+                                
+                                const double orbitPeriod = orbit->period();
+                                
+                                // orbit referred to J2000
+                                
+                                orsa::Vector r;
+    
+                                const double original_M  = orbit->M;
+                                //
+                                orbit->M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
+                                orbit->relativePosition(r);
+                                orsa::Vector orbitPosition_epoch = r + sunPosition_sk_epoch;
+                                //
+                                /* orbit->M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()+apparentMotion_dt_T-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
+                                   orbit->relativePosition(r);
+                                   orsa::Vector orbitPosition_epoch_plus_dt = r + sunPosition_sk_epoch_plus_dt;
+                                */
+                                //
+                                orbit->M = original_M;
+                                
+                                orsa::Vector dr_epoch          = (orbitPosition_epoch         - observerPosition_sk_epoch);
+                                // orsa::Vector dr_epoch_plus_dt  = (orbitPosition_epoch_plus_dt - observerPosition_sk_epoch_plus_dt);
+                                
+                                if (skyCoverage->get(dr_epoch.normalized(),V_field)) {
                                     
-                                    const double orbitPeriod = orbit->period();
+                                    // retrieve one accurate observation epoch from the field, and recompute the orbit position
+                                    orsa::Time epoch = skyCoverage->epoch.getRef();
+                                    bool epochFromField = skyCoverage->pickFieldTime(epoch,dr_epoch.normalized(),rnd.get());
                                     
-                                    // orbit referred to J2000
+                                    obsPosCB->getPosition(observerPosition_epoch,
+                                                          skyCoverage->obscode.getRef(),
+                                                          epoch);
                                     
-                                    orsa::Vector r;
+                                    obsPosCB->getPosition(observerPosition_epoch_plus_dt,
+                                                          skyCoverage->obscode.getRef(),
+                                                          epoch+apparentMotion_dt_T);
                                     
-                                    const double original_M  = orbit->M;
-                                    //
-                                    orbit->M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
+                                    bg->getInterpolatedPosition(sunPosition_epoch,
+                                                                sun.get(),
+                                                                epoch);
+                                    
+                                    bg->getInterpolatedPosition(sunPosition_epoch_plus_dt,
+                                                                sun.get(),
+                                                                epoch+apparentMotion_dt_T);
+                                    
+                                    orsa::Vector earthPosition_epoch;
+                                    bg->getInterpolatedPosition(earthPosition_epoch,
+                                                                earth.get(),
+                                                                epoch);
+                                    
+                                    // earth north pole
+                                    const orsa::Vector northPole = (orsaSolarSystem::equatorialToEcliptic()*orsa::Vector(0,0,1)).normalized();
+                                    
+                                    orbit->M = original_M + fmod(orsa::twopi() * (epoch-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
                                     orbit->relativePosition(r);
-                                    orsa::Vector orbitPosition_epoch = r + sunPosition_sk_epoch;
+                                    orbitPosition_epoch = r + sunPosition_epoch;
                                     //
-                                    orbit->M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()+apparentMotion_dt_T-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
+                                    orbit->M = original_M + fmod(orsa::twopi() * (epoch+apparentMotion_dt_T-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
                                     orbit->relativePosition(r);
-                                    orsa::Vector orbitPosition_epoch_plus_dt = r + sunPosition_sk_epoch_plus_dt;
+                                    orsa::Vector orbitPosition_epoch_plus_dt = r + sunPosition_epoch_plus_dt;
                                     //
                                     orbit->M = original_M;
                                     
-                                    orsa::Vector dr_epoch          = (orbitPosition_epoch         - observerPosition_sk_epoch);
-                                    orsa::Vector dr_epoch_plus_dt  = (orbitPosition_epoch_plus_dt - observerPosition_sk_epoch_plus_dt);
+                                    dr_epoch          = (orbitPosition_epoch         - observerPosition_epoch);
+                                    orsa::Vector dr_epoch_plus_dt  = (orbitPosition_epoch_plus_dt - observerPosition_epoch_plus_dt);
                                     
-                                    if (skyCoverage->get(dr_epoch.normalized(),V_field)) {
+                                    ++inField;
+                                    
+                                    const orsa::Vector orb2obs    = observerPosition_epoch - orbitPosition_epoch;
+                                    const orsa::Vector obs2orb    = -orb2obs;
+                                    const orsa::Vector orb2sun    = sunPosition_epoch      - orbitPosition_epoch;
+                                    const double       phaseAngle = acos((orb2obs.normalized())*(orb2sun.normalized()));
+                                    
+                                    // apparent magnitude V moved later, in H loop
+                                    
+                                    // apparent velocity
+                                    const double U = acos(dr_epoch_plus_dt.normalized()*dr_epoch.normalized())/apparentMotion_dt;
+                                    
+                                    // airmass
+                                    //
+                                    // aliases
+                                    const orsa::Vector & earthPosition = earthPosition_epoch;
+                                    const orsa::Vector &   obsPosition = observerPosition_epoch;
+                                    const orsa::Vector     zenith = (obsPosition - earthPosition).normalized();
+                                    // const orsa::Vector localEast  = orsa::externalProduct(northPole,zenith).normalized();
+                                    //  const orsa::Vector localNorth = orsa::externalProduct(zenith,localEast).normalized();
+                                    const double obs2orb_zenith     =     zenith*obs2orb.normalized();
+                                    // const double obs2orb_localEast  =  localEast*obs2orb.normalized();
+                                    // const double obs2orb_localNorth = localNorth*obs2orb.normalized();
+                                    const double zenithAngle = acos(obs2orb_zenith);
+                                    // const double airMass = ((observed||epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):-1.0);
+                                    // const double azimuth = fmod(orsa::twopi()+atan2(obs2orb_localEast,obs2orb_localNorth),orsa::twopi());
+                                    const double AM = ((epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):100.0);
+                                    
+                                    // galactic latitude
+                                    const orsa::Vector obs2orb_Equatorial = orsaSolarSystem::eclipticToEquatorial()*obs2orb;
+                                    const orsa::Vector dr_equatorial = obs2orb_Equatorial.normalized();
+                                    const double  ra = fmod(atan2(dr_equatorial.getY(),dr_equatorial.getX())+orsa::twopi(),orsa::twopi());
+                                    const double dec = asin(dr_equatorial.getZ()/dr_equatorial.length());
+                                    double l,b;
+                                    orsaSolarSystem::equatorialToGalactic(l,b,ra,dec);
+                                    // format longitude between -180 and +180 deg
+                                    l = fmod(l+2*orsa::twopi(),orsa::twopi());
+                                    if (l > orsa::pi()) l -= orsa::twopi();
+                                    // const double galacticLongitude = l;
+                                    // const double galacticLatitude  = b;
+                                    const double GB = b;
+
+                                    // total: size_H iterations
+                                    for (int z_H=z_H_min; z_H<=z_H_max; z_H+=z_H_delta) {
                                         
-                                        // retrieve one accurate observation epoch from the field, and recompute the orbit position
-                                        orsa::Time epoch = skyCoverage->epoch.getRef();
-                                        bool epochFromField = skyCoverage->pickFieldTime(epoch,dr_epoch.normalized(),rnd.get());
-                                        
-                                        obsPosCB->getPosition(observerPosition_epoch,
-                                                              skyCoverage->obscode.getRef(),
-                                                              epoch);
-                                        
-                                        obsPosCB->getPosition(observerPosition_epoch_plus_dt,
-                                                              skyCoverage->obscode.getRef(),
-                                                              epoch+apparentMotion_dt_T);
-                                        
-                                        bg->getInterpolatedPosition(sunPosition_epoch,
-                                                                    sun.get(),
-                                                                    epoch);
-                                        
-                                        bg->getInterpolatedPosition(sunPosition_epoch_plus_dt,
-                                                                    sun.get(),
-                                                                    epoch+apparentMotion_dt_T);
-                                        
-                                        orsa::Vector earthPosition_epoch;
-                                        bg->getInterpolatedPosition(earthPosition_epoch,
-                                                                    earth.get(),
-                                                                    epoch);
-                                        
-                                        // earth north pole
-                                        const orsa::Vector northPole = (orsaSolarSystem::equatorialToEcliptic()*orsa::Vector(0,0,1)).normalized();
-                                        
-                                        orbit->M = original_M + fmod(orsa::twopi() * (epoch-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
-                                        orbit->relativePosition(r);
-                                        orbitPosition_epoch = r + sunPosition_epoch;
-                                        //
-                                        orbit->M = original_M + fmod(orsa::twopi() * (epoch+apparentMotion_dt_T-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
-                                        orbit->relativePosition(r);
-                                        orbitPosition_epoch_plus_dt = r + sunPosition_epoch_plus_dt;
-                                        //
-                                        orbit->M = original_M;
-                                        
-                                        dr_epoch          = (orbitPosition_epoch         - observerPosition_epoch);
-                                        dr_epoch_plus_dt  = (orbitPosition_epoch_plus_dt - observerPosition_epoch_plus_dt);
-                                        
-                                        ++inField;
-                                        
-                                        const orsa::Vector orb2obs    = observerPosition_epoch - orbitPosition_epoch;
-                                        const orsa::Vector obs2orb    = -orb2obs;
-                                        const orsa::Vector orb2sun    = sunPosition_epoch      - orbitPosition_epoch;
-                                        const double       phaseAngle = acos((orb2obs.normalized())*(orb2sun.normalized()));
+                                        const double H = z_H*grain_H;
                                         
                                         // apparent magnitude
-                                        const double V = apparentMagnitude(orbit->H,
+                                        const double V = apparentMagnitude(H,
                                                                            phaseAngle,
                                                                            orb2obs.length(),
                                                                            orb2sun.length());
-                                        
-                                        // apparent velocity
-                                        const double U = acos(dr_epoch_plus_dt.normalized()*dr_epoch.normalized())/apparentMotion_dt;
-                                        
-                                        // airmass
-                                        //
-                                        // aliases
-                                        const orsa::Vector & earthPosition = earthPosition_epoch;
-                                        const orsa::Vector &   obsPosition = observerPosition_epoch;
-                                        const orsa::Vector     zenith = (obsPosition - earthPosition).normalized();
-                                        // const orsa::Vector localEast  = orsa::externalProduct(northPole,zenith).normalized();
-                                        //  const orsa::Vector localNorth = orsa::externalProduct(zenith,localEast).normalized();
-                                        const double obs2orb_zenith     =     zenith*obs2orb.normalized();
-                                        // const double obs2orb_localEast  =  localEast*obs2orb.normalized();
-                                        // const double obs2orb_localNorth = localNorth*obs2orb.normalized();
-                                        const double zenithAngle = acos(obs2orb_zenith);
-                                        // const double airMass = ((observed||epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):-1.0);
-                                        // const double azimuth = fmod(orsa::twopi()+atan2(obs2orb_localEast,obs2orb_localNorth),orsa::twopi());
-                                        const double AM = ((epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):100.0);
-                                        
-                                        // galactic latitude
-                                        const orsa::Vector obs2orb_Equatorial = orsaSolarSystem::eclipticToEquatorial()*obs2orb;
-                                        const orsa::Vector dr_equatorial = obs2orb_Equatorial.normalized();
-                                        const double  ra = fmod(atan2(dr_equatorial.getY(),dr_equatorial.getX())+orsa::twopi(),orsa::twopi());
-                                        const double dec = asin(dr_equatorial.getZ()/dr_equatorial.length());
-                                        double l,b;
-                                        orsaSolarSystem::equatorialToGalactic(l,b,ra,dec);
-                                        // format longitude between -180 and +180 deg
-                                        l = fmod(l+2*orsa::twopi(),orsa::twopi());
-                                        if (l > orsa::pi()) l -= orsa::twopi();
-                                        // const double galacticLongitude = l;
-                                        // const double galacticLatitude  = b;
-                                        const double GB = b;
-                                        
+
                                         // detection efficiency
                                         const double eta = skyCoverage->eta(V,U,AM,GB);
-                            
-                                        ORSA_DEBUG("a: %f [AU] e: %f i: %f [deg] H: %f V: %f eta: %e",
-                                                   orsa::FromUnits(orbit->a,orsa::Unit::AU,-1),
-                                                   orbit->e,
-                                                   orsa::radToDeg()*orbit->i,
-                                                   orbit->H,
-                                                   V,
-                                                   eta);
-                            
-                                        eta_NEO->insert(eta);
+                                        
+                                        if (boinc_is_standalone()) {
+                                            ORSA_DEBUG("a: %f [AU] e: %f i: %f [deg] H: %f V: %f eta: %e",
+                                                       orsa::FromUnits(orbit->a,orsa::Unit::AU,-1),
+                                                       orbit->e,
+                                                       orsa::radToDeg()*orbit->i,
+                                                       H,
+                                                       V,
+                                                       eta);
+                                        }
+                                        
+                                        const unsigned int pos = (z_H-z_H_min)/z_H_delta;
+                                        
+                                        eta_NEO[pos]->insert(eta);
                                         //
                                         if (orbit->isPHO()) {
-                                            eta_PHO->insert(eta);
+                                            eta_PHO[pos]->insert(eta);
                                         }
-                            
-                                        // if (boinc_is_standalone()) {
-	      
-                                        // }
-	      
-                                    } else {
-	      
-                                        eta_NEO->insert(0.0);
-                                        //
-                                        if (orbit->isPHO()) {
-                                            eta_PHO->insert(0.0);
-                                        }
-	      
                                     }
-	    
+                                    
+                                } else {
+
+                                    // total: size_H iterations
+#warning RE-include this, or find a better way to account for out-of-field orbits!
+                                    /* for (int z_H=z_H_min; z_H<=z_H_max; z_H+=z_H_delta) {
+                                       const unsigned int pos = (z_H-z_H_min)/z_H_delta;
+                                       eta_NEO[pos]->insert(0.0);
+                                       //
+                                       if (orbit->isPHO()) {
+                                       eta_PHO[pos]->insert(0.0);
+                                       }
+                                       }
+                                    */
                                 }
-	  
-                                {
-                                    // all in a transaction
-                                    sql = "begin";
-                                    rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
-	    
+                            }
+                            
+                            {
+                                // all in a transaction
+                                sql = "begin";
+                                rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+                                
+                                // total: size_H iterations
+                                for (int z_H=z_H_min; z_H<=z_H_max; z_H+=z_H_delta) {
+                                    
+                                    const unsigned int pos = (z_H-z_H_min)/z_H_delta;
+                                    
                                     // save values in db
-                                    double       good_eta_NEO = (eta_NEO->entries() > 0) ? eta_NEO->average()      : 0;
-                                    double good_sigma_eta_NEO = (eta_NEO->entries() > 0) ? eta_NEO->averageError() : 0;
-                                    double       good_eta_PHO = (eta_PHO->entries() > 0) ? eta_PHO->average()      : 0;
-                                    double good_sigma_eta_PHO = (eta_PHO->entries() > 0) ? eta_PHO->averageError() : 0;
+                                    double       good_eta_NEO = (eta_NEO[pos]->entries() > 0) ? eta_NEO[pos]->average()      : 0;
+                                    double good_sigma_eta_NEO = (eta_NEO[pos]->entries() > 0) ? eta_NEO[pos]->averageError() : 0;
+                                    double       good_eta_PHO = (eta_PHO[pos]->entries() > 0) ? eta_PHO[pos]->average()      : 0;
+                                    double good_sigma_eta_PHO = (eta_PHO[pos]->entries() > 0) ? eta_PHO[pos]->averageError() : 0;
                                     //
                                     // ORSA_DEBUG("eta_NEO: %f +/- %f",eta_NEO->average(),eta_NEO->averageError());
                                     //
 #warning should use _bind_ sqlite commands for better floating point accuracy
                                     //
                                     char sql_line[1024];
+                                    
                                     sprintf(sql_line,
-                                            "INSERT INTO grid VALUES(%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%g,%g,%g,%g)",
+                                            "INSERT INTO grid VALUES(%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%g,%g,%g,%g)",
                                             z_a,z_a+z_a_delta,
                                             z_e,z_e+z_e_delta,
                                             z_i,z_i+z_i_delta,
                                             z_node,z_node+z_node_delta,
                                             z_peri,z_peri+z_peri_delta,
                                             z_M,z_M+z_M_delta,
-                                            z_H,z_H+z_H_delta,
+                                            z_H, // z_H,z_H+z_H_delta,
                                             good_eta_NEO,
                                             good_sigma_eta_NEO,
                                             good_eta_PHO,
@@ -802,65 +866,67 @@ int main() {
                                             boinc_finish(0); 
                                         }
                                     }
-	    
-                                    // save rng state on database...
-                                    {
-                                        // first delete old entry
-                                        rc = sqlite3_exec(db,"delete from rng",NULL,NULL,&zErr);
-                                        //
-                                        if (rc != SQLITE_OK) {
-                                            if (zErr != NULL) {
-                                                fprintf(stderr,"SQL error: %s\n",zErr);
-                                                sqlite3_free(zErr);
-                                                boinc_finish(0); 
-                                            }		
-                                        }
-	      
-                                        FILE * fp_rnd = fopen("rng.bin","wb");
-                                        if (fp_rnd != 0) {
-                                            rnd->gsl_rng_fwrite(fp_rnd);
-                                            fclose(fp_rnd);
-                                        } else {
-                                            ORSA_ERROR("cannot open file rng.bin");  
-                                            boinc_finish(1);
-                                        }
-                                        //
-                                        fp_rnd = fopen("rng.bin","rb");
-                                        // get the size f1Size of the input file
-                                        fseek(fp_rnd, 0, SEEK_END);
-                                        const unsigned int fileSize=ftell(fp_rnd);
-                                        fseek(fp_rnd, 0, SEEK_SET);
-                                        //
-                                        char * copyBuffer = (char*)malloc(fileSize+1);
-                                        //
-                                        if (fileSize != fread(copyBuffer, sizeof(char), fileSize, fp_rnd)) {
-                                            free (copyBuffer);
-                                            boinc_finish(0); 
-                                        }
-                                        //
-                                        fclose(fp_rnd);
-                                        //
-                                        sqlite3_stmt * insertstmt;
-                                        std::string sqlinsert = "insert into rng (binary_state) values (?);";
-                                        rc = sqlite3_prepare(db, sqlinsert.c_str(), strlen(sqlinsert.c_str()), &insertstmt, NULL);
-                                        sqlite3_bind_blob(insertstmt, 1, (const void*)copyBuffer, fileSize, SQLITE_STATIC);
-                                        sqlite3_step(insertstmt);
-                                        sqlite3_finalize(insertstmt);
-                                        free (copyBuffer);
-                                    }
-	    
-                                    sql = "commit";
-                                    do {
-                                        rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
-                                        if (rc==SQLITE_BUSY) {
-                                            ORSA_DEBUG("database busy, retrying...");
-                                        }
-                                    } while (rc==SQLITE_BUSY);
-	    
                                 }
                                 
-                                // seven "for" iterations...
+                                // save rng state on database...
+                                {
+                                    // first delete old entry
+                                    rc = sqlite3_exec(db,"delete from rng",NULL,NULL,&zErr);
+                                    //
+                                    if (rc != SQLITE_OK) {
+                                        if (zErr != NULL) {
+                                            fprintf(stderr,"SQL error: %s\n",zErr);
+                                            sqlite3_free(zErr);
+                                            boinc_finish(0); 
+                                        }		
+                                    }
+                                    
+                                    FILE * fp_rnd = fopen("rng.bin","wb");
+                                    if (fp_rnd != 0) {
+                                        rnd->gsl_rng_fwrite(fp_rnd);
+                                        fclose(fp_rnd);
+                                    } else {
+                                        ORSA_ERROR("cannot open file rng.bin");  
+                                        boinc_finish(1);
+                                    }
+                                    //
+                                    fp_rnd = fopen("rng.bin","rb");
+                                    // get the size f1Size of the input file
+                                    fseek(fp_rnd, 0, SEEK_END);
+                                    const unsigned int fileSize=ftell(fp_rnd);
+                                    fseek(fp_rnd, 0, SEEK_SET);
+                                    //
+                                    char * copyBuffer = (char*)malloc(fileSize+1);
+                                    //
+                                    if (fileSize != fread(copyBuffer, sizeof(char), fileSize, fp_rnd)) {
+                                        free (copyBuffer);
+                                        boinc_finish(0); 
+                                    }
+                                    //
+                                    fclose(fp_rnd);
+                                    //
+                                    sqlite3_stmt * insertstmt;
+                                    std::string sqlinsert = "insert into rng (binary_state) values (?);";
+                                    rc = sqlite3_prepare(db, sqlinsert.c_str(), strlen(sqlinsert.c_str()), &insertstmt, NULL);
+                                    sqlite3_bind_blob(insertstmt, 1, (const void*)copyBuffer, fileSize, SQLITE_STATIC);
+                                    sqlite3_step(insertstmt);
+                                    sqlite3_finalize(insertstmt);
+                                    free (copyBuffer);
+                                }
+                                
+                                sql = "commit";
+                                do {
+                                    rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+                                    if (rc==SQLITE_BUSY) {
+                                        ORSA_DEBUG("database busy, retrying...");
+                                    }
+                                } while (rc==SQLITE_BUSY);
+                                
                             }
+                            
+                            // six // seven "for" iterations...
+                            
+                            // }
                         }
                     }
                 }

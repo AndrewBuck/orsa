@@ -8,10 +8,10 @@
 #include <boinc_api.h>
 
 // globaly accessible proxy
-osg::ref_ptr<PhaseComponentProxy> phaseComponentProxy = new PhaseComponentProxy(0.01);
+// osg::ref_ptr<PhaseComponentProxy> phaseComponentProxy = new PhaseComponentProxy(0.01);
 
 // globaly accessible proxy
-osg::ref_ptr<Log10Proxy> log10Proxy = new Log10Proxy(0.01);
+// osg::ref_ptr<Log10Proxy> log10Proxy = new Log10Proxy(0.01);
 
 orsa::Body * SPICEBody (const std::string  & bodyName,
                         const double & bodyMass) {
@@ -110,13 +110,13 @@ OrbitID * OrbitFactory::sample() const {
     orbit->omega_pericenter = orsa::degToRad()*(peri_DEG_min+(peri_DEG_max-peri_DEG_min)*rnd->gsl_rng_uniform());
     orbit->M                = orsa::degToRad()*(M_DEG_min+(M_DEG_max-M_DEG_min)*rnd->gsl_rng_uniform());
     //
-    orbit->H = H_min+(H_max-H_min)*rnd->gsl_rng_uniform();
+    // orbit->H = H_min+(H_max-H_min)*rnd->gsl_rng_uniform();
     
     orbit->mu = GMSun;
     
     // debug
     /* if (boinc_is_standalone()) {
-       if (idCounter%100==0) ORSA_DEBUG("idCounter: %Zi",idCounter.get_mpz_t());
+       if (idCounter%10==0) ORSA_DEBUG("idCounter: %Zi",idCounter.get_mpz_t());
        }
     */
     
