@@ -1,6 +1,7 @@
 #include <orsa/debug.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <libgen.h>
+#include <cstdio>
 
 int main(int argc, char ** argv) {
   
