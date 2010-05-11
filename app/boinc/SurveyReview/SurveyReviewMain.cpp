@@ -95,8 +95,7 @@ int main() {
     
         if (createTable) {
             // create results table
-            // sql = "CREATE TABLE grid(z_a_min INTEGER, z_a_max INTEGER, z_e_min INTEGER, z_e_max INTEGER, z_i_min INTEGER, z_i_max INTEGER, z_node_min INTEGER, z_node_max INTEGER, z_peri_min INTEGER, z_peri_max INTEGER, z_M_min INTEGER, z_M_max INTEGER, z_H_min INTEGER, z_H_max INTEGER, eta_NEO REAL, sigma_eta_NEO REAL, eta_PHO REAL, sigma_eta_PHO REAL)";
-            sql = "CREATE TABLE grid(z_a_min INTEGER, z_a_max INTEGER, z_e_min INTEGER, z_e_max INTEGER, z_i_min INTEGER, z_i_max INTEGER, z_node_min INTEGER, z_node_max INTEGER, z_peri_min INTEGER, z_peri_max INTEGER, z_M_min INTEGER, z_M_max INTEGER, z_H INTEGER, eta_NEO REAL, sigma_eta_NEO REAL, eta_PHO REAL, sigma_eta_PHO REAL)";
+            sql = "CREATE TABLE grid(z_a_min INTEGER, z_a_max INTEGER, z_e_min INTEGER, z_e_max INTEGER, z_i_min INTEGER, z_i_max INTEGER, z_node_min INTEGER, z_node_max INTEGER, z_peri_min INTEGER, z_peri_max INTEGER, z_M_min INTEGER, z_M_max INTEGER, z_H INTEGER, N_NEO INTEGER, N_PHO INTEGER, NEO_in_field INTEGER, PHO_in_field INTEGER, eta_NEO REAL, sigma_eta_NEO REAL, eta_PHO REAL, sigma_eta_PHO REAL)";
             rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
             //
             if (rc != SQLITE_OK) {
@@ -372,7 +371,7 @@ int main() {
     //
     const double apparentMotion_dt = apparentMotion_dt_T.get_d();
     
-    osg::ref_ptr<OrbitID> orbit;
+    // osg::ref_ptr<OrbitID> orbit;
     
     orsa::Vector observerPosition_epoch;
     orsa::Vector observerPosition_epoch_plus_dt;
@@ -585,9 +584,9 @@ int main() {
                                 //
                                 bool skip=false;
                                 //
-#warning <= or == ??
-                                if (nrows<=size_H) {
-                                    // can be < size_H because some entries may be below threshold and ignored (or zero)
+                                if (nrows==0) {
+                                    // nothing, but must keep this case!
+                                } else if (nrows==size_H) {
                                     // ORSA_DEBUG("skipping value already computed...");
                                     /* ORSA_DEBUG("skipping: (%i,%i,%i,%i,%i,%i,%i)",
                                        z_a,
@@ -599,7 +598,7 @@ int main() {
                                        z_H);
                                     */
                                     skip=true;
-                                } else if (nrows>size_H) {
+                                } else { // if (nrows>size_H) {
                                     ORSA_ERROR("database corrupted, only (size_H=%i) entries per grid element are admitted",size_H);
                                     boinc_finish(0); 
                                 }
@@ -630,8 +629,10 @@ int main() {
                                                  rnd.get(),
                                                  earthOrbit);
                             
-                            unsigned int count=0;
-                            unsigned int inField=0;
+                            unsigned int N_NEO=0;
+                            unsigned int N_PHO=0;
+                            unsigned int NEO_in_field=0;
+                            unsigned int PHO_in_field=0;
                             // 
                             // now defined outside the loop
                             //
@@ -650,13 +651,18 @@ int main() {
                                 
                                 // if (j%10==0) ORSA_DEBUG("j: %i",j);
                                 
-                                orbit = orbitFactory->sample();
+                                osg::ref_ptr<OrbitID> orbit = orbitFactory->sample();
                                     
                                 if (!orbit->isNEO()) {
                                     continue;
                                 }
+                                ++N_NEO;
+                                const bool isPHO = orbit->isPHO();
+                                if (isPHO) {
+                                    ++N_PHO;
+                                }
                                 
-                                ++count;
+                                // ++count;
                                 
                                 const double orbitPeriod = orbit->period();
                                 
@@ -681,6 +687,12 @@ int main() {
                                 // orsa::Vector dr_epoch_plus_dt  = (orbitPosition_epoch_plus_dt - observerPosition_sk_epoch_plus_dt);
                                 
                                 if (skyCoverage->get(dr_epoch.normalized(),V_field)) {
+                                    
+                                    // we already checked, it's a NEO
+                                    ++NEO_in_field;
+                                    if (isPHO) {
+                                        ++PHO_in_field;
+                                    }
                                     
                                     // retrieve one accurate observation epoch from the field, and recompute the orbit position
                                     orsa::Time epoch = skyCoverage->epoch.getRef();
@@ -723,7 +735,7 @@ int main() {
                                     dr_epoch          = (orbitPosition_epoch         - observerPosition_epoch);
                                     orsa::Vector dr_epoch_plus_dt  = (orbitPosition_epoch_plus_dt - observerPosition_epoch_plus_dt);
                                     
-                                    ++inField;
+                                    // ++inField;
                                     
                                     const orsa::Vector orb2obs    = observerPosition_epoch - orbitPosition_epoch;
                                     const orsa::Vector obs2orb    = -orb2obs;
@@ -793,24 +805,16 @@ int main() {
                                         
                                         eta_NEO[pos]->insert(eta);
                                         //
-                                        if (orbit->isPHO()) {
+                                        if (isPHO) {
                                             eta_PHO[pos]->insert(eta);
                                         }
                                     }
                                     
                                 } else {
-
-                                    // total: size_H iterations
-#warning RE-include this, or find a better way to account for out-of-field orbits!
-                                    /* for (int z_H=z_H_min; z_H<=z_H_max; z_H+=z_H_delta) {
-                                       const unsigned int pos = (z_H-z_H_min)/z_H_delta;
-                                       eta_NEO[pos]->insert(0.0);
-                                       //
-                                       if (orbit->isPHO()) {
-                                       eta_PHO[pos]->insert(0.0);
-                                       }
-                                       }
-                                    */
+                                    
+                                    // no inserts if out-of-field
+                                    // the average then represents only those in field
+                                    
                                 }
                             }
                             
@@ -825,10 +829,10 @@ int main() {
                                     const unsigned int pos = (z_H-z_H_min)/z_H_delta;
                                     
                                     // save values in db
-                                    double       good_eta_NEO = (eta_NEO[pos]->entries() > 0) ? eta_NEO[pos]->average()      : 0;
-                                    double good_sigma_eta_NEO = (eta_NEO[pos]->entries() > 0) ? eta_NEO[pos]->averageError() : 0;
-                                    double       good_eta_PHO = (eta_PHO[pos]->entries() > 0) ? eta_PHO[pos]->average()      : 0;
-                                    double good_sigma_eta_PHO = (eta_PHO[pos]->entries() > 0) ? eta_PHO[pos]->averageError() : 0;
+                                    double       good_eta_NEO = (eta_NEO[pos]->entries() > 0) ? eta_NEO[pos]->average()           : 0;
+                                    double good_sigma_eta_NEO = (eta_NEO[pos]->entries() > 1) ? eta_NEO[pos]->standardDeviation() : 0;
+                                    double       good_eta_PHO = (eta_PHO[pos]->entries() > 0) ? eta_PHO[pos]->average()           : 0;
+                                    double good_sigma_eta_PHO = (eta_PHO[pos]->entries() > 1) ? eta_PHO[pos]->standardDeviation() : 0;
                                     //
                                     // ORSA_DEBUG("eta_NEO: %f +/- %f",eta_NEO->average(),eta_NEO->averageError());
                                     //
@@ -837,7 +841,7 @@ int main() {
                                     char sql_line[1024];
                                     
                                     sprintf(sql_line,
-                                            "INSERT INTO grid VALUES(%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%g,%g,%g,%g)",
+                                            "INSERT INTO grid VALUES(%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%g,%g,%g,%g)",
                                             z_a,z_a+z_a_delta,
                                             z_e,z_e+z_e_delta,
                                             z_i,z_i+z_i_delta,
@@ -845,6 +849,10 @@ int main() {
                                             z_peri,z_peri+z_peri_delta,
                                             z_M,z_M+z_M_delta,
                                             z_H, // z_H,z_H+z_H_delta,
+                                            N_NEO,
+                                            N_PHO,
+                                            NEO_in_field,
+                                            PHO_in_field,
                                             good_eta_NEO,
                                             good_sigma_eta_NEO,
                                             good_eta_PHO,
