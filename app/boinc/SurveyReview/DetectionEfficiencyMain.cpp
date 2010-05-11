@@ -678,7 +678,7 @@ int main(int argc, char ** argv) {
         const orsa::Vector obsPosition = r;
         obsPosCB->getPosition(r,obsCode,epoch+dt);
         const orsa::Vector obsPosition_dt = r;
-    
+        
         orsaSolarSystem::OrbitWithEpoch orbit = orbitFile->_data[korb].orbit.getRef();
         const double orbitPeriod = orbit.period();
         const double original_M  = orbit.M;
@@ -718,7 +718,7 @@ int main(int argc, char ** argv) {
         const double obs2orb_localEast  =  localEast*obs2orb.normalized();
         const double obs2orb_localNorth = localNorth*obs2orb.normalized();
         const double zenithAngle = acos(obs2orb_zenith);
-        const double airMass = ((observed||epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):-1.0);
+        const double airMass = ((observed||epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):10.0);
         const double azimuth = fmod(orsa::twopi()+atan2(obs2orb_localEast,obs2orb_localNorth),orsa::twopi());
         // lunar altitude
         const double solarAltitude = ((observed||epochFromField)?(orsa::halfpi()-acos(zenith*obs2sun.normalized())):-orsa::halfpi());

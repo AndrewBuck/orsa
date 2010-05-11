@@ -223,17 +223,24 @@ int main() {
                 }
                 
                 // update skyCoverage
-                skyCoverage->obscode = obsCode;
-                skyCoverage->epoch   = epoch;
+                skyCoverage->obscode  = obsCode;
+                skyCoverage->epoch    = epoch;
                 //
-                skyCoverage->V_limit = V_limit;
-                skyCoverage->eta0_V  = eta0_V;
-                skyCoverage->V0      = V0;
-                skyCoverage->c_V     = c_V;
-                skyCoverage->w_V     = w_V;
+                skyCoverage->V_limit  = V_limit;
+                skyCoverage->eta0_V   = eta0_V;
+                skyCoverage->V0       = V0;
+                skyCoverage->c_V      = c_V;
+                skyCoverage->w_V      = w_V;
                 //
-                skyCoverage->U_limit = U_limit;
-                skyCoverage->w_U     = w_U;
+                skyCoverage->U_limit  = U_limit;
+                skyCoverage->w_U      = w_U;
+                //
+                skyCoverage->peak_AM  = peak_AM;
+                skyCoverage->scale_AM = scale_AM;
+                skyCoverage->shape_AM = shape_AM;
+                //
+                skyCoverage->drop_GB  = drop_GB;
+                skyCoverage->scale_GB = scale_GB;
                 
                 break;
             } else {
@@ -363,30 +370,35 @@ int main() {
     const orsa::Time apparentMotion_dt_T = orsa::Time(0,0,1,0,0);
     //
     const double apparentMotion_dt = apparentMotion_dt_T.get_d();
-  
+    
     osg::ref_ptr<OrbitID> orbit;
-  
-    orsa::Vector r;
-  
-    obsPosCB->getPosition(r,
+    
+    orsa::Vector observerPosition_epoch;
+    orsa::Vector observerPosition_epoch_plus_dt;
+    orsa::Vector sunPosition_epoch;
+    orsa::Vector sunPosition_epoch_plus_dt;
+    
+    obsPosCB->getPosition(observerPosition_epoch,
                           skyCoverage->obscode.getRef(),
                           skyCoverage->epoch.getRef());
-    const orsa::Vector observerPosition_epoch = r;
-  
-    obsPosCB->getPosition(r,
+    
+    obsPosCB->getPosition(observerPosition_epoch_plus_dt,
                           skyCoverage->obscode.getRef(),
                           skyCoverage->epoch.getRef()+apparentMotion_dt_T);
-    const orsa::Vector observerPosition_epoch_plus_dt = r;
     
-    bg->getInterpolatedPosition(r,
+    bg->getInterpolatedPosition(sunPosition_epoch,
                                 sun.get(),
                                 skyCoverage->epoch.getRef());
-    const orsa::Vector sunPosition_epoch = r;
     
-    bg->getInterpolatedPosition(r,
+    bg->getInterpolatedPosition(sunPosition_epoch_plus_dt,
                                 sun.get(),
                                 skyCoverage->epoch.getRef()+apparentMotion_dt_T);
-    const orsa::Vector sunPosition_epoch_plus_dt = r;
+    
+    // computed at skyCoverage->epoch
+    const orsa::Vector observerPosition_sk_epoch         = observerPosition_epoch;
+    const orsa::Vector observerPosition_sk_epoch_plus_dt = observerPosition_epoch_plus_dt;
+    const orsa::Vector sunPosition_sk_epoch              = sunPosition_sk_epoch;
+    const orsa::Vector sunPosition_sk_epoch_plus_dt      = sunPosition_sk_epoch_plus_dt;
     
     // double V_nightStart, V_nightStop;
     //
@@ -594,110 +606,125 @@ int main() {
                                 for (unsigned int j=0; j<numGen; ++j) {
 	    
                                     orbit = orbitFactory->sample();
-	    
+                                    
                                     if (!orbit->isNEO()) {
                                         continue;
                                     }
-	    
+                                    
                                     ++count;
-	    
+                                    
                                     const double orbitPeriod = orbit->period();
-
+                                    
                                     // orbit referred to J2000
-                        
+                                    
+                                    orsa::Vector r;
+                                    
                                     const double original_M  = orbit->M;
                                     //
                                     orbit->M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
                                     orbit->relativePosition(r);
-                                    const orsa::Vector orbitPosition_epoch = r + sunPosition_epoch;
+                                    orsa::Vector orbitPosition_epoch = r + sunPosition_sk_epoch;
                                     //
                                     orbit->M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()+apparentMotion_dt_T-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
                                     orbit->relativePosition(r);
-                                    const orsa::Vector orbitPosition_epoch_plus_dt = r + sunPosition_epoch_plus_dt;
+                                    orsa::Vector orbitPosition_epoch_plus_dt = r + sunPosition_sk_epoch_plus_dt;
                                     //
                                     orbit->M = original_M;
-                        
-                                    const orsa::Vector dr_epoch          = (orbitPosition_epoch         - observerPosition_epoch);
-                                    const orsa::Vector dr_epoch_plus_dt  = (orbitPosition_epoch_plus_dt - observerPosition_epoch_plus_dt);
                                     
-                                    // orsa::print(dr_nightStart);
-                                    // orsa::print(dr_nightStop);
+                                    orsa::Vector dr_epoch          = (orbitPosition_epoch         - observerPosition_sk_epoch);
+                                    orsa::Vector dr_epoch_plus_dt  = (orbitPosition_epoch_plus_dt - observerPosition_sk_epoch_plus_dt);
                                     
-                                    // if (skyCoverage->get(dr_nightStart.normalized(),V_nightStart) && 
-                                    // skyCoverage->get(dr_nightStop.normalized(), V_nightStop)) {
                                     if (skyCoverage->get(dr_epoch.normalized(),V_field)) {
-	      
-                                        ++inField;
-	      
-                                        /* 
-                                           ORSA_DEBUG("   orbitPosition.length: %f [AU]",orsa::FromUnits(   orbitPosition.length(),orsa::Unit::AU,-1));
-                                           orsa::print(orbitPosition);
-		 
-                                           ORSA_DEBUG("observerPosition.length: %f [AU]",orsa::FromUnits(observerPosition.length(),orsa::Unit::AU,-1));
-                                           orsa::print(observerPosition);
-                                        */
-	      
-                                        // const double distance = dr_epoch.length();
-	      
-                                        // const double appvel_arcmin_per_hour = orsa::radToArcmin()*acos(dr_nightStart.normalized()*dr_nightStop.normalized())/orsa::FromUnits((skyCoverage->nightStop.getRef()-skyCoverage->nightStart.getRef()).get_d(),orsa::Unit::HOUR,-1);
-                                        // const double night_arc = acos(dr_epoch.normalized()*dr_epoch_plus_dt.normalized())/apparentMotion_dt;
-	      
-                                        /* 
-                                           ORSA_DEBUG("OBJECT in observer FIELD!   distance: %5.2f [AU]   apparent velocity: %f [deg/day]   ORBIT: rs: %i id: %i count: %i inField: %i",
-                                           orsa::FromUnits(distance,orsa::Unit::AU,-1),
-                                           orsa::FromUnits(orsa::radToDeg()*night_arc,orsa::Unit::DAY),
-                                           orbit->randomSeed,orbit->id,
-                                           count,
-                                           inField);
-                                        */
-	      
-                                        /* 
-                                           ORSA_DEBUG("a: %f [AU] e: %f i: %f [deg]",
-                                           orsa::FromUnits(orbit->a,orsa::Unit::AU,-1),
-                                           orbit->e,
-                                           orsa::radToDeg()*orbit->i);
-                                        */
-	      
-                                        /* 
-                                           if (orbit->isNEO()) {
-                                           ORSA_DEBUG("is NEO!");
-                                           }
-		 
-                                           if (orbit->isIEO()) {
-                                           ORSA_DEBUG("is IEO!");
-                                           }
-		 
-                                           if (orbit->isAten()) {
-                                           ORSA_DEBUG("is Aten!");
-                                           }
-		 
-                                           if (orbit->isApollo()) {
-                                           ORSA_DEBUG("is Apollo!");
-                                           }
-		 
-                                           if (orbit->isAmor()) {
-                                           ORSA_DEBUG("is Amor!");
-                                           }
-		 
-                                           if (orbit->isPHO()) {
-                                           ORSA_DEBUG("is PHO!");
-                                           }
-                                        */
-	      
+                                        
+                                        // retrieve one accurate observation epoch from the field, and recompute the orbit position
+                                        orsa::Time epoch = skyCoverage->epoch.getRef();
+                                        bool epochFromField = skyCoverage->pickFieldTime(epoch,dr_epoch.normalized(),rnd.get());
+                                        
+                                        obsPosCB->getPosition(observerPosition_epoch,
+                                                              skyCoverage->obscode.getRef(),
+                                                              epoch);
+                                        
+                                        obsPosCB->getPosition(observerPosition_epoch_plus_dt,
+                                                              skyCoverage->obscode.getRef(),
+                                                              epoch+apparentMotion_dt_T);
+                                        
+                                        bg->getInterpolatedPosition(sunPosition_epoch,
+                                                                    sun.get(),
+                                                                    epoch);
+                                        
+                                        bg->getInterpolatedPosition(sunPosition_epoch_plus_dt,
+                                                                    sun.get(),
+                                                                    epoch+apparentMotion_dt_T);
+                                        
+                                        orsa::Vector earthPosition_epoch;
+                                        bg->getInterpolatedPosition(earthPosition_epoch,
+                                                                    earth.get(),
+                                                                    epoch);
+                                        
+                                        // earth north pole
+                                        const orsa::Vector northPole = (orsaSolarSystem::equatorialToEcliptic()*orsa::Vector(0,0,1)).normalized();
+                                        
+                                        orbit->M = original_M + fmod(orsa::twopi() * (epoch-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
+                                        orbit->relativePosition(r);
+                                        orbitPosition_epoch = r + sunPosition_epoch;
                                         //
-                                        const orsa::Vector neo2obs    = observerPosition_epoch - orbitPosition_epoch;
-                                        const orsa::Vector neo2sun    = sunPosition_epoch      - orbitPosition_epoch;
-                                        const double       phaseAngle = acos((neo2obs.normalized())*(neo2sun.normalized()));
+                                        orbit->M = original_M + fmod(orsa::twopi() * (epoch+apparentMotion_dt_T-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
+                                        orbit->relativePosition(r);
+                                        orbitPosition_epoch_plus_dt = r + sunPosition_epoch_plus_dt;
+                                        //
+                                        orbit->M = original_M;
+                                        
+                                        dr_epoch          = (orbitPosition_epoch         - observerPosition_epoch);
+                                        dr_epoch_plus_dt  = (orbitPosition_epoch_plus_dt - observerPosition_epoch_plus_dt);
+                                        
+                                        ++inField;
+                                        
+                                        const orsa::Vector orb2obs    = observerPosition_epoch - orbitPosition_epoch;
+                                        const orsa::Vector obs2orb    = -orb2obs;
+                                        const orsa::Vector orb2sun    = sunPosition_epoch      - orbitPosition_epoch;
+                                        const double       phaseAngle = acos((orb2obs.normalized())*(orb2sun.normalized()));
+                                        
                                         // apparent magnitude
                                         const double V = apparentMagnitude(orbit->H,
                                                                            phaseAngle,
-                                                                           neo2obs.length(),
-                                                                           neo2sun.length());
+                                                                           orb2obs.length(),
+                                                                           orb2sun.length());
+                                        
                                         // apparent velocity
                                         const double U = acos(dr_epoch_plus_dt.normalized()*dr_epoch.normalized())/apparentMotion_dt;
-                            
+                                        
+                                        // airmass
+                                        //
+                                        // aliases
+                                        const orsa::Vector & earthPosition = earthPosition_epoch;
+                                        const orsa::Vector &   obsPosition = observerPosition_epoch;
+                                        const orsa::Vector     zenith = (obsPosition - earthPosition).normalized();
+                                        // const orsa::Vector localEast  = orsa::externalProduct(northPole,zenith).normalized();
+                                        //  const orsa::Vector localNorth = orsa::externalProduct(zenith,localEast).normalized();
+                                        const double obs2orb_zenith     =     zenith*obs2orb.normalized();
+                                        // const double obs2orb_localEast  =  localEast*obs2orb.normalized();
+                                        // const double obs2orb_localNorth = localNorth*obs2orb.normalized();
+                                        const double zenithAngle = acos(obs2orb_zenith);
+                                        // const double airMass = ((observed||epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):-1.0);
+                                        // const double azimuth = fmod(orsa::twopi()+atan2(obs2orb_localEast,obs2orb_localNorth),orsa::twopi());
+                                        const double AM = ((epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):100.0);
+                                        
+                                        // galactic latitude
+                                        const orsa::Vector obs2orb_Equatorial = orsaSolarSystem::eclipticToEquatorial()*obs2orb;
+                                        const orsa::Vector dr_equatorial = obs2orb_Equatorial.normalized();
+                                        const double  ra = fmod(atan2(dr_equatorial.getY(),dr_equatorial.getX())+orsa::twopi(),orsa::twopi());
+                                        const double dec = asin(dr_equatorial.getZ()/dr_equatorial.length());
+                                        double l,b;
+                                        orsaSolarSystem::equatorialToGalactic(l,b,ra,dec);
+                                        // format longitude between -180 and +180 deg
+                                        l = fmod(l+2*orsa::twopi(),orsa::twopi());
+                                        if (l > orsa::pi()) l -= orsa::twopi();
+                                        // const double galacticLongitude = l;
+                                        // const double galacticLatitude  = b;
+                                        const double GB = b;
+                                        
                                         // detection efficiency
-                                        const double eta = skyCoverage->eta(V,U);
+                                        const double eta = skyCoverage->eta(V,U,AM,GB);
                             
                                         ORSA_DEBUG("a: %f [AU] e: %f i: %f [deg] H: %f V: %f eta: %e",
                                                    orsa::FromUnits(orbit->a,orsa::Unit::AU,-1),

@@ -320,19 +320,25 @@ double SkyCoverage::minDistance(const orsa::Vector & u,
 }
 
 double SkyCoverage::eta(const double & V,
-                        const double & U) const {
-#warning restore code here
-    return 1.0;
-    /* return SkyCoverage::eta(V,
-       V_limit.getRef(),
-       eta0_V.getRef(),
-       V0.getRef(),
-       c_V.getRef(),
-       w_V.getRef(),
-       U,
-       U_limit.getRef(),
-       w_U.getRef());
-    */
+                        const double & U,
+                        const double & AM,
+                        const double & GB) const {
+    return SkyCoverage::eta(V,
+                            V_limit.getRef(),
+                            eta0_V.getRef(),
+                            V0.getRef(),
+                            c_V.getRef(),
+                            w_V.getRef(),
+                            U,
+                            U_limit.getRef(),
+                            w_U.getRef(),
+                            AM,
+                            peak_AM.getRef(),
+                            scale_AM.getRef(),
+                            shape_AM.getRef(),
+                            GB,
+                            drop_GB.getRef(),
+                            scale_GB.getRef());
 }
 
 double SkyCoverage::eta(const double & V,

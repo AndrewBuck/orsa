@@ -153,7 +153,9 @@ public:
   
 public:
     double eta(const double & V,
-               const double & U) const;
+               const double & U,
+               const double & AM,
+               const double & GB) const;
     
 public:
     static double eta(const double & V,
@@ -195,8 +197,11 @@ public:
     orsa::Cache<double> V_limit, eta0_V, V0, c_V, w_V;
     // coefficients for efficiency as function of apparent velocity U
     orsa::Cache<double> U_limit, w_U;
-    // mixing angle
-    // orsa::Cache<double> beta;
+    //
+    orsa::Cache<double> peak_AM, scale_AM, shape_AM;
+    //
+    orsa::Cache<double> drop_GB, scale_GB;
+    
 public:
     // return filename, stripping path and suffix (after first dot)
     static std::string basename(const std::string & filename);
