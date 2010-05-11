@@ -11,26 +11,26 @@
 
 namespace orsaOSG {
   
-  class HUD;
+    class HUD;
   
-  class HUDCallback : public osg::NodeCallback {
-  public:
-    HUDCallback(osg::CameraNode * HUD,
-		orsaOSG::AnimationTime * at) : 
-      osg::NodeCallback(),
-      _HUD(HUD),
-      _at(at) { }
-  protected:    
-    ~HUDCallback() { }
+    class HUDCallback : public osg::NodeCallback {
+    public:
+        HUDCallback(osg::CameraNode * HUD,
+                    orsaOSG::AnimationTime * at) : 
+            osg::NodeCallback(),
+            _HUD(HUD),
+            _at(at) { }
+    protected:    
+        ~HUDCallback() { }
     
-  public:
-    void operator () (osg::Node *, osg::NodeVisitor *);
+    public:
+        void operator () (osg::Node *, osg::NodeVisitor *);
     
-  protected:
-    osg::ref_ptr<osg::CameraNode> _HUD;
-  protected:
-    osg::ref_ptr<AnimationTime> _at;
- };
+    protected:
+        osg::ref_ptr<osg::CameraNode> _HUD;
+    protected:
+        osg::ref_ptr<AnimationTime> _at;
+    };
   
 }; // namespace orsaOSG
 

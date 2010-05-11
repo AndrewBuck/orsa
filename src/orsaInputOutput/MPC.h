@@ -7,11 +7,11 @@
 
 namespace orsaInputOutput {
   
-  int MPC_charToInt(const char c);
+    int MPC_charToInt(const char c);
   
-  orsa::Time MPC_packedToTime(const std::string & packedEpoch);
+    orsa::Time MPC_packedToTime(const std::string & packedEpoch);
   
-  unsigned int MPC_packedNumber(const std::string & packedNumber);
+    unsigned int MPC_packedNumber(const std::string & packedNumber);
   
 }; // orsaInputOutput
 

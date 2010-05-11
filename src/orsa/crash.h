@@ -3,7 +3,7 @@
 
 namespace orsa {
   
-  void crash(); // useful for debugging
+    void crash(); // useful for debugging
   
 } // namespace orsa
 

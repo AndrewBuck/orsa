@@ -11,22 +11,22 @@
 
 namespace orsaOSG {
   
-  class bioCallback : public osg::NodeCallback {
-  public:
-    bioCallback(orsa::BodyGroup  * bg,
-		const orsa::Body * b,
-		orsaOSG::AnimationTime * at);
+    class bioCallback : public osg::NodeCallback {
+    public:
+        bioCallback(orsa::BodyGroup  * bg,
+                    const orsa::Body * b,
+                    orsaOSG::AnimationTime * at);
     
-  public:
-    void operator () (osg::Node *, osg::NodeVisitor *);
+    public:
+        void operator () (osg::Node *, osg::NodeVisitor *);
     
-  protected:
-    osg::ref_ptr<orsa::BodyGroup> _bg;
-    osg::ref_ptr<const orsa::Body> _b;
+    protected:
+        osg::ref_ptr<orsa::BodyGroup> _bg;
+        osg::ref_ptr<const orsa::Body> _b;
     
-  protected:
-    osg::ref_ptr<AnimationTime> _at;
-  };
+    protected:
+        osg::ref_ptr<AnimationTime> _at;
+    };
   
 } // namespace orsaOSG
 

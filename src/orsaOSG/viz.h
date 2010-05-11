@@ -17,41 +17,41 @@
 
 namespace orsaOSG {
   
-  class Viz : public osg::Referenced {
-  public:
-    Viz(orsa::BodyGroup *, 
-	const double & timeMultiplier = 1.0);
-  protected:
-    virtual ~Viz() { }
-  public:
-    osg::Group * createRoot();
-  public:    
-    osg::Node * createHUD();
-  private:
-    osg::Group * oldCode();
-  protected:
-    osg::ref_ptr<orsa::BodyGroup> _bg;
-    const double _timeMultiplier;
+    class Viz : public osg::Referenced {
+    public:
+        Viz(orsa::BodyGroup *, 
+            const double & timeMultiplier = 1.0);
+    protected:
+        virtual ~Viz() { }
+    public:
+        osg::Group * createRoot();
+    public:    
+        osg::Node * createHUD();
+    private:
+        osg::Group * oldCode();
+    protected:
+        osg::ref_ptr<orsa::BodyGroup> _bg;
+        const double _timeMultiplier;
     
-  public:
-    osg::PositionAttitudeTransform * getBodyPositionTransform(const orsa::Body * b) const {
-      return _bodyPositionTransform[b].get();
-    }
-  public:
-    osg::PositionAttitudeTransform * getBodyAttitudeTransform(const orsa::Body * b) const {
-      return _bodyAttitudeTransform[b].get();
-    }
-  private: 
-    QHash < const orsa::Body * , osg::ref_ptr<osg::Switch> >                    _bodySwitch;
-    QHash < const orsa::Body * , osg::ref_ptr<osg::PositionAttitudeTransform> > _bodyPositionTransform;
-    QHash < const orsa::Body * , osg::ref_ptr<osg::PositionAttitudeTransform> > _bodyAttitudeTransform;
+    public:
+        osg::PositionAttitudeTransform * getBodyPositionTransform(const orsa::Body * b) const {
+            return _bodyPositionTransform[b].get();
+        }
+    public:
+        osg::PositionAttitudeTransform * getBodyAttitudeTransform(const orsa::Body * b) const {
+            return _bodyAttitudeTransform[b].get();
+        }
+    private: 
+        QHash < const orsa::Body * , osg::ref_ptr<osg::Switch> >                    _bodySwitch;
+        QHash < const orsa::Body * , osg::ref_ptr<osg::PositionAttitudeTransform> > _bodyPositionTransform;
+        QHash < const orsa::Body * , osg::ref_ptr<osg::PositionAttitudeTransform> > _bodyAttitudeTransform;
     
-  private:
-    // QHash < const orsa::Body * , osg::ref_ptr<osg::Switch> > _orbitSwitch;
+    private:
+        // QHash < const orsa::Body * , osg::ref_ptr<osg::Switch> > _orbitSwitch;
     
-  public:
-    osg::ref_ptr<orsaOSG::AnimationTime> _at;
-  };
+    public:
+        osg::ref_ptr<orsaOSG::AnimationTime> _at;
+    };
   
 } // namespace orsaOSG
 

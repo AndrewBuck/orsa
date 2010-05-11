@@ -11,62 +11,62 @@
 
 namespace orsaInputOutput {
   
-  class JPLAsteroidDataElement {
-  public:
-    orsa::Orbit  orbit;
-    orsa::Time   epoch;
-    double H;
-    orsa::Cache<mpz_class> number;
-    std::string  designation;
-  };
+    class JPLAsteroidDataElement {
+    public:
+        orsa::Orbit  orbit;
+        orsa::Time   epoch;
+        double H;
+        orsa::Cache<mpz_class> number;
+        std::string  designation;
+    };
   
-  typedef std::vector<JPLAsteroidDataElement> JPLAsteroidData;
+    typedef std::vector<JPLAsteroidDataElement> JPLAsteroidData;
   
-  class JPLNumberedAsteroidFile : 
-  public orsaInputOutput::InputFile <
-    orsaInputOutput::CompressedFile,
-    orsaInputOutput::JPLAsteroidData
-    > {
+    class JPLNumberedAsteroidFile : 
+        public orsaInputOutput::InputFile <
+        orsaInputOutput::CompressedFile,
+        orsaInputOutput::JPLAsteroidData
+        > {
     
-  public:
-    JPLNumberedAsteroidFile() : 
-      orsaInputOutput::InputFile <
-      orsaInputOutput::CompressedFile,
-      orsaInputOutput::JPLAsteroidData
-      > () { }
+    public:
+        JPLNumberedAsteroidFile() : 
+            orsaInputOutput::InputFile <
+        orsaInputOutput::CompressedFile,
+        orsaInputOutput::JPLAsteroidData
+        > () { }
       
-  protected:
-    ~JPLNumberedAsteroidFile() { }
+    protected:
+        ~JPLNumberedAsteroidFile() { }
     
-  public:
-    bool goodLine(const char * line);
+    public:
+        bool goodLine(const char * line);
     
-  public:
-    bool processLine(const char * line);
-  };
+    public:
+        bool processLine(const char * line);
+    };
   
-  class JPLUnnumberedAsteroidFile : 
-  public orsaInputOutput::InputFile <
-    orsaInputOutput::CompressedFile,
-    orsaInputOutput::JPLAsteroidData
-    > {
+    class JPLUnnumberedAsteroidFile : 
+        public orsaInputOutput::InputFile <
+        orsaInputOutput::CompressedFile,
+        orsaInputOutput::JPLAsteroidData
+        > {
     
-  public:
-    JPLUnnumberedAsteroidFile() : 
-      orsaInputOutput::InputFile <
-      orsaInputOutput::CompressedFile,
-      orsaInputOutput::JPLAsteroidData
-      > () { }
+    public:
+        JPLUnnumberedAsteroidFile() : 
+            orsaInputOutput::InputFile <
+        orsaInputOutput::CompressedFile,
+        orsaInputOutput::JPLAsteroidData
+        > () { }
       
-  protected:
-    ~JPLUnnumberedAsteroidFile() { }
+    protected:
+        ~JPLUnnumberedAsteroidFile() { }
     
-  public:
-    bool goodLine(const char * line);
+    public:
+        bool goodLine(const char * line);
     
-  public:
-    bool processLine(const char * line);
-  };
+    public:
+        bool processLine(const char * line);
+    };
   
 }; // orsaInputOutput
 

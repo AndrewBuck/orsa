@@ -8,28 +8,28 @@
 
 namespace orsaOSG {
   
-  class FindNamedNodeVisitor : public osg::NodeVisitor {
+    class FindNamedNodeVisitor : public osg::NodeVisitor {
     
-  public:
-    FindNamedNodeVisitor(const std::string & name) :
-      osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN),
-      _name(name) { }
+    public:
+        FindNamedNodeVisitor(const std::string & name) :
+            osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN),
+            _name(name) { }
       
-  public:
-    virtual void apply(osg::Node & node) {
-      if (node.getName()==_name) {
-	_foundNodes.push_back(&node);
-      }
-      traverse(node);
-    }
+    public:
+        virtual void apply(osg::Node & node) {
+            if (node.getName()==_name) {
+                _foundNodes.push_back(&node);
+            }
+            traverse(node);
+        }
     
-  public:
-    typedef std::vector< osg::ref_ptr<osg::Node> > NodeList;
+    public:
+        typedef std::vector< osg::ref_ptr<osg::Node> > NodeList;
     
-  public:
-    std::string _name;
-    NodeList _foundNodes;
-  };
+    public:
+        std::string _name;
+        NodeList _foundNodes;
+    };
   
 } // namespace orsaOSG
 

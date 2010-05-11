@@ -9,30 +9,30 @@
 
 namespace orsaInputOutput {
   
-  typedef std::vector< osg::ref_ptr<orsaSolarSystem::Observation> > RWOData;
+    typedef std::vector< osg::ref_ptr<orsaSolarSystem::Observation> > RWOData;
   
-  class RWOFile : 
-  public orsaInputOutput::InputFile <
-    orsaInputOutput::CompressedFile,
-    RWOData
-    > {
+    class RWOFile : 
+        public orsaInputOutput::InputFile <
+        orsaInputOutput::CompressedFile,
+        RWOData
+        > {
     
-  public:    
-    RWOFile() : 
-      InputFile <
-      orsaInputOutput::CompressedFile,
-      RWOData 
-      > () { }
+    public:    
+        RWOFile() : 
+            InputFile <
+        orsaInputOutput::CompressedFile,
+        RWOData 
+        > () { }
       
-  protected:
-    ~RWOFile() { }
+    protected:
+        ~RWOFile() { }
     
-  public:
-    bool goodLine(const char * line);
+    public:
+        bool goodLine(const char * line);
     
-  public:
-    bool processLine(const char * line);
-  };
+    public:
+        bool processLine(const char * line);
+    };
   
 }; // orsaInputOutput
 

@@ -11,17 +11,17 @@
 
 namespace orsa {
   
-  // TO BE COMPLETED...
+    // TO BE COMPLETED...
   
-  class Covariance : public osg::Referenced {
-  public:	
-    Covariance();
-  protected:
-    virtual ~Covariance();
+    class Covariance : public osg::Referenced {
+    public:	
+        Covariance();
+    protected:
+        virtual ~Covariance();
     
-  private:
-    std::vector<std::vector<orsa::Cache<double> > > _covm;
-  };
+    private:
+        std::vector<std::vector<orsa::Cache<double> > > _covm;
+    };
   
 } // namespace orsa
 

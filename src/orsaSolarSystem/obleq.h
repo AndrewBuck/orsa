@@ -7,23 +7,23 @@
 
 namespace orsaSolarSystem {
   
-  orsa::Angle obleq(const orsa::Time &);
+    orsa::Angle obleq(const orsa::Time &);
   
-  orsa::Angle obleqJ2000();
+    orsa::Angle obleqJ2000();
   
-  orsa::Matrix eclipticToEquatorial();
-  orsa::Matrix equatorialToEcliptic();
+    orsa::Matrix eclipticToEquatorial();
+    orsa::Matrix equatorialToEcliptic();
   
-  // l = galactic longitude
-  // b = galactic latitude
-  void equatorialToGalactic(double & l,
-			    double & b,
-			    const double & ra,
-			    const double & dec);
-  void galacticToEquatorial(double & ra,
-			    double & dec,
-			    const double & l,
-			    const double & b);
+    // l = galactic longitude
+    // b = galactic latitude
+    void equatorialToGalactic(double & l,
+                              double & b,
+                              const double & ra,
+                              const double & dec);
+    void galacticToEquatorial(double & ra,
+                              double & dec,
+                              const double & l,
+                              const double & b);
   
 }; // namespace orsaSolarSystem
 

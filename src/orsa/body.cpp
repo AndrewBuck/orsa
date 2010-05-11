@@ -7,81 +7,81 @@ using namespace orsa;
 
 const orsa::Shape * InertialBodyProperty::localShape() const {
   
-  if (originalShape() == 0) return 0;
+    if (originalShape() == 0) return 0;
   
-  /* ORSA_DEBUG("%x",ls_cache.get());
-     if (ls_cache.get()) {
-     ORSA_DEBUG("%x",ls_cache->data.get());
-     }
-  */
+    /* ORSA_DEBUG("%x",ls_cache.get());
+       if (ls_cache.get()) {
+       ORSA_DEBUG("%x",ls_cache->data.get());
+       }
+    */
   
-  if (ls_cache.get() != 0) {
-    if (ls_cache->data.get() != 0) {
-      bool valid=true;
-      //
-      if (ls_cache->data->originalShape.get() != originalShape()) valid=false;
-      if (ls_cache->data->cm                  != centerOfMass())  valid=false;
-      if (ls_cache->data->s2l                 != shapeToLocal())  valid=false;
-      //
-      if (valid) {
-	// ORSA_DEBUG("cached");
-	return ls_cache->data->localShape.get();
-      }
-    } 
-  }
-  
-  // OK, old local_shape not valid, need to compute a new one
-  
-  // ORSA_DEBUG("not-cached");
-  
-  // this should never been neded, defeats the purpose of having a cache
-  // ls_cache = new LocalShapeCache;
-  
-  ls_cache->data = new LocalShapeData;
-  
-  ls_cache->data->originalShape = originalShape();
-  ls_cache->data->cm            = centerOfMass();
-  ls_cache->data->s2l           = shapeToLocal();
-  
-  const orsa::Vector cm  = centerOfMass();
-  const orsa::Matrix s2l = shapeToLocal();
-  
-  // bad style for the moment...
-  switch (originalShape()->getType()) {
-  case orsa::Shape::SHAPE_TRI:
-    {
-      osg::ref_ptr<const orsa::TriShape> ts = (const orsa::TriShape *) originalShape();
-      
-      const TriShape::VertexVector ts_vertex = ts->getVertexVector();
-      const TriShape::FaceVector   ts_face   = ts->getFaceVector();
-      
-      TriShape::VertexVector local_vertex;
-      
-      local_vertex.resize(ts_vertex.size());
-      
-      for (unsigned int j=0; j<ts_vertex.size(); ++j) {
-	local_vertex[j] = s2l*(ts_vertex[j]-cm);
-      }
-      
-      TriShape::FaceVector local_face = ts_face;
-      
-      ls_cache->data->localShape = new orsa::TriShape(local_vertex,local_face);
+    if (ls_cache.get() != 0) {
+        if (ls_cache->data.get() != 0) {
+            bool valid=true;
+            //
+            if (ls_cache->data->originalShape.get() != originalShape()) valid=false;
+            if (ls_cache->data->cm                  != centerOfMass())  valid=false;
+            if (ls_cache->data->s2l                 != shapeToLocal())  valid=false;
+            //
+            if (valid) {
+                // ORSA_DEBUG("cached");
+                return ls_cache->data->localShape.get();
+            }
+        } 
     }
-    break;
-  case orsa::Shape::SHAPE_ELLIPSOID:
-    {
-      ORSA_DEBUG("CODE NEEDED!!");
-      ORSA_DEBUG("setting same ellipsoid for the moment (BAD BAD BAD)");
-      ls_cache->data->localShape = originalShape();
-    }
-    break;
-  default:
-    ORSA_WARNING("switch case not handled yet...   CODE NEEDED!!!");
-    ls_cache->data->localShape = originalShape();
-    break;
-  }
   
-  return ls_cache->data->localShape.get();
+    // OK, old local_shape not valid, need to compute a new one
+  
+    // ORSA_DEBUG("not-cached");
+  
+    // this should never been neded, defeats the purpose of having a cache
+    // ls_cache = new LocalShapeCache;
+  
+    ls_cache->data = new LocalShapeData;
+  
+    ls_cache->data->originalShape = originalShape();
+    ls_cache->data->cm            = centerOfMass();
+    ls_cache->data->s2l           = shapeToLocal();
+  
+    const orsa::Vector cm  = centerOfMass();
+    const orsa::Matrix s2l = shapeToLocal();
+  
+    // bad style for the moment...
+    switch (originalShape()->getType()) {
+        case orsa::Shape::SHAPE_TRI:
+        {
+            osg::ref_ptr<const orsa::TriShape> ts = (const orsa::TriShape *) originalShape();
+      
+            const TriShape::VertexVector ts_vertex = ts->getVertexVector();
+            const TriShape::FaceVector   ts_face   = ts->getFaceVector();
+      
+            TriShape::VertexVector local_vertex;
+      
+            local_vertex.resize(ts_vertex.size());
+      
+            for (unsigned int j=0; j<ts_vertex.size(); ++j) {
+                local_vertex[j] = s2l*(ts_vertex[j]-cm);
+            }
+      
+            TriShape::FaceVector local_face = ts_face;
+      
+            ls_cache->data->localShape = new orsa::TriShape(local_vertex,local_face);
+        }
+        break;
+        case orsa::Shape::SHAPE_ELLIPSOID:
+        {
+            ORSA_DEBUG("CODE NEEDED!!");
+            ORSA_DEBUG("setting same ellipsoid for the moment (BAD BAD BAD)");
+            ls_cache->data->localShape = originalShape();
+        }
+        break;
+        default:
+            ORSA_WARNING("switch case not handled yet...   CODE NEEDED!!!");
+            ls_cache->data->localShape = originalShape();
+            break;
+    }
+  
+    return ls_cache->data->localShape.get();
 }
 
 
@@ -89,204 +89,204 @@ const orsa::Shape * InertialBodyProperty::localShape() const {
 
 IBPS::IBPS() {
   
-  // ORSA_DEBUG("creating new IBPS, address: %x",this);
+    // ORSA_DEBUG("creating new IBPS, address: %x",this);
   
-  tmp = false;
+    tmp = false;
 }
 
 IBPS::IBPS(const IBPS & ibps) {
   
-  /* ORSA_DEBUG("creating IBPS, address: %x   copy of address: %x",this,&ibps);
-     ORSA_DEBUG("%x.translational.get(): %x   %x.translational.get(): %x",
-     &ibps,ibps.translational.get(),
-     this,translational.get());
-  */
+    /* ORSA_DEBUG("creating IBPS, address: %x   copy of address: %x",this,&ibps);
+       ORSA_DEBUG("%x.translational.get(): %x   %x.translational.get(): %x",
+       &ibps,ibps.translational.get(),
+       this,translational.get());
+    */
   
-  if (ibps.time.isSet()) time = ibps.time.getRef();
+    if (ibps.time.isSet()) time = ibps.time.getRef();
   
-  if (ibps.inertial.get()) {
-    if (ibps.inertial->dynamic()) {
-      inertial = ibps.inertial->clone();
+    if (ibps.inertial.get()) {
+        if (ibps.inertial->dynamic()) {
+            inertial = ibps.inertial->clone();
+        } else {
+            inertial = ibps.inertial;
+        }
     } else {
-      inertial = ibps.inertial;
+        inertial = 0;
     }
-  } else {
-    inertial = 0;
-  }
   
-  if (ibps.translational.get()) {
-    if (ibps.translational->dynamic()) {
-      translational = ibps.translational->clone();
+    if (ibps.translational.get()) {
+        if (ibps.translational->dynamic()) {
+            translational = ibps.translational->clone();
+        } else {
+            translational = ibps.translational;
+        }
     } else {
-      translational = ibps.translational;
+        translational = 0;
     }
-  } else {
-    translational = 0;
-  }
   
-  if (ibps.rotational.get()) {
-    if (ibps.rotational->dynamic()) {
-      rotational = ibps.rotational->clone();
+    if (ibps.rotational.get()) {
+        if (ibps.rotational->dynamic()) {
+            rotational = ibps.rotational->clone();
+        } else {
+            rotational = ibps.rotational;
+        }
     } else {
-      rotational = ibps.rotational;
+        rotational = 0;
     }
-  } else {
-    rotational = 0;
-  }
   
-  tmp = ibps.tmp;
+    tmp = ibps.tmp;
   
-  /* ORSA_DEBUG(" --LEAVING-- %x.translational.get(): %x   %x.translational.get(): %x",
-     &ibps,ibps.translational.get(),
-     this,translational.get());
-  */
+    /* ORSA_DEBUG(" --LEAVING-- %x.translational.get(): %x   %x.translational.get(): %x",
+       &ibps,ibps.translational.get(),
+       this,translational.get());
+    */
 }
 
 IBPS::~IBPS() { 
-  /* ORSA_DEBUG("destroying IBPS address: %x   %x.translational.get(): %x",
-     this,
-     this,translational.get());
-  */
+    /* ORSA_DEBUG("destroying IBPS address: %x   %x.translational.get(): %x",
+       this,
+       this,translational.get());
+    */
 }
 
 const IBPS & IBPS::operator = (const IBPS & ibps) {
   
-  /* 
-     ORSA_DEBUG("copying IBPS, from address: %x   to address %x",&ibps,this);
-     ORSA_DEBUG("%x.translational.get(): %x   %x.translational.get(): %x",
-     &ibps,ibps.translational.get(),
-     this,translational.get());
-  */
+    /* 
+       ORSA_DEBUG("copying IBPS, from address: %x   to address %x",&ibps,this);
+       ORSA_DEBUG("%x.translational.get(): %x   %x.translational.get(): %x",
+       &ibps,ibps.translational.get(),
+       this,translational.get());
+    */
   
-  if (ibps.time.isSet()) time = ibps.time.getRef();
-  /* 
-     if (ibps.dynamic()) {
-     // time = ibps.time.getRef();
-     // ORSA_DEBUG("copy operator, time: %.6f",time.getRef().get_d());
-     } 
-  */
-  if (ibps.inertial.get()) {
-    inertial = ibps.inertial->clone();
-  } else {
-    inertial = 0;
-  }
-  if (ibps.translational.get()) {
-    translational = ibps.translational->clone();
-  } else {
-    translational = 0;
-  }
-  if (ibps.rotational.get()) {
-    rotational = ibps.rotational->clone();
-  } else {
-    rotational = 0;
-  }
-  tmp = ibps.tmp;
+    if (ibps.time.isSet()) time = ibps.time.getRef();
+    /* 
+       if (ibps.dynamic()) {
+       // time = ibps.time.getRef();
+       // ORSA_DEBUG("copy operator, time: %.6f",time.getRef().get_d());
+       } 
+    */
+    if (ibps.inertial.get()) {
+        inertial = ibps.inertial->clone();
+    } else {
+        inertial = 0;
+    }
+    if (ibps.translational.get()) {
+        translational = ibps.translational->clone();
+    } else {
+        translational = 0;
+    }
+    if (ibps.rotational.get()) {
+        rotational = ibps.rotational->clone();
+    } else {
+        rotational = 0;
+    }
+    tmp = ibps.tmp;
   
-  /* ORSA_DEBUG(" --LEAVING-- %x.translational.get(): %x   %x.translational.get(): %x",
-     &ibps,ibps.translational.get(),
-     this,translational.get());
-  */
+    /* ORSA_DEBUG(" --LEAVING-- %x.translational.get(): %x   %x.translational.get(): %x",
+       &ibps,ibps.translational.get(),
+       this,translational.get());
+    */
   
-  return (*this);
+    return (*this);
 }
 
 //
 
 orsa::Quaternion RotationalBodyProperty::qDot (const orsa::Quaternion & q,
-					       const orsa::Vector     & omega) {
-  return (orsa::Quaternion(omega) * q);
+                                               const orsa::Vector     & omega) {
+    return (orsa::Quaternion(omega) * q);
 }
 
 orsa::Quaternion RotationalBodyProperty::qDotDot (const orsa::Quaternion & q,
-						  const orsa::Vector     & omega,
-						  const orsa::Vector     & omegaDot) {
-  return (orsa::Quaternion(omegaDot) * q + orsa::Quaternion(omega) * RotationalBodyProperty::qDot(q,omega));
+                                                  const orsa::Vector     & omega,
+                                                  const orsa::Vector     & omegaDot) {
+    return (orsa::Quaternion(omegaDot) * q + orsa::Quaternion(omega) * RotationalBodyProperty::qDot(q,omega));
 }
 
 orsa::Vector RotationalBodyProperty::omega (const orsa::Quaternion & q,
-					    const orsa::Quaternion & qDot) {
-  return (qDot * inverse(q)).getVector();
+                                            const orsa::Quaternion & qDot) {
+    return (qDot * inverse(q)).getVector();
 }
 
 orsa::Vector RotationalBodyProperty::omegaDot (const orsa::Quaternion & q,
-					       const orsa::Quaternion & qDot,
-					       const orsa::Quaternion & qDotDot) {
-  return ((qDotDot - orsa::Quaternion(RotationalBodyProperty::omega(q,qDot)) * qDot) * inverse(q)).getVector();
+                                               const orsa::Quaternion & qDot,
+                                               const orsa::Quaternion & qDotDot) {
+    return ((qDotDot - orsa::Quaternion(RotationalBodyProperty::omega(q,qDot)) * qDot) * inverse(q)).getVector();
 }
 
 orsa::Quaternion RotationalBodyProperty::qFiniteRotation (const orsa::Quaternion & q,
-							  const orsa::Vector     & omega,
-							  const orsa::Time       & dt) {
-  const double angle = omega.length() * dt.get_d() / 2;
-  return unitQuaternion(Quaternion(cos(angle),sin(angle)*(omega.normalized()))*q);
+                                                          const orsa::Vector     & omega,
+                                                          const orsa::Time       & dt) {
+    const double angle = omega.length() * dt.get_d() / 2;
+    return unitQuaternion(Quaternion(cos(angle),sin(angle)*(omega.normalized()))*q);
 }
 
 orsa::Vector RotationalBodyProperty::newOmega (const orsa::Vector & omega,
-					       const orsa::Vector & omegaDot,
-					       const orsa::Time   & dt) {
+                                               const orsa::Vector & omegaDot,
+                                               const orsa::Time   & dt) {
   
-  /* 
-     ORSA_DEBUG("---prints---");
-     print(omegaDot);
-     print(dt);
-  */
-  
-  if (omegaDot.length() < orsa::epsilon()) {
-    // ORSA_DEBUG("omegaDot is really tiny...");
-    return (omega + omegaDot * dt.get_d());
-  }
-  
-  // test
-  // return orsa::Vector(omega + omegaDot * dt.get_d());
-  
-  const double  omegaMagnitude = omega.length();
-  const orsa::Vector uOmega          = omega.normalized();
-
-  // const double  omegaDotMagnitude = omegaDot.length();
-  const orsa::Vector uOmegaDot          = omegaDot.normalized();
-  
-  orsa::Vector newOmega;
-  
-  if (omegaMagnitude > orsa::epsilon()) {
-    
-    const double radialComponent = omegaDot * uOmega;
-    
-    // ORSA_DEBUG("radialComponent/omegaDotMagnitude: %g",radialComponent/omegaDotMagnitude);
-    
-    const orsa::Vector  tangentOmegaDot          = omegaDot - radialComponent * uOmega;
-    const double  tangentOmegaDotMagnitude = tangentOmegaDot.length();
-    const orsa::Vector uTangentOmegaDot          = tangentOmegaDot.normalized();
-    
-    const orsa::Vector uRotationAxis = (orsa::externalProduct(uOmega,uTangentOmegaDot)).normalized();
-    const double rotationAngle  = tangentOmegaDotMagnitude * dt.get_d() / omegaMagnitude;
-    
-    // rotate old omega direction around uRotationAxis of angle rotationAngle
-    const double     qAngle = rotationAngle / 2; // factor 2 due to the quaternion angle definition
-    const orsa::Quaternion qRot   = unitQuaternion(Quaternion(cos(qAngle),sin(qAngle)*uRotationAxis));
-    
-    newOmega = (radialComponent * dt.get_d() + omegaMagnitude) * (qRot*uOmega*conjugate(qRot)).getVector().normalized();
-    //
     /* 
-       newOmega = 
-       radialComponent * dt.get_d() * uOmega +
-       omegaMagnitude * (qRot*uOmega*conjugate(qRot)).getVector().normalized();
+       ORSA_DEBUG("---prints---");
+       print(omegaDot);
+       print(dt);
     */
+  
+    if (omegaDot.length() < orsa::epsilon()) {
+        // ORSA_DEBUG("omegaDot is really tiny...");
+        return (omega + omegaDot * dt.get_d());
+    }
+  
+    // test
+    // return orsa::Vector(omega + omegaDot * dt.get_d());
+  
+    const double  omegaMagnitude = omega.length();
+    const orsa::Vector uOmega          = omega.normalized();
+
+    // const double  omegaDotMagnitude = omegaDot.length();
+    const orsa::Vector uOmegaDot          = omegaDot.normalized();
+  
+    orsa::Vector newOmega;
+  
+    if (omegaMagnitude > orsa::epsilon()) {
     
-  } else {
+        const double radialComponent = omegaDot * uOmega;
     
-    newOmega = omega + omegaDot * dt.get_d();
-  }
+        // ORSA_DEBUG("radialComponent/omegaDotMagnitude: %g",radialComponent/omegaDotMagnitude);
+    
+        const orsa::Vector  tangentOmegaDot          = omegaDot - radialComponent * uOmega;
+        const double  tangentOmegaDotMagnitude = tangentOmegaDot.length();
+        const orsa::Vector uTangentOmegaDot          = tangentOmegaDot.normalized();
+    
+        const orsa::Vector uRotationAxis = (orsa::externalProduct(uOmega,uTangentOmegaDot)).normalized();
+        const double rotationAngle  = tangentOmegaDotMagnitude * dt.get_d() / omegaMagnitude;
+    
+        // rotate old omega direction around uRotationAxis of angle rotationAngle
+        const double     qAngle = rotationAngle / 2; // factor 2 due to the quaternion angle definition
+        const orsa::Quaternion qRot   = unitQuaternion(Quaternion(cos(qAngle),sin(qAngle)*uRotationAxis));
+    
+        newOmega = (radialComponent * dt.get_d() + omegaMagnitude) * (qRot*uOmega*conjugate(qRot)).getVector().normalized();
+        //
+        /* 
+           newOmega = 
+           radialComponent * dt.get_d() * uOmega +
+           omegaMagnitude * (qRot*uOmega*conjugate(qRot)).getVector().normalized();
+        */
+    
+    } else {
+    
+        newOmega = omega + omegaDot * dt.get_d();
+    }
   
-  // ORSA_DEBUG("omega comparison...");
-  // print(omega);
-  // print(newOmega);
+    // ORSA_DEBUG("omega comparison...");
+    // print(omega);
+    // print(newOmega);
   
-  /* 
-     ORSA_DEBUG("scalar product: %20.16f",
-     newOmega.normalized() * omega.normalized());
-  */
+    /* 
+       ORSA_DEBUG("scalar product: %20.16f",
+       newOmega.normalized() * omega.normalized());
+    */
   
-  return newOmega;  
+    return newOmega;  
 }
 
 // Body
@@ -294,31 +294,31 @@ orsa::Vector RotationalBodyProperty::newOmega (const orsa::Vector & omega,
 Body::BodyID Body::bodyID_counter = 0;
 
 Body::Body() : osg::Referenced(true), _id(bodyID_counter++) {
-  _init();
-  // ORSA_DEBUG("created body id: %i",id());
+    _init();
+    // ORSA_DEBUG("created body id: %i",id());
 }
 
 void Body::_init() {
-  // _validBodyType = false;
-  /* 
-     _validBirthTime = _validDeathTime = false;
-  */
+    // _validBodyType = false;
+    /* 
+       _validBirthTime = _validDeathTime = false;
+    */
   
-  // _ibps      = 0;
-  // _attitude  = 0;
-  // _shape     = 0;
-  // _multipole = 0;
-  // _bpvc      = 0;
-  // _bac       = 0;
+    // _ibps      = 0;
+    // _attitude  = 0;
+    // _shape     = 0;
+    // _multipole = 0;
+    // _bpvc      = 0;
+    // _bac       = 0;
   
-  // comet particle beta
-  beta    = 0;
-  betaSun = 0;
+    // comet particle beta
+    beta    = 0;
+    betaSun = 0;
   
-  // light source
-  isLightSource = false;
+    // light source
+    isLightSource = false;
   
-  nonInteractingGroup = false;
+    nonInteractingGroup = false;
 }
 
 Body::~Body() {
@@ -386,10 +386,10 @@ Body::~Body() {
 */
 
 bool Body::setName(const std::string & s) {
-  _name = s;
-  return true;
+    _name = s;
+    return true;
 }
 
 const std::string & Body::getName() const {
-  return _name;
+    return _name;
 }

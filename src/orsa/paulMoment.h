@@ -15,46 +15,46 @@
 
 namespace orsa {
   
-  class PaulMoment : public osg::Referenced {
-  public:
-    PaulMoment(const unsigned int order);
-  protected:
-    virtual ~PaulMoment() { } 
+    class PaulMoment : public osg::Referenced {
+    public:
+        PaulMoment(const unsigned int order);
+    protected:
+        virtual ~PaulMoment() { } 
     
-  public:
-    double M (const int i, const int j, const int k) const;
-    double M_uncertainty (const int i, const int j, const int k) const;
-  public:
-    void setM (const double & val, const int i, const int j, const int k);
-    void setM_uncertainty (const double & val, const int i, const int j, const int k);
-  protected:
-    std::vector< std::vector< std::vector<double> > > _M, _M_uncertainty;
-  public:
-    const unsigned int order;
-  };
+    public:
+        double M (const int i, const int j, const int k) const;
+        double M_uncertainty (const int i, const int j, const int k) const;
+    public:
+        void setM (const double & val, const int i, const int j, const int k);
+        void setM_uncertainty (const double & val, const int i, const int j, const int k);
+    protected:
+        std::vector< std::vector< std::vector<double> > > _M, _M_uncertainty;
+    public:
+        const unsigned int order;
+    };
   
-  // utility, just printing out values for now
-  void convert(std::vector< std::vector<double> > & C,
-	       std::vector< std::vector<double> > & S,
-	       std::vector< std::vector<double> > & norm_C,
-	       std::vector< std::vector<double> > & norm_S,
-	       std::vector<double> & J,
-	       const PaulMoment * const pm,
-	       const double     & R0,
-	       const bool         verbose=false);
+    // utility, just printing out values for now
+    void convert(std::vector< std::vector<double> > & C,
+                 std::vector< std::vector<double> > & S,
+                 std::vector< std::vector<double> > & norm_C,
+                 std::vector< std::vector<double> > & norm_S,
+                 std::vector<double> & J,
+                 const PaulMoment * const pm,
+                 const double     & R0,
+                 const bool         verbose=false);
   
-  // tries to find a set of PaulMoments that matches the normalized C and S
-  // the order of pm must be <= the order of norm_C and norm_S
-  bool solve(PaulMoment * pm,
-	     const std::vector< std::vector<double> > & norm_C,
-	     const std::vector< std::vector<double> > & norm_S,
-	     const double     & R0);
+    // tries to find a set of PaulMoments that matches the normalized C and S
+    // the order of pm must be <= the order of norm_C and norm_S
+    bool solve(PaulMoment * pm,
+               const std::vector< std::vector<double> > & norm_C,
+               const std::vector< std::vector<double> > & norm_S,
+               const double     & R0);
   
-  // a,b,c are the 3 semiaxes along x,y,z respectively
-  void EllipsoidExpansion(PaulMoment   * pm,
-			  const double & a,
-			  const double & b,
-			  const double & c);
+    // a,b,c are the 3 semiaxes along x,y,z respectively
+    void EllipsoidExpansion(PaulMoment   * pm,
+                            const double & a,
+                            const double & b,
+                            const double & c);
   
 }; // namespace orsa
 

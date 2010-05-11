@@ -9,14 +9,14 @@
 
 namespace orsaSolarSystem {
   
-  void GaussMethod(std::vector<orsaSolarSystem::OrbitWithEpoch> & preliminaryOrbitVector,
-		   const orsaSolarSystem::ObservationVector & observationVector,
-		   const double & minRange,
-		   const double & maxRange,
-		   const unsigned int steps,
-		   const orsaSolarSystem::ObservatoryPositionCallback * obsPosCB,
-		   const orsa::Body * refBody,
-		   orsa::BodyGroup * bg);
+    void GaussMethod(std::vector<orsaSolarSystem::OrbitWithEpoch> & preliminaryOrbitVector,
+                     const orsaSolarSystem::ObservationVector & observationVector,
+                     const double & minRange,
+                     const double & maxRange,
+                     const unsigned int steps,
+                     const orsaSolarSystem::ObservatoryPositionCallback * obsPosCB,
+                     const orsa::Body * refBody,
+                     orsa::BodyGroup * bg);
   
 } // namespace orsaSolarSystem
 

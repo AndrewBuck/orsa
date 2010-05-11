@@ -12,58 +12,58 @@
 
 namespace orsaOSG {
   
-  class CenterOfMassPositionCallback : public osg::NodeCallback {
-  public:
-    CenterOfMassPositionCallback(orsa::BodyGroup  * bg,
-				 orsaOSG::AnimationTime * at) : 
-      osg::NodeCallback(),
-      _bg(bg),
-      _at(at) { }
-  protected:
-    ~CenterOfMassPositionCallback() { }
+    class CenterOfMassPositionCallback : public osg::NodeCallback {
+    public:
+        CenterOfMassPositionCallback(orsa::BodyGroup  * bg,
+                                     orsaOSG::AnimationTime * at) : 
+            osg::NodeCallback(),
+            _bg(bg),
+            _at(at) { }
+    protected:
+        ~CenterOfMassPositionCallback() { }
     
-  public:
-    void operator () (osg::Node * node, osg::NodeVisitor * nv) {
+    public:
+        void operator () (osg::Node * node, osg::NodeVisitor * nv) {
       
-      if (nv->getVisitorType()==osg::NodeVisitor::UPDATE_VISITOR && nv->getFrameStamp()) {
+            if (nv->getVisitorType()==osg::NodeVisitor::UPDATE_VISITOR && nv->getFrameStamp()) {
         
-	osg::PositionAttitudeTransform * pat = dynamic_cast<osg::PositionAttitudeTransform * > (node);
-	//
-	if (pat) {
+                osg::PositionAttitudeTransform * pat = dynamic_cast<osg::PositionAttitudeTransform * > (node);
+                //
+                if (pat) {
 	  
-       	  const orsa::Time simulationTime = _at->getSimulationTime(nv->getFrameStamp()->getFrameNumber());
+                    const orsa::Time simulationTime = _at->getSimulationTime(nv->getFrameStamp()->getFrameNumber());
 	  
-	  if ( (!(_lastSimulationTime.isSet())) ||
-	       ((_lastSimulationTime.isSet()) && (simulationTime != _lastSimulationTime.getRef())) ) {
+                    if ( (!(_lastSimulationTime.isSet())) ||
+                         ((_lastSimulationTime.isSet()) && (simulationTime != _lastSimulationTime.getRef())) ) {
 	    
-	    _lastSimulationTime = simulationTime;
+                        _lastSimulationTime = simulationTime;
 	    
-	    orsa::Vector rcm, vcm;
-	    _bg->centerOfMassPosVel(rcm,vcm,simulationTime);
+                        orsa::Vector rcm, vcm;
+                        _bg->centerOfMassPosVel(rcm,vcm,simulationTime);
 	    
-	    pat->setPosition((rcm - _at->centralBodyPosition(simulationTime)).getVec3d());
+                        pat->setPosition((rcm - _at->centralBodyPosition(simulationTime)).getVec3d());
 	    
-	  } 
+                    } 
 	  
-	} else {
+                } else {
 	  
-	  ORSA_DEBUG("pat == 0...");
+                    ORSA_DEBUG("pat == 0...");
 	  
-	}
+                }
 	
-      }
+            }
       
-      // must call any nested node callbacks and continue subgraph traversal.
-      NodeCallback::traverse(node,nv);
-    }
+            // must call any nested node callbacks and continue subgraph traversal.
+            NodeCallback::traverse(node,nv);
+        }
     
-  protected:    
-    osg::ref_ptr<orsa::BodyGroup> _bg;
-  protected:
-    osg::ref_ptr<AnimationTime> _at;
-  protected:
-    orsa::Cache<orsa::Time> _lastSimulationTime;
-  };
+    protected:    
+        osg::ref_ptr<orsa::BodyGroup> _bg;
+    protected:
+        osg::ref_ptr<AnimationTime> _at;
+    protected:
+        orsa::Cache<orsa::Time> _lastSimulationTime;
+    };
   
 }; // namespace orsaOSG
 

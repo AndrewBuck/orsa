@@ -5,25 +5,25 @@
 using namespace orsa;
 
 Quaternion Quaternion::operator * (const Quaternion & rhs) const {
-  /* 
-     ORSA_DEBUG("...");
-     print(*this);
-     print(rhs);
-     ORSA_DEBUG("...more...");
-     print(_s*rhs._s);
-     print(_v*rhs._v);
-     print(_s*rhs._v);
-     print(rhs._s*_v);
-     print(orsa::externalProduct(_v,rhs._v));
-  */
+    /* 
+       ORSA_DEBUG("...");
+       print(*this);
+       print(rhs);
+       ORSA_DEBUG("...more...");
+       print(_s*rhs._s);
+       print(_v*rhs._v);
+       print(_s*rhs._v);
+       print(rhs._s*_v);
+       print(orsa::externalProduct(_v,rhs._v));
+    */
   
-  return Quaternion(_s*rhs._s - _v*rhs._v,
-		    _s*rhs._v + rhs._s*_v + orsa::externalProduct(_v,rhs._v));
+    return Quaternion(_s*rhs._s - _v*rhs._v,
+                      _s*rhs._v + rhs._s*_v + orsa::externalProduct(_v,rhs._v));
 }
 
 void Quaternion::check() const {
-  orsa::check(_s);
-  orsa::check(_v.getX());
-  orsa::check(_v.getY());
-  orsa::check(_v.getZ());
+    orsa::check(_s);
+    orsa::check(_v.getX());
+    orsa::check(_v.getY());
+    orsa::check(_v.getZ());
 }

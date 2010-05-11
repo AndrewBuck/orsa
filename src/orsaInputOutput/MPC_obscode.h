@@ -13,36 +13,36 @@
 
 namespace orsaInputOutput {
   
-  class MPCObsCodeData {
-  public:
-    // we could use a hash-map
-    std::map<std::string,orsaSolarSystem::Observatory> observatory;
-  public:
-    std::list<std::string> code;
-  };
+    class MPCObsCodeData {
+    public:
+        // we could use a hash-map
+        std::map<std::string,orsaSolarSystem::Observatory> observatory;
+    public:
+        std::list<std::string> code;
+    };
   
-  class MPCObsCodeFile : 
-  public orsaInputOutput::InputFile <
-    orsaInputOutput::CompressedFile,
-    orsaInputOutput::MPCObsCodeData
-    > {
+    class MPCObsCodeFile : 
+        public orsaInputOutput::InputFile <
+        orsaInputOutput::CompressedFile,
+        orsaInputOutput::MPCObsCodeData
+        > {
     
-  public:
-    MPCObsCodeFile() : 
-      orsaInputOutput::InputFile <
-      orsaInputOutput::CompressedFile,
-      orsaInputOutput::MPCObsCodeData
-      > () { }
+    public:
+        MPCObsCodeFile() : 
+            orsaInputOutput::InputFile <
+        orsaInputOutput::CompressedFile,
+        orsaInputOutput::MPCObsCodeData
+        > () { }
       
-  protected:
-    ~MPCObsCodeFile() { }
+    protected:
+        ~MPCObsCodeFile() { }
     
-  public:
-    bool goodLine(const char * line);
+    public:
+        bool goodLine(const char * line);
     
-  public:
-    bool processLine(const char * line);
-  };
+    public:
+        bool processLine(const char * line);
+    };
   
 }; // orsaInputOutput
 

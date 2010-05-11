@@ -10,37 +10,37 @@
 
 namespace orsaInputOutput {
   
-  class JPLCometDataElement {
-  public:
-    orsa::Orbit orbit;
-    orsa::Time  epoch;
-    std::string designation;
-  };
+    class JPLCometDataElement {
+    public:
+        orsa::Orbit orbit;
+        orsa::Time  epoch;
+        std::string designation;
+    };
   
-  typedef std::vector<JPLCometDataElement> JPLCometData;
+    typedef std::vector<JPLCometDataElement> JPLCometData;
   
-  class JPLCometFile : 
-  public orsaInputOutput::InputFile <
-    orsaInputOutput::CompressedFile,
-    orsaInputOutput::JPLCometData
-    > {
+    class JPLCometFile : 
+        public orsaInputOutput::InputFile <
+        orsaInputOutput::CompressedFile,
+        orsaInputOutput::JPLCometData
+        > {
     
-  public:
-    JPLCometFile() : 
-      orsaInputOutput::InputFile <
-      orsaInputOutput::CompressedFile,
-      orsaInputOutput::JPLCometData
-      > () { }
+    public:
+        JPLCometFile() : 
+            orsaInputOutput::InputFile <
+        orsaInputOutput::CompressedFile,
+        orsaInputOutput::JPLCometData
+        > () { }
       
-  protected:
-    ~JPLCometFile() { }
+    protected:
+        ~JPLCometFile() { }
     
-  public:
-    bool goodLine(const char * line);
+    public:
+        bool goodLine(const char * line);
     
-  public:
-    bool processLine(const char * line);
-  };
+    public:
+        bool processLine(const char * line);
+    };
   
 }; // orsaInputOutput
 

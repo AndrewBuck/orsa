@@ -18,10 +18,10 @@
 
 namespace orsaSolarSystem {
   
-  class OrbitWithEpoch : public orsa::Orbit {
-  public:
-    orsa::Cache<orsa::Time> epoch;
-  };
+    class OrbitWithEpoch : public orsa::Orbit {
+    public:
+        orsa::Cache<orsa::Time> epoch;
+    };
   
 }; // namespace orsaSolarSystem
 

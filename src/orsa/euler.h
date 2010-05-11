@@ -7,11 +7,11 @@
 
 namespace orsa {
   
-  bool Euler(orsa::Vector       & omegaDot,
-	     const orsa::Vector & omega,
-	     const orsa::Matrix & I,
-	     const orsa::Vector & T,
-	     const bool usePrincipalAxisRotationTransformation = true);
+    bool Euler(orsa::Vector       & omegaDot,
+               const orsa::Vector & omega,
+               const orsa::Matrix & I,
+               const orsa::Vector & T,
+               const bool usePrincipalAxisRotationTransformation = true);
   
 } // namespace orsa
 

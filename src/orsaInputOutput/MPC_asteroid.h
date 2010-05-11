@@ -10,38 +10,38 @@
 
 namespace orsaInputOutput {
   
-  class MPCAsteroidDataElement {
-  public:
-    orsa::Cache<orsaSolarSystem::OrbitWithEpoch> orbit;
-    orsa::Cache<double> H;
-    orsa::Cache<unsigned int> number;
-    orsa::Cache<std::string> designation;
-  };
+    class MPCAsteroidDataElement {
+    public:
+        orsa::Cache<orsaSolarSystem::OrbitWithEpoch> orbit;
+        orsa::Cache<double> H;
+        orsa::Cache<unsigned int> number;
+        orsa::Cache<std::string> designation;
+    };
   
-  typedef std::vector<MPCAsteroidDataElement> MPCAsteroidData;
+    typedef std::vector<MPCAsteroidDataElement> MPCAsteroidData;
   
-  class MPCAsteroidFile : 
-  public orsaInputOutput::InputFile <
-    orsaInputOutput::CompressedFile,
-    orsaInputOutput::MPCAsteroidData
-    > {
+    class MPCAsteroidFile : 
+        public orsaInputOutput::InputFile <
+        orsaInputOutput::CompressedFile,
+        orsaInputOutput::MPCAsteroidData
+        > {
     
-  public:
-    MPCAsteroidFile() : 
-      orsaInputOutput::InputFile <
-      orsaInputOutput::CompressedFile,
-      orsaInputOutput::MPCAsteroidData
-      > () { }
+    public:
+        MPCAsteroidFile() : 
+            orsaInputOutput::InputFile <
+        orsaInputOutput::CompressedFile,
+        orsaInputOutput::MPCAsteroidData
+        > () { }
       
-  protected:
-    ~MPCAsteroidFile() { }
+    protected:
+        ~MPCAsteroidFile() { }
     
-  public:
-    bool goodLine(const char * line);
+    public:
+        bool goodLine(const char * line);
     
-  public:
-    bool processLine(const char * line);
-  };
+    public:
+        bool processLine(const char * line);
+    };
   
 }; // orsaInputOutput
 

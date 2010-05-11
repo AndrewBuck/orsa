@@ -11,17 +11,17 @@
 
 namespace orsaOSG {
   
-  class HUD : public osg::CameraNode {
-  public:
-    HUD(orsaOSG::AnimationTime *);
-  protected:	
-    ~HUD() { }
+    class HUD : public osg::CameraNode {
+    public:
+        HUD(orsaOSG::AnimationTime *);
+    protected:	
+        ~HUD() { }
     
-  public:	
-    osg::ref_ptr<osgText::Text> _timeLabel;
-  protected:
-    osg::ref_ptr<AnimationTime> _at;
-  };
+    public:	
+        osg::ref_ptr<osgText::Text> _timeLabel;
+    protected:
+        osg::ref_ptr<AnimationTime> _at;
+    };
   
 } // namespace orsaOSG
 

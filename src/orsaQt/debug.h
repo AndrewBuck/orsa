@@ -8,45 +8,45 @@
 
 namespace orsaQt {
   
-  class DebugWidget : public QWidget {
+    class DebugWidget : public QWidget {
     
-    Q_OBJECT;
+        Q_OBJECT;
     
-  public:	
-    DebugWidget();
+    public:	
+        DebugWidget();
     
-  public:
-    virtual ~DebugWidget() {
-      ORSA_DEBUG("~DebugWidget() called...");
-    }
+    public:
+        virtual ~DebugWidget() {
+            ORSA_DEBUG("~DebugWidget() called...");
+        }
     
-  public slots:
-    void append(const QString &);
+              public slots:
+              void append(const QString &);
     
-  protected:
-    void customEvent(QEvent *);
+    protected:
+        void customEvent(QEvent *);
     
-  private:
-    QTextEdit * _te;
-  };
+    private:
+        QTextEdit * _te;
+    };
   
-  class Debug : public orsa::Debug {
+    class Debug : public orsa::Debug {
     
-  protected:
-    Debug();
+    protected:
+        Debug();
     
-  public:
-    virtual ~Debug();
+    public:
+        virtual ~Debug();
     
-  public:
-    static orsa::Debug * instance();
+    public:
+        static orsa::Debug * instance();
     
-  protected:
-    void printOut(const std::string &);
+    protected:
+        void printOut(const std::string &);
     
-  private:
-    DebugWidget * _dw;
-  };
+    private:
+        DebugWidget * _dw;
+    };
   
 } // namespace orsaQt
 

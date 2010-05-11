@@ -5,29 +5,29 @@
 
 namespace orsa {
   
-  class IntegratorLeapFrog : public Integrator {
-  public:
-    IntegratorLeapFrog();
-  protected:
-    ~IntegratorLeapFrog();
-  public:
-    bool step(orsa::BodyGroup  * bg,
-	      const orsa::Time & start,
-	      const orsa::Time & timestep,
-	      orsa::Time       & next_timestep);	
-  public:
-    bool canHandleVelocityDependantInteractions() const { 
-      ORSA_DEBUG("check this!");
-      return false;
-    }
+    class IntegratorLeapFrog : public Integrator {
+    public:
+        IntegratorLeapFrog();
+    protected:
+        ~IntegratorLeapFrog();
+    public:
+        bool step(orsa::BodyGroup  * bg,
+                  const orsa::Time & start,
+                  const orsa::Time & timestep,
+                  orsa::Time       & next_timestep);	
+    public:
+        bool canHandleVelocityDependantInteractions() const { 
+            ORSA_DEBUG("check this!");
+            return false;
+        }
     
-  public:
-    bool lastCallRejected() const { return false; }
+    public:
+        bool lastCallRejected() const { return false; }
     
-  public:
-    void reset() { }
+    public:
+        void reset() { }
     
-  };
+    };
   
 } // namespace orsa
 

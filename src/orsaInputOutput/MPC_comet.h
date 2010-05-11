@@ -10,36 +10,36 @@
 
 namespace orsaInputOutput {
   
-  class MPCCometDataElement {
-  public:
-    orsa::Cache<orsaSolarSystem::OrbitWithEpoch> orbit;
-    orsa::Cache<std::string> designation;
-  };
+    class MPCCometDataElement {
+    public:
+        orsa::Cache<orsaSolarSystem::OrbitWithEpoch> orbit;
+        orsa::Cache<std::string> designation;
+    };
   
-  typedef std::vector<MPCCometDataElement> MPCCometData;
+    typedef std::vector<MPCCometDataElement> MPCCometData;
   
-  class MPCCometFile : 
-  public orsaInputOutput::InputFile <
-    orsaInputOutput::CompressedFile,
-    orsaInputOutput::MPCCometData
-    > {
+    class MPCCometFile : 
+        public orsaInputOutput::InputFile <
+        orsaInputOutput::CompressedFile,
+        orsaInputOutput::MPCCometData
+        > {
     
-  public:
-    MPCCometFile() : 
-      orsaInputOutput::InputFile <
-      orsaInputOutput::CompressedFile,
-      orsaInputOutput::MPCCometData
-      > () { }
+    public:
+        MPCCometFile() : 
+            orsaInputOutput::InputFile <
+        orsaInputOutput::CompressedFile,
+        orsaInputOutput::MPCCometData
+        > () { }
       
-  protected:
-    ~MPCCometFile() { }
+    protected:
+        ~MPCCometFile() { }
     
-  public:
-    bool goodLine(const char * line);
+    public:
+        bool goodLine(const char * line);
     
-  public:
-    bool processLine(const char * line);
-  };
+    public:
+        bool processLine(const char * line);
+    };
   
 }; // orsaInputOutput
 
