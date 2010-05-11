@@ -6,18 +6,13 @@
 
 #include <iostream>
 
-// #include <tbb/task_scheduler_init.h>
-
 int main(int argc, char ** argv) {
-  
-  // TBB
-  // tbb::task_scheduler_init init;
-  
+    
   QApplication app(argc, argv);
   
-  orsaQt::Debug::instance()->initTimer();
+  // orsaQt::Debug::instance()->initTimer();
   //
-  // orsa::Debug::instance()->initTimer();
+  orsa::Debug::instance()->initTimer();
   
   QWidget * mainWidget = new RendezvousWithVestaWidget;
   

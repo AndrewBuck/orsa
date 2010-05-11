@@ -23,8 +23,6 @@
 #include "vesta.h"
 // #include "kleopatrashape.h"
 
-// #include <tbb/task_scheduler_init.h>
-
 using namespace orsa;
 using namespace orsaSolarSystem;
 using namespace orsaSPICE;
@@ -52,9 +50,10 @@ void CustomIntegrator::singleStepDone(orsa::BodyGroup  *,
     // ORSA_DEBUG("p: %i",p);
     emit progress(p);
     
-    ORSA_DEBUG("progress: %.6f \%",
-	       ((100*((t+call_dt)-mainThread->orbitEpoch.getRef()).getMuSec().get_d()) /
-		mainThread->runDuration.getRef().getMuSec().get_d()));
+    /* ORSA_DEBUG("progress: %.6f \%",
+       ((100*((t+call_dt)-mainThread->orbitEpoch.getRef()).getMuSec().get_d()) /
+       mainThread->runDuration.getRef().getMuSec().get_d()));
+    */
   }
 }
 
@@ -100,11 +99,8 @@ MainThread::MainThread() :
 }
 
 void MainThread::run() {
-  
-  // TBB
-  // tbb::task_scheduler_init init;
-  
-  // const Time samplingPeriod(0,0,30,0,0);
+    
+    // const Time samplingPeriod(0,0,30,0,0);
   const Time samplingPeriod(0,0,5,0,0);
 
   // if false, use interpolation

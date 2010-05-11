@@ -1,8 +1,6 @@
 #ifndef __RENDEZVOUS_WITH_VESTA_H__
 #define __RENDEZVOUS_WITH_VESTA_H__
 
-#include <orsaTBB/malloc.h>
-
 #include <QComboBox>
 #include <QLineEdit> 
 #include <QProgressBar>
