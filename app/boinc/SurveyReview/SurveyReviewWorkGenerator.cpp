@@ -57,6 +57,9 @@ bool writeInputTemplate(const std::string  & fileName,
                 "<file_info>\n"
                 "  <number>4</number>\n"
                 "</file_info>\n"
+                "<file_info>\n"
+                "  <number>5</number>\n"
+                "</file_info>\n"
                 "<workunit>\n"
                 "  <file_ref>\n"
                 "    <file_number>0</file_number>\n"
@@ -64,18 +67,22 @@ bool writeInputTemplate(const std::string  & fileName,
                 "  </file_ref>\n"
                 "  <file_ref>\n"
                 "    <file_number>1</file_number>\n"
-                "    <open_name>fit.dat</open_name>\n"
+                "    <open_name>fieldTime.dat</open_name>\n"
                 "  </file_ref>\n"
                 "  <file_ref>\n"
                 "    <file_number>2</file_number>\n"
-                "    <open_name>grid.dat</open_name>\n"
+                "    <open_name>fit.dat</open_name>\n"
                 "  </file_ref>\n"
                 "  <file_ref>\n"
                 "    <file_number>3</file_number>\n"
-                "    <open_name>obscode.dat</open_name>\n"
+                "    <open_name>grid.dat</open_name>\n"
                 "  </file_ref>\n"
                 "  <file_ref>\n"
                 "    <file_number>4</file_number>\n"
+                "    <open_name>obscode.dat</open_name>\n"
+                "  </file_ref>\n"
+                "  <file_ref>\n"
+                "    <file_number>5</file_number>\n"
                 "    <open_name>randomSeed.dat</open_name>\n"
                 "  </file_ref>\n"
                 "  <min_quorum>%i</min_quorum>\n"
@@ -99,23 +106,6 @@ bool writeInputTemplate(const std::string  & fileName,
     fclose(fp);
     return true;
 }
-
-/* 
-   std::string outputTemplateFileName(const std::string  & baseName,
-   const unsigned int   numRealNEO,
-   const unsigned int   numSyntheticNEO,
-   const int          & tp_lines) {
-   char fileName[1024];
-   gmp_snprintf(fileName,
-   1024,
-   "templates/wu.SR.output.%s.%i_%i_%i.xml",  
-   baseName.c_str(),
-   numRealNEO,
-   numSyntheticNEO,
-   tp_lines);
-   return fileName;
-   }
-*/
 
 bool writeOutputTemplate(const std::string          & fileName,
                          const OutputTemplateVector & outputTemplateVector) {
@@ -182,22 +172,14 @@ int main(int argc, char ** argv) {
     outputTemplateVector.push_back(OutputTemplateEntry("results.db", 100*1024*1024, true, true));
     
     // tentative values
-    const double flops_est = 1e15;
-    /* const double flops_est = 
-       1e12 * 
-       (std::max(512,numRealNEO)/1024.0) * 
-       (std::max(512,numSyntheticNEO)/1024.0) * 
-       (total_tp_lines/3600.0) *
-       (total_FOV_DEG_SQ/4.0);
-    */
+    const double flops_est = 1e12;
     
     const unsigned int min_quorum       = 2;
     const unsigned int target_nresults  = 2;
     const double rsc_fpops_est          =    flops_est;
     const double rsc_fpops_bound        = 32*flops_est;
-    const orsa::Time   delay_bound      = std::max(orsa::Time(flops_est/1e12,0,0,0,0),
-                                                   orsa::Time(1,0,0,0,0)); 
-    const double rsc_memory_bound = 134217728;
+    const orsa::Time   delay_bound      = orsa::Time(10,0,0,0,0);
+    const double rsc_memory_bound       = 134217728;
     //
     double rsc_disk_bound = 0;
     for (unsigned int k=0; k<outputTemplateVector.size(); ++k) {
@@ -224,14 +206,9 @@ int main(int argc, char ** argv) {
                             rsc_disk_bound)) {
         exit(0);
     }
-  
-    const std::string outTemplateName = "templates/wu.SR.output.TESTING.xml";
-    /* const std::string outTemplateName = 
-       outputTemplateFileName(baseName,
-       numRealNEO,
-       numSyntheticNEO,
-       total_tp_lines);
-    */
+    
+    char outTemplateName[1024];
+    sprintf(outTemplateName,"templates/wu.SR.output.%s.xml",baseName.c_str());
     
     if (!writeOutputTemplate(outTemplateName,
                              outputTemplateVector)) {
@@ -251,24 +228,12 @@ int main(int argc, char ** argv) {
     
     // unique!
     char wuName[1024];
-    /* if (firstSyntheticRandomSeed.isSet()) {
-       gmp_snprintf(wuName,
-       1024,
-       "%s_%i_%i_%i.%02i.%02i_%02i.%02i.%02i",
-       baseName.c_str(),
-       firstSyntheticRandomSeed.getRef(),
-       getpid(),
-       y,m,d,H,M,S);
-       } else {
-    */
-    //
     gmp_snprintf(wuName,
                  1024,
                  "%s_%i_%i.%02i.%02i_%02i.%02i.%02i",
                  baseName.c_str(),
                  getpid(),
                  y,m,d,H,M,S);
-    // }
     
     ORSA_DEBUG("[%s]",wuName);
   
@@ -302,6 +267,16 @@ int main(int argc, char ** argv) {
     gmp_snprintf(copyFieldDat,1024,"field.dat.%s",wuName);
     config.download_path(copyFieldDat,path);
     gmp_snprintf(cmd,1024,"cp -f field.dat %s",path);
+    if (system(cmd) == -1) {
+        ORSA_DEBUG("problems with system call: [%s]",cmd);
+        exit(0);
+    }   
+    
+    char copyFieldTimeDat[1024];
+    //
+    gmp_snprintf(copyFieldTimeDat,1024,"fieldTime.dat.%s",wuName);
+    config.download_path(copyFieldTimeDat,path);
+    gmp_snprintf(cmd,1024,"cp -f fieldTime.dat %s",path);
     if (system(cmd) == -1) {
         ORSA_DEBUG("problems with system call: [%s]",cmd);
         exit(0);
@@ -349,6 +324,7 @@ int main(int argc, char ** argv) {
     
     const char * infiles[] = 
         { copyFieldDat,
+          copyFieldTimeDat,
           copyFitDat,
           copyGridDat,
           copyObscodeDat,
@@ -365,9 +341,9 @@ int main(int argc, char ** argv) {
   
     create_work(wu,
                 wu_template,
-                outTemplateName.c_str(),
-                outTemplateName.c_str(),
+                outTemplateName,
+                outTemplateName,
                 infiles,
-                5, // infiles size
+                6, // infiles size
                 config);
 }
