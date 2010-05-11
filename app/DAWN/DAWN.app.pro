@@ -3,7 +3,7 @@ TEMPLATE = app
 CONFIG += qt
 QT     -= gui opengl
 
-CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib qd_include qd_lib spice_include spice_lib tbb_include tbb_lib
+CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib qd_include qd_lib spice_include spice_lib
 
 include(../../orsa.pri)
 
@@ -19,16 +19,10 @@ DESTDIR     = ../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
 	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -losg -losgText -losgGA -losgViewer
-	!isEmpty(USE_TBB_BASE) {
-		LIBS += -ltbb -ltbbmalloc
-	}
 }
 
 macx {
 	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -losg -losgText -losgGA -losgViewer -lOpenThreads -losg -losgDB -losgUtil
-	!isEmpty(USE_TBB_BASE) {
-		LIBS += -ltbb -ltbbmalloc
-	}
 }
 
 HEADERS += DAWN.h   vesta.h  multiminPhase.h
