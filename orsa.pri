@@ -12,13 +12,6 @@ macx {
 	CONFIG += staticlib
 }
 
-### to use TBB, simply uncomment the following TWO lines
-#USE_TBB_BASE = true
-#QMAKE_CXXFLAGS += -DORSA_USE_TBB -DTBB_DO_ASSERT=0 -DTBB_DO_THREADING_TOOLS=0
-### also, to use parallel algorithms, uncomment the following TWO lines
-#USE_TBB_ALGO = true
-#QMAKE_CXXFLAGS += -DNEED_TBB_INIT
-
 # not here... qt and gui are kept local on single directory's .pro files
 #CONFIG += qt
 #QT -= gui
@@ -137,12 +130,6 @@ unix:!macx {
 	spice_lib {
 		LIBS += /home/tricaric/cspice/lib/cspice.a /home/tricaric/cspice/lib/csupport.a
 	}
-	tbb_include {
-		INCLUDEPATH += /home/tricaric/tbb/include
-	}
-	tbb_lib {
-		LIBS += -L/home/tricaric/tbb/build/linux_ia32_gcc_cc4.2.4_libc2.7_kernel2.6.26.5_release
-	}
 	zlib_include {
         	INCLUDEPATH +=
 	}
@@ -190,12 +177,6 @@ macx {
 	}
 	spice_lib {
 		LIBS += $$ORSA_SUPPORT/cspice/lib/cspice.a $$ORSA_SUPPORT/cspice/lib/csupport.a
-	}
-	tbb_include {
-		INCLUDEPATH += 
-	}
-	tbb_lib {
-		LIBS +=
 	}
 	zlib_include {
         	INCLUDEPATH +=
@@ -245,12 +226,6 @@ win32 {
 	}
 	spice_lib {
 		LIBS += $$ORSA_SUPPORT\cspice\lib\cspice.a $$ORSA_SUPPORT\cspice\lib\csupport.a
-	}
-	tbb_include {
-		INCLUDEPATH += 
-	}
-	tbb_lib {
-		LIBS +=
 	}
 	zlib_include {
         	INCLUDEPATH += C:\Qt\2010.02.1\qt\src\3rdparty\zlib
