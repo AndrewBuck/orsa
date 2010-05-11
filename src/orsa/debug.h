@@ -1,8 +1,6 @@
 #ifndef _ORSA_DEBUG_
 #define _ORSA_DEBUG_
 
-#include <orsaTBB/malloc.h>
-
 #include <QMutex>
 
 #include <cstdarg> // definition of std::va_list

@@ -1,8 +1,6 @@
 #ifndef _ORSA_ORBIT_
 #define _ORSA_ORBIT_
 
-#include <orsaTBB/malloc.h>
-
 #include <osg/Referenced>
 #include <osg/ref_ptr>
 

@@ -1,8 +1,6 @@
 #ifndef _ORSA_VECTOR_
 #define _ORSA_VECTOR_
 
-#include <orsaTBB/malloc.h>
-
 #include <orsa/cache.h>
 #include <orsa/double.h>
 

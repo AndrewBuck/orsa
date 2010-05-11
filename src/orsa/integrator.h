@@ -1,8 +1,6 @@
 #ifndef _ORSA_INTEGRATOR_
 #define _ORSA_INTEGRATOR_
 
-#include <orsaTBB/malloc.h>
-
 #include <osg/Referenced>
 #include <osg/ref_ptr>
 

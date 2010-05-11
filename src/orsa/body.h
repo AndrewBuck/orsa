@@ -1,8 +1,6 @@
 #ifndef _ORSA_BODY_
 #define _ORSA_BODY_
 
-#include <orsaTBB/malloc.h>
-
 #include <osg/Referenced>
 #include <osg/ref_ptr>
 

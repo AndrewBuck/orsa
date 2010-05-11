@@ -6,7 +6,7 @@ TEMPLATE = lib
 CONFIG += qt
 QT -= gui
 
-CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib zlib_include zlib_lib tbb_include
+CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib zlib_include zlib_lib
 
 include(../../orsa.pri)
 

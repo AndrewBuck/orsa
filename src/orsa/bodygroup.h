@@ -1,8 +1,6 @@
 #ifndef _ORSA_BODYGROUP_
 #define _ORSA_BODYGROUP_
 
-#include <orsaTBB/malloc.h>
-
 // #include <list>
 #include <string>
 #include <vector>
@@ -47,17 +45,9 @@ namespace orsa {
            protected:
            mutable orsa::Cache<Body::BodyID> cachedLargestBodyID;
         */
-    
+        
     public:
-        // interestingly, it looks like the container can be switched without
-        // any other code change, and the code still works
-        //
-#ifdef ORSA_USE_TBB
-        typedef std::vector < osg::ref_ptr<const Body>, tbb::cache_aligned_allocator<osg::ref_ptr<const Body> > > BodyList;
-#else
         typedef std::vector < osg::ref_ptr<const Body> > BodyList;
-#endif
-        //
     protected:
         BodyList _b_list;
         // NOTE: some (all?) non-const access member should be protected

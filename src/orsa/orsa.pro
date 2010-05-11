@@ -77,6 +77,7 @@ SOURCES = angle.cpp \
           integrator.cpp \
           integrator_leapfrog.cpp \
           integrator_radau.cpp \
+          interaction.cpp \
           legendre.cpp \
           matrix.cpp \
           multifit.cpp \
@@ -91,10 +92,3 @@ SOURCES = angle.cpp \
           unit.cpp \
           util.cpp \
           vector.cpp
-
-
-isEmpty(USE_TBB_ALGO) {
-	SOURCES += interaction.cpp
-} else {
-	SOURCES += interaction.TBB.cpp
-}

@@ -1,8 +1,6 @@
 #ifndef _ORSA_OSG_ORBIT_NODE_CALLBACK_H_
 #define _ORSA_OSG_ORBIT_NODE_CALLBACK_H_
 
-#include <orsaTBB/malloc.h>
-
 #include <osg/MatrixTransform>
 #include <osg/NodeCallback>
 #include <osg/NodeVisitor>

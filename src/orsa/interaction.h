@@ -1,10 +1,6 @@
 #ifndef _ORSA_INTERACTION_
 #define _ORSA_INTERACTION_
 
-#include <orsaTBB/malloc.h>
-
-// #include <QHash>
-
 #include <orsa/datetime.h>
 #include <orsa/vector.h>
 
@@ -36,17 +32,7 @@ namespace orsa {
         Interaction();
     protected:
         virtual ~Interaction() { }
-    
-    public:
-        /* typedef QHash <
-           const orsa::Body * , 
-           orsa::Cache<orsa::Vector> > VectorHash;
-        */
-    public:
-        /* typedef QHash <
-           const orsa::Body * , 
-           orsa::Vector > VectorHash;
-        */
+        
     public:
         // #warning "SHOULD rename it, no longer BodyID aligned, but bg::BodyList index"
         // typedef std::vector<orsa::Vector> BodyIDVector;

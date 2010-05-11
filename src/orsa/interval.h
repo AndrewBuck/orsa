@@ -1,8 +1,6 @@
 #ifndef _ORSA_INTERVAL_
 #define _ORSA_INTERVAL_
 
-#include <orsaTBB/malloc.h>
-
 #include <osg/Referenced>
 #include <osg/ref_ptr>
 
@@ -24,11 +22,7 @@ namespace orsa {
     // stored data: only unique values...
     template <typename T> class Interval : public osg::Referenced {
     public:
-#ifdef ORSA_USE_TBB
-        typedef std::deque<T, tbb::cache_aligned_allocator<T> > DataType;
-#else
         typedef std::deque<T> DataType;
-#endif
     public:
         Interval() : Referenced(true) { 
             _store_data = false;
