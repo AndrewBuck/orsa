@@ -16,6 +16,7 @@
 
 #include <iostream>
 
+// same as validator, should share in a common header...
 int get_input_file_infos(const WORKUNIT & wu, 
                          std::vector<FILE_INFO>& fis) {
     char tag[256], path[1024];
@@ -73,7 +74,7 @@ int assimilate_handler(WORKUNIT            & wu,
     const char * output_dir_base = "/home/boinc/SurveyReviewAssimilatedResults";
     
     char cmd[1024];  
- 
+    
     char output_dir[1024];
     sprintf(output_dir,"%s/%s",
             output_dir_base,
@@ -82,7 +83,7 @@ int assimilate_handler(WORKUNIT            & wu,
             output_dir);
     print_cmd(cmd,canonical_result);
     system(cmd);
-  
+    
     /* 
        log_messages.printf(MSG_DEBUG, 
        "[RESULT#%d %s] wu.xml_doc:\n%s", 
