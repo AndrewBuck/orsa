@@ -126,6 +126,12 @@ int compare_results(RESULT & /* r1 */,
                                          &z_peri_min, &z_peri_max, &z_peri_delta,
                                          &z_M_min, &z_M_max, &z_M_delta,
                                          &z_H_min, &z_H_max, &z_H_delta)) {
+
+                        log_messages.printf(MSG_DEBUG, 
+                                            "[WORKUNIT#%d %s] succesfully read grid.dat file\n", 
+                                            wu.id,  
+                                            wu.name);
+                        done=true;
                         break;
                     }
                 }
@@ -240,6 +246,13 @@ int compare_results(RESULT & /* r1 */,
                                         int N_NEO1 = atoi(sql_result1[ncols+col]);
                                         int N_NEO2 = atoi(sql_result2[ncols+col]);
                                         if (N_NEO1 != N_NEO2) match=false;
+                                        
+                                        log_messages.printf(MSG_DEBUG, 
+                                                            "[WORKUNIT#%d %s] N_NEO1=%i N_NEO2=%i\n", 
+                                                            wu.id,  
+                                                            wu.name,  
+                                                            N_NEO1,N_NEO2);
+                                        
                                     } else if (sql_result1[col] == std::string("N_PHO")) {
                                         int N_PHO1 = atoi(sql_result1[ncols+col]);
                                         int N_PHO2 = atoi(sql_result2[ncols+col]);
