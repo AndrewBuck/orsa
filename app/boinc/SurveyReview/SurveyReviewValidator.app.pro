@@ -6,10 +6,6 @@ CONFIG -= qt
 
 CONFIG += boinc_include boinc_lib 
 
-win32 {
-	CONFIG += osg_lib
-}
-
 include(../../../orsa.pri)
 
 INCLUDEPATH += ../../../src/
@@ -21,8 +17,10 @@ OBJECTS_DIR = .obj/$${PLATFORM_NAME}
 DESTDIR     = ../../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
+	CONFIG += gmp_include gmp_lib
 	INCLUDEPATH += /home/tricaric/boinc/ /home/tricaric/boinc/lib/ /home/tricaric/boinc/tools/ /home/tricaric/boinc/sched/ /home/tricaric/boinc/db/ /usr/include/mysql/
 	LIBS += -lmysqlclient
+	LIBS += -L/home/tricaric/sqlite -lsqlite3 -ldl -lgmp
 }
 
 # BOINC sources needed
@@ -31,5 +29,5 @@ SOURCES += /home/tricaric/boinc/sched/validator.cpp /home/tricaric/boinc/db/boin
 
 # local
 #
-HEADERS +=   
+HEADERS += sqlite3.h sqlite3ext.h
 SOURCES += SurveyReviewValidator.cpp 
