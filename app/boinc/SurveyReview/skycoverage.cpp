@@ -233,10 +233,11 @@ bool SkyCoverage::getFieldAverageTime(orsa::Time & epoch,
     }
 }
 
-void SkyCoverage::writeFieldTimeFile(const std::string & filename) const {
+bool SkyCoverage::writeFieldTimeFile(const std::string & filename) const {
     FILE * fp = fopen(filename.c_str(),"w");
     if (!fp) {
         ORSA_DEBUG("cannot write file [%s]",filename.c_str());
+        return false;
     }
     for (unsigned int k=0; k<data.size(); ++k) {
         for (unsigned int z=0; z<data[k].epochVec.size(); ++z) {
@@ -244,12 +245,14 @@ void SkyCoverage::writeFieldTimeFile(const std::string & filename) const {
         }
     }
     fclose(fp);
+    return true;
 }
 
-void SkyCoverage::readFieldTimeFile(const std::string & filename) {
+bool SkyCoverage::readFieldTimeFile(const std::string & filename) {
     FILE * fp = fopen(filename.c_str(),"r");
     if (!fp) {
         ORSA_DEBUG("cannot read file [%s]",filename.c_str());
+        return false;
     }
     unsigned int goodEntries=0;
     char line[1024];
@@ -266,7 +269,8 @@ void SkyCoverage::readFieldTimeFile(const std::string & filename) {
         }
     }
     fclose(fp);
-    ORSA_DEBUG("read %i field times",goodEntries);
+    // ORSA_DEBUG("read %i field times",goodEntries);
+    return true;
 }
 
 bool SkyCoverage::pickFieldTime(orsa::Time & epoch,

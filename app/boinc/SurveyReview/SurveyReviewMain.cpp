@@ -124,8 +124,11 @@ int main() {
     osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile = new orsaInputOutput::MPCObsCodeFile;
     boinc_resolve_filename_s("obscode.dat",resolvedFileName);
     obsCodeFile->setFileName(resolvedFileName);
-    obsCodeFile->read();
-  
+    if (!obsCodeFile->read()) {
+        ORSA_DEBUG("cannot open file [%s]",resolvedFileName.c_str());
+        boinc_finish(0); 
+    }
+    
     osg::ref_ptr<orsaUtil::StandardObservatoryPositionCallback> obsPosCB =
         new orsaUtil::StandardObservatoryPositionCallback(obsCodeFile.get());
   
@@ -147,10 +150,16 @@ int main() {
     //
     boinc_resolve_filename_s("field.dat",resolvedFileName);
     skyCoverageFile->setFileName(resolvedFileName);
-    skyCoverageFile->read();
+    if (!skyCoverageFile->read()) {
+        ORSA_DEBUG("cannot open file [%s]",resolvedFileName.c_str());
+        boinc_finish(0); 
+    }
     //
     boinc_resolve_filename_s("fieldTime.dat",resolvedFileName);
-    skyCoverageFile->_data->readFieldTimeFile(resolvedFileName);
+    if (!skyCoverageFile->_data->readFieldTimeFile(resolvedFileName)) {
+        ORSA_DEBUG("cannot open file [%s]",resolvedFileName.c_str());
+        boinc_finish(0); 
+    }
     //
     osg::ref_ptr<SkyCoverage> skyCoverage = skyCoverageFile->_data;
     
@@ -280,8 +289,8 @@ int main() {
             gmp_fscanf(fp,"%i",&rs);
             fclose(fp);
         } else {
-            ORSA_DEBUG("cannot open randomSeed file");
-            boinc_finish(0);   
+            ORSA_DEBUG("cannot open file [%s]",resolvedFileName.c_str());
+            boinc_finish(0); 
         }
     }
     //
@@ -334,8 +343,8 @@ int main() {
         boinc_resolve_filename_s("grid.dat",resolvedFileName);
         FILE * fp = boinc_fopen(resolvedFileName.c_str(),"r"); 
         if (!fp) {
-            ORSA_DEBUG("cannot open grid.dat file");
-            boinc_finish(0);   
+            ORSA_DEBUG("cannot open file [%s]",resolvedFileName.c_str());
+            boinc_finish(0);  
         }
         bool done=false;
         char line[1024];

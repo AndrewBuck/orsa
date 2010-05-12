@@ -111,8 +111,8 @@ public:
     }
     
 public:
-    void writeFieldTimeFile(const std::string & filename) const;
-    void  readFieldTimeFile(const std::string & filename);
+    bool writeFieldTimeFile(const std::string & filename) const;
+    bool  readFieldTimeFile(const std::string & filename);
     
 public:
     //! smallest distance (angle) between the u direction and any of the fields centers
