@@ -102,7 +102,12 @@ int compare_results(RESULT & /* r1 */,
         while (it != fis.end()) {
             // test if file exists
             FILE * fp = fopen((*it).path.c_str(),"r"); 
-            if (fp) { 
+            if (fp) {
+                log_messages.printf(MSG_DEBUG, 
+                                    "[WORKUNIT#%d %s] trying to read file %s\n", 
+                                    wu.id,  
+                                    wu.name,  
+                                    (*it).path.c_str()); 
                 char line[1024];
                 while (fgets(line,1024,fp)) {
                     if (strlen(line) > 0) {
