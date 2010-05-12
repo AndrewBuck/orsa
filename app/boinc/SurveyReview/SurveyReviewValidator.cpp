@@ -243,7 +243,7 @@ int compare_results(RESULT & /* r1 */,
                                 const int ncols = ncols1;
                                 for (int col=0; col<ncols; ++col) {
                                     if (sql_result1[col] == std::string("N_NEO")) {
-                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing N_NEO\n",wu.id,wu.name);
+                                        // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing N_NEO\n",wu.id,wu.name);
                                         int N_NEO1 = atoi(sql_result1[ncols+col]);
                                         int N_NEO2 = atoi(sql_result2[ncols+col]);
                                         if (N_NEO1 != N_NEO2) {
@@ -251,7 +251,7 @@ int compare_results(RESULT & /* r1 */,
                                             log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: N_NEO1=%i N_NEO2=%i\n",wu.id,wu.name,N_NEO1,N_NEO2);
                                         }
                                     } else if (sql_result1[col] == std::string("N_PHO")) {
-                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing N_PHO\n",wu.id,wu.name);
+                                        // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing N_PHO\n",wu.id,wu.name);
                                         int N_PHO1 = atoi(sql_result1[ncols+col]);
                                         int N_PHO2 = atoi(sql_result2[ncols+col]);
                                         if (N_PHO1 != N_PHO2) {
@@ -259,7 +259,7 @@ int compare_results(RESULT & /* r1 */,
                                             log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: N_PHO1=%i N_PHO2=%i\n",wu.id,wu.name,N_PHO1,N_PHO2);
                                         }
                                     } else if (sql_result1[col] == std::string("NEO_in_field")) {
-                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing NEO_in_field\n",wu.id,wu.name);
+                                        // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing NEO_in_field\n",wu.id,wu.name);
                                         int NEO_in_field1 = atoi(sql_result1[ncols+col]);
                                         int NEO_in_field2 = atoi(sql_result2[ncols+col]);
                                         if (NEO_in_field1 != NEO_in_field2) {
@@ -267,7 +267,7 @@ int compare_results(RESULT & /* r1 */,
                                             log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: NEO_in_field1=%i NEO_in_field2=%i\n",wu.id,wu.name,NEO_in_field1,NEO_in_field2);
                                         }
                                     } else if (sql_result1[col] == std::string("PHO_in_field")) {
-                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing PHO_in_field\n",wu.id,wu.name);
+                                        // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing PHO_in_field\n",wu.id,wu.name);
                                         int PHO_in_field1 = atoi(sql_result1[ncols+col]);
                                         int PHO_in_field2 = atoi(sql_result2[ncols+col]);
                                         if (PHO_in_field1 != PHO_in_field2) {
@@ -275,7 +275,7 @@ int compare_results(RESULT & /* r1 */,
                                             log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: PHO_in_field1=%i PHO_in_field2=%i\n",wu.id,wu.name,PHO_in_field1,PHO_in_field2);
                                         }
                                     } else if (sql_result1[col] == std::string("eta_NEO")) {
-                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing eta_NEO\n",wu.id,wu.name);
+                                        // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing eta_NEO\n",wu.id,wu.name);
                                         double eta_NEO1 = atof(sql_result1[ncols+col]);
                                         double eta_NEO2 = atof(sql_result2[ncols+col]);
                                         if (eta_NEO2!=eta_NEO1) { // this takes care of the {0,0} case
@@ -285,7 +285,7 @@ int compare_results(RESULT & /* r1 */,
                                             }
                                         }
                                     } else if (sql_result1[col] == std::string("sigma_eta_NEO")) {
-                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing sigma_eta_NEO\n",wu.id,wu.name);
+                                        // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing sigma_eta_NEO\n",wu.id,wu.name);
                                         double sigma_eta_NEO1 = atof(sql_result1[ncols+col]);
                                         double sigma_eta_NEO2 = atof(sql_result2[ncols+col]);
                                         if (sigma_eta_NEO2!=sigma_eta_NEO1) { // this takes care of the {0,0} case
@@ -295,7 +295,7 @@ int compare_results(RESULT & /* r1 */,
                                             }
                                         }
                                     } else if (sql_result1[col] == std::string("eta_PHO")) {
-                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing eta_PHO\n",wu.id,wu.name);
+                                        // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing eta_PHO\n",wu.id,wu.name);
                                         double eta_PHO1 = atof(sql_result1[ncols+col]);
                                         double eta_PHO2 = atof(sql_result2[ncols+col]);
                                         if (eta_PHO2!=eta_PHO1) { // this takes care of the {0,0} case
@@ -305,7 +305,7 @@ int compare_results(RESULT & /* r1 */,
                                             }
                                         }
                                     } else if (sql_result1[col] == std::string("sigma_eta_PHO")) {
-                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing sigma_eta_PHO\n",wu.id,wu.name);
+                                        // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing sigma_eta_PHO\n",wu.id,wu.name);
                                         double sigma_eta_PHO1 = atof(sql_result1[ncols+col]);
                                         double sigma_eta_PHO2 = atof(sql_result2[ncols+col]);
                                         if (sigma_eta_PHO2!=sigma_eta_PHO1) { // this takes care of the {0,0} case
