@@ -243,51 +243,76 @@ int compare_results(RESULT & /* r1 */,
                                 const int ncols = ncols1;
                                 for (int col=0; col<ncols; ++col) {
                                     if (sql_result1[col] == std::string("N_NEO")) {
+                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing N_NEO",wu.id,wu.name);
                                         int N_NEO1 = atoi(sql_result1[ncols+col]);
                                         int N_NEO2 = atoi(sql_result2[ncols+col]);
-                                        if (N_NEO1 != N_NEO2) match=false;
-                                        
-                                        log_messages.printf(MSG_DEBUG, 
-                                                            "[WORKUNIT#%d %s] N_NEO1=%i N_NEO2=%i\n", 
-                                                            wu.id,  
-                                                            wu.name,  
-                                                            N_NEO1,N_NEO2);
-                                        
+                                        if (N_NEO1 != N_NEO2) {
+                                            match=false;
+                                            log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: N_NEO1=%i N_NEO2=%i\n",wu.id,wu.name,N_NEO1,N_NEO2);
+                                        }
                                     } else if (sql_result1[col] == std::string("N_PHO")) {
+                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing N_PHO",wu.id,wu.name);
                                         int N_PHO1 = atoi(sql_result1[ncols+col]);
                                         int N_PHO2 = atoi(sql_result2[ncols+col]);
-                                        if (N_PHO1 != N_PHO2) match=false;
+                                        if (N_PHO1 != N_PHO2) {
+                                            match=false;
+                                            log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: N_PHO1=%i N_PHO2=%i\n",wu.id,wu.name,N_PHO1,N_PHO2);
+                                        }
                                     } else if (sql_result1[col] == std::string("NEO_in_field")) {
+                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing NEO_in_field",wu.id,wu.name);
                                         int NEO_in_field1 = atoi(sql_result1[ncols+col]);
                                         int NEO_in_field2 = atoi(sql_result2[ncols+col]);
-                                        if (NEO_in_field1 != NEO_in_field2) match=false;
+                                        if (NEO_in_field1 != NEO_in_field2) {
+                                            match=false;
+                                            log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: NEO_in_field1=%i NEO_in_field2=%i\n",wu.id,wu.name,NEO_in_field1,NEO_in_field2);
+                                        }
                                     } else if (sql_result1[col] == std::string("PHO_in_field")) {
+                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing PHO_in_field",wu.id,wu.name);
                                         int PHO_in_field1 = atoi(sql_result1[ncols+col]);
                                         int PHO_in_field2 = atoi(sql_result2[ncols+col]);
-                                        if (PHO_in_field1 != PHO_in_field2) match=false;
+                                        if (PHO_in_field1 != PHO_in_field2) {
+                                            match=false;
+                                            log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: PHO_in_field1=%i PHO_in_field2=%i\n",wu.id,wu.name,PHO_in_field1,PHO_in_field2);
+                                        }
                                     } else if (sql_result1[col] == std::string("eta_NEO")) {
+                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing eta_NEO",wu.id,wu.name);
                                         double eta_NEO1 = atof(sql_result1[ncols+col]);
                                         double eta_NEO2 = atof(sql_result2[ncols+col]);
                                         if (eta_NEO2!=eta_NEO1) { // this takes care of the {0,0} case
-                                            if (fabs((eta_NEO2-eta_NEO1)/(fabs(eta_NEO1)+fabs(eta_NEO2))) > 0.01) match=false;
+                                            if (fabs((eta_NEO2-eta_NEO1)/(fabs(eta_NEO1)+fabs(eta_NEO2))) > 0.01) {
+                                                match=false;
+                                                log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: eta_NEO1=%g eta_NEO2=%g\n",wu.id,wu.name,eta_NEO1,eta_NEO2);
+                                            }
                                         }
                                     } else if (sql_result1[col] == std::string("sigma_eta_NEO")) {
+                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing sigma_eta_NEO",wu.id,wu.name);
                                         double sigma_eta_NEO1 = atof(sql_result1[ncols+col]);
                                         double sigma_eta_NEO2 = atof(sql_result2[ncols+col]);
                                         if (sigma_eta_NEO2!=sigma_eta_NEO1) { // this takes care of the {0,0} case
-                                            if (fabs((sigma_eta_NEO2-sigma_eta_NEO1)/(fabs(sigma_eta_NEO1)+fabs(sigma_eta_NEO2))) > 0.01) match=false;
+                                            if (fabs((sigma_eta_NEO2-sigma_eta_NEO1)/(fabs(sigma_eta_NEO1)+fabs(sigma_eta_NEO2))) > 0.01) {
+                                                match=false;
+                                                log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: sigma_eta_NEO1=%g sigma_eta_NEO2=%g\n",wu.id,wu.name,sigma_eta_NEO1,sigma_eta_NEO2);
+                                            }
                                         }
                                     } else if (sql_result1[col] == std::string("eta_PHO")) {
+                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing eta_PHO",wu.id,wu.name);
                                         double eta_PHO1 = atof(sql_result1[ncols+col]);
                                         double eta_PHO2 = atof(sql_result2[ncols+col]);
                                         if (eta_PHO2!=eta_PHO1) { // this takes care of the {0,0} case
-                                            if (fabs((eta_PHO2-eta_PHO1)/(fabs(eta_PHO1)+fabs(eta_PHO2))) > 0.01) match=false;
+                                            if (fabs((eta_PHO2-eta_PHO1)/(fabs(eta_PHO1)+fabs(eta_PHO2))) > 0.01) {
+                                                match=false;
+                                                log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: eta_PHO1=%g eta_PHO2=%g\n",wu.id,wu.name,eta_PHO1,eta_PHO2);
+                                            }
                                         }
                                     } else if (sql_result1[col] == std::string("sigma_eta_PHO")) {
+                                        log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing sigma_eta_PHO",wu.id,wu.name);
                                         double sigma_eta_PHO1 = atof(sql_result1[ncols+col]);
                                         double sigma_eta_PHO2 = atof(sql_result2[ncols+col]);
                                         if (sigma_eta_PHO2!=sigma_eta_PHO1) { // this takes care of the {0,0} case
-                                            if (fabs((sigma_eta_PHO2-sigma_eta_PHO1)/(fabs(sigma_eta_PHO1)+fabs(sigma_eta_PHO2))) > 0.01) match=false;
+                                            if (fabs((sigma_eta_PHO2-sigma_eta_PHO1)/(fabs(sigma_eta_PHO1)+fabs(sigma_eta_PHO2))) > 0.01) {
+                                                match=false;
+                                                log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: sigma_eta_PHO1=%g sigma_eta_PHO2=%g\n",wu.id,wu.name,sigma_eta_PHO1,sigma_eta_PHO2);
+                                            }
                                         }
                                     }
                                 }
