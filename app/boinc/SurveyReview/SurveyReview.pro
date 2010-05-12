@@ -6,6 +6,8 @@ SUBDIRS += SurveyReview.app.pro
 
 SUBDIRS += SurveyReviewWorkGenerator.app.pro
 
+SUBDIRS += SurveyReviewAssimilator.app.pro
+
 SUBDIRS += DetectionEfficiency.app.pro
 
 SUBDIRS += DetectionEfficiencyFit.app.pro
