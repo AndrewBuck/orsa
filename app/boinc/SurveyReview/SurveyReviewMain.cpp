@@ -8,6 +8,7 @@
 
 #include <orsaSolarSystem/datetime.h>
 #include <orsaSolarSystem/observatory.h>
+#include <orsaSolarSystem/print.h>
 
 #include <orsaUtil/observatory.h>
 
@@ -269,10 +270,6 @@ int main() {
     // MOON
     osg::ref_ptr<orsa::Body> moon  = SPICEBody("MOON",orsaSolarSystem::Data::MMoon());
     bg->addBody(moon.get());
-  
-    orsa::Orbit earthOrbit;
-    // earthOrbit.compute(earth.get(),sun.get(),bg.get(),skyCoverage->epoch.getRef());
-    earthOrbit.compute(earth.get(),sun.get(),bg.get(),orsaSolarSystem::J2000());
     
     int rs;
     //
@@ -322,6 +319,9 @@ int main() {
   
     // osg::ref_ptr<OrbitFactory> orbitFactory;
     //
+    double JD;
+    unsigned int numGen;
+    //
     int z_a_min, z_a_max, z_a_delta;
     int z_e_min, z_e_max, z_e_delta;
     int z_i_min, z_i_max, z_i_delta;
@@ -329,8 +329,6 @@ int main() {
     int z_peri_min, z_peri_max, z_peri_delta;
     int z_M_min, z_M_max, z_M_delta;
     int z_H_min, z_H_max, z_H_delta;
-    //
-    unsigned int numGen;
     //
     {
         boinc_resolve_filename_s("grid.dat",resolvedFileName);
@@ -347,16 +345,17 @@ int main() {
                     continue;
                 }
             }
-            if (22 == gmp_sscanf(line,
-                                 "%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
+            if (23 == gmp_sscanf(line,
+                                 "%lf %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
+                                 &JD,
+                                 &numGen,
                                  &z_a_min, &z_a_max, &z_a_delta,
                                  &z_e_min, &z_e_max, &z_e_delta,
                                  &z_i_min, &z_i_max, &z_i_delta,
                                  &z_node_min, &z_node_max, &z_node_delta,
                                  &z_peri_min, &z_peri_max, &z_peri_delta,
                                  &z_M_min, &z_M_max, &z_M_delta,
-                                 &z_H_min, &z_H_max, &z_H_delta,
-                                 &numGen)) {
+                                 &z_H_min, &z_H_max, &z_H_delta)) {
                 done=true;
             }
         }
@@ -366,6 +365,13 @@ int main() {
             boinc_finish(0);   
         }
     }
+    //
+    const orsa::Time orbitEpoch = orsaSolarSystem::julianToTime(JD);
+    // orsaSolarSystem::print(orbitEpoch);
+    
+    orsa::Orbit earthOrbit;
+    // earthOrbit.compute(earth.get(),sun.get(),bg.get(),skyCoverage->epoch.getRef());
+    earthOrbit.compute(earth.get(),sun.get(),bg.get(),orbitEpoch);
     
     const orsa::Time apparentMotion_dt_T = orsa::Time(0,0,1,0,0);
     //
@@ -666,17 +672,15 @@ int main() {
                                 
                                 const double orbitPeriod = orbit->period();
                                 
-                                // orbit referred to J2000
-                                
                                 orsa::Vector r;
-    
+                                
                                 const double original_M  = orbit->M;
                                 //
-                                orbit->M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
+                                orbit->M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()-orbitEpoch).get_d() / orbitPeriod, orsa::twopi());
                                 orbit->relativePosition(r);
                                 orsa::Vector orbitPosition_epoch = r + sunPosition_sk_epoch;
                                 //
-                                /* orbit->M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()+apparentMotion_dt_T-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
+                                /* orbit->M = original_M + fmod(orsa::twopi() * (skyCoverage->epoch.getRef()+apparentMotion_dt_T-orbitEpoch).get_d() / orbitPeriod, orsa::twopi());
                                    orbit->relativePosition(r);
                                    orsa::Vector orbitPosition_epoch_plus_dt = r + sunPosition_sk_epoch_plus_dt;
                                 */
@@ -722,11 +726,11 @@ int main() {
                                     // earth north pole
                                     const orsa::Vector northPole = (orsaSolarSystem::equatorialToEcliptic()*orsa::Vector(0,0,1)).normalized();
                                     
-                                    orbit->M = original_M + fmod(orsa::twopi() * (epoch-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
+                                    orbit->M = original_M + fmod(orsa::twopi() * (epoch-orbitEpoch).get_d() / orbitPeriod, orsa::twopi());
                                     orbit->relativePosition(r);
                                     orbitPosition_epoch = r + sunPosition_epoch;
                                     //
-                                    orbit->M = original_M + fmod(orsa::twopi() * (epoch+apparentMotion_dt_T-orsaSolarSystem::J2000()).get_d() / orbitPeriod, orsa::twopi());
+                                    orbit->M = original_M + fmod(orsa::twopi() * (epoch+apparentMotion_dt_T-orbitEpoch).get_d() / orbitPeriod, orsa::twopi());
                                     orbit->relativePosition(r);
                                     orsa::Vector orbitPosition_epoch_plus_dt = r + sunPosition_epoch_plus_dt;
                                     //
