@@ -548,17 +548,6 @@ int main() {
                                 char **result;
                                 int nrows, ncols;
                                 char sql_line[1024];
-                                /* sprintf(sql_line,
-                                   "SELECT * FROM grid WHERE z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i and z_H_min=%i and z_H_max=%i",
-                                   z_a,z_a+z_a_delta,
-                                   z_e,z_e+z_e_delta,
-                                   z_i,z_i+z_i_delta,
-                                   z_node,z_node+z_node_delta,
-                                   z_peri,z_peri+z_peri_delta,
-                                   z_M,z_M+z_M_delta,
-                                   z_H,z_H+z_H_delta);
-                                */
-                                //
                                 sprintf(sql_line,
                                         "SELECT * FROM grid WHERE z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i",
                                         z_a,z_a+z_a_delta,
@@ -958,7 +947,10 @@ int main() {
     do {
         rc = sqlite3_exec(db,"vacuum",NULL,NULL,&zErr);
     } while (rc==SQLITE_BUSY);
-  
+    
+    // close db
+    sqlite3_close(db);
+    
     boinc_finish(0);
   
     return 0;
