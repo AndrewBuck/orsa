@@ -108,9 +108,7 @@ int main (int argc, char ** argv) {
                              z_i,z_i+z_i_delta,
                              z_H_min,z_H_max);
                     cout << "executing: [" << cmd << "]" << endl;
-                    system(cmd) != 0) {
-                        cout << "problems, stopping." << endl;
-                    }                    
+                    system(cmd);
                 }
             }
         }
