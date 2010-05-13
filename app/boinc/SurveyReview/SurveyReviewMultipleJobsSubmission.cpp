@@ -54,7 +54,6 @@ int main (int argc, char ** argv) {
     numJobs *= (z_a_max-z_a_min)/z_a_delta;
     numJobs *= (z_e_max-z_e_min)/z_e_delta;
     numJobs *= (z_i_max-z_i_min)/z_i_delta;
-    cout << "maximum expected iterations: " << numJobs << endl;
     
     // should check directly for bins with 0 NEOs
     
@@ -68,8 +67,7 @@ int main (int argc, char ** argv) {
         exit(0);
     }
     
-    gmp_printf("Submission of %Zi job(s)\n"
-               "proceed? [y/n] ",
+    gmp_printf("Submitting %Zi job(s), proceed? [y/n] ",
                numJobs.get_mpz_t());
     
     const std::string yes = "y";
