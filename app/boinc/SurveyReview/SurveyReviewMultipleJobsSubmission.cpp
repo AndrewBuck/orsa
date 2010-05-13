@@ -9,6 +9,8 @@
 
 #include "grain.h"
 
+#include <gsl/gsl_rng.h>
+
 using namespace std;
 
 int main (int argc, char ** argv) {
@@ -18,6 +20,13 @@ int main (int argc, char ** argv) {
         cout << "Usage: " << argv[0] << " baseName samplesPerBin a_AU_min a_AU_max e_min e_max i_DEG_min i_DEG_max H_min H_max" << endl;
         exit(0);
     }
+
+    // use pid as seed for rng
+    const int pid = getpid();
+    cout << "process ID: " << pid << endl;
+    gsl_rng * rnd = gsl_rng_alloc(gsl_rng_gfsr4);
+    gsl_rng_set(rnd,pid);
+    
     
     const std::string baseName = argv[1];
     const unsigned int samplesPerBin = atoi(argv[2]);
@@ -100,6 +109,10 @@ int main (int argc, char ** argv) {
                             z_H_min,z_H_max,z_H_delta); // all range in H
                     fclose(fp);
                     //
+                    fp = fopen("randomSeed.dat","w");
+                    fprintf(fp,"%i\n",gsl_rng_uniform_int(rnd,1000000000));
+                    fclose(fp);
+                    //
                     snprintf(cmd,1024,"./SurveyReviewWorkGenerator %s_%i_%i-%i_%i-%i_%i-%i_%i-%i",
                              baseName.c_str(),
                              samplesPerBin,
@@ -113,6 +126,8 @@ int main (int argc, char ** argv) {
             }
         }
     }
+    
+    gsl_rng_free(rnd); 
     
     return 0;
 }

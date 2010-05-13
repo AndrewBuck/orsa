@@ -5,7 +5,7 @@ TARGET   = SurveyReviewMultipleJobsSubmission
 CONFIG -= qt
 #QT -= gui
 
-CONFIG += gmp_include gmp_lib
+CONFIG += gmp_include gmp_lib gsl_include gsl_lib
 
 include(../../../orsa.pri)
 
