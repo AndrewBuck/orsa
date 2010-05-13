@@ -112,13 +112,17 @@ int main (int argc, char ** argv) {
                     fprintf(fp,"%li\n",gsl_rng_uniform_int(rnd,1000000000));
                     fclose(fp);
                     //
-                    snprintf(cmd,1024,"./SurveyReviewWorkGenerator %s_%i_%i-%i_%i-%i_%i-%i_%i-%i",
-                             baseName.c_str(),
-                             samplesPerBin,
-                             z_a,z_a+z_a_delta,
-                             z_e,z_e+z_e_delta,
-                             z_i,z_i+z_i_delta,
-                             z_H_min,z_H_max);
+                    /* snprintf(cmd,1024,"./SurveyReviewWorkGenerator %s_%i_%i-%i_%i-%i_%i-%i_%i-%i",
+                       baseName.c_str(),
+                       samplesPerBin,
+                       z_a,z_a+z_a_delta,
+                       z_e,z_e+z_e_delta,
+                       z_i,z_i+z_i_delta,
+                       z_H_min,z_H_max);
+                    */
+                    //
+                    snprintf(cmd,1024,"./SurveyReviewWorkGenerator %s",
+                             baseName.c_str());
                     cout << "executing: [" << cmd << "]" << endl;
                     system(cmd);
                     usleep(100000);

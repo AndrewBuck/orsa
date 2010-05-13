@@ -234,15 +234,18 @@ int main(int argc, char ** argv) {
     
     // unique!
     char wuName[1024];
-    gmp_snprintf(wuName,
-                 1024,
-                 "%s_%i_%i.%02i.%02i_%02i.%02i.%02i",
-                 baseName.c_str(),
-                 getpid(),
-                 y,m,d,H,M,S);
+    //
+    {
+        gmp_snprintf(wuName,
+                     1024,
+                     "%s_%i_%ld",
+                     baseName.c_str(),
+                     getpid(),
+                     time(0));
+    }
+    //
+    ORSA_DEBUG("WU name: [%s]",wuName);
     
-    ORSA_DEBUG("[%s]",wuName);
-  
     int retVal;
   
     SCHED_CONFIG config;
