@@ -6,6 +6,7 @@ SUBDIRS += SurveyReview.app.pro
 
 unix:!macx {
 	SUBDIRS += SurveyReviewWorkGenerator.app.pro
+	SUBDIRS += SurveyReviewMultipleJobsSubmission.app.pro
 	SUBDIRS += SurveyReviewValidator.app.pro
 	SUBDIRS += SurveyReviewAssimilator.app.pro
 	SUBDIRS += DetectionEfficiency.app.pro
