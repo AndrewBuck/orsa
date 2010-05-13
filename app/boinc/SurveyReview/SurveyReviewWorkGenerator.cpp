@@ -9,24 +9,26 @@
 
 #include <osg/ref_ptr>
 
-std::string inputTemplateFileName(const std::string  & baseName,
-                                  const unsigned int   ,
-                                  const unsigned int   ,
-                                  const orsa::Time   & delay_bound,
-                                  const double & ,
-                                  const double & ,
-                                  const double & rsc_memory_bound,
-                                  const double & rsc_disk_bound) {
-    char fileName[1024];
-    gmp_snprintf(fileName,
-                 1024,
-                 "templates/wu.SR.input.%s_%.f_%.f_%.f.xml",  
-                 baseName.c_str(),
-                 orsa::FromUnits(delay_bound.get_d(),orsa::Unit::SECOND,-1),
-                 rsc_memory_bound,
-                 rsc_disk_bound);
-    return fileName;
-}
+/* 
+   std::string inputTemplateFileName(const std::string  & baseName,
+   const unsigned int   ,
+   const unsigned int   ,
+   const orsa::Time   & delay_bound,
+   const double & ,
+   const double & ,
+   const double & rsc_memory_bound,
+   const double & rsc_disk_bound) {
+   char fileName[1024];
+   gmp_snprintf(fileName,
+   1024,
+   "templates/wu.SR.input.%s_%.f_%.f_%.f.xml",  
+   baseName.c_str(),
+   orsa::FromUnits(delay_bound.get_d(),orsa::Unit::SECOND,-1),
+   rsc_memory_bound,
+   rsc_disk_bound);
+   return fileName;
+   }
+*/
 
 bool writeInputTemplate(const std::string  & fileName,
                         const unsigned int   min_quorum,
@@ -186,16 +188,20 @@ int main(int argc, char ** argv) {
         rsc_disk_bound += outputTemplateVector[k].fileSize.getRef();
     }
     
-    const std::string inTemplateName = 
-        inputTemplateFileName(baseName,
-                              min_quorum,
-                              target_nresults,
-                              delay_bound,
-                              rsc_fpops_est,
-                              rsc_fpops_bound,
-                              rsc_memory_bound,
-                              rsc_disk_bound);    
-  
+    /* const std::string inTemplateName = 
+       inputTemplateFileName(baseName,
+       min_quorum,
+       target_nresults,
+       delay_bound,
+       rsc_fpops_est,
+       rsc_fpops_bound,
+       rsc_memory_bound,
+       rsc_disk_bound);    
+    */
+    //
+    char inTemplateName[1024];
+    sprintf(inTemplateName,"templates/wu.SR.input.%s.xml",baseName.c_str());
+    
     if (!writeInputTemplate(inTemplateName,
                             min_quorum,
                             target_nresults,
@@ -332,8 +338,8 @@ int main(int argc, char ** argv) {
         };
     
     char * wu_template;
-    read_file_malloc(inTemplateName.c_str(), wu_template);
-  
+    read_file_malloc(inTemplateName, wu_template);
+    
     DB_WORKUNIT wu;
     wu.clear(); // zeroes all fields
     wu.appid = app.id;

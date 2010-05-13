@@ -6,6 +6,7 @@
 
 #include <gmpxx.h>
 #include <cmath>
+#include <unistd.h>
 
 #include "grain.h"
 
@@ -110,7 +111,7 @@ int main (int argc, char ** argv) {
                     fclose(fp);
                     //
                     fp = fopen("randomSeed.dat","w");
-                    fprintf(fp,"%i\n",gsl_rng_uniform_int(rnd,1000000000));
+                    fprintf(fp,"%li\n",gsl_rng_uniform_int(rnd,1000000000));
                     fclose(fp);
                     //
                     snprintf(cmd,1024,"./SurveyReviewWorkGenerator %s_%i_%i-%i_%i-%i_%i-%i_%i-%i",
@@ -122,6 +123,7 @@ int main (int argc, char ** argv) {
                              z_H_min,z_H_max);
                     cout << "executing: [" << cmd << "]" << endl;
                     system(cmd);
+                    usleep(100000);
                 }
             }
         }
