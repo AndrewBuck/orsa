@@ -141,9 +141,12 @@ int main() {
         orsaSPICE::SPICE::instance()->setDefaultObserver("SSB");
     
         boinc_resolve_filename_s("de405.bsp",resolvedFileName);
-        // FILE * fp_dummy = boinc_fopen(resolvedFileName.c_str(),"r"); // little trick, is it helping?
+		FILE * fp = boinc_fopen(resolvedFileName.c_str(),"r"); 
+        if (!fp) {
+            ORSA_DEBUG("cannot open file [%s]",resolvedFileName.c_str());
+            boinc_finish(0); 
+        }
         orsaSPICE::SPICE::instance()->loadKernel(resolvedFileName);
-        // fclose(fp_dummy);
     }
     
     osg::ref_ptr<SkyCoverageFile> skyCoverageFile = new SkyCoverageFile;
