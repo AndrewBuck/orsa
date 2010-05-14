@@ -47,8 +47,8 @@ unix:!macx {
 
 	DIR_SEP = "/"
 
-	QMAKE_CXXFLAGS_RELEASE += -g -ggdb
-	QMAKE_LFLAGS_RELEASE   += -g -ggdb
+	QMAKE_CXXFLAGS_RELEASE +=
+	QMAKE_LFLAGS_RELEASE   +=
 
 	QMAKE_CXXFLAGS_DEBUG += -pg -ggdb
 	QMAKE_LFLAGS_DEBUG   += -pg -ggdb
