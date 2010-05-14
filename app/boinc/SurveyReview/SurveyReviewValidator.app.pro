@@ -25,7 +25,7 @@ unix:!macx {
 
 # BOINC sources needed
 #
-SOURCES += /home/tricaric/boinc/sched/validator.cpp /home/tricaric/boinc/db/boinc_db.cpp /home/tricaric/boinc/db/db_base.cpp /home/tricaric/boinc/sched/sched_msgs.cpp /home/tricaric/boinc/sched/sched_config.cpp /home/tricaric/boinc/sched/credit.cpp /home/tricaric/boinc/sched/sched_util.cpp /home/tricaric/boinc/sched/validate_util2.cpp /home/tricaric/boinc/sched/validate_util.cpp 
+SOURCES += /home/tricaric/boinc/sched/validator.cpp /home/tricaric/boinc/db/boinc_db.cpp /home/tricaric/boinc/db/db_base.cpp /home/tricaric/boinc/sched/sched_msgs.cpp /home/tricaric/boinc/sched/sched_config.cpp /home/tricaric/boinc/sched/credit.cpp /home/tricaric/boinc/sched/sched_util.cpp /home/tricaric/boinc/sched/validate_util2.cpp /home/tricaric/boinc/sched/validate_util.cpp /home/tricaric/boinc/sched/sched_shmem.cpp
 
 # local
 #
