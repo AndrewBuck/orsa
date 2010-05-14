@@ -188,10 +188,10 @@ macx {
 
 win32 {
 	boinc_include {
-		INCLUDEPATH += C:\boinc\ C:\boinc\api C:\boinc\lib	
+		INCLUDEPATH += C:\boinc\boinc C:\boinc\boinc\api C:\boinc\boinc\lib	
 	}
 	boinc_lib {
-		LIBS += 
+		LIBS += C:\boinc\boinc\api\libboinc.a
 	}
 	gmp_include {
 		INCLUDEPATH += $$ORSA_SUPPORT\gmp\include
