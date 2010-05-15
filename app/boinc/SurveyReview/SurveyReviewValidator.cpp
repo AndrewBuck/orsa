@@ -182,7 +182,16 @@ int compare_results(RESULT & /* r1 */,
                                         z_peri,z_peri+z_peri_delta,
                                         z_M,z_M+z_M_delta,
                                         z_H);
-
+                                
+                                /* {
+                                   log_messages.printf(MSG_CRITICAL,
+                                   "[WORKUNIT#%d %s] SQL line: %s\n",
+                                   wu.id,
+                                   wu.name,
+                                   sql_line);
+                                   }
+                                */
+                                
                                 rc1 = sqlite3_get_table(db1,sql_line,&sql_result1,&nrows1,&ncols1,&zErr);
                                 //
                                 if (rc1 != SQLITE_OK) {
@@ -197,8 +206,8 @@ int compare_results(RESULT & /* r1 */,
                                         return rc1;
                                     }
                                 }
-                                //
-                                if (nrows1 != 1) {
+                                // 0 is admisible if bin is not NEO
+                                if (nrows1 > 1) {
                                     log_messages.printf(MSG_CRITICAL, 
                                                         "[WORKUNIT#%d %s] corrupted result\n", 
                                                         wu.id,  
@@ -221,8 +230,8 @@ int compare_results(RESULT & /* r1 */,
                                         return rc2;
                                     }
                                 }
-                                //
-                                if (nrows2 != 1) {
+                                // 0 is admissible if bin is not NEO
+                                if (nrows2 > 1) {
                                     log_messages.printf(MSG_CRITICAL, 
                                                         "[WORKUNIT#%d %s] corrupted result\n", 
                                                         wu.id,  
@@ -230,9 +239,15 @@ int compare_results(RESULT & /* r1 */,
                                     match=false;
                                     return 1;
                                 }
+
+                                if ( (nrows1==0) &&
+                                     (nrows2==0) ) {
+                                    continue;
+                                }
                                 
                                 // comparison
-                                if (ncols1 != ncols2) {
+                                if ( (nrows1 != nrows2) ||
+                                     (ncols1 != ncols2) ) {
                                     log_messages.printf(MSG_CRITICAL, 
                                                         "[WORKUNIT#%d %s] corrupted result\n", 
                                                         wu.id,  
@@ -241,6 +256,14 @@ int compare_results(RESULT & /* r1 */,
                                     return 1;
                                 }
                                 const int ncols = ncols1;
+                                /* {
+                                   log_messages.printf(MSG_CRITICAL,
+                                   "[WORKUNIT#%d %s] ncols: %i\n",
+                                   wu.id,
+                                   wu.name,
+                                   ncols);
+                                   }
+                                */
                                 for (int col=0; col<ncols; ++col) {
                                     if (sql_result1[col] == std::string("N_NEO")) {
                                         // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing N_NEO\n",wu.id,wu.name);
