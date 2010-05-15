@@ -155,6 +155,9 @@ int compare_results(RESULT & /* r1 */,
         }
     }
     
+    // H not included in totalIterations; each iteration runs all H values
+    const int size_H = 1 + (z_H_max-z_H_min)/z_H_delta;
+    
     match=true;
     char sql_line[1024];
     int rc1, rc2;
@@ -264,101 +267,114 @@ int compare_results(RESULT & /* r1 */,
                 for (int z_node=z_node_min; z_node<z_node_max; z_node+=z_node_delta) {
                     for (int z_peri=z_peri_min; z_peri<z_peri_max; z_peri+=z_peri_delta) {
                         for (int z_M=z_M_min; z_M<z_M_max; z_M+=z_M_delta) {
-                            // different loop for H, checking BOTH extremes
-                            for (int z_H=z_H_min; z_H<=z_H_max; z_H+=z_H_delta) {
 
-                                sprintf(sql_line,
-                                        "SELECT * FROM grid WHERE z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i and z_H=%i",
-                                        z_a,z_a+z_a_delta,
-                                        z_e,z_e+z_e_delta,
-                                        z_i,z_i+z_i_delta,
-                                        z_node,z_node+z_node_delta,
-                                        z_peri,z_peri+z_peri_delta,
-                                        z_M,z_M+z_M_delta,
-                                        z_H);
-                                
-                                rc1 = sqlite3_get_table(db1,sql_line,&sql_result1,&nrows1,&ncols1,&zErr);
-                                //
-                                if (rc1 != SQLITE_OK) {
-                                    if (zErr != NULL) {
-                                        log_messages.printf(MSG_CRITICAL, 
-                                                            "[WORKUNIT#%d %s] SQL error: %s\n", 
-                                                            wu.id,  
-                                                            wu.name,
-                                                            zErr); 
-                                        sqlite3_free(zErr);
-                                        match=false;
-                                        sqlite3_free_table(sql_result1);
-                                        // sqlite3_free_table(sql_result2);
-                                        return 1;
-                                    }
-                                }
-                                // 0 is admisible if bin is not NEO
-                                if (nrows1 > 1) {
+                            // different loop for H, checking BOTH extremes
+                            // for (int z_H=z_H_min; z_H<=z_H_max; z_H+=z_H_delta) {
+                            
+                            /* sprintf(sql_line,
+                               "SELECT * FROM grid WHERE z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i and z_H=%i",
+                               z_a,z_a+z_a_delta,
+                               z_e,z_e+z_e_delta,
+                               z_i,z_i+z_i_delta,
+                               z_node,z_node+z_node_delta,
+                               z_peri,z_peri+z_peri_delta,
+                               z_M,z_M+z_M_delta,
+                               z_H);
+                            */
+                            //
+                            sprintf(sql_line,
+                                    "SELECT * FROM grid WHERE z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i order by z_H",
+                                    z_a,z_a+z_a_delta,
+                                    z_e,z_e+z_e_delta,
+                                    z_i,z_i+z_i_delta,
+                                    z_node,z_node+z_node_delta,
+                                    z_peri,z_peri+z_peri_delta,
+                                    z_M,z_M+z_M_delta);
+                            
+                            rc1 = sqlite3_get_table(db1,sql_line,&sql_result1,&nrows1,&ncols1,&zErr);
+                            //
+                            if (rc1 != SQLITE_OK) {
+                                if (zErr != NULL) {
                                     log_messages.printf(MSG_CRITICAL, 
-                                                        "[WORKUNIT#%d %s] corrupted result\n", 
+                                                        "[WORKUNIT#%d %s] SQL error: %s\n", 
                                                         wu.id,  
-                                                        wu.name); 
+                                                        wu.name,
+                                                        zErr); 
+                                    sqlite3_free(zErr);
                                     match=false;
                                     sqlite3_free_table(sql_result1);
                                     // sqlite3_free_table(sql_result2);
                                     return 1;
                                 }
+                            }
+                            // 0 is admisible if bin is not NEO
+                            if (nrows1 > size_H) {
+                                log_messages.printf(MSG_CRITICAL, 
+                                                    "[WORKUNIT#%d %s] corrupted result\n", 
+                                                    wu.id,  
+                                                    wu.name); 
+                                match=false;
+                                sqlite3_free_table(sql_result1);
+                                // sqlite3_free_table(sql_result2);
+                                return 1;
+                            }
                                 
-                                rc2 = sqlite3_get_table(db2,sql_line,&sql_result2,&nrows2,&ncols2,&zErr);
-                                //
-                                if (rc2 != SQLITE_OK) {
-                                    if (zErr != NULL) {
-                                        log_messages.printf(MSG_CRITICAL, 
-                                                            "[WORKUNIT#%d %s] SQL error: %s\n", 
-                                                            wu.id,  
-                                                            wu.name,
-                                                            zErr); 
-                                        sqlite3_free(zErr);
-                                        match=false;
-                                        sqlite3_free_table(sql_result1);
-                                        sqlite3_free_table(sql_result2);
-                                        return 1;
-                                    }
-                                }
-                                // 0 is admissible if bin is not NEO
-                                if (nrows2 > 1) {
+                            rc2 = sqlite3_get_table(db2,sql_line,&sql_result2,&nrows2,&ncols2,&zErr);
+                            //
+                            if (rc2 != SQLITE_OK) {
+                                if (zErr != NULL) {
                                     log_messages.printf(MSG_CRITICAL, 
-                                                        "[WORKUNIT#%d %s] corrupted result\n", 
+                                                        "[WORKUNIT#%d %s] SQL error: %s\n", 
                                                         wu.id,  
-                                                        wu.name); 
+                                                        wu.name,
+                                                        zErr); 
+                                    sqlite3_free(zErr);
                                     match=false;
                                     sqlite3_free_table(sql_result1);
                                     sqlite3_free_table(sql_result2);
                                     return 1;
                                 }
+                            }
+                            // 0 is admissible if bin is not NEO
+                            if (nrows2 > size_H) {
+                                log_messages.printf(MSG_CRITICAL, 
+                                                    "[WORKUNIT#%d %s] corrupted result\n", 
+                                                    wu.id,  
+                                                    wu.name); 
+                                match=false;
+                                sqlite3_free_table(sql_result1);
+                                sqlite3_free_table(sql_result2);
+                                return 1;
+                            }
                                 
-                                if ( (nrows1==0) &&
-                                     (nrows2==0) ) {
-                                    continue;
-                                }
+                            if ( (nrows1==0) &&
+                                 (nrows2==0) ) {
+                                continue;
+                            }
                                 
-                                // comparison
-                                if ( (nrows1 != nrows2) ||
-                                     (ncols1 != ncols2) ) {
-                                    log_messages.printf(MSG_CRITICAL, 
-                                                        "[WORKUNIT#%d %s] corrupted result\n", 
-                                                        wu.id,  
-                                                        wu.name); 
-                                    match=false;
-                                    sqlite3_free_table(sql_result1);
-                                    sqlite3_free_table(sql_result2);
-                                    return 1;
-                                }
-                                // ncols1 and ncols2 are equal now
-                                const int ncols = ncols1;
-                                // for (int col=0; col<ncols; ++col) {
+                            // comparison
+                            if ( (nrows1 != nrows2) ||
+                                 (ncols1 != ncols2) ) {
+                                log_messages.printf(MSG_CRITICAL, 
+                                                    "[WORKUNIT#%d %s] corrupted result\n", 
+                                                    wu.id,  
+                                                    wu.name); 
+                                match=false;
+                                sqlite3_free_table(sql_result1);
+                                sqlite3_free_table(sql_result2);
+                                return 1;
+                            }
+                            // ncols1 and ncols2 are equal now
+                            const int nrows = nrows1;
+                            const int ncols = ncols1;
+                            // for (int col=0; col<ncols; ++col) {
+                            for (int row=1; row<nrows; ++row) {
                                 {
                                     // if (sql_result1[col] == std::string("N_NEO")) {
                                     // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing N_NEO\n",wu.id,wu.name);
                                     int col = col_N_NEO;
-                                    int N_NEO1 = atoi(sql_result1[ncols+col]);
-                                    int N_NEO2 = atoi(sql_result2[ncols+col]);
+                                    int N_NEO1 = atoi(sql_result1[row*ncols+col]);
+                                    int N_NEO2 = atoi(sql_result2[row*ncols+col]);
                                     if (N_NEO1 != N_NEO2) {
                                         match=false;
                                         log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: N_NEO1=%i N_NEO2=%i\n",wu.id,wu.name,N_NEO1,N_NEO2);
@@ -368,8 +384,8 @@ int compare_results(RESULT & /* r1 */,
                                     // } else if (sql_result1[col] == std::string("N_PHO")) {
                                     // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing N_PHO\n",wu.id,wu.name);
                                     int col = col_N_PHO;
-                                    int N_PHO1 = atoi(sql_result1[ncols+col]);
-                                    int N_PHO2 = atoi(sql_result2[ncols+col]);
+                                    int N_PHO1 = atoi(sql_result1[row*ncols+col]);
+                                    int N_PHO2 = atoi(sql_result2[row*ncols+col]);
                                     if (N_PHO1 != N_PHO2) {
                                         match=false;
                                         log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: N_PHO1=%i N_PHO2=%i\n",wu.id,wu.name,N_PHO1,N_PHO2);
@@ -379,8 +395,8 @@ int compare_results(RESULT & /* r1 */,
                                     // } else if (sql_result1[col] == std::string("NEO_in_field")) {
                                     // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing NEO_in_field\n",wu.id,wu.name);
                                     int col = col_NEO_in_field;
-                                    int NEO_in_field1 = atoi(sql_result1[ncols+col]);
-                                    int NEO_in_field2 = atoi(sql_result2[ncols+col]);
+                                    int NEO_in_field1 = atoi(sql_result1[row*ncols+col]);
+                                    int NEO_in_field2 = atoi(sql_result2[row*ncols+col]);
                                     if (NEO_in_field1 != NEO_in_field2) {
                                         match=false;
                                         log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: NEO_in_field1=%i NEO_in_field2=%i\n",wu.id,wu.name,NEO_in_field1,NEO_in_field2);
@@ -390,8 +406,8 @@ int compare_results(RESULT & /* r1 */,
                                     // } else if (sql_result1[col] == std::string("PHO_in_field")) {
                                     // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing PHO_in_field\n",wu.id,wu.name);
                                     int col = col_PHO_in_field;
-                                    int PHO_in_field1 = atoi(sql_result1[ncols+col]);
-                                    int PHO_in_field2 = atoi(sql_result2[ncols+col]);
+                                    int PHO_in_field1 = atoi(sql_result1[row*ncols+col]);
+                                    int PHO_in_field2 = atoi(sql_result2[row*ncols+col]);
                                     if (PHO_in_field1 != PHO_in_field2) {
                                         match=false;
                                         log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] not maching: PHO_in_field1=%i PHO_in_field2=%i\n",wu.id,wu.name,PHO_in_field1,PHO_in_field2);
@@ -401,8 +417,8 @@ int compare_results(RESULT & /* r1 */,
                                     // } else if (sql_result1[col] == std::string("eta_NEO")) {
                                     // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing eta_NEO\n",wu.id,wu.name);
                                     int col = col_eta_NEO;
-                                    double eta_NEO1 = atof(sql_result1[ncols+col]);
-                                    double eta_NEO2 = atof(sql_result2[ncols+col]);
+                                    double eta_NEO1 = atof(sql_result1[row*ncols+col]);
+                                    double eta_NEO2 = atof(sql_result2[row*ncols+col]);
                                     if (eta_NEO2!=eta_NEO1) { // this takes care of the {0,0} case
                                         if (fabs((eta_NEO2-eta_NEO1)/(fabs(eta_NEO1)+fabs(eta_NEO2))) > 0.01) {
                                             match=false;
@@ -414,8 +430,8 @@ int compare_results(RESULT & /* r1 */,
                                     // } else if (sql_result1[col] == std::string("sigma_eta_NEO")) {
                                     // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing sigma_eta_NEO\n",wu.id,wu.name);
                                     int col = col_sigma_eta_NEO;
-                                    double sigma_eta_NEO1 = atof(sql_result1[ncols+col]);
-                                    double sigma_eta_NEO2 = atof(sql_result2[ncols+col]);
+                                    double sigma_eta_NEO1 = atof(sql_result1[row*ncols+col]);
+                                    double sigma_eta_NEO2 = atof(sql_result2[row*ncols+col]);
                                     if (sigma_eta_NEO2!=sigma_eta_NEO1) { // this takes care of the {0,0} case
                                         if (fabs((sigma_eta_NEO2-sigma_eta_NEO1)/(fabs(sigma_eta_NEO1)+fabs(sigma_eta_NEO2))) > 0.01) {
                                             match=false;
@@ -427,8 +443,8 @@ int compare_results(RESULT & /* r1 */,
                                     // } else if (sql_result1[col] == std::string("eta_PHO")) {
                                     // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing eta_PHO\n",wu.id,wu.name);
                                     int col = col_eta_PHO;
-                                    double eta_PHO1 = atof(sql_result1[ncols+col]);
-                                    double eta_PHO2 = atof(sql_result2[ncols+col]);
+                                    double eta_PHO1 = atof(sql_result1[row*ncols+col]);
+                                    double eta_PHO2 = atof(sql_result2[row*ncols+col]);
                                     if (eta_PHO2!=eta_PHO1) { // this takes care of the {0,0} case
                                         if (fabs((eta_PHO2-eta_PHO1)/(fabs(eta_PHO1)+fabs(eta_PHO2))) > 0.01) {
                                             match=false;
@@ -440,8 +456,8 @@ int compare_results(RESULT & /* r1 */,
                                     // } else if (sql_result1[col] == std::string("sigma_eta_PHO")) {
                                     // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing sigma_eta_PHO\n",wu.id,wu.name);
                                     int col = col_sigma_eta_PHO;
-                                    double sigma_eta_PHO1 = atof(sql_result1[ncols+col]);
-                                    double sigma_eta_PHO2 = atof(sql_result2[ncols+col]);
+                                    double sigma_eta_PHO1 = atof(sql_result1[row*ncols+col]);
+                                    double sigma_eta_PHO2 = atof(sql_result2[row*ncols+col]);
                                     if (sigma_eta_PHO2!=sigma_eta_PHO1) { // this takes care of the {0,0} case
                                         if (fabs((sigma_eta_PHO2-sigma_eta_PHO1)/(fabs(sigma_eta_PHO1)+fabs(sigma_eta_PHO2))) > 0.01) {
                                             match=false;
@@ -449,14 +465,14 @@ int compare_results(RESULT & /* r1 */,
                                         }
                                     }
                                 }
-                                // }
-                                
-                                sqlite3_free_table(sql_result1);
-                                sqlite3_free_table(sql_result2);
-                                
-                                // quick exit
-                                if (!match) return 0;
                             }
+                                
+                            sqlite3_free_table(sql_result1);
+                            sqlite3_free_table(sql_result2);
+                                
+                            // quick exit
+                            if (!match) return 0;
+                            // }
                         }
                     }
                 }
