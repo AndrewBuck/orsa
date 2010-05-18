@@ -8,9 +8,9 @@
 const double start_V  = 10.0;
 const double  stop_V  = 24.0;
 const double  step_V  =  0.1;
-const double start_U  = orsa::FromUnits(  0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-const double  stop_U  = orsa::FromUnits(100.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-const double  step_U  = orsa::FromUnits(  1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+const double start_U  = orsa::FromUnits(    0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+const double  stop_U  = orsa::FromUnits(10000.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+const double  step_U  = orsa::FromUnits(    1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
 const double start_SE = 0.0*orsa::degToRad();
 const double  stop_SE = orsa::pi();
 const double  step_SE = 2.0*orsa::degToRad();

@@ -270,8 +270,8 @@ int main(int argc, char ** argv) {
                 // p = probability of binomial distribution
                 // const double      eta = p*cs->Ntot;
                 const double      eta = (double)(cs->Nobs)/(double)(cs->Ntot);
-                const double        p = (double)(cs->Nobs+1)/(double)(cs->Ntot+2);;
-                const double sigmaEta = sqrt(p*(1-p)*cs->Ntot);
+                const double        p = (double)(cs->Nobs+1)/(double)(cs->Ntot+2);
+                const double sigmaEta = sqrt(p*(1-p)/cs->Ntot);
                 
                 const std::vector<double> xVector = countStats->binCenterVector((*it).first); 
                 
@@ -381,14 +381,15 @@ int main(int argc, char ** argv) {
     //
     // par->setFixed("c_AM",true);
     //
-    /* par->setFixed("peak_AM",true);
-       par->set("scale_AM",1.0e3);
-       par->setFixed("scale_AM",true);
-       par->setFixed("shape_AM",true);
-       //
-       par->setFixed("drop_GB",true);
-       par->setFixed("scale_GB",true);
-    */
+    {
+        par->setFixed("peak_AM",true);
+        par->set("scale_AM",1.0e3);
+        par->setFixed("scale_AM",true);
+        par->setFixed("shape_AM",true);
+        //
+        par->setFixed("drop_GB",true);
+        par->setFixed("scale_GB",true);
+    }
     
     osg::ref_ptr<orsa::MultifitParameters> lastGoodPar = new orsa::MultifitParameters;
     orsa::Cache<double> V0;
@@ -434,7 +435,7 @@ int main(int argc, char ** argv) {
                               fitFilename,
                               basename,
                               obsCodeFile.get(),
-                              false);
+                              false); 
         /* if ( (success || (etaFit->getIter() == etaFit->maxIter)) &&
            (par->get("c_V") >= 0.0) ) {
            break;
@@ -480,7 +481,7 @@ int main(int argc, char ** argv) {
                               basename,
                               obsCodeFile.get(),
                               false);
-    
+        
         if (success || (etaFit->getIter() == etaFit->maxIter)) {
             // deep copy
             (*lastGoodPar.get()) = (*par.get());

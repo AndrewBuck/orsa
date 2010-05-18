@@ -320,8 +320,8 @@ int main(int argc, char ** argv) {
                 // p = probability of binomial distribution
                 // const double      eta = p*cs->Ntot;
                 const double      eta = (double)(cs->Nobs)/(double)(cs->Ntot);
-                const double        p = (double)(cs->Nobs+1)/(double)(cs->Ntot+2);;
-                const double sigmaEta = sqrt(p*(1-p)*cs->Ntot);
+                const double        p = (double)(cs->Nobs+1)/(double)(cs->Ntot+2);
+                const double sigmaEta = sqrt(p*(1-p)/cs->Ntot);
                 
                 const std::vector<double> xVector = countStats->binCenterVector((*it).first); 
 	
@@ -763,7 +763,7 @@ int main(int argc, char ** argv) {
         PlotUtil((&PlotUtil_fun_V),
                  histo_V,
                  1.0,
-                 nx,ny,px,py, // 200,800,1200,600,
+                 nx,ny,px,py,
                  14,24,1.0,0,1,"apparent magnitude",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
@@ -772,7 +772,7 @@ int main(int argc, char ** argv) {
         PlotUtil((&PlotUtil_fun_AM),
                  histo_AM,
                  1.0,
-                 nx,ny,px,py, // 1600,1600,1200,600,
+                 nx,ny,px,py,
                  1.0,3.0,0.1,1,1,"airmass",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
@@ -781,7 +781,7 @@ int main(int argc, char ** argv) {
         PlotUtil((&PlotUtil_fun_one),
                  histo_AZ,
                  orsa::radToDeg(),
-                 nx,ny,px,py, // 1600,800,1200,600,
+                 nx,ny,px,py,
                  0,360,30,0,3,"azimuth [deg]",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
@@ -790,7 +790,7 @@ int main(int argc, char ** argv) {
         PlotUtil((&PlotUtil_fun_one),
                  histo_SA,
                  orsa::radToDeg(),
-                 nx,ny,px,py, // 1600,2400,1200,600,
+                 nx,ny,px,py,
                  -90,90,30,0,3,"solar altitude [deg]",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
@@ -799,7 +799,7 @@ int main(int argc, char ** argv) {
         PlotUtil((&PlotUtil_fun_one),
                  histo_SE,
                  orsa::radToDeg(),
-                 nx,ny,px,py, // 1600,4000,1200,600,
+                 nx,ny,px,py,
                  0,180,30,0,3,"solar elongation [deg]",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
@@ -810,7 +810,7 @@ int main(int argc, char ** argv) {
         PlotUtil((&PlotUtil_fun_U),
                  histo_U,
                  orsa::FromUnits(orsa::radToArcsec(),orsa::Unit::HOUR),
-                 nx,ny,px,py, // 200,1600,1200,600,
+                 nx,ny,px,py,
                  0,100,10,0,1,"apparent velocity [arcsec/hour]",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
@@ -819,7 +819,7 @@ int main(int argc, char ** argv) {
         PlotUtil((&PlotUtil_fun_GB),
                  histo_GB,
                  orsa::radToDeg(),
-                 nx,ny,px,py, // 200,2400,1200,600,
+                 nx,ny,px,py,
                  -90,90,30,0,3,"galactic latitude [deg]",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
@@ -828,7 +828,7 @@ int main(int argc, char ** argv) {
         PlotUtil((&PlotUtil_fun_one),
                  histo_LP,
                  orsa::radToDeg(),
-                 nx,ny,px,py, // 1600,4000,1200,600,
+                 nx,ny,px,py,
                  0,180,30,0,3,"lunar phase [deg]",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
@@ -837,7 +837,7 @@ int main(int argc, char ** argv) {
         PlotUtil((&PlotUtil_fun_one),
                  histo_LA,
                  orsa::radToDeg(),
-                 nx,ny,px,py, // 1600,3200,1200,600,
+                 nx,ny,px,py,
                  -90,90,30,0,3,"lunar altitude [deg]",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
@@ -846,7 +846,7 @@ int main(int argc, char ** argv) {
         PlotUtil((&PlotUtil_fun_one),
                  histo_LE,
                  orsa::radToDeg(),
-                 nx,ny,px,py, // 1600,4000,1200,600,
+                 nx,ny,px,py,
                  0,180,30,0,3,"lunar elongation [deg]",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         

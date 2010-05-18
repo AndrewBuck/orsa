@@ -208,7 +208,9 @@ protected:
             }
         }
         
-        gsl_matrix_free(covar);  
+        gsl_matrix_free(covar);
+        
+        // if (writeFile) writeOutputFile(s);
     }
 protected:
     void runCompleted(const bool /* success */, const gsl_multifit_fdfsolver * s) const {
