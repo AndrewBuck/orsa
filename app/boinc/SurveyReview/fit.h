@@ -3,6 +3,7 @@
 
 #include <map>
 #include <orsa/statistic.h>
+#include <orsa/unit.h>
 
 // CountStats::LinearVar ranges
 const double start_V  = 10.0;
@@ -71,7 +72,7 @@ public:
     unsigned int Nobs, Ndsc, Ntot;  
 };
 
-class CountStats : public osg::Referenced {  
+template <typename T> class BinStats : public osg::Referenced {  
     // first, the classes to handle linear and logarithmic variables
 public:
     class Var : public osg::Referenced {
@@ -148,66 +149,17 @@ public:
     };
     
 public:
-    CountStats(const std::vector< osg::ref_ptr<Var> > & varDefinition) :
+    BinStats(const std::vector< osg::ref_ptr<Var> > & varDefinition) :
         osg::Referenced(),
         var(varDefinition) {
         totalSize=1;
         for (unsigned int k=0; k<varDefinition.size(); ++k) {
             totalSize *= varDefinition[k]->size();
         }  
-        ORSA_DEBUG("totalSize: %Zi",totalSize.get_mpz_t());
+        // ORSA_DEBUG("totalSize: %Zi",totalSize.get_mpz_t());
     }
 protected:
-    ~CountStats() { }
-    
-public:
-    bool insert(const std::vector<double> & xVector,
-                const bool obs, 
-                const bool dsc) {
-        
-        if (xVector.size() != var.size()) {
-            ORSA_DEBUG("dimension mismatch");
-            return false;
-        }
-        
-        std::vector<size_t> binVector;
-        if (!bin(binVector,xVector)) {
-            return false;
-        }   
-        
-        if (0) { 
-            // test only
-            ORSA_DEBUG("TEST: ---");
-            ORSA_DEBUG("original binVector:");
-            for (unsigned int k=0; k<binVector.size(); ++k) {
-                ORSA_DEBUG("binVector[%i] = %i",k,binVector[k]);
-            } 
-            const mpz_class idx = index(binVector);
-            ORSA_DEBUG("index: %Zi",idx.get_mpz_t());
-            bin(idx);
-            ORSA_DEBUG("reconstructed binVector:");
-            for (unsigned int k=0; k<binVector.size(); ++k) {
-                ORSA_DEBUG("binVector[%i] = %i",k,binVector[k]);
-            } 
-        }
-        
-        const mpz_class idx = index(binVector);
-        if (data[idx].get()==0) {
-            // lazy allocation
-            data[idx] = new CountStatsElement;
-            
-            /* { // testing only
-               static mpz_class numAllocated=0;
-               ++numAllocated;
-               if (numAllocated%1000==0) ORSA_DEBUG("numAllocated: %6Zi",numAllocated.get_mpz_t());
-               }
-            */
-        }
-        data[idx]->Ntot++;
-        if (obs) data[idx]->Nobs++;
-        if (dsc) data[idx]->Ndsc++;
-        return true; 
-    }
+    ~BinStats() { }    
 public:
     bool bin(std::vector<size_t> & binVector,
              const std::vector<double> & xVector) const {
@@ -264,8 +216,8 @@ public:
 public:
     mpz_class size() const { return totalSize; }
 public:
-    const CountStatsElement * stats(const mpz_class index) {
-        DataType::iterator it = data.find(index);
+    const T * stats(const mpz_class index) {
+        typename DataType::iterator it = data.find(index);
         if (it != data.end()) {
             return (*it).second.get();
         } else {
@@ -275,7 +227,7 @@ public:
 protected:
     const std::vector< osg::ref_ptr<Var> > & var;
 public:
-    typedef std::map< mpz_class, osg::ref_ptr<CountStatsElement> > DataType;
+    typedef typename std::map< mpz_class, osg::ref_ptr<T> > DataType;
 protected:
     DataType data;
 public:
@@ -284,6 +236,34 @@ public:
     }
 protected:
     mpz_class totalSize;
+};
+
+class CountStats : public BinStats<CountStatsElement> {
+public:
+    CountStats(const std::vector< osg::ref_ptr<Var> > & varDefinition) :
+        BinStats<CountStatsElement>(varDefinition) { }
+public:
+    bool insert(const std::vector<double> & xVector,
+                const bool obs, 
+                const bool dsc) {
+        if (xVector.size() != var.size()) {
+            ORSA_DEBUG("dimension mismatch");
+            return false;
+        }
+        std::vector<size_t> binVector;
+        if (!bin(binVector,xVector)) {
+            return false;
+        }   
+        const mpz_class idx = index(binVector);
+        if (data[idx].get()==0) {
+            // lazy allocation
+            data[idx] = new CountStatsElement;
+        }
+        data[idx]->Ntot++;
+        if (obs) data[idx]->Nobs++;
+        if (dsc) data[idx]->Ndsc++;
+        return true; 
+    }
 };
 
 template <class T> class Histo : public T {
