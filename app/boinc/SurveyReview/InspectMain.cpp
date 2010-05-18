@@ -200,61 +200,7 @@ int main(int argc, char ** argv) {
                     if (PHO_sigma_eta_detect>0) PHO_eta_detect_ws_vec[index.get()]->insert(PHO_eta_detect,orsa::square(1.0/PHO_sigma_eta_detect));
                 }
             }
-
-            if (0) {
-
-                // verbose output
             
-                ORSA_DEBUG("a: %g-%g [AU]   e: %g-%g   i: %g-%g [deg]",
-                           z_a_min*grain_a_AU,
-                           z_a_max*grain_a_AU,
-                           z_e_min*grain_e,
-                           z_e_max*grain_e,
-                           z_i_min*grain_i_DEG,
-                           z_i_max*grain_i_DEG);
-            
-                for (unsigned int index=0; index<z_H_vec.size(); ++index) {
-                    if (NEO_eta_detect_ws_vec[index]->entries()==0) continue;
-                    const double NEO_eta_obs =
-                        NEO_eta_field_ws_vec[index]->average() *
-                        NEO_eta_detect_ws_vec[index]->average();
-                    const double NEO_sigma_eta_obs =
-                        sqrt(orsa::square(NEO_eta_field_ws_vec[index]->average()*NEO_eta_detect_ws_vec[index]->standardDeviation()) +
-                             orsa::square(NEO_eta_detect_ws_vec[index]->average()*NEO_eta_field_ws_vec[index]->standardDeviation()));
-                    ORSA_DEBUG("NEO at H=%g -- in field: %.2e +/- %.2e (entries: %4Zi)   detect: %.2e +/- %.2e (entries: %4Zi)   obs: %.2e +/- %.2e",
-                               z_H_vec[index]*grain_H,
-                               NEO_eta_field_ws_vec[index]->average(),
-                               NEO_eta_field_ws_vec[index]->standardDeviation(),
-                               NEO_eta_field_ws_vec[index]->entries().get_mpz_t(),
-                               NEO_eta_detect_ws_vec[index]->average(),
-                               NEO_eta_detect_ws_vec[index]->standardDeviation(),
-                               NEO_eta_detect_ws_vec[index]->entries().get_mpz_t(),
-                               NEO_eta_obs,
-                               NEO_sigma_eta_obs);
-                }
-            
-                for (unsigned int index=0; index<z_H_vec.size(); ++index) {
-                    if (PHO_eta_detect_ws_vec[index]->entries()==0) continue;
-                    const double PHO_eta_obs =
-                        PHO_eta_field_ws_vec[index]->average() *
-                        PHO_eta_detect_ws_vec[index]->average();
-                    const double PHO_sigma_eta_obs =
-                        sqrt(orsa::square(PHO_eta_field_ws_vec[index]->average()*PHO_eta_detect_ws_vec[index]->standardDeviation()) +
-                             orsa::square(PHO_eta_detect_ws_vec[index]->average()*PHO_eta_field_ws_vec[index]->standardDeviation()));
-                    ORSA_DEBUG("PHO at H=%g -- in field: %.2e +/- %.2e (entries: %4Zi)   detect: %.2e +/- %.2e (entries: %4Zi)   obs: %.2e +/- %.2e",
-                               z_H_vec[index]*grain_H,
-                               PHO_eta_field_ws_vec[index]->average(),
-                               PHO_eta_field_ws_vec[index]->standardDeviation(),
-                               PHO_eta_field_ws_vec[index]->entries().get_mpz_t(),
-                               PHO_eta_detect_ws_vec[index]->average(),
-                               PHO_eta_detect_ws_vec[index]->standardDeviation(),
-                               PHO_eta_detect_ws_vec[index]->entries().get_mpz_t(),
-                               PHO_eta_obs,
-                               PHO_sigma_eta_obs);
-                }
-
-            }
-
             // now, real output to file
             
             for (unsigned int index=0; index<z_H_vec.size(); ++index) {
