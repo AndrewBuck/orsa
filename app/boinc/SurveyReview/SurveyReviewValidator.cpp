@@ -368,7 +368,7 @@ int compare_results(RESULT & /* r1 */,
                             const int nrows = nrows1;
                             const int ncols = ncols1;
                             // for (int col=0; col<ncols; ++col) {
-                            for (int row=1; row<nrows; ++row) {
+                            for (int row=1; row<=nrows; ++row) {
                                 {
                                     // if (sql_result1[col] == std::string("N_NEO")) {
                                     // log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] testing N_NEO\n",wu.id,wu.name);
