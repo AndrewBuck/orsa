@@ -52,8 +52,8 @@ int main(int argc, char **argv) {
     const int z_H_fix = 160;
     
     // choose NEO or PHO
-    // const std::string OBJ = "NEO"; 
-    const std::string OBJ = "PHO"; 
+    const std::string OBJ = "NEO"; 
+    // const std::string OBJ = "PHO"; 
     
     // also choose below if plotting "field" coverage, detection efficiency, or observation efficiency
     
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
     //
     const double e_step =  0.05;
     const double e_min  =  0.00;
-    const double e_max  =  1.01;
+    const double e_max  =  1.00;
     //
     /* const double i_step =   5.0;
        const double i_min  =   0.0;
@@ -84,11 +84,11 @@ int main(int argc, char **argv) {
     std::vector< osg::ref_ptr<PlotStats::Var> > varDefinition;
     //
     // [0] a
-    osg::ref_ptr<PlotStats::LinearVar> var_a = new PlotStats::LinearVar(a_min+a_step,a_max+2*a_step,a_step);
+    osg::ref_ptr<PlotStats::LinearVar> var_a = new PlotStats::LinearVar(a_min+a_step,a_max+3*a_step,a_step);
     varDefinition.push_back(var_a.get());
     //
     // [1] e
-    osg::ref_ptr<PlotStats::LinearVar> var_e = new PlotStats::LinearVar(e_min+e_step,e_max+2*e_step,e_step);
+    osg::ref_ptr<PlotStats::LinearVar> var_e = new PlotStats::LinearVar(e_min+e_step,e_max+3*e_step,e_step);
     varDefinition.push_back(var_e.get());
     //
     // [2]
@@ -141,9 +141,9 @@ int main(int argc, char **argv) {
                        // xVector[2] = z_i_min*grain_i_DEG;
                        */
                     // CHOOSE one insert here
-                    plotStats->insert(xVector, eta_field,  sigma_eta_field);
+                    // plotStats->insert(xVector, eta_field,  sigma_eta_field);
                     // plotStats->insert(xVector, eta_detect, sigma_eta_detect);
-                    // plotStats->insert(xVector, eta_obs,    sigma_eta_obs);
+                    plotStats->insert(xVector, eta_obs,    sigma_eta_obs);
                 }
             }
         }
@@ -158,14 +158,16 @@ int main(int argc, char **argv) {
         xVector.resize(varDefinition.size());
         for (unsigned j=0; j<var_a->size(); ++j) {
             for (unsigned k=0; k<var_e->size(); ++k) {
-                xVector[0] = a_min+a_step*j;
-                xVector[1] = e_min+e_step*k;
+                xVector[0] = a_min+a_step*(j+0.5);
+                xVector[1] = e_min+e_step*(k+0.5);
                 std::vector<size_t> binVector;
                 if (plotStats->bin(binVector,xVector)) {
                     // ORSA_DEBUG("mesh[%i]  totalSize: %i  j: %i k: %i bv[0]: %i bv[1]: %i",j*var_e->size()+k,plotStats->size().get_si(),j,k,binVector[0],binVector[1]);
                     const PlotStatsElement * e =  plotStats->stats(plotStats->index(binVector));
                     if (e) {
-                        mesh[j*var_e->size()+k] = e->average();
+                        const unsigned int id = j*var_e->size()+k;
+                        mesh[id] = e->average();
+                        // ORSA_DEBUG("a: %g   e: %g   j: %i   k: %i   mesh[%06i] = %g",xVector[0],xVector[1],j,k,id,mesh[id]);
                     }
                 }
             }
@@ -194,6 +196,10 @@ int main(int argc, char **argv) {
     while ((mesh_max/mesh_step)<1.0) mesh_step /= 10.0;
     // correct mesh_max
     mesh_max = ceil(mesh_max/mesh_step)*mesh_step;
+    
+    // lower
+    mesh_max  *= 0.1;
+    mesh_step *= 0.1;
     
     // good for printing: metafl("POST") + psfont("AvantGarde-Book")
   
@@ -250,8 +256,8 @@ int main(int argc, char **argv) {
     // labels("float","y");  
   
     intax();
-    autres(var_a->size()+1,
-           var_e->size()+1);
+    autres(var_a->size()+3,
+           var_e->size()+3);
     // axspos(300,1850);
     // ax3len(2200,1400,1400);
     // digits(0,"X");
@@ -260,11 +266,11 @@ int main(int argc, char **argv) {
     digits(2,"Y");
     digits(4,"Z");
   
-    ticks(2,"X");
+    ticks(1,"X");
     ticks(1,"Y");
     ticks(5,"Z");
   
-    graf3(a_min-a_step/2,a_max+a_step/2,a_min,0.2,
+    graf3(a_min-a_step/2,a_max+a_step/2,a_min,0.1,
           e_min-e_step/2,e_max+e_step/2,e_min,0.1,
           0,mesh_max,0,mesh_step);
     crvmat(mesh,var_a->size(),var_e->size(),1,1);
