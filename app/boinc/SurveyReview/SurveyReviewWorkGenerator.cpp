@@ -9,27 +9,6 @@
 
 #include <osg/ref_ptr>
 
-/* 
-   std::string inputTemplateFileName(const std::string  & baseName,
-   const unsigned int   ,
-   const unsigned int   ,
-   const orsa::Time   & delay_bound,
-   const double & ,
-   const double & ,
-   const double & rsc_memory_bound,
-   const double & rsc_disk_bound) {
-   char fileName[1024];
-   gmp_snprintf(fileName,
-   1024,
-   "templates/wu.SR.input.%s_%.f_%.f_%.f.xml",  
-   baseName.c_str(),
-   orsa::FromUnits(delay_bound.get_d(),orsa::Unit::SECOND,-1),
-   rsc_memory_bound,
-   rsc_disk_bound);
-   return fileName;
-   }
-*/
-
 bool writeInputTemplate(const std::string  & fileName,
                         const unsigned int   min_quorum,
                         const unsigned int   target_nresults,
@@ -89,9 +68,9 @@ bool writeInputTemplate(const std::string  & fileName,
                 "  </file_ref>\n"
                 "  <min_quorum>%i</min_quorum>\n"
                 "  <target_nresults>%i</target_nresults>\n"
-                "  <max_error_results>2</max_error_results>\n"
-                "  <max_total_results>6</max_total_results>\n"
-                "  <max_success_results>6</max_success_results>\n"
+                "  <max_error_results>5</max_error_results>\n"
+                "  <max_total_results>10</max_total_results>\n"
+                "  <max_success_results>5</max_success_results>\n"
                 "  <delay_bound>%f</delay_bound>\n"
                 "  <rsc_fpops_est>%f</rsc_fpops_est>\n"
                 "  <rsc_fpops_bound>%f</rsc_fpops_bound>\n"
@@ -177,10 +156,10 @@ int main(int argc, char ** argv) {
     const double flops_est = 1e12;
     
     const unsigned int min_quorum       = 2;
-    const unsigned int target_nresults  = 2;
+    const unsigned int target_nresults  = 3;
     const double rsc_fpops_est          =    flops_est;
     const double rsc_fpops_bound        = 32*flops_est;
-    const orsa::Time   delay_bound      = orsa::Time(10,0,0,0,0);
+    const orsa::Time   delay_bound      = orsa::Time(5,0,0,0,0);
     const double rsc_memory_bound       = 134217728;
     //
     double rsc_disk_bound = 0;
