@@ -24,7 +24,7 @@ int main (int argc, char ** argv) {
 
     // use pid as seed for rng
     const int pid = getpid();
-    cout << "process ID: " << pid << endl;
+    // cout << "process ID: " << pid << endl;
     gsl_rng * rnd = gsl_rng_alloc(gsl_rng_gfsr4);
     gsl_rng_set(rnd,pid);
     
