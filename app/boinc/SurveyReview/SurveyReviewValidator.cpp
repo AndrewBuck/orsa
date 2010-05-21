@@ -65,7 +65,8 @@ int init_result(RESULT & result,
     int           rc;
     char        * zErr;
     
-    rc = sqlite3_open(fi.path.c_str(),&db);
+    // rc = sqlite3_open(fi.path.c_str(),&db);
+    rc = sqlite3_open_v2(fi.path.c_str(),&db,SQLITE_OPEN_READONLY,NULL);
     //
     if (rc) {
         fprintf(stderr,"Can't open db: %s\n",sqlite3_errmsg(db));
