@@ -50,8 +50,9 @@ int main(int argc, char ** argv) {
             if (rc != SQLITE_OK) {
                 if (zErr != NULL) {
                     ORSA_DEBUG("SQL error: %s\n",zErr); 
+                    sqlite3_free(zErr);
                     sqlite3_close(db);
-                    return rc;
+                    continue;
                 }
             }
             //
@@ -59,14 +60,14 @@ int main(int argc, char ** argv) {
             if (nrows==1) {
                 if (ncols==1) {
                     if (sql_result[1]==std::string("ok")) {
-                integrity_check_passed=true;
+                        integrity_check_passed=true;
                     }
                 }
             }
             if (!integrity_check_passed) {
                 ORSA_DEBUG("SQLite problem: integrity_check failed\n"); 
                 sqlite3_close(db);
-                return -1; 
+                continue; 
             }    
         }
         
