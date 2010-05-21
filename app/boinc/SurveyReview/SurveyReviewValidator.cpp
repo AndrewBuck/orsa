@@ -51,9 +51,19 @@ int init_result(RESULT & result,
     
     retval = get_output_file_path(result, fi.path);
     if (retval) return retval;
+    
+    DB_WORKUNIT wu;
+    wu.lookup_id(g_wup->id);
 
+    log_messages.printf(MSG_DEBUG, 
+                        "[WORKUNIT#%d %s] opening SQLite db [%s]\n", 
+                        wu.id,  
+                        wu.name,  
+                        fi.path.c_str());
+    
     sqlite3     * db;
     int           rc;
+    char        * zErr;
     
     rc = sqlite3_open(fi.path.c_str(),&db);
     //
@@ -62,6 +72,40 @@ int init_result(RESULT & result,
         sqlite3_close(db);
         return rc;
     }
+
+    int nrows, ncols;
+    char * * sql_result;
+    rc = sqlite3_get_table(db,"pragma integrity_check",&sql_result,&nrows,&ncols,&zErr);
+    //
+    if (rc != SQLITE_OK) {
+        if (zErr != NULL) {
+            log_messages.printf(MSG_CRITICAL, 
+                                "[WORKUNIT#%d %s] SQL error: %s\n", 
+                                wu.id,  
+                                wu.name,
+                                zErr); 
+            sqlite3_close(db);
+            return rc;
+        }
+    }
+    //
+    bool integrity_check_passed=false;
+    if (nrows==1) {
+        if (ncols==1) {
+            if (sql_result[1]==std::string("ok")) {
+                integrity_check_passed=true;
+            }
+        }
+    }
+    if (!integrity_check_passed) {
+        log_messages.printf(MSG_CRITICAL, 
+                            "[WORKUNIT#%d %s] SQLite problem: integrity_check failed\n", 
+                            wu.id,  
+                            wu.name); 
+        sqlite3_close(db);
+        return -1; 
+    }    
+    
     data = (void *) db;
     
     return 0;
@@ -272,23 +316,28 @@ int compare_results(RESULT & /* r1 */,
                                 wu.name); 
             match=false;
         } else {
-            log_messages.printf(MSG_DEBUG, 
-                                "[WORKUNIT#%d %s] columns: %i %i %i %i %i %i %i %i\n",
-                                wu.id,  
-                                wu.name,
-                                col_N_NEO,
-                                col_N_PHO,
-                                col_NEO_in_field,
-                                col_PHO_in_field,
-                                col_eta_NEO,
-                                col_sigma_eta_NEO,
-                                col_eta_PHO,
-                                col_sigma_eta_PHO);
+            /* log_messages.printf(MSG_DEBUG, 
+               "[WORKUNIT#%d %s] columns: %i %i %i %i %i %i %i %i\n",
+               wu.id,  
+               wu.name,
+               col_N_NEO,
+               col_N_PHO,
+               col_NEO_in_field,
+               col_PHO_in_field,
+               col_eta_NEO,
+               col_sigma_eta_NEO,
+               col_eta_PHO,
+               col_sigma_eta_PHO);
+            */
         }
         
         // quick exit
         if (!match) return 0;
     }
+    //
+    /* int last_nrows=0;
+       int last_ncols=0;
+    */
     //
     for (int z_a=z_a_min; z_a<z_a_max; z_a+=z_a_delta) {
         for (int z_e=z_e_min; z_e<z_e_max; z_e+=z_e_delta) {
@@ -375,12 +424,12 @@ int compare_results(RESULT & /* r1 */,
                                 sqlite3_free_table(sql_result2);
                                 return 1;
                             }
-                                
+                            
                             if ( (nrows1==0) &&
                                  (nrows2==0) ) {
                                 continue;
                             }
-                                
+                            
                             // comparison
                             if ( (nrows1 != nrows2) ||
                                  (ncols1 != ncols2) ) {
@@ -396,6 +445,23 @@ int compare_results(RESULT & /* r1 */,
                             // ncols1 and ncols2 are equal now
                             const int nrows = nrows1;
                             const int ncols = ncols1;
+                            /* if ( (nrows!=last_nrows) ||
+                               (ncols!=last_ncols) ) {
+                               // print only if changed...
+                               log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i\n",
+                               wu.id,wu.name,
+                               z_a,z_a+z_a_delta,
+                               z_e,z_e+z_e_delta,
+                               z_i,z_i+z_i_delta,
+                               z_node,z_node+z_node_delta,
+                               z_peri,z_peri+z_peri_delta,
+                               z_M,z_M+z_M_delta);
+                               log_messages.printf(MSG_DEBUG,"[WORKUNIT#%d %s] nrows=%i ncols=%i\n",wu.id,wu.name,nrows,ncols);
+                               last_nrows=nrows;
+                               last_ncols=ncols;
+                               }
+                            */
+                            
                             // for (int col=0; col<ncols; ++col) {
                             for (int row=1; row<=nrows; ++row) {
                                 {
