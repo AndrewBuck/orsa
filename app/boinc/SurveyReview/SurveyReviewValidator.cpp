@@ -171,26 +171,26 @@ int compare_results(RESULT & /* r1 */,
                                          &z_M_min, &z_M_max, &z_M_delta,
                                          &z_H_min, &z_H_max, &z_H_delta)) {
 
-                        /* log_messages.printf(MSG_DEBUG, 
-                           "[WORKUNIT#%d %s] successfully read grid.dat file\n", 
-                           wu.id,  
-                           wu.name);
-                        */
-                        //
                         log_messages.printf(MSG_DEBUG, 
-                                            "[WORKUNIT#%d %s] successfully read grid.dat file\n"
-                                            "%.5f %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i\n", 
+                                            "[WORKUNIT#%d %s] successfully read grid.dat file\n", 
                                             wu.id,  
-                                            wu.name,
-                                            JD,
-                                            numGen,
-                                            z_a_min, z_a_max, z_a_delta,
-                                            z_e_min, z_e_max, z_e_delta,
-                                            z_i_min, z_i_max, z_i_delta,
-                                            z_node_min, z_node_max, z_node_delta,
-                                            z_peri_min, z_peri_max, z_peri_delta,
-                                            z_M_min, z_M_max, z_M_delta,
-                                            z_H_min, z_H_max, z_H_delta);
+                                            wu.name);
+                        
+                        /* log_messages.printf(MSG_DEBUG, 
+                           "[WORKUNIT#%d %s] %.5f %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i\n", 
+                           wu.id,  
+                           wu.name,
+                           JD,
+                           numGen,
+                           z_a_min, z_a_max, z_a_delta,
+                           z_e_min, z_e_max, z_e_delta,
+                           z_i_min, z_i_max, z_i_delta,
+                           z_node_min, z_node_max, z_node_delta,
+                           z_peri_min, z_peri_max, z_peri_delta,
+                           z_M_min, z_M_max, z_M_delta,
+                           z_H_min, z_H_max, z_H_delta);
+                        */
+
                         done=true;
                         break;
                     }
