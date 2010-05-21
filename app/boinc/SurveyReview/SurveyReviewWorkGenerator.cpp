@@ -217,10 +217,10 @@ int main(int argc, char ** argv) {
     {
         gmp_snprintf(wuName,
                      1024,
-                     "%s_%i_%ld",
+                     "%s_%ld_%i",
                      baseName.c_str(),
-                     getpid(),
-                     time(0));
+                     time(0),
+                     getpid());
     }
     //
     ORSA_DEBUG("WU name: [%s]",wuName);
