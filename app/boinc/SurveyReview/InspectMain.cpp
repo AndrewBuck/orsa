@@ -37,7 +37,37 @@ int main(int argc, char ** argv) {
         if (rc) {
             ORSA_DEBUG("Can't open db: %s\n",sqlite3_errmsg(db));
             sqlite3_close(db);
-            exit(0);
+            continue;
+        }
+        
+        {
+            // integrity_check
+            
+            int nrows, ncols;
+            char * * sql_result;
+            rc = sqlite3_get_table(db,"pragma integrity_check",&sql_result,&nrows,&ncols,&zErr);
+            //
+            if (rc != SQLITE_OK) {
+                if (zErr != NULL) {
+                    ORSA_DEBUG("SQL error: %s\n",zErr); 
+                    sqlite3_close(db);
+                    return rc;
+                }
+            }
+            //
+            bool integrity_check_passed=false;
+            if (nrows==1) {
+                if (ncols==1) {
+                    if (sql_result[1]==std::string("ok")) {
+                integrity_check_passed=true;
+                    }
+                }
+            }
+            if (!integrity_check_passed) {
+                ORSA_DEBUG("SQLite problem: integrity_check failed\n"); 
+                sqlite3_close(db);
+                return -1; 
+            }    
         }
         
         // find columns outside main loop
@@ -61,12 +91,14 @@ int main(int argc, char ** argv) {
                 if (zErr != NULL) {
                     ORSA_DEBUG("SQL error: %s\n",zErr);
                     sqlite3_free(zErr);
-                    exit(0); 
+                    sqlite3_close(db);
+                    continue; 
                 }
             }
             
             if (ncols==0) {
                 ORSA_DEBUG("skipping empty db");
+                sqlite3_close(db);
                 continue;
             }
             
@@ -104,11 +136,11 @@ int main(int argc, char ** argv) {
                  (col_eta_PHO==-1) ||
                  (col_sigma_eta_PHO==-1) ) {
                 ORSA_DEBUG("problem: did not find some columns");
-                exit(0); 
+                sqlite3_close(db);
+                continue;
             }
         }
-
-
+        
         {
             // simple version for now, assuming {a,e,i} range is constant in all entries (single bin)
         
@@ -121,10 +153,11 @@ int main(int argc, char ** argv) {
                 if (zErr != NULL) {
                     ORSA_DEBUG("SQL error: %s\n",zErr);
                     sqlite3_free(zErr);
-                    exit(0); 
+                    sqlite3_close(db);
+                    continue;
                 }
             }
-        
+            
             // read z_a, z_e, z_i from first row only (assume are constant in all rows)
 #warning should read column names for z_* as well, to make sure code works even if column order changes
             int z_a_min = atoi(sql_result[ncols+0]);
