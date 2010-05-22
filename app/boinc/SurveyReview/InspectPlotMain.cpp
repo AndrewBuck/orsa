@@ -52,8 +52,8 @@ int main(int argc, char **argv) {
     const int z_H_fix = 180;
     
     // choose NEO or PHO
-    // const std::string OBJ = "NEO"; 
-    const std::string OBJ = "PHO"; 
+    const std::string OBJ = "NEO"; 
+    // const std::string OBJ = "PHO"; 
     
     // also choose below if plotting "field" coverage, detection efficiency, or observation efficiency
     
@@ -144,14 +144,14 @@ int main(int argc, char **argv) {
                        */
                     // CHOOSE one insert here
                     // plotStats->insert(xVector, eta_field,  sigma_eta_field);
-                    // plotStats->insert(xVector, eta_detect, sigma_eta_detect);
-                    plotStats->insert(xVector, eta_obs,    sigma_eta_obs);
+                    plotStats->insert(xVector, eta_detect, sigma_eta_detect);
+                    // plotStats->insert(xVector, eta_obs,    sigma_eta_obs);
                 }
             }
         }
     }
     
-    const double empty_mesh_val=-1000;
+    const double empty_mesh_val=+1000;
     float * mesh;
     const size_t meshSize = plotStats->size().get_si();
     //
@@ -224,44 +224,65 @@ int main(int argc, char **argv) {
     // mesh_step *= 0.1;
     
     // good for printing: metafl("POST") + psfont("AvantGarde-Book")
-  
+    
+    /*** DISLIN ***/
+    page(2000,1500);
+    pagmod("LAND");
+    
+    // output file name
+    /* char plotFilename[1024];
+       sprintf(plotFilename,"%s.fit.pdf",basename.c_str());
+       setfil(plotFilename);
+    */
+    // new files overwrite old ones
+    filmod("DELETE");
+    
     // metafl("POST");
     metafl("PSCL");
     // metafl("PNG");
     // metafl("XWIN"); x11mod("STORE"); clrmod("FULL");
     // metafl("CONS");
     // metafl("TIFF");
-  
+    
     pagmod("LAND");
     // page(3600,1400);
     // pagfll(255);
     // winsiz(800,600);
-  
-    // new files overwrite old ones
-    filmod("DELETE");
-  
+    
     // background color
-    // scrmod("REVERS");
-  
+    scrmod("REVERS");
+    
     disini();
     // pagera();
     // hwfont();
     simplx();
     // triplx();
     // helve();
-    psfont("AvantGarde-Book");
-    color("fore");
-  
+    // psfont("AvantGarde-Book");
+    // color("fore");
+    
     // paghdr("","",2,0);
-  
+    
+    axspos(200,1300);
+    axslen(1350,1050);
+    
     // select a color table
     setvlt("RAIN"); // TEMP,GREY,RGREY,VGA,RAIN,SPEC...
     // setvlt("GREY");
-
+    
+    hwmode("ON","LINE");
+    
+    texmod("ON"); // TeX text
+    
+    penwid(0.2);
+    height(32); // text height
+    
+    titlin("TITLE [[CHANGE]]",4);
+    
     // titlin("3-D Colour Plot of the Function",2);
     // titlin("F(X,Y) = 2 * SIN(X) * SIN(Y)",4);
     // titlin("Saturn Trojans Predictor",4);
-  
+    
     // name("initial semi-major axis [AU]","x");
     // name("libration amplitude","x");
     // name("eccentricity","y");
@@ -269,14 +290,16 @@ int main(int argc, char **argv) {
 
     name("Semi-Major Axis [AU]","x");
     name("Eccentricity","y");
-    name("Log10 Detection Efficiency","z");
-   
+    name("Log$_{10}$ Detection Efficiency","z");
+    
     // name("Long.","x");
     // name("Lat.","y");
-  
+    
     // axsscl("log","z");
     // labels("float","y");  
-  
+
+    setgrf("NAME","NAME","NONE","NONE");
+    
     intax();
     autres(var_a->size()+2,
            var_e->size()+2);
@@ -287,7 +310,7 @@ int main(int argc, char **argv) {
     // digits(2,"Y");
     digits(1,"Y");
     digits(0,"Z");
-  
+    
     ticks(1,"X");
     ticks(1,"Y");
     ticks(1,"Z");
