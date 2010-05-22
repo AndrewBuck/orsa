@@ -49,11 +49,11 @@ public:
 int main(int argc, char **argv) { 
     
     // choose H
-    const int z_H_fix = 160;
+    const int z_H_fix = 180;
     
     // choose NEO or PHO
-    const std::string OBJ = "NEO"; 
-    // const std::string OBJ = "PHO"; 
+    // const std::string OBJ = "NEO"; 
+    const std::string OBJ = "PHO"; 
     
     // also choose below if plotting "field" coverage, detection efficiency, or observation efficiency
     
@@ -84,11 +84,11 @@ int main(int argc, char **argv) {
     std::vector< osg::ref_ptr<PlotStats::Var> > varDefinition;
     //
     // [0] a
-    osg::ref_ptr<PlotStats::LinearVar> var_a = new PlotStats::LinearVar(a_min+a_step,a_max+3*a_step,a_step);
+    osg::ref_ptr<PlotStats::LinearVar> var_a = new PlotStats::LinearVar(a_min+1*a_step,a_max+3*a_step,a_step);
     varDefinition.push_back(var_a.get());
     //
     // [1] e
-    osg::ref_ptr<PlotStats::LinearVar> var_e = new PlotStats::LinearVar(e_min+e_step,e_max+3*e_step,e_step);
+    osg::ref_ptr<PlotStats::LinearVar> var_e = new PlotStats::LinearVar(e_min+1*e_step,e_max+3*e_step,e_step);
     varDefinition.push_back(var_e.get());
     //
     // [2]
@@ -130,11 +130,13 @@ int main(int argc, char **argv) {
             } else {
 
                 if ( (z_H == z_H_fix) &&
-                     (obj == OBJ) ) {
+                     (obj == OBJ) &&
+                     (entries_detect >= 1) ) {
                     // keep vars aligned with varDefinition content
-                    xVector[0] = 0.5*(z_a_max+z_a_min)*grain_a_AU;
-                    xVector[1] = 0.5*(z_e_max+z_e_min)*grain_e;
+                    xVector[0] = a_step+0.5*(z_a_max+z_a_min)*grain_a_AU;
+                    xVector[1] = e_step+0.5*(z_e_max+z_e_min)*grain_e;
                     // xVector[2] = 0.5*(z_i_max+z_i_min)*grain_i_DEG;
+                    // ORSA_DEBUG("xVector: %g %g",xVector[0],xVector[1]);
                     //
                     /* xVector[0] = z_a_min*grain_a_AU;
                        xVector[1] = z_e_min*grain_e;
@@ -149,6 +151,7 @@ int main(int argc, char **argv) {
         }
     }
     
+    const double empty_mesh_val=-1000;
     float * mesh;
     const size_t meshSize = plotStats->size().get_si();
     //
@@ -158,6 +161,7 @@ int main(int argc, char **argv) {
         xVector.resize(varDefinition.size());
         for (unsigned j=0; j<var_a->size(); ++j) {
             for (unsigned k=0; k<var_e->size(); ++k) {
+                const unsigned int mesh_id = j*var_e->size()+k;
                 xVector[0] = a_min+a_step*(j+0.5);
                 xVector[1] = e_min+e_step*(k+0.5);
                 std::vector<size_t> binVector;
@@ -165,10 +169,14 @@ int main(int argc, char **argv) {
                     // ORSA_DEBUG("mesh[%i]  totalSize: %i  j: %i k: %i bv[0]: %i bv[1]: %i",j*var_e->size()+k,plotStats->size().get_si(),j,k,binVector[0],binVector[1]);
                     const PlotStatsElement * e =  plotStats->stats(plotStats->index(binVector));
                     if (e) {
-                        const unsigned int id = j*var_e->size()+k;
-                        mesh[id] = e->average();
-                        // ORSA_DEBUG("a: %g   e: %g   j: %i   k: %i   mesh[%06i] = %g",xVector[0],xVector[1],j,k,id,mesh[id]);
+                        // mesh[mesh_id] = e->average();
+                        mesh[mesh_id] = log10(e->average());
+                        // ORSA_DEBUG("a: %g   e: %g   j: %i   k: %i   mesh[%06i] = %g",xVector[0],xVector[1],j,k,mesh_id,mesh[mesh_id]);
+                    } else {
+                        mesh[mesh_id] = empty_mesh_val;
                     }
+                } else {
+                    mesh[mesh_id] = empty_mesh_val;
                 }
             }
         }
@@ -187,19 +195,33 @@ int main(int argc, char **argv) {
     float mesh_min =  1.0e100;
     float mesh_max = -1.0e100;
     for (unsigned int k=0; k<meshSize; ++k) {
+        if (mesh[k]==empty_mesh_val) continue;
         if (mesh[k]<mesh_min) mesh_min=mesh[k];
         if (mesh[k]>mesh_max) mesh_max=mesh[k];
     }
-    ORSA_DEBUG("mesh_min: %g   mesh_max: %g",mesh_min,mesh_max);
+    // ORSA_DEBUG("mesh_min: %g   mesh_max: %g",mesh_min,mesh_max);
     //
-    double mesh_step = 1.0;
-    while ((mesh_max/mesh_step)<1.0) mesh_step /= 10.0;
+    // linear
+    /* double mesh_step = 1.0;
+       while ((mesh_max/mesh_step)<1.0) mesh_step /= 10.0;
+       // correct mesh_max
+       mesh_max = ceil(mesh_max/mesh_step)*mesh_step;
+       // lower
+       mesh_max  *= 0.1;
+       mesh_step *= 0.1;
+    */
+    //
+    // logarithmic
+    mesh_max =  ceil(mesh_max);
+    mesh_min = floor(mesh_min);
+    const double mesh_step = 1.0;
+    // ORSA_DEBUG("mesh_step: %g",mesh_step);
+    // while ((mesh_max/mesh_step)<1.0) mesh_step /= 10.0;
     // correct mesh_max
-    mesh_max = ceil(mesh_max/mesh_step)*mesh_step;
-    
+    // mesh_max = ceil(mesh_max/mesh_step)*mesh_step;
     // lower
-    mesh_max  *= 0.1;
-    mesh_step *= 0.1;
+    // mesh_max  *= 0.1;
+    // mesh_step *= 0.1;
     
     // good for printing: metafl("POST") + psfont("AvantGarde-Book")
   
@@ -233,8 +255,8 @@ int main(int argc, char **argv) {
     // paghdr("","",2,0);
   
     // select a color table
-    setvlt("TEMP"); // TEMP,GREY,RGREY,VGA,RAIN,SPEC...
-    // setvlt("RGREY");
+    setvlt("RAIN"); // TEMP,GREY,RGREY,VGA,RAIN,SPEC...
+    // setvlt("GREY");
 
     // titlin("3-D Colour Plot of the Function",2);
     // titlin("F(X,Y) = 2 * SIN(X) * SIN(Y)",4);
@@ -247,7 +269,7 @@ int main(int argc, char **argv) {
 
     name("Semi-Major Axis [AU]","x");
     name("Eccentricity","y");
-    name("Detection Efficiency","z");
+    name("Log10 Detection Efficiency","z");
    
     // name("Long.","x");
     // name("Lat.","y");
@@ -256,23 +278,45 @@ int main(int argc, char **argv) {
     // labels("float","y");  
   
     intax();
-    autres(var_a->size()+3,
-           var_e->size()+3);
+    autres(var_a->size()+2,
+           var_e->size()+2);
     // axspos(300,1850);
     // ax3len(2200,1400,1400);
     // digits(0,"X");
     digits(1,"X"); 
     // digits(2,"Y");
-    digits(2,"Y");
-    digits(4,"Z");
+    digits(1,"Y");
+    digits(0,"Z");
   
     ticks(1,"X");
     ticks(1,"Y");
-    ticks(5,"Z");
-  
+    ticks(1,"Z");
+    
+    // lin
+    /* graf3(a_min-a_step/2,a_max+a_step/2,a_min,0.1,
+       e_min-e_step/2,e_max+e_step/2,e_min,0.1,
+       0,mesh_max,0,mesh_step);
+       crvmat(mesh,var_a->size(),var_e->size(),1,1);
+    */
+    // log
+    /* graf3(a_min-a_step/2,a_max+a_step/2,a_min,0.1,
+       e_min-e_step/2,e_max+e_step/2,e_min,0.1,
+       mesh_min,mesh_max,mesh_min,mesh_step);
+    */
+    /* graf3(a_min,a_max,a_min,0.1,
+       e_min,e_max,e_min,0.1,
+       mesh_min,mesh_max,mesh_min,mesh_step);
+       crvmat(mesh,var_a->size(),var_e->size(),1,1);
+    */
+    /* graf3(a_min-a_step/2,a_max+a_step/2,a_min,0.1,
+       e_min-e_step/2,e_max+e_step/2,e_min,0.1,
+       mesh_min,mesh_max,mesh_min,mesh_step);
+       crvmat(mesh,var_a->size(),var_e->size(),1,1);
+    */
+    //
     graf3(a_min-a_step/2,a_max+a_step/2,a_min,0.1,
           e_min-e_step/2,e_max+e_step/2,e_min,0.1,
-          0,mesh_max,0,mesh_step);
+          -9,0,-9,1);
     crvmat(mesh,var_a->size(),var_e->size(),1,1);
     
     // ORSA_DEBUG("var_a->size(): %i",var_a->size());
