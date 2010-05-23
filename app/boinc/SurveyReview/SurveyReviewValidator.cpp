@@ -105,7 +105,40 @@ int init_result(RESULT & result,
                             wu.name); 
         sqlite3_close(db);
         return -1; 
-    }    
+    }
+    
+    {
+        // copy "grid" table into TEMP table "memgrid", stored in memory, for better performance
+        
+        rc = sqlite3_exec(db,"pragma temp_store=memory",NULL,NULL,&zErr);
+        //
+        if (rc != SQLITE_OK) {
+            if (zErr != NULL) {
+                log_messages.printf(MSG_CRITICAL, 
+                                    "[WORKUNIT#%d %s] SQL error: %s\n", 
+                                    wu.id,  
+                                    wu.name,
+                                    zErr); 
+                sqlite3_close(db);
+                return rc;
+            }
+        }
+        
+        rc = sqlite3_exec(db,"create temp table memgrid as select * from grid",NULL,NULL,&zErr);
+        //
+        if (rc != SQLITE_OK) {
+            if (zErr != NULL) {
+                log_messages.printf(MSG_CRITICAL, 
+                                    "[WORKUNIT#%d %s] SQL error: %s\n", 
+                                    wu.id,  
+                                    wu.name,
+                                    zErr); 
+                sqlite3_close(db);
+                return rc;
+            }
+        }
+        
+    }
     
     data = (void *) db;
     
@@ -241,7 +274,8 @@ int compare_results(RESULT & /* r1 */,
         // first perform basic checks outside loop
         
         // just to get the columns
-        sprintf(sql_line,"SELECT * FROM grid LIMIT 1");
+        // sprintf(sql_line,"SELECT * FROM grid LIMIT 1");
+        sprintf(sql_line,"SELECT * FROM memgrid LIMIT 1");
         
         rc1 = sqlite3_get_table(db1,sql_line,&sql_result1,&nrows1,&ncols1,&zErr);
         //
@@ -361,8 +395,18 @@ int compare_results(RESULT & /* r1 */,
                                z_H);
                             */
                             //
+                            /* sprintf(sql_line,
+                               "SELECT * FROM grid WHERE z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i order by z_H",
+                               z_a,z_a+z_a_delta,
+                               z_e,z_e+z_e_delta,
+                               z_i,z_i+z_i_delta,
+                               z_node,z_node+z_node_delta,
+                               z_peri,z_peri+z_peri_delta,
+                               z_M,z_M+z_M_delta);
+                            */
+                            //
                             sprintf(sql_line,
-                                    "SELECT * FROM grid WHERE z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i order by z_H",
+                                    "SELECT * FROM memgrid WHERE z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i order by z_H",
                                     z_a,z_a+z_a_delta,
                                     z_e,z_e+z_e_delta,
                                     z_i,z_i+z_i_delta,
