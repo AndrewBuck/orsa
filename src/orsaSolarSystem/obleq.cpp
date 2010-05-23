@@ -42,10 +42,10 @@ orsa::Matrix orsaSolarSystem::equatorialToEcliptic() {
 }
 
 // equatorial coordinates of the north galactic pole
-// data relative to B1950 epoch
-static const double  ra_g = 192.25*orsa::degToRad();
-static const double dec_g =  27.40*orsa::degToRad();
-static const double   l_g =  33.00*orsa::degToRad();
+// data relative to J2000 epoch
+static const double  ra_g = 192.859508*orsa::degToRad();
+static const double dec_g =  27.128336*orsa::degToRad();
+static const double   l_g =  32.932*orsa::degToRad();
 
 void orsaSolarSystem::equatorialToGalactic(double & l,
                                            double & b,
