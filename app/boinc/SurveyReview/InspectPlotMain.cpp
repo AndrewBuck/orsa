@@ -49,11 +49,11 @@ public:
 int main(int argc, char **argv) { 
     
     // choose H
-    const int z_H_fix = 180;
+    const int z_H_fix = 220;
     
     // choose NEO or PHO
-    const std::string OBJ = "NEO"; 
-    // const std::string OBJ = "PHO"; 
+    // const std::string OBJ = "NEO"; 
+    const std::string OBJ = "PHO"; 
     
     // also choose below if plotting "field" coverage, detection efficiency, or observation efficiency
     
@@ -143,9 +143,14 @@ int main(int argc, char **argv) {
                        // xVector[2] = z_i_min*grain_i_DEG;
                        */
                     // CHOOSE one insert here
-                    // plotStats->insert(xVector, eta_field,  sigma_eta_field);
-                    plotStats->insert(xVector, eta_detect, sigma_eta_detect);
-                    // plotStats->insert(xVector, eta_obs,    sigma_eta_obs);
+                    // plotStats->insert(xVector, eta_field,  1.0);
+                    // plotStats->insert(xVector, eta_detect, 1.0);
+                    plotStats->insert(xVector, eta_obs, 1.0);
+                    
+                    // OLD
+                    // OLD // plotStats->insert(xVector, eta_obs,    sigma_eta_obs);
+                    // OLD // plotStats->insert(xVector, eta_field,  sigma_eta_field);
+                    // OLD // plotStats->insert(xVector, eta_detect, sigma_eta_detect);
                 }
             }
         }
@@ -170,7 +175,13 @@ int main(int argc, char **argv) {
                     const PlotStatsElement * e =  plotStats->stats(plotStats->index(binVector));
                     if (e) {
                         // mesh[mesh_id] = e->average();
-                        mesh[mesh_id] = log10(e->average());
+
+                        if (e->average() > 0) {
+                            mesh[mesh_id] = log10(e->average());
+                        } else {
+                            mesh[mesh_id] = -1000;
+                        }
+                        
                         // ORSA_DEBUG("a: %g   e: %g   j: %i   k: %i   mesh[%06i] = %g",xVector[0],xVector[1],j,k,mesh_id,mesh[mesh_id]);
                     } else {
                         mesh[mesh_id] = empty_mesh_val;
@@ -195,6 +206,7 @@ int main(int argc, char **argv) {
     float mesh_min =  1.0e100;
     float mesh_max = -1.0e100;
     for (unsigned int k=0; k<meshSize; ++k) {
+        // ORSA_DEBUG("mesh[%06i] = %g",k,mesh[k]);
         if (mesh[k]==empty_mesh_val) continue;
         if (mesh[k]<mesh_min) mesh_min=mesh[k];
         if (mesh[k]>mesh_max) mesh_max=mesh[k];
@@ -214,7 +226,7 @@ int main(int argc, char **argv) {
     // logarithmic
     mesh_max =  ceil(mesh_max);
     mesh_min = floor(mesh_min);
-    const double mesh_step = 1.0;
+    // const double mesh_step = 1.0;
     // ORSA_DEBUG("mesh_step: %g",mesh_step);
     // while ((mesh_max/mesh_step)<1.0) mesh_step /= 10.0;
     // correct mesh_max
@@ -276,8 +288,22 @@ int main(int argc, char **argv) {
     
     penwid(0.2);
     height(32); // text height
-    
-    titlin("TITLE [[CHANGE]]",4);
+
+    // NEOs
+    // titlin("NEOs In-Field Probability for 703",4);
+    // titlin("NEOs In-Field Probability for G96",4);
+    // titlin("H=18 NEOs Detection Efficiency for 703",4);
+    // titlin("H=18 NEOs Detection Efficiency for G96",4);
+    // titlin("H=18 NEOs Observation Probability for 703",4);
+    // titlin("H=18 NEOs Detection Probability for G96",4);
+    // 
+    // PHOs
+    // titlin("PHOs In-Field Probability for 703",4);
+    // titlin("PHOs In-Field Probability for G96",4);
+    // titlin("H=18 PHOs Detection Efficiency for 703",4);
+    // titlin("H=18 PHOs Detection Efficiency for G96",4);
+    titlin("H=18 PHOs Observation Probability for 703",4);
+    // titlin("H=18 PHOs Detection Probability for G96",4);
     
     // titlin("3-D Colour Plot of the Function",2);
     // titlin("F(X,Y) = 2 * SIN(X) * SIN(Y)",4);
@@ -290,7 +316,10 @@ int main(int argc, char **argv) {
 
     name("Semi-Major Axis [AU]","x");
     name("Eccentricity","y");
-    name("Log$_{10}$ Detection Efficiency","z");
+    //
+    // name("Log$_{10}$ Probability","z");
+    // name("Log$_{10}$ Detection Efficiency","z");
+    name("Log$_{10}$ Probability","z");
     
     // name("Long.","x");
     // name("Lat.","y");
@@ -313,7 +342,7 @@ int main(int argc, char **argv) {
     
     ticks(1,"X");
     ticks(1,"Y");
-    ticks(1,"Z");
+    ticks(5,"Z");
     
     // lin
     /* graf3(a_min-a_step/2,a_max+a_step/2,a_min,0.1,
@@ -337,9 +366,28 @@ int main(int argc, char **argv) {
        crvmat(mesh,var_a->size(),var_e->size(),1,1);
     */
     //
+    // NEOs
+    // const double z_min=-4; const double z_max=-1;
+    // const double z_min=-3; const double z_max=-1;
+    // const double z_min=-5; const double z_max=-3;
+    //
+    // PHOs
+    // const double z_min=-4; const double z_max=-1;
+    // const double z_min=-3; const double z_max=0;
+    const double z_min=-6; const double z_max=-3;
+    //
+    {
+        // bound z
+        for (unsigned int k=0; k<meshSize; ++k) {
+            if (mesh[k]==empty_mesh_val) continue;
+            if (mesh[k]<z_min) mesh[k]=z_min;
+            if (mesh[k]>z_max) mesh[k]=z_max;
+        }
+    }
+    //
     graf3(a_min-a_step/2,a_max+a_step/2,a_min,0.1,
           e_min-e_step/2,e_max+e_step/2,e_min,0.1,
-          -9,0,-9,1);
+          z_min,z_max,z_min,1);
     crvmat(mesh,var_a->size(),var_e->size(),1,1);
     
     // ORSA_DEBUG("var_a->size(): %i",var_a->size());
