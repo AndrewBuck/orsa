@@ -49,11 +49,11 @@ public:
 int main(int argc, char **argv) { 
     
     // choose H
-    const int z_H_fix = 220;
+    const int z_H_fix = 180;
     
     // choose NEO or PHO
-    // const std::string OBJ = "NEO"; 
-    const std::string OBJ = "PHO"; 
+    const std::string OBJ = "NEO"; 
+    // const std::string OBJ = "PHO"; 
     
     // also choose below if plotting "field" coverage, detection efficiency, or observation efficiency
     
@@ -294,16 +294,16 @@ int main(int argc, char **argv) {
     // titlin("NEOs In-Field Probability for G96",4);
     // titlin("H=18 NEOs Detection Efficiency for 703",4);
     // titlin("H=18 NEOs Detection Efficiency for G96",4);
-    // titlin("H=18 NEOs Observation Probability for 703",4);
-    // titlin("H=18 NEOs Detection Probability for G96",4);
+    titlin("H=18 NEOs Observation Probability for 703",4);
+    // titlin("H=18 NEOs Observation Probability for G96",4);
     // 
     // PHOs
     // titlin("PHOs In-Field Probability for 703",4);
     // titlin("PHOs In-Field Probability for G96",4);
     // titlin("H=18 PHOs Detection Efficiency for 703",4);
     // titlin("H=18 PHOs Detection Efficiency for G96",4);
-    titlin("H=18 PHOs Observation Probability for 703",4);
-    // titlin("H=18 PHOs Detection Probability for G96",4);
+    // titlin("H=18 PHOs Observation Probability for 703",4);
+    // titlin("H=18 PHOs Observation Probability for G96",4);
     
     // titlin("3-D Colour Plot of the Function",2);
     // titlin("F(X,Y) = 2 * SIN(X) * SIN(Y)",4);
@@ -369,12 +369,12 @@ int main(int argc, char **argv) {
     // NEOs
     // const double z_min=-4; const double z_max=-1;
     // const double z_min=-3; const double z_max=-1;
-    // const double z_min=-5; const double z_max=-3;
+    const double z_min=-5; const double z_max=-3;
     //
     // PHOs
     // const double z_min=-4; const double z_max=-1;
     // const double z_min=-3; const double z_max=0;
-    const double z_min=-6; const double z_max=-3;
+    // const double z_min=-6; const double z_max=-3;
     //
     {
         // bound z
