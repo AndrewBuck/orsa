@@ -273,6 +273,9 @@ int main(int argc, char **argv) {
     // psfont("AvantGarde-Book");
     // color("fore");
     
+    penwid(0.2);
+    height(36); // text height
+    
     // paghdr("","",2,0);
     
     axspos(200,1300);
@@ -286,9 +289,6 @@ int main(int argc, char **argv) {
     
     texmod("ON"); // TeX text
     
-    penwid(0.2);
-    height(32); // text height
-
     // NEOs
     // titlin("NEOs In-Field Probability for 703",4);
     // titlin("NEOs In-Field Probability for G96",4);
@@ -304,6 +304,10 @@ int main(int argc, char **argv) {
     // titlin("H=18 PHOs Detection Efficiency for G96",4);
     // titlin("H=18 PHOs Observation Probability for 703",4);
     // titlin("H=18 PHOs Observation Probability for G96",4);
+    //
+    // misc
+    // titlin("H=22 PHOs Observation Probability for 703",4);
+    // titlin("H=22 PHOs Observation Probability for G96",4);
     
     // titlin("3-D Colour Plot of the Function",2);
     // titlin("F(X,Y) = 2 * SIN(X) * SIN(Y)",4);
@@ -330,8 +334,8 @@ int main(int argc, char **argv) {
     setgrf("NAME","NAME","NONE","NONE");
     
     intax();
-    autres(var_a->size()+2,
-           var_e->size()+2);
+    autres(var_a->size()+3,
+           var_e->size()+3);
     // axspos(300,1850);
     // ax3len(2200,1400,1400);
     // digits(0,"X");
@@ -376,6 +380,9 @@ int main(int argc, char **argv) {
     // const double z_min=-3; const double z_max=0;
     // const double z_min=-6; const double z_max=-3;
     //
+    // other...
+    // const double z_min=-6; const double z_max=-3;
+    // 
     {
         // bound z
         for (unsigned int k=0; k<meshSize; ++k) {
@@ -405,6 +412,8 @@ int main(int argc, char **argv) {
        }
     */
     
+    // title only
+    height(50); // text height
     title();
     
     disfin();
