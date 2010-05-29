@@ -68,9 +68,9 @@ bool writeInputTemplate(const std::string  & fileName,
                 "  </file_ref>\n"
                 "  <min_quorum>%i</min_quorum>\n"
                 "  <target_nresults>%i</target_nresults>\n"
-                "  <max_error_results>5</max_error_results>\n"
-                "  <max_total_results>10</max_total_results>\n"
-                "  <max_success_results>5</max_success_results>\n"
+                "  <max_error_results>6</max_error_results>\n"
+                "  <max_total_results>12</max_total_results>\n"
+                "  <max_success_results>6</max_success_results>\n"
                 "  <delay_bound>%f</delay_bound>\n"
                 "  <rsc_fpops_est>%f</rsc_fpops_est>\n"
                 "  <rsc_fpops_bound>%f</rsc_fpops_bound>\n"
@@ -159,7 +159,7 @@ int main(int argc, char ** argv) {
     const unsigned int target_nresults  = 3;
     const double rsc_fpops_est          =    flops_est;
     const double rsc_fpops_bound        = 32*flops_est;
-    const orsa::Time   delay_bound      = orsa::Time(5,0,0,0,0);
+    const orsa::Time   delay_bound      = orsa::Time(2,0,0,0,0);
     const double rsc_memory_bound       = 134217728;
     //
     double rsc_disk_bound = 0;

@@ -8,26 +8,36 @@
 #include <cmath>
 #include <unistd.h>
 
+#include "SurveyReview.h"
 #include "grain.h"
 
 #include <gsl/gsl_rng.h>
 
+#include <orsa/unit.h>
+
 using namespace std;
+
+class SkipData {
+public:
+    int z_a_min, z_a_max;
+    int z_e_min, z_e_max;
+    int z_i_min, z_i_max;    
+};
 
 int main (int argc, char ** argv) {
     
-    if (argc != 11) {
+    if ( (argc != 11) &&
+         (argc != 12) ) {
         // only part of the parameters are arguments
-        cout << "Usage: " << argv[0] << " baseName samplesPerBin a_AU_min a_AU_max e_min e_max i_DEG_min i_DEG_max H_min H_max" << endl;
+        cout << "Usage: " << argv[0] << " baseName samplesPerBin a_AU_min a_AU_max e_min e_max i_DEG_min i_DEG_max H_min H_max [skip_file]" << endl;
         exit(0);
     }
-
+    
     // use pid as seed for rng
     const int pid = getpid();
     // cout << "process ID: " << pid << endl;
     gsl_rng * rnd = gsl_rng_alloc(gsl_rng_gfsr4);
     gsl_rng_set(rnd,pid);
-    
     
     const std::string baseName = argv[1];
     const unsigned int samplesPerBin = atoi(argv[2]);
@@ -39,6 +49,29 @@ int main (int argc, char ** argv) {
     const int z_i_max = lrint(atof(argv[8])/grain_i_DEG);
     const int z_H_min = lrint(atof(argv[9])/grain_H);
     const int z_H_max = lrint(atof(argv[10])/grain_H);
+
+    // parse skip_file
+    std::list<SkipData> skipList;
+    if (argc == 12) {
+        FILE * fp = fopen(argv[11],"r");
+        if (fp) {
+            char line[1024];
+            SkipData S;
+            while (fgets(line,1024,fp)) {
+                if (6 == sscanf(line,
+                                "%i %i %i %i %i %i",
+                                &S.z_a_min,
+                                &S.z_a_max,
+                                &S.z_e_min,
+                                &S.z_e_max,
+                                &S.z_i_min,
+                                &S.z_i_max)) {
+                    skipList.push_back(S);
+                }
+            }            
+            fclose(fp);
+        }
+    }
     
     const int z_a_delta = lrint(0.05/grain_a_AU);
     const int z_e_delta = lrint(0.05/grain_e);
@@ -94,7 +127,34 @@ int main (int argc, char ** argv) {
         for (int z_a=z_a_min; z_a<z_a_max; z_a+=z_a_delta) {
             for (int z_e=z_e_min; z_e<z_e_max; z_e+=z_e_delta) {
                 for (int z_i=z_i_min; z_i<z_i_max; z_i+=z_i_delta) {
+                    
+                    {
+                        // quick check if NEO
+                        // minimum perihelion: q = a_min*(1-e_max), with min and max of this specific interval
+                        const double q_min = orsa::FromUnits(grain_a_AU*z_a*(1.0-grain_e*(z_e+z_e_delta)),orsa::Unit::AU);
+                        if (q_min > OrbitID::NEO_max_q) {
+                            ORSA_DEBUG("skipping, no NEOs in this interval");
+                            continue;
+                        }
+                    }                                
 
+                    // check skip list
+                    {
+                        bool matching=false;
+                        std::list<SkipData>::const_iterator it = skipList.begin();
+                        while (it != skipList.end()) {
+                            if ( (z_a==(*it).z_a_min) && (z_a+z_a_delta==(*it).z_a_max) &&
+                                 (z_e==(*it).z_e_min) && (z_e+z_e_delta==(*it).z_e_max) &&
+                                 (z_i==(*it).z_i_min) && (z_i+z_i_delta==(*it).z_i_max) ) {
+                                ORSA_DEBUG("skipping, matching entry in skip list");
+                                matching=true;
+                                break;
+                            }
+                            ++it;
+                        }
+                        if (matching) continue;
+                    }
+                    
                     fp = fopen("grid.dat","w");
                     fprintf(fp,"%.2f %i   %i %i %i   %i %i %i   %i %i %i   %i %i %i   %i %i %i   %i %i %i   %i %i %i\n",
                             JD,

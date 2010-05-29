@@ -7,6 +7,7 @@ SUBDIRS += SurveyReview.app.pro
 unix:!macx {
 	SUBDIRS += ExtractObservations.app.pro
 	SUBDIRS += GenMake.app.pro
+	SUBDIRS += GenSkipFile.app.pro
 	SUBDIRS += DetectionEfficiency.app.pro
 	SUBDIRS += DetectionEfficiencyFit.app.pro
 	SUBDIRS += DetectionEfficiencyPlot.app.pro
