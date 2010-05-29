@@ -26,6 +26,8 @@ public:
 
 int main (int argc, char ** argv) {
     
+    orsa::Debug::instance()->initTimer();
+    
     if ( (argc != 11) &&
          (argc != 12) ) {
         // only part of the parameters are arguments
