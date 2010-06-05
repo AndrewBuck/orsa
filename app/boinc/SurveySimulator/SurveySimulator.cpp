@@ -656,7 +656,7 @@ void SyntheticNEO::logPurify(const double & detectionProbabilityThreshold) const
     const double dp = 
       Telescope::detectionProbability(V,(*it).second->limitingMagnitude.getRef());
     if (dp <= 0) {
-      log.erase(it++);
+        it = log.erase(it);
     } else {
       ++it;
     }
