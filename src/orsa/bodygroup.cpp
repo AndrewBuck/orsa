@@ -48,9 +48,7 @@ const std::string & BodyGroup::getName() const {
 }
 
 bool BodyGroup::addBody(const Body * b) {
-  
-    // cachedLargestBodyID.reset();
-  
+    
     const BodyList::const_iterator _b = find(_b_list.begin(),_b_list.end(),b);
     //
     if (_b != _b_list.end()) {
@@ -83,50 +81,25 @@ bool BodyGroup::addBody(const Body * b) {
     }
 }
 
-bool BodyGroup::removeBody(const Body *) {
-  
-    // cachedLargestBodyID.reset();
-  
-#warning "this method is probably buggy, needs more testing!"
+bool BodyGroup::removeBody(const Body * b) {
+    
+    BodyList::iterator _bl = find(_b_list.begin(),_b_list.end(),b);
+    if (_bl != _b_list.end()) {
+        _bl = _b_list.erase(_bl);
+        BodyIntervalMap::iterator _bi = _b_interval.find(b);
+        if (_bi != _b_interval.end()) {
+            _bi = _b_interval.erase(_bi);
+            return true;
+        } else {
+            ORSA_DEBUG("Body found in list but not in map");
+            return false;
+        }
+    } else {
+        ORSA_ERROR("Body not included in BodyGroup");
+        return false;
+    }
     return false;
-    /* 
-       BodyList::iterator _bl = find(_b_list.begin(),_b_list.end(),b);
-       if (_bl != _b_list.end()) {
-       _b_list.erase(_bl);
-       BodyIntervalMap::iterator _bi = _b_interval.find(b);
-       if (_bi != _b_interval.end()) {
-       _b_interval.erase(_bi);
-       return true;
-       } else {
-       ORSA_DEBUG("Body found in list but not in map");
-       return false;
-       }
-       } else {
-       ORSA_ERROR("Body not included in BodyGroup");
-       return false;
-       }
-       return false;
-    */
 }
-
-/* 
-   Body::BodyID BodyGroup::largestBodyID() const { 
-   if (cachedLargestBodyID.isSet()) {
-   // ORSA_DEBUG("cached!");
-   return cachedLargestBodyID.get();
-   }
-   // ORSA_DEBUG("not cached...");
-   orsa::Body::BodyID id = 0;
-   BodyGroup::BodyList::const_iterator b_it = getBodyList().begin();
-   while (b_it != getBodyList().end()) { 
-   id = std::max(id,(*b_it)->id());
-   ++b_it;
-   }
-   cachedLargestBodyID = id;
-   ORSA_DEBUG("largestBodyID: %i",id);
-   return id;
-   }
-*/
 
 /* 
    bool BodyGroup::insertTRV(const TRV & trv,
@@ -555,10 +528,10 @@ bool BodyGroup::getClosestCommonTime(orsa::Time       & t,
       
             return false;
         }
-    
+        
         ++b_it;
     }
-  
+    
     return false;
 }
 

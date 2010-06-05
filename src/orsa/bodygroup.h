@@ -38,13 +38,6 @@ namespace orsa {
         bool addBody(const Body *);
         bool removeBody(const Body *);
         inline size_t size() const { return _b_list.size(); } 
-    
-        /* 
-           public:
-           Body::BodyID largestBodyID() const;
-           protected:
-           mutable orsa::Cache<Body::BodyID> cachedLargestBodyID;
-        */
         
     public:
         typedef std::vector < osg::ref_ptr<const Body> > BodyList;

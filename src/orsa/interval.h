@@ -100,28 +100,18 @@ namespace orsa {
             return true;
         }
     public:
-        /* 
-           bool remove(const T & val) {
-           if (_store_data) {
-           _recent_vars.clear();
-           if (valid()) {
-           typename DataType::iterator _it = lower_bound(_data.begin(),_data.end(),val);
-           if ((*_it) == val) {
-           _data.erase(_it);
-           if (valid()) {
-           _min.set(*(_data.begin()));
-           _max.set(*(--_data.end()));
-           }
-           }
-           return true;
-           } else {
-           return false;
-           }
-           } else {
-           return false;
-           }
-           }
-        */
+        bool remove(const T & val) {
+            if (_store_data) {
+                typename DataType::iterator _it = lower_bound(_data.begin(),_data.end(),val);
+                if ((*_it) == val) {
+                    _it = _data.erase(_it);
+                    update();
+                }
+                return true;
+            } else {
+                return false;
+            }
+        }
     public:
         /* 
            bool valid() const {
