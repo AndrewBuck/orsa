@@ -9,7 +9,7 @@ int main(int argc, char ** argv) {
     orsa::Debug::instance()->initTimer();
     
     if (argc == 1) {
-        printf("Usage: %s <grin.dat(s)>\n",argv[0]);
+        printf("Usage: %s <grid.dat(s)>\n",argv[0]);
         exit(0);
     }
     
