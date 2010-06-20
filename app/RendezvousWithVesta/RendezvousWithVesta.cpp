@@ -45,6 +45,11 @@
 
 #include "plot.h"
 
+// explicitly load all required OSG plugins
+// ONLY when the OSG library is statically linked
+#include <osgDB/Registry>
+USE_OSGPLUGIN(freetype);
+
 using namespace std;
 using namespace orsa;
 using namespace orsaSolarSystem;
@@ -511,6 +516,9 @@ void RendezvousWithVestaWidget::runFinished() const {
     //
     // viewerWindow->getCamera()->setNearFarRatio(1.0e-8);
     // viewerWindow->getCamera()->setNearFarRatio(1.0e-12);
+    
+    // enable multisampling
+    osg::DisplaySettings::instance()->setNumMultiSamples(4);
     
     osg::Group * rootNode = viz->createRoot();
     //
