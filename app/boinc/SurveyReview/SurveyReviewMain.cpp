@@ -804,6 +804,19 @@ int main() {
                                                        H,
                                                        V,
                                                        eta);
+                                            
+                                            // modified for best airmass
+                                            /* const double eta = skyCoverage->eta(V,U,1.0,GB);
+                                               ORSA_DEBUG("RA: %6.3f  DEC: %+7.3f  eta: %.3f  V: %.2f  U: %6.2f  GB: %+6.2g  orb2obs: %.2f  orb2sun: %.2f",
+                                               orsa::radToDeg()*ra/15.0,
+                                               orsa::radToDeg()*dec,
+                                               eta,
+                                               V,
+                                               orsa::FromUnits(U*orsa::radToArcsec(),orsa::Unit::HOUR),
+                                               GB*orsa::radToDeg(),
+                                               orsa::FromUnits(orb2obs.length(),orsa::Unit::AU,-1),
+                                               orsa::FromUnits(orb2sun.length(),orsa::Unit::AU,-1));
+                                            */
                                         }
                                         
                                         const unsigned int pos = (z_H-z_H_min)/z_H_delta;
