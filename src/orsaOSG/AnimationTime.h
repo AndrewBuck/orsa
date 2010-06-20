@@ -9,6 +9,7 @@
 #include <orsa/double.h>
 #include <orsa/cache.h>
 
+#include <QMetaType>
 #include <QObject>
 #include <QTime>
 
@@ -25,7 +26,7 @@ namespace orsaOSG {
             QObject(),
             osg::Referenced(true),
             _bg(bg) { 
-      
+            qRegisterMetaType<orsa::Time>("orsa::Time");
             _timeMultiplier = 1;
             _realTime       = false;
         }
@@ -48,10 +49,10 @@ namespace orsaOSG {
     
     public:
         orsa::Time getSimulationTime(const int frameID) const;
-    
-        signals:
+        
+    signals:
         void simulationTimeChanged(const orsa::Time & t) const;
-    
+        
     public:
         void setCentralBody(const orsa::Body * b) {
             _centralBody = b;
