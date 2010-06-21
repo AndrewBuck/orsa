@@ -745,6 +745,7 @@ int main(int argc, char ** argv) {
             ed.designation = orbitFile->_data[korb].designation.getRef();
         }
         ed.V = apparentMagnitude(orbitFile->_data[korb].H.getRef(),
+                                 orbitFile->_data[korb].G.getRef(),
                                  phaseAngle,
                                  orb2obs.length(),
                                  orb2sun.length()); 

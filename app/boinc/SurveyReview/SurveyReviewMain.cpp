@@ -787,8 +787,11 @@ int main() {
                                         
                                         const double H = z_H*grain_H;
                                         
+                                        const double G = 0.15;
+                                        
                                         // apparent magnitude
                                         const double V = apparentMagnitude(H,
+                                                                           G,
                                                                            phaseAngle,
                                                                            orb2obs.length(),
                                                                            orb2sun.length());

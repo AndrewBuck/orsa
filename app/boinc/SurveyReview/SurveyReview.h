@@ -23,7 +23,7 @@
 // alpha = solar phase angle = angle Sun-Asteroid-Observer
 // G = slope parameter (G ~= 0.15)
 inline double P (const double & alpha, 
-                 const double & G = 0.15) {
+                 const double & G) {
     // ORSA_DEBUG("P:   alpha = %f",alpha.get_mpf_t());
     const double phi_1 = exp(-3.33*pow(tan(0.5*alpha),0.63));
     const double phi_2 = exp(-1.87*pow(tan(0.5*alpha),1.22));
@@ -245,11 +245,12 @@ inline double P (const double & alpha,
 */
 //
 inline double apparentMagnitude(const double & H,
+                                const double & G,
                                 const double & phaseAngle,
                                 const double & neo2obs,
                                 const double & neo2sun) {
   
-    const double V = H + P(phaseAngle) + 
+    const double V = H + P(phaseAngle,G) + 
         5*log10(FromUnits(neo2obs,orsa::Unit::AU,-1)*FromUnits(neo2sun,orsa::Unit::AU,-1));
   
     return V;
