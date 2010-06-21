@@ -116,9 +116,9 @@ bool MPCObservationsFile::processLine(const char * line) {
   
     s_mag.assign(line,65,5);
     removeLeadingAndTrailingSpaces(s_mag);
-  
+    
     s_magCode.assign(line,70,1);
-  
+    
     // moved earlier, for faster select_* code
     // s_obsCode.assign(line,77,3);
     // removeLeadingAndTrailingSpaces(s_obsCode);

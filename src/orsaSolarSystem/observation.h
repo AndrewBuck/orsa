@@ -21,7 +21,7 @@ namespace orsaSolarSystem {
         virtual ~Observation() { }
     public:
         orsa::Cache<unsigned int> number;
-        orsa::Cache<std::string>  designation, obsCode, magCode;
+        orsa::Cache<std::string>  designation, obsCode;
         orsa::Cache<bool>         discovery;
         orsa::Cache<orsa::Time>   epoch;
     };
@@ -35,6 +35,7 @@ namespace orsaSolarSystem {
         orsa::Cache<orsa::Angle>  ra, dec;
         orsa::Cache<orsa::Angle>  sigma_ra, sigma_dec;
         orsa::Cache<double>       mag;
+        orsa::Cache<std::string>  magCode;
     };
   
     class SatelliteObservation : public orsaSolarSystem::OpticalObservation {
