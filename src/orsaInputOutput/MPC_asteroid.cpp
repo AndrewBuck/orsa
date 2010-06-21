@@ -23,10 +23,25 @@ bool MPCAsteroidFile::processLine(const char * line) {
     std::string s_G;
     std::string s_epoch;
     std::string s_a, s_e, s_i, s_node, s_peri, s_M;
-  
+    
+    //first, fields affected by select_* code
+    
     s_designation.assign(line,0,7);
     removeLeadingAndTrailingSpaces(s_designation);
-  
+    
+    if (select_number.isSet()) {
+        if (select_number.getRef() != MPC_packedNumber(s_designation)) {
+            return false;
+        }
+    }
+    if (select_designation.isSet()) {
+        if (select_designation.getRef() != s_designation.c_str()) {
+            return false;
+        }
+    }
+    
+    // now, all the remaining fields
+    
     s_H.assign(line,8,5);
     
     s_G.assign(line,14,5);

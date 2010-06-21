@@ -42,8 +42,12 @@ namespace orsaInputOutput {
     
     public:
         bool processLine(const char * line);
+
+    public:
+        orsa::Cache<unsigned int> select_number;
+        orsa::Cache<std::string>  select_designation;
     };
-  
+    
 }; // orsaInputOutput
 
 #endif // _ORSA_INPUT_OUTPUT_MPC_ASTEROID_
