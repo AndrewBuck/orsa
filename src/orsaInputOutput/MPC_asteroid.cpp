@@ -20,6 +20,7 @@ bool MPCAsteroidFile::processLine(const char * line) {
   
     std::string s_designation;
     std::string s_H;
+    std::string s_G;
     std::string s_epoch;
     std::string s_a, s_e, s_i, s_node, s_peri, s_M;
   
@@ -27,7 +28,9 @@ bool MPCAsteroidFile::processLine(const char * line) {
     removeLeadingAndTrailingSpaces(s_designation);
   
     s_H.assign(line,8,5);
-  
+    
+    s_G.assign(line,14,5);
+    
     s_epoch.assign(line,20,5);
   
     s_M.assign(line,26,9);
@@ -57,6 +60,7 @@ bool MPCAsteroidFile::processLine(const char * line) {
     //
     element.orbit       = orbit;
     element.H           = atof(s_H.c_str());
+    element.G           = atof(s_G.c_str());
     if (MPC_packedNumber(s_designation) != 0) {
         element.number = MPC_packedNumber(s_designation);
     }

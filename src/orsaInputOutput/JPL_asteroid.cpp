@@ -28,7 +28,8 @@ bool JPLNumberedAsteroidFile::processLine(const char * line) {
     std::string s_epoch_MJD;
     std::string s_a, s_e, s_i, s_peri, s_node, s_M;
     std::string s_H;
-  
+    std::string s_G;
+    
     s_number.assign(line,0,6);
   
     s_designation.assign(line,7,17);
@@ -42,9 +43,10 @@ bool JPLNumberedAsteroidFile::processLine(const char * line) {
     s_peri.assign(line,63,9);
     s_node.assign(line,73,9);
     s_M.assign(line,83,11);
-  
+    
     s_H.assign(line,95,5);
-  
+    s_G.assign(line,101,5); // it's normally 4 digits only, but when negative, it takes one extra column
+    
     /* 
        ORSA_DEBUG("des: %s   MJD: %s",
        s_designation.c_str(),
@@ -74,6 +76,7 @@ bool JPLNumberedAsteroidFile::processLine(const char * line) {
     element.orbit       = orbit;
     element.epoch       = epoch;
     element.H           = atof(s_H.c_str());
+    element.G           = atof(s_G.c_str());
     element.number      = mpz_class(s_number);
     element.designation = s_designation;
   
@@ -101,7 +104,8 @@ bool JPLUnnumberedAsteroidFile::processLine(const char * line) {
     std::string s_epoch_MJD;
     std::string s_a, s_e, s_i, s_peri, s_node, s_M;
     std::string s_H;
-  
+    std::string s_G;
+    
     // s_number.assign(line,0,6);
   
     s_designation.assign(line,0,11);
@@ -115,9 +119,10 @@ bool JPLUnnumberedAsteroidFile::processLine(const char * line) {
     s_peri.assign(line,51,9);
     s_node.assign(line,61,9);
     s_M.assign(line,71,11);
-  
+    
     s_H.assign(line,83,5);
-  
+    s_G.assign(line,89,5); // it's normally 4 digits only, but when negative, it takes one extra column
+    
     /* 
        ORSA_DEBUG("des: %s   MJD: %s",
        s_designation.c_str(),
@@ -147,6 +152,7 @@ bool JPLUnnumberedAsteroidFile::processLine(const char * line) {
     element.orbit       = orbit;
     element.epoch       = epoch;
     element.H           = atof(s_H.c_str());
+    element.G           = atof(s_G.c_str());
     // element.number      = mpz_class(s_number);
     element.designation = s_designation;
   

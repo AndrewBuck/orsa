@@ -14,6 +14,7 @@ namespace orsaInputOutput {
     public:
         orsa::Cache<orsaSolarSystem::OrbitWithEpoch> orbit;
         orsa::Cache<double> H;
+        orsa::Cache<double> G;
         orsa::Cache<unsigned int> number;
         orsa::Cache<std::string> designation;
     };
