@@ -26,7 +26,8 @@ bool RWOFile::processLine(const char * line) {
     // std::string number;
     std::string s_designation;
     std::string s_epoch, s_ra, s_decSign, s_dec;
-    std::string s_mag, s_magCode;
+    std::string s_mag;
+    char        c_band;
     std::string s_obsCode;
   
     s_designation.assign(line,0,10); 
@@ -44,8 +45,9 @@ bool RWOFile::processLine(const char * line) {
     s_mag.assign(line,156,4);
     removeLeadingAndTrailingSpaces(s_mag);
   
-    s_magCode.assign(line,161,1);
-  
+    // s_magCode.assign(line,161,1);
+    c_band = line[161];
+    
     s_obsCode.assign(line,176,3);
     removeLeadingAndTrailingSpaces(s_obsCode);
   
@@ -55,8 +57,8 @@ bool RWOFile::processLine(const char * line) {
     workObs->obsCode     = s_obsCode;
   
     if (strlen(s_mag.c_str()) > 0) {
-        workObs->mag     = atof(s_mag.c_str());
-        workObs->magCode = s_magCode;
+        workObs->mag  = atof(s_mag.c_str());
+        workObs->band = c_band;
     }
   
     {

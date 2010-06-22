@@ -16,15 +16,15 @@ OBJECTS_DIR = .obj/$${PLATFORM_NAME}
 DESTDIR     = ../../lib/$${PLATFORM_NAME}
 
 unix:!macx {
-        LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa
+	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa
 }
 
 macx {
-        LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa
+	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa
 }
 
 win32 {
-        LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa
+	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa
 }
 
 HEADERS = attitude.h \
@@ -36,15 +36,16 @@ HEADERS = attitude.h \
           observation.h \
           observatory.h \
           orbit.h \
-		  print.h
+          print.h
 
 SOURCES = attitude.cpp \
           datetime.cpp \
           gauss.cpp \
           gmst.cpp \
           obleq.cpp \
+          observation.cpp \
           observatory.cpp \
-		  orbit.cpp \
+          orbit.cpp \
           sdncal.h \
           dow.c \
           gregor.c \

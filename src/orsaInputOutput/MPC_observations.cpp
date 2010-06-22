@@ -37,7 +37,8 @@ bool MPCObservationsFile::processLine(const char * line) {
     // std::string number;
     std::string s_number, s_designation, s_discovery, s_note1, s_note2;
     std::string s_epoch, s_ra, s_decSign, s_dec;
-    std::string s_mag, s_magCode;
+    std::string s_mag;
+    char        c_band;
     std::string s_obsCode;
   
     // first, fields affected by select_* code
@@ -117,7 +118,8 @@ bool MPCObservationsFile::processLine(const char * line) {
     s_mag.assign(line,65,5);
     removeLeadingAndTrailingSpaces(s_mag);
     
-    s_magCode.assign(line,70,1);
+    // s_magCode.assign(line,70,1);
+    c_band = line[70];
     
     // moved earlier, for faster select_* code
     // s_obsCode.assign(line,77,3);
@@ -186,8 +188,8 @@ bool MPCObservationsFile::processLine(const char * line) {
             }
       
             if (strlen(s_mag.c_str()) > 0) {
-                opticalObservation->mag     = atof(s_mag.c_str());
-                opticalObservation->magCode = s_magCode;
+                opticalObservation->mag  = atof(s_mag.c_str());
+                opticalObservation->band = c_band;
             }
         }
     }

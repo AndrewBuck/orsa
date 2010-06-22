@@ -35,9 +35,11 @@ namespace orsaSolarSystem {
         orsa::Cache<orsa::Angle>  ra, dec;
         orsa::Cache<orsa::Angle>  sigma_ra, sigma_dec;
         orsa::Cache<double>       mag;
-        orsa::Cache<std::string>  magCode;
+        orsa::Cache<char>         band; // or filter: V,R,...
     };
-  
+    
+    double MPC_band_correction(const char band);
+    
     class SatelliteObservation : public orsaSolarSystem::OpticalObservation {
     public:
         SatelliteObservation() : orsaSolarSystem::OpticalObservation() { }

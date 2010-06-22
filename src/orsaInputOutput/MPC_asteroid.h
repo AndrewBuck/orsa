@@ -42,8 +42,9 @@ namespace orsaInputOutput {
     
     public:
         bool processLine(const char * line);
-
+        
     public:
+        // TODO: use lists of objects to read, and exit as soon as all requested object are read
         orsa::Cache<unsigned int> select_number;
         orsa::Cache<std::string>  select_designation;
     };
