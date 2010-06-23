@@ -42,7 +42,7 @@ void PlotUtil(double (*fun)(const double),
               const int yticks,
               const std::string & ylabel) {
     penwid(0.2);
-    height(20); // text height
+    height(30); // text height
     axslen(xlen,ylen);
     axspos(xpos,ypos);
     digits(xdigits,"x");
@@ -695,10 +695,13 @@ int main(int argc, char ** argv) {
         pagmod("PORT");
         //
         // metafl("PNG");
+        // metafl("PS");
         metafl("PDF");
         
         // output file name
         char plotFilename[1024];
+        // sprintf(plotFilename,"%s.fit.png",basename.c_str());
+        // sprintf(plotFilename,"%s.fit.ps",basename.c_str());
         sprintf(plotFilename,"%s.fit.pdf",basename.c_str());
         setfil(plotFilename);
         // new files overwrite old ones
@@ -736,7 +739,7 @@ int main(int argc, char ** argv) {
         }
         
         const double etaMin  = 0.0;
-        const double etaMax  = 2.0;
+        const double etaMax  = 1.4;
         const double etaStep = 0.2;
         const int etaDigits  = 1;
         const int etaTicks   = 2;
@@ -773,7 +776,7 @@ int main(int argc, char ** argv) {
                  histo_AM,
                  1.0,
                  nx,ny,px,py,
-                 1.0,3.0,0.1,1,1,"airmass",
+                 1.0,3.0,0.2,1,1,"airmass",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
         ny += ly;
