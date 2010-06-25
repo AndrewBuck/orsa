@@ -10,7 +10,7 @@ double JD, year;
 double V_limit, eta0_V, c_V, w_V;
 double U_limit, w_U;
 double peak_AM, scale_AM, shape_AM;
-double drop_GB, scale_GB;
+double drop_GB, scale_GB, center_GB;
 double chisq_dof;
 unsigned int Nobs, Ndsc, Ntot;
 double degSq;
@@ -128,7 +128,8 @@ double PlotUtil_fun_AM(const double AM) {
 double PlotUtil_fun_GB(const double GB) {
     return SkyCoverage::nominal_eta_GB(GB,
                                        drop_GB,
-                                       scale_GB);
+                                       scale_GB,
+                                       center_GB);
 }
 
 double PlotUtil_fun_one(const double) {
@@ -369,9 +370,9 @@ int main(int argc, char ** argv) {
         while (fgets(line,1024,fp)) {
             if (line[0]=='#') continue; // comment
             // UPDATE THIS NUMBER
-            if (20 == sscanf(line,
+            if (21 == sscanf(line,
                              // "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
                              &JD,
                              &year,
                              &V_limit,
@@ -385,6 +386,7 @@ int main(int argc, char ** argv) {
                              &shape_AM,
                              &drop_GB,
                              &scale_GB,
+                             &center_GB,
                              &chisq_dof,
                              &Nobs,
                              &Ndsc,
@@ -396,6 +398,7 @@ int main(int argc, char ** argv) {
                 U_limit   = orsa::FromUnits(U_limit*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
                 w_U       = orsa::FromUnits(    w_U*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
                 scale_GB  = orsa::degToRad()*scale_GB;
+                center_GB = orsa::degToRad()*center_GB;
                 // ORSA_DEBUG("year: %g  V_limit: %g  ID: %s",year,V_limit,jobID);
                 break;
             } else {
@@ -436,7 +439,8 @@ int main(int argc, char ** argv) {
                                                 shape_AM,
                                                 data[k].GB.getRef(),
                                                 drop_GB,
-                                                scale_GB);
+                                                scale_GB,
+                                                center_GB);
             
             const double nominal_eta_V = SkyCoverage::nominal_eta_V(data[k].V.getRef(),
                                                                     V_limit,
@@ -456,7 +460,8 @@ int main(int argc, char ** argv) {
             
             const double nominal_eta_GB = SkyCoverage::nominal_eta_GB(data[k].GB.getRef(),
                                                                       drop_GB,
-                                                                      scale_GB);
+                                                                      scale_GB,
+                                                                      center_GB);
             
             // at this point, small sigmas can become very large because divided by a very small eta's
             if (data[k].sigmaEta.getRef() > 0) {

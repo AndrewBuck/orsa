@@ -173,7 +173,8 @@ public:
                       const double & shape_AM,
                       const double & GB,
                       const double & drop_GB,
-                      const double & scale_GB);
+                      const double & scale_GB,
+                      const double & center_GB);
 public:
     // nominal eta values, mostly for plotting purposes, no mixing angle
     static double nominal_eta_V(const double & V,
@@ -191,7 +192,8 @@ public:
                                  const double & shape_AM);
     static double nominal_eta_GB(const double & GB,
                                  const double & drop_GB,
-                                 const double & scale_GB);
+                                 const double & scale_GB,
+                                 const double & center_GB);
 public:
     // coefficients for efficiency as function of apparent magnitude V
     orsa::Cache<double> V_limit, eta0_V, V0, c_V, w_V;
@@ -200,7 +202,7 @@ public:
     //
     orsa::Cache<double> peak_AM, scale_AM, shape_AM;
     //
-    orsa::Cache<double> drop_GB, scale_GB;
+    orsa::Cache<double> drop_GB, scale_GB, center_GB;
     
 public:
     // return filename, stripping path and suffix (after first dot)

@@ -342,7 +342,8 @@ double SkyCoverage::eta(const double & V,
                             shape_AM.getRef(),
                             GB,
                             drop_GB.getRef(),
-                            scale_GB.getRef());
+                            scale_GB.getRef(),
+                            center_GB.getRef());
 }
 
 double SkyCoverage::eta(const double & V,
@@ -360,7 +361,8 @@ double SkyCoverage::eta(const double & V,
                         const double & shape_AM,
                         const double & GB,
                         const double & drop_GB,
-                        const double & scale_GB) {
+                        const double & scale_GB,
+                        const double & center_GB) {
     /* const double & beta,
        const double & GL,
        const double & GB,
@@ -386,7 +388,7 @@ double SkyCoverage::eta(const double & V,
         nominal_eta_V(V,V_limit,eta0_V,V0,c_V,w_V) *
         nominal_eta_U(U,U_limit,w_U) *
         nominal_eta_AM(AM,peak_AM,scale_AM,shape_AM) *
-        nominal_eta_GB(GB,drop_GB,scale_GB);
+        nominal_eta_GB(GB,drop_GB,scale_GB,center_GB);
     if (retVal < 0.0) retVal=0.0;
     if (retVal > 1.0) retVal=1.0;
     return retVal;
@@ -433,8 +435,9 @@ double SkyCoverage::nominal_eta_AM(const double & AM,
 }
 double SkyCoverage::nominal_eta_GB(const double & GB,
                                    const double & drop_GB,
-                                   const double & scale_GB) {
-    double retVal = 1.0-drop_GB/(1+orsa::square(GB/scale_GB));
+                                   const double & scale_GB,
+                                   const double & center_GB) {
+    double retVal = 1.0-drop_GB/(1+orsa::square((GB-center_GB)/scale_GB));
     if (retVal < 0.0) retVal=0.0;
     if (retVal > 1.0) retVal=1.0;
     return retVal;

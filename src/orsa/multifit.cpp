@@ -83,7 +83,7 @@ unsigned int MultifitParameters::index(const std::string & name) const {
         }	
     }
     ORSA_ERROR("index not found: name=%s",name.c_str());
-    return 0;
+    exit(0);
 }
 
 std::string MultifitParameters::name(const unsigned int index) const {
@@ -465,8 +465,8 @@ unsigned int MultifitData::index(const std::string & name) const {
             return k;
         }	
     }
-    ORSA_ERROR("index not found");
-    return 0;
+    ORSA_ERROR("index not found: name=%s",name.c_str());
+    exit(0);
 }
 
 std::string MultifitData::name(const unsigned int index) const {

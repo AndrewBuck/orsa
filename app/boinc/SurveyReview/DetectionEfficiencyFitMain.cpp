@@ -398,6 +398,7 @@ int main(int argc, char ** argv) {
         // GB
         par->insert("drop_GB", 0.00, 0.000001);
         par->insert("scale_GB",25.6*orsa::degToRad(), 0.000001); // rad
+        par->insert("center_GB",0.0*orsa::degToRad(), 0.000001); // rad
         // mixing angle
         // par->insert("beta",     0.0, 0.000001);
         // Galactic latitude
