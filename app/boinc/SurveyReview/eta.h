@@ -212,19 +212,19 @@ protected:
                 // first, specific cases where unit conversions or factors are needed
                 if ((_par->name(p).find("U_limit") != std::string::npos) || 
                     (_par->name(p).find("w_U") != std::string::npos)) {
-                    ORSA_DEBUG("%20s: %g +/- %g [arcsec/hour]",
+                    ORSA_DEBUG("%14s: %g +/- %g [arcsec/hour]",
                                _par->name(p).c_str(),
                                orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
                                _par->isFixed(p)?0.0:orsa::FromUnits(factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex))*orsa::radToArcsec(),orsa::Unit::HOUR));
                 } else if ((_par->name(p).find("scale_GB") != std::string::npos) ||
                            (_par->name(p).find("center_GB") != std::string::npos)) {
-                    ORSA_DEBUG("%20s: %g +/- %g [deg]",
+                    ORSA_DEBUG("%14s: %g +/- %g [deg]",
                                _par->name(p).c_str(),
                                orsa::radToDeg()*_par->get(p),
                                _par->isFixed(p)?0.0:orsa::radToDeg()*factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
                 } else {
                     // generic one
-                    ORSA_DEBUG("%20s: %g +/- %g",
+                    ORSA_DEBUG("%14s: %g +/- %g",
                                _par->name(p).c_str(),
                                _par->get(p),
                                _par->isFixed(p)?0.0:factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
@@ -247,6 +247,17 @@ protected:
     void writeOutputFiles(const gsl_multifit_fdfsolver * s) const {
         
         const unsigned int numFiles = data.size();
+
+        // a vector of strings: "_000000", "_000001"...
+        std::vector<std::string> fileID_str_vec;
+        fileID_str_vec.resize(numFiles);
+        {
+            char fileID_str[1024];
+            for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
+                sprintf(fileID_str,"_%06i",fileID);
+                fileID_str_vec[fileID] = fileID_str;
+            }
+        }
         
         for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
 
@@ -312,14 +323,28 @@ protected:
             
             // NOTE: all spaces in printed strings are measured to keep good alignment
             
-#warning need to re-align var names with values
-            
-            // first var names
+            // first: var names
             fprintf(fp,"# ");
             fprintf(fp,"       JD ");
             fprintf(fp,"       year ");
             for (unsigned int p=0; p<_par->totalSize(); ++p) {
-                fprintf(fp,"%11s +/- sigma ",_par->name(p).c_str());
+                const std::string::size_type pos = _par->name(p).find(fileID_str_vec[fileID]);
+                if (pos != std::string::npos) {
+                    // variable with correct fileID
+                    fprintf(fp,"%11s +/- sigma ",_par->name(p).substr(0,pos).c_str());
+                } else {
+                    // check if it is a variable without any fileID
+                    bool match=false;
+                    for (unsigned int s=0; s<numFiles; ++s) {
+                        if (_par->name(p).find(fileID_str_vec[s]) != std::string::npos) {
+                            match=true;
+                            break;
+                        }
+                    }
+                    if (!match) {
+                        fprintf(fp,"%11s +/- sigma ",_par->name(p).substr(0,pos).c_str());
+                    }
+                }
             }
             fprintf(fp," chisq/dof ");
             fprintf(fp," Nobs  Ndsc  Ntot ");
@@ -327,31 +352,54 @@ protected:
             fprintf(fp,"   V0 ");
             fprintf(fp,"      jobID ");
             fprintf(fp,"\n");
-        
+
+            // then: the values
             fprintf(fp,"%.3f ",orsaSolarSystem::timeToJulian(epoch));
             fprintf(fp,"%.6f ",orsaSolarSystem::fractionalYear(epoch));
             {
                 unsigned int gslIndex=0;
                 for (unsigned int p=0; p<_par->totalSize(); ++p) {
-                    // first, specific cases where unit conversions or factors are needed
-                    if ((_par->name(p).find("U_limit") != std::string::npos) || 
-                        (_par->name(p).find("w_U") != std::string::npos)) {
-                        fprintf(fp,
-                                "%+.3e %+.3e ",
-                                orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
-                                _par->isFixed(p)?0.0:orsa::FromUnits(factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex))*orsa::radToArcsec(),orsa::Unit::HOUR));
-                    } else if ((_par->name(p).find("scale_GB") != std::string::npos) ||
-                               (_par->name(p).find("center_GB") != std::string::npos)) {
-                        fprintf(fp,
-                                "%+.3e %+.3e ",
-                                orsa::radToDeg()*_par->get(p),
-                                _par->isFixed(p)?0.0:orsa::radToDeg()*factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
-                    } else {
-                        // generic one
-                        fprintf(fp,
-                                "%+.3e %+.3e ",
-                                _par->get(p),
-                                _par->isFixed(p)?0.0:factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
+                    bool doPrint=false;
+                    {
+                        const std::string::size_type pos = _par->name(p).find(fileID_str_vec[fileID]);
+                        if (pos != std::string::npos) {
+                            // variable with correct fileID
+                            doPrint=true;
+                        } else {
+                            // check if it is a variable without any fileID
+                            bool match=false;
+                            for (unsigned int s=0; s<numFiles; ++s) {
+                                if (_par->name(p).find(fileID_str_vec[s]) != std::string::npos) {
+                                    match=true;
+                                    break;
+                                }
+                            }
+                            if (!match) {
+                                doPrint=true;
+                            }
+                        }
+                    }
+                    if (doPrint) {                        
+                        // first, specific cases where unit conversions or factors are needed
+                        if ((_par->name(p).find("U_limit") != std::string::npos) || 
+                            (_par->name(p).find("w_U") != std::string::npos)) {
+                            fprintf(fp,
+                                    "%+.3e %+.3e ",
+                                    orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
+                                    _par->isFixed(p)?0.0:orsa::FromUnits(factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex))*orsa::radToArcsec(),orsa::Unit::HOUR));
+                        } else if ((_par->name(p).find("scale_GB") != std::string::npos) ||
+                                   (_par->name(p).find("center_GB") != std::string::npos)) {
+                            fprintf(fp,
+                                    "%+.3e %+.3e ",
+                                    orsa::radToDeg()*_par->get(p),
+                                    _par->isFixed(p)?0.0:orsa::radToDeg()*factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
+                        } else {
+                            // generic one
+                            fprintf(fp,
+                                    "%+.3e %+.3e ",
+                                    _par->get(p),
+                                    _par->isFixed(p)?0.0:factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex)));
+                        }
                     }
                     if (!_par->isFixed(p)) {
                         ++gslIndex;
