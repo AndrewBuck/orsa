@@ -140,8 +140,8 @@ int main(int argc, char ** argv) {
     
     orsa::Debug::instance()->initTimer();
     
-    if (argc != 3) {
-        printf("Usage: %s <allEta-file> <fit-file>\n",argv[0]);
+    if ((argc==1) || (argc%2==0)) {
+        printf("Usage: %s <allEta-file-1> <fit-file-1> [eta-file-2 fit-file-2 ... eta-file-N fit-file-N]\n",argv[0]);
         exit(0);
     }
   
@@ -417,6 +417,7 @@ int main(int argc, char ** argv) {
         Histo<CountStats::LinearVar> histo_LE(var_LE.get());
         Histo<CountStats::LinearVar> histo_AM(var_AM.get());
         Histo<CountStats::LinearVar> histo_GB(var_GB.get());
+        Histo<CountStats::LinearVar> histo_GL(var_GL.get());
         Histo<CountStats::LinearVar> histo_AZ(var_AZ.get());
         Histo<CountStats::LinearVar> histo_LA(var_LA.get());
         Histo<CountStats::LinearVar> histo_SA(var_SA.get());
@@ -492,6 +493,9 @@ int main(int argc, char ** argv) {
                                         data[k].eta.getRef()*nominal_eta_GB/eta,
                                         orsa::square(eta/(nominal_eta_GB*data[k].sigmaEta.getRef())));
                     }
+                    histo_GL.insert(data[k].GL.getRef(),
+                                    data[k].eta.getRef()/eta,
+                                    orsa::square(eta/(data[k].sigmaEta.getRef())));
                     histo_AZ.insert(data[k].AZ.getRef(),
                                     data[k].eta.getRef()/eta,
                                     orsa::square(eta/(data[k].sigmaEta.getRef())));
@@ -510,71 +514,6 @@ int main(int argc, char ** argv) {
         }
         
         // now the histo_* containers are ready to be used for plotting
-    
-        /* {
-           char filename[1024];
-           sprintf(filename,"%s.histo.V.dat",basename.c_str());
-           FILE * fp = fopen(filename,"w");
-           Histo<CountStats::LinearVar>::HistoDataType::const_iterator it = histo_V.getData().begin();
-           while (it != histo_V.getData().end()) {
-           if ((*it)->standardDeviation()==0.0) {
-           // ORSA_DEBUG("--SKIPPING--");
-           ++it;
-           continue;
-           }
-           fprintf(fp,"%g %g %g\n",
-           (*it)->center,
-           (*it)->average(),
-           (*it)->standardDeviation());
-           ++it;
-           }
-           fclose(fp);
-           }
-        */
-        
-        /* 
-           {
-           char filename[1024];
-           sprintf(filename,"%s.histo.U.dat",basename.c_str());
-           FILE * fp = fopen(filename,"w");
-           Histo<CountStats::LinearVar>::HistoDataType::const_iterator it = histo_U.getData().begin();
-           while (it != histo_U.getData().end()) {
-           if ((*it)->standardDeviation()==0.0) {
-           // ORSA_DEBUG("--SKIPPING--");
-           ++it;
-           continue;
-           }
-           fprintf(fp,"%g %g %g\n",
-           orsa::FromUnits((*it)->center*orsa::radToArcsec(),orsa::Unit::HOUR), // arcsec/hour
-           (*it)->average(),
-           (*it)->standardDeviation());
-           ++it;
-           }
-           fclose(fp);
-           }
-        */
-
-        /* 
-           {
-           char filename[1024];
-           sprintf(filename,"%s.histo.GB.dat",basename.c_str());
-           FILE * fp = fopen(filename,"w");
-           Histo<CountStats::LinearVar>::HistoDataType::const_iterator it = histo_GB.getData().begin();
-           while (it != histo_GB.getData().end()) {
-           if ((*it)->standardDeviation()==0.0) {
-           // ORSA_DEBUG("--SKIPPING--");
-           ++it;
-           continue;
-           }
-           fprintf(fp,"%g %g %g\n",
-           orsa::radToDeg()*(*it)->center,
-           (*it)->average(),
-           (*it)->standardDeviation());
-           ++it;
-           }
-           fclose(fp);
-           }
-        */
         
         {
             char filename[1024];
@@ -833,11 +772,19 @@ int main(int argc, char ** argv) {
         
         ny += ly;
         
+        /* PlotUtil((&PlotUtil_fun_one),
+           histo_LP,
+           orsa::radToDeg(),
+           nx,ny,px,py,
+           0,180,30,0,3,"lunar phase [deg]",
+           etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+        */
+        //
         PlotUtil((&PlotUtil_fun_one),
-                 histo_LP,
+                 histo_GL,
                  orsa::radToDeg(),
                  nx,ny,px,py,
-                 0,180,30,0,3,"lunar phase [deg]",
+                 0,360,30,0,3,"galactic longitude [deg]",
                  etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
         ny += ly;
