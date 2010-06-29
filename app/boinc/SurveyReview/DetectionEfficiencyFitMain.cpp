@@ -369,8 +369,8 @@ int main(int argc, char ** argv) {
     osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
     //
     etaFit->maxIter=16;
-    etaFit->epsabs=1.0e-6;
-    etaFit->epsrel=1.0e-6;
+    etaFit->epsabs=1.0e-3;
+    etaFit->epsrel=1.0e-3;
     
     // multifit parameters  
     osg::ref_ptr<orsa::MultifitParameters> par = new orsa::MultifitParameters;
@@ -382,23 +382,22 @@ int main(int argc, char ** argv) {
         char varName[1024];
         for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
             // V pars
-            sprintf(varName,"V_limit_%06i",fileID); par->insert(varName, 19.00, 0.000001);
-            sprintf(varName, "eta0_V_%06i",fileID); par->insert(varName,  1.00, 0.000001);
-            sprintf(varName,    "c_V_%06i",fileID); par->insert(varName,  0.00, 0.000001);
-            sprintf(varName,    "w_V_%06i",fileID); par->insert(varName,  1.00, 0.000001);
+            sprintf(varName,"V_limit_%06i",fileID); par->insert(varName, 19.00, 0.0000001);
+            sprintf(varName, "eta0_V_%06i",fileID); par->insert(varName,  1.00, 0.0000001);
+            sprintf(varName,    "c_V_%06i",fileID); par->insert(varName,  0.00, 0.0000001);
+            sprintf(varName,    "w_V_%06i",fileID); par->insert(varName,  1.00, 0.0000001);
             // U pars
-            sprintf(varName,"U_limit_%06i",fileID); par->insert(varName, initial_U_limit, 0.000001*initial_U_limit);
-            sprintf(varName,    "w_U_%06i",fileID); par->insert(varName,     initial_w_U, 0.000001*initial_w_U); 
+            sprintf(varName,"U_limit_%06i",fileID); par->insert(varName, initial_U_limit, 0.0000001*initial_U_limit);
+            sprintf(varName,    "w_U_%06i",fileID); par->insert(varName,     initial_w_U, 0.0000001*initial_w_U); 
         }
         // AM
-        // par->insert("c_AM",    0.00, 0.000001); 
-        par->insert("peak_AM", 1.00, 0.000001);
-        par->insert("scale_AM",1.00,0.000001);
-        par->insert("shape_AM",0.00, 0.000001);
+        par->insert("peak_AM", 1.00, 0.0000001);
+        par->insert("scale_AM",1.00, 0.0000001);
+        par->insert("shape_AM",0.10, 0.0000001);
         // GB
-        par->insert("drop_GB", 0.00, 0.000001);
-        par->insert("scale_GB",25.6*orsa::degToRad(), 0.000001); // rad
-        par->insert("center_GB",0.0*orsa::degToRad(), 0.000001); // rad
+        par->insert("drop_GB",   0.30, 0.0000001);
+        par->insert("scale_GB", 20.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
+        par->insert("center_GB", 1.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
         // mixing angle
         // par->insert("beta",     0.0, 0.000001);
         // Galactic latitude
@@ -490,8 +489,9 @@ int main(int argc, char ** argv) {
             sprintf(varName,"U_limit_%06i",fileID); par->set(varName,fabs(par->get(varName)));
             // w_U
         }
-        // par->setRangeMin("c_AM",0.0);
         par->setRangeMin("peak_AM",1.0);
+        par->set("shape_AM",fabs(par->get("shape_AM")));
+        //
         par->setRange("drop_GB",0.0,1.0);
         par->set("scale_GB",fabs(par->get("scale_GB")));
         par->setRangeMin("scale_GB",0.0);
@@ -516,7 +516,7 @@ int main(int argc, char ** argv) {
                         fitFilename,
                         basename,
                         obsCodeFile.get(),
-                        false);
+                        true);
             exit(0);
         }
     }
@@ -540,7 +540,7 @@ int main(int argc, char ** argv) {
                     fitFilename,
                     basename,
                     obsCodeFile.get(),
-                    false);
+                    true);
         exit(0);
     } 
     
