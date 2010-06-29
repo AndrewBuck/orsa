@@ -452,7 +452,7 @@ int main(int argc, char ** argv) {
                               fitFilename,
                               basename,
                               obsCodeFile.get(),
-                              true); 
+                              false); 
         /* if ( (success || (etaFit->getIter() == etaFit->maxIter)) &&
            (par->get("c_V") >= 0.0) ) {
            break;
@@ -504,7 +504,7 @@ int main(int argc, char ** argv) {
                               fitFilename,
                               basename,
                               obsCodeFile.get(),
-                              true);
+                              false);
         
         if (success || (etaFit->getIter() == etaFit->maxIter)) {
             // deep copy
