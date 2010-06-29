@@ -427,7 +427,12 @@ double SkyCoverage::nominal_eta_AM(const double & AM,
                                    const double & scale_AM,
                                    const double & shape_AM) {
     // double retVal = (1.0-c_AM*(AM-1.0));
-    double retVal = 1.0+shape_AM-sqrt(orsa::square((AM-peak_AM)/scale_AM)+orsa::square(shape_AM));
+    double retVal;
+    if (AM<peak_AM) {
+        retVal = 1.0;
+    } else {
+        retVal = 1.0+fabs(shape_AM)-sqrt(orsa::square((AM-peak_AM)/scale_AM)+orsa::square(shape_AM));
+    }
     if (retVal < 0.0) retVal=0.0;
     if (retVal > 1.0) retVal=1.0;
     // ORSA_DEBUG("AM: %g  c_AM: %g  retVal: %g",AM,c_AM,retVal);
