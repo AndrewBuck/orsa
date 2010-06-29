@@ -155,7 +155,8 @@ public:
     double eta(const double & V,
                const double & U,
                const double & AM,
-               const double & GB) const;
+               const double & GB,
+               const double & GL) const;
     
 public:
     static double eta(const double & V,
@@ -174,7 +175,10 @@ public:
                       const double & GB,
                       const double & drop_GB,
                       const double & scale_GB,
-                      const double & center_GB);
+                      const double & center_GB,
+                      const double & GL,
+                      const double & scale_GL,
+                      const double & shape_GL);
 public:
     // nominal eta values, mostly for plotting purposes, no mixing angle
     static double nominal_eta_V(const double & V,
@@ -190,10 +194,13 @@ public:
                                  const double & peak_AM,
                                  const double & scale_AM,
                                  const double & shape_AM);
-    static double nominal_eta_GB(const double & GB,
-                                 const double & drop_GB,
-                                 const double & scale_GB,
-                                 const double & center_GB);
+    static double nominal_eta_GB_GL(const double & GB,
+                                    const double & drop_GB,
+                                    const double & scale_GB,
+                                    const double & center_GB,
+                                    const double & GL,
+                                    const double & scale_GL,
+                                    const double & shape_GL);
 public:
     // coefficients for efficiency as function of apparent magnitude V
     orsa::Cache<double> V_limit, eta0_V, V0, c_V, w_V;
@@ -203,6 +210,7 @@ public:
     orsa::Cache<double> peak_AM, scale_AM, shape_AM;
     //
     orsa::Cache<double> drop_GB, scale_GB, center_GB;
+    orsa::Cache<double> scale_GL, shape_GL;
     
 public:
     // return filename, stripping path and suffix (after first dot)

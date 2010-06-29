@@ -173,7 +173,8 @@ int main() {
         double V_limit, eta0_V, c_V, w_V;
         double U_limit, w_U;
         double peak_AM, scale_AM, shape_AM;
-        double drop_GB, scale_GB;
+        double drop_GB, scale_GB, center_GB;
+        double scale_GL, shape_GL;
         double chisq_dof;
         unsigned int Nobs, Ndsc, Ntot;
         double degSq;
@@ -193,9 +194,9 @@ int main() {
         while (fgets(line,1024,fp)) {
             if (line[0]=='#') continue; // comment
             // UPDATE THIS NUMBER
-            if (20 == sscanf(line,
+            if (23 == sscanf(line,
                              // "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
                              &JD,
                              &year,
                              &V_limit,
@@ -209,6 +210,9 @@ int main() {
                              &shape_AM,
                              &drop_GB,
                              &scale_GB,
+                             &center_GB,
+                             &scale_GL,
+                             &shape_GL,
                              &chisq_dof,
                              &Nobs,
                              &Ndsc,
@@ -220,6 +224,8 @@ int main() {
                 U_limit   = orsa::FromUnits(U_limit*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
                 w_U       = orsa::FromUnits(    w_U*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
                 scale_GB  = orsa::degToRad()*scale_GB;
+                center_GB = orsa::degToRad()*center_GB;
+                scale_GL  = orsa::degToRad()*scale_GL;
                 
                 std::string obsCode;
                 orsa::Time epoch;
@@ -252,9 +258,12 @@ int main() {
                 skyCoverage->scale_AM = scale_AM;
                 skyCoverage->shape_AM = shape_AM;
                 //
-                skyCoverage->drop_GB  = drop_GB;
-                skyCoverage->scale_GB = scale_GB;
-                
+                skyCoverage->drop_GB   = drop_GB;
+                skyCoverage->scale_GB  = scale_GB;
+                skyCoverage->center_GB = center_GB;
+                //
+                skyCoverage->scale_GL = scale_GL;
+                skyCoverage->shape_GL = shape_GL;
                 break;
             } else {
                 ORSA_DEBUG("empty fit.dat file");
@@ -781,7 +790,8 @@ int main() {
                                     // const double galacticLongitude = l;
                                     // const double galacticLatitude  = b;
                                     const double GB = b;
-
+                                    const double GL = l;
+                                    
                                     // total: size_H iterations
                                     for (int z_H=z_H_min; z_H<=z_H_max; z_H+=z_H_delta) {
                                         
@@ -797,7 +807,7 @@ int main() {
                                                                            orb2sun.length());
 
                                         // detection efficiency
-                                        const double eta = skyCoverage->eta(V,U,AM,GB);
+                                        const double eta = skyCoverage->eta(V,U,AM,GB,GL);
                                         
                                         if (boinc_is_standalone()) {
                                             ORSA_DEBUG("a: %f [AU] e: %f i: %f [deg] H: %f V: %f eta: %e",
@@ -809,14 +819,15 @@ int main() {
                                                        eta);
                                             
                                             // modified for best airmass
-                                            /* const double eta = skyCoverage->eta(V,U,1.0,GB);
-                                               ORSA_DEBUG("RA: %6.3f  DEC: %+7.3f  eta: %.3f  V: %.2f  U: %6.2f  GB: %+6.2g  orb2obs: %.2f  orb2sun: %.2f",
+                                            /* const double eta = skyCoverage->eta(V,U,1.0,GB,GL);
+                                               ORSA_DEBUG("RA: %6.3f  DEC: %+7.3f  eta: %.3f  V: %.2f  U: %6.2f  GB: %+6.2g  GL: %6.2f  orb2obs: %.2f  orb2sun: %.2f",
                                                orsa::radToDeg()*ra/15.0,
                                                orsa::radToDeg()*dec,
                                                eta,
                                                V,
                                                orsa::FromUnits(U*orsa::radToArcsec(),orsa::Unit::HOUR),
                                                GB*orsa::radToDeg(),
+                                               GL*orsa::radToDeg(),
                                                orsa::FromUnits(orb2obs.length(),orsa::Unit::AU,-1),
                                                orsa::FromUnits(orb2sun.length(),orsa::Unit::AU,-1));
                                             */

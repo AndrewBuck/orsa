@@ -11,6 +11,7 @@ public:
     double U_limit, w_U;
     double peak_AM, scale_AM, shape_AM;
     double drop_GB, scale_GB, center_GB;
+    double scale_GL, shape_GL;
     double chisq_dof;
     unsigned int Nobs, Ndsc, Ntot;
     double degSq;
@@ -153,10 +154,24 @@ double PlotUtil_fun_AM(const double AM,
 
 double PlotUtil_fun_GB(const double GB,
                        const FitFileDataElement & e) {
-    return SkyCoverage::nominal_eta_GB(GB,
-                                       e.drop_GB,
-                                       e.scale_GB,
-                                       e.center_GB);
+    return SkyCoverage::nominal_eta_GB_GL(GB,
+                                          e.drop_GB,
+                                          e.scale_GB,
+                                          e.center_GB,
+                                          0.0,
+                                          e.scale_GL,
+                                          0.0);
+}
+
+double PlotUtil_fun_GL(const double GL,
+                       const FitFileDataElement & e) {
+    return SkyCoverage::nominal_eta_GB_GL(0.0,
+                                          e.drop_GB,
+                                          e.scale_GB,
+                                          0.0,
+                                          GL,
+                                          e.scale_GL,
+                                          e.shape_GL);
 }
 
 double PlotUtil_fun_one(const double,
@@ -253,9 +268,9 @@ int main(int argc, char ** argv) {
         while (fgets(line,1024,fp)) {
             if (line[0]=='#') continue; // comment
             // UPDATE THIS NUMBER
-            if (21 == sscanf(line,
+            if (23 == sscanf(line,
                              // "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
                              &e.JD,
                              &e.year,
                              &e.V_limit,
@@ -270,6 +285,8 @@ int main(int argc, char ** argv) {
                              &e.drop_GB,
                              &e.scale_GB,
                              &e.center_GB,
+                             &e.scale_GL,
+                             &e.shape_GL,
                              &e.chisq_dof,
                              &e.Nobs,
                              &e.Ndsc,
@@ -282,7 +299,8 @@ int main(int argc, char ** argv) {
                 e.w_U       = orsa::FromUnits(    e.w_U*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
                 e.scale_GB  = orsa::degToRad()*e.scale_GB;
                 e.center_GB = orsa::degToRad()*e.center_GB;
-                // ORSA_DEBUG("year: %g  V_limit: %g  ID: %s",e.year,e.V_limit,e.jobID);
+                e.scale_GL  = orsa::degToRad()*e.scale_GL;
+                // 
                 ffd[fileID] = e;
                 break;
             } else {
@@ -485,7 +503,10 @@ int main(int argc, char ** argv) {
                                                     data[k].GB.getRef(),
                                                     e.drop_GB,
                                                     e.scale_GB,
-                                                    e.center_GB);
+                                                    e.center_GB,
+                                                    data[k].GL.getRef(),
+                                                    e.scale_GL,
+                                                    e.shape_GL);
                 
                 const double nominal_eta_V = SkyCoverage::nominal_eta_V(data[k].V.getRef(),
                                                                         e.V_limit,
@@ -503,10 +524,21 @@ int main(int argc, char ** argv) {
                                                                           e.scale_AM,
                                                                           e.shape_AM);
                 
-                const double nominal_eta_GB = SkyCoverage::nominal_eta_GB(data[k].GB.getRef(),
-                                                                          e.drop_GB,
-                                                                          e.scale_GB,
-                                                                          e.center_GB);
+                const double nominal_eta_GB = SkyCoverage::nominal_eta_GB_GL(data[k].GB.getRef(),
+                                                                             e.drop_GB,
+                                                                             e.scale_GB,
+                                                                             e.center_GB,
+                                                                             0.0,
+                                                                             e.scale_GL,
+                                                                             0.0);
+                
+                const double nominal_eta_GL = SkyCoverage::nominal_eta_GB_GL(0.0,
+                                                                             e.drop_GB,
+                                                                             e.scale_GB,
+                                                                             0.0,
+                                                                             data[k].GL.getRef(),
+                                                                             e.scale_GL,
+                                                                             e.shape_GL);
                 
                 // at this point, small sigmas can become very large because divided by a very small eta's
                 if (data[k].sigmaEta.getRef() > 0) {
@@ -537,9 +569,11 @@ int main(int argc, char ** argv) {
                                             data[k].eta.getRef()*nominal_eta_GB/eta,
                                             orsa::square(eta/(nominal_eta_GB*data[k].sigmaEta.getRef())));
                         }
-                        histo_GL.insert(data[k].GL.getRef(),
-                                        data[k].eta.getRef()/eta,
-                                        orsa::square(eta/(data[k].sigmaEta.getRef())));
+                        if (nominal_eta_GL != 0) {
+                            histo_GL.insert(data[k].GL.getRef(),
+                                            data[k].eta.getRef()*nominal_eta_GL/eta,
+                                            orsa::square(eta/(nominal_eta_GL*data[k].sigmaEta.getRef())));
+                        }
                         histo_AZ.insert(data[k].AZ.getRef(),
                                         data[k].eta.getRef()/eta,
                                         orsa::square(eta/(data[k].sigmaEta.getRef())));
@@ -824,7 +858,8 @@ int main(int argc, char ** argv) {
              etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
     ny += ly;
-        
+    
+#warning re-introduce the lunar phase plot somewhere else...
     /* PlotUtil((&PlotUtil_fun_one),
        ffd,
        histo_LP,
@@ -834,7 +869,16 @@ int main(int argc, char ** argv) {
        etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
     */
     //
-    PlotUtil((&PlotUtil_fun_one),
+    /* PlotUtil((&PlotUtil_fun_one),
+       ffd,
+       histo_GL,
+       orsa::radToDeg(),
+       nx,ny,px,py,
+       -180,180,60,0,3,"galactic longitude [deg]",
+       etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+    */
+    //
+    PlotUtil((&PlotUtil_fun_GL),
              ffd,
              histo_GL,
              orsa::radToDeg(),
