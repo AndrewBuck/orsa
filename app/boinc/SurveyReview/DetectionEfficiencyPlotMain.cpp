@@ -844,7 +844,7 @@ int main(int argc, char ** argv) {
              histo_U,
              orsa::FromUnits(orsa::radToArcsec(),orsa::Unit::HOUR),
              nx,ny,px,py,
-             0,50,10,0,1,"apparent velocity [arcsec/hour]",
+             0,30,5,0,1,"apparent velocity [arcsec/hour]",
              etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
     ny += ly;
