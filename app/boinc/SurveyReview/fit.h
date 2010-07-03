@@ -5,13 +5,16 @@
 #include <orsa/statistic.h>
 #include <orsa/unit.h>
 
+// only when debugging...
+#include <orsa/crash.h>
+
 // CountStats::LinearVar ranges
-const double start_V  =   16.0;
-const double  stop_V  =   24.0;
-const double  step_V  =    0.5;
+const double start_V  =   16.00;
+const double  stop_V  =   24.00;
+const double  step_V  =    0.25;
 const double start_U  = orsa::FromUnits( 0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-const double  stop_U  = orsa::FromUnits(50.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-const double  step_U  = orsa::FromUnits( 2.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+const double  stop_U  = orsa::FromUnits(30.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+const double  step_U  = orsa::FromUnits( 1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
 const double start_SE =    0.0*orsa::degToRad();
 const double  stop_SE =  180.0*orsa::degToRad();
 const double  step_SE =   10.0*orsa::degToRad();
@@ -26,7 +29,7 @@ const double  stop_GL =  180.0*orsa::degToRad();
 const double  step_GL =   10.0*orsa::degToRad();
 const double start_GB =  -90.0*orsa::degToRad();
 const double  stop_GB =   90.0*orsa::degToRad();
-const double  step_GB =   10.0*orsa::degToRad();
+const double  step_GB =    5.0*orsa::degToRad();
 const double start_AZ =    0.0*orsa::degToRad();
 const double  stop_AZ =  360.0*orsa::degToRad();
 const double  step_AZ =   20.0*orsa::degToRad();
@@ -105,9 +108,10 @@ public:
             return (size_t)ceil((stop-start)/incr);
         }
         size_t bin(const double x) const {
-            if (x<start) return -1;
-            if (x>stop)  return -1;
-            return (size_t)((x-start)/incr);
+            const size_t retVal = (size_t)((x-start)/incr);
+            // the correct check follows; think twice before changing it!
+            if (retVal>=size()) return ((size_t)-1);
+            return retVal;
         }
         double binStart(const size_t bin) const {
             return (start+bin*incr);
@@ -134,9 +138,10 @@ public:
             return (size_t)ceil(log(stop/start)/log(factor));
         }
         size_t bin(const double x) const {
-            if (x<start) return -1;
-            if (x>stop)  return -1;
-            return (size_t)(log(x/start)/log(factor));
+            const size_t retVal = (size_t)(log(x/start)/log(factor));
+            // the correct check follows; think twice before changing it!
+            if (retVal>=size()) return ((size_t)-1);
+            return retVal;
         }
         double binStart(const size_t bin) const {
             return (start*orsa::int_pow(factor,bin));
@@ -163,10 +168,14 @@ protected:
 public:
     bool bin(std::vector<size_t> & binVector,
              const std::vector<double> & xVector) const {
-        binVector.resize(xVector.size());
-        for (unsigned int k=0; k<xVector.size(); ++k) {
+        if (xVector.size() != var.size()) {
+            ORSA_DEBUG("dimension mismatch");
+            return false;
+        }
+        binVector.resize(var.size());
+        for (unsigned int k=0; k<var.size(); ++k) {
             binVector[k] = var[k]->bin(xVector[k]);
-            if (binVector[k] == (size_t)-1) {
+            if (binVector[k] == ((size_t)-1)) {
                 // out of boundaries
                 return false;
             }	
@@ -253,15 +262,65 @@ public:
         std::vector<size_t> binVector;
         if (!bin(binVector,xVector)) {
             return false;
-        }   
+        }
         const mpz_class idx = index(binVector);
         if (data[idx].get()==0) {
             // lazy allocation
             data[idx] = new CountStatsElement;
         }
+
+        /* 
+           {
+           // check!
+           std::vector<size_t> check_binVector = bin(idx);
+           const mpz_class     check_idx       = index(check_binVector);
+           if ( (idx != check_idx) ||
+           (binVector != check_binVector) ) {
+           ORSA_DEBUG("problems!!");
+           ORSA_DEBUG("idx: %Zi    check_idx: %Zi    delta: %Zi",
+           idx.get_mpz_t(),check_idx.get_mpz_t(),mpz_class(idx-check_idx).get_mpz_t());
+           for (unsigned int k=0; k<binVector.size(); ++k) {
+           ORSA_DEBUG("binVector[%2i]: %2i   check_binVector[%2i]: %2i   delta[%2i]: %3i    varSize: %i",
+           k,binVector[k],
+           k,check_binVector[k],
+           k,binVector[k]-check_binVector[k],
+           var[k]->size());
+           }
+           for (unsigned int k=0; k<xVector.size(); ++k) {
+           ORSA_DEBUG("xVector[%i]: %10.3e   ---> %10.3e [arcsec/hour] (where applicable)    (x-30): %g",
+           k,xVector[k],
+           orsa::FromUnits(xVector[k]*orsa::radToArcsec(),orsa::Unit::HOUR),
+           orsa::FromUnits(xVector[k]*orsa::radToArcsec(),orsa::Unit::HOUR)-30.0);
+           }
+           orsa::crash();
+           }
+           }
+        */
+        
+        /*
+        // debug: save old values
+        osg::ref_ptr<CountStatsElement> old_CSE = new CountStatsElement;
+        // deep copy
+        (*old_CSE) = (*data[idx]);
+        */
+        
         data[idx]->Ntot++;
         if (obs) data[idx]->Nobs++;
         if (dsc) data[idx]->Ndsc++;
+        
+        /* 
+           if (idx == mpz_class("153924689949131")) {
+           // check before leaving
+           ORSA_DEBUG("obs: %i  Ntot: %i -> %i   Nobs: %i -> %i   index: %Zi [binVector[1]=%i] size: %i ******************",
+           obs,
+           old_CSE->Ntot,data[idx]->Ntot,
+           old_CSE->Nobs,data[idx]->Nobs,
+           idx.get_mpz_t(),
+           binVector[1],
+           data.size());
+           }
+        */
+        
         return true; 
     }
 };
@@ -270,29 +329,22 @@ template <class T> class Histo : public T {
 public:
     Histo(const T * orig) : T(*orig) {
         histo.resize(T::size());
-        for (unsigned int k=0; k< histo.size(); ++k) {
+        for (unsigned int k=0; k<histo.size(); ++k) {
             histo[k] = new EfficiencyStatistics(T::binCenter(k));
         }
     }
-public:
-    /* Histo(const Histo & h) : T(h) {
-       histo.resize(h.size);
-       for (unsigned int k=0; k< h.size(); ++k) {
-       histo[k] = new EfficiencyStatistics(h.binCenter(k));
-       }
-       }
-    */
 public:
     bool insert(const double x,
                 const double val,
                 const double sigma) {
         const size_t histo_bin = T::bin(x);
-        if (histo_bin == (size_t)-1) {
+        if (histo_bin == ((size_t)-1)) {
             // out of boundaries
             return false;
+        } else {
+            histo[histo_bin]->insert(val,sigma);
+            return true;
         }
-        histo[histo_bin]->insert(val,sigma);
-        return true;
     }
 public:
     typedef std::vector< osg::ref_ptr< EfficiencyStatistics > > HistoDataType;
