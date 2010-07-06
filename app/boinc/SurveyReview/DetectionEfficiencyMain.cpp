@@ -520,6 +520,7 @@ int main(int argc, char ** argv) {
     orbitFile->obsFile = obsFile.get();
     orbitFile->setFileName("MPCORB.DAT");
     orbitFile->read();
+#warning double-check if all the members of NEA.DAT are already included in MPCORB.DAT
     orbitFile->setFileName("NEA.DAT");
     orbitFile->read();
     ORSA_DEBUG("selected orbits: %i   observed: %i",
@@ -765,41 +766,11 @@ int main(int argc, char ** argv) {
         ed.discovered = discovered;
         etaData.push_back(ed);
     }
-    //
+    //    
     {
         char filename[1024];
         sprintf(filename,"%s.allEta.dat",basename.c_str());
-        ORSA_DEBUG("writing file: [%s]",filename);
-        FILE * fp_allEta = fopen(filename,"w");
-        for (unsigned int k=0; k<etaData.size(); ++k) {
-            const EfficiencyData & ed = etaData[k];
-            char id[1024];
-            if (ed.number.isSet()) {
-                sprintf(id,"%i",ed.number.getRef());
-            } else if (ed.designation.isSet()) {
-                sprintf(id,"%s",ed.designation.getRef().c_str());
-            }
-            fprintf(fp_allEta,
-                    "%5.2f %7s %5.2f %7.2f %6.2f %6.2f %+7.2f %+7.2f %6.2f %6.3f %5.1f %+8.3f %+7.3f %5.2f %1i %1i %1i\n",
-                    ed.H.getRef(),
-                    id,
-                    ed.V.getRef(),
-                    orsa::FromUnits(ed.apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR), // arcsec/hour
-                    orsa::radToDeg()*ed.solarElongation.getRef(),
-                    orsa::radToDeg()*ed.lunarElongation.getRef(),
-                    orsa::radToDeg()*ed.solarAltitude.getRef(),
-                    orsa::radToDeg()*ed.lunarAltitude.getRef(),
-                    orsa::radToDeg()*ed.lunarPhase.getRef(),
-                    ed.airMass.getRef(),
-                    orsa::radToDeg()*ed.azimuth.getRef(),
-                    orsa::radToDeg()*ed.galacticLongitude.getRef(),
-                    orsa::radToDeg()*ed.galacticLatitude.getRef(),
-                    orsa::FromUnits(ed.activeTime.getRef(),orsa::Unit::HOUR,-1), 
-                    ed.epochFromField.getRef(),
-                    ed.observed.getRef(),
-                    ed.discovered.getRef());
-        }
-        fclose(fp_allEta);
+        writeEfficiencyDataFile(etaData,filename);
     }
   
     return 0;

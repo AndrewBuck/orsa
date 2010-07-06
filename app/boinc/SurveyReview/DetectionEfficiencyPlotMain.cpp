@@ -321,88 +321,10 @@ int main(int argc, char ** argv) {
         
         std::vector<EfficiencyData> etaData;
         
-        {
-            FILE * fp = fopen(argv[2*fileID+1],"r");
-            
-            if (!fp) {
-                ORSA_DEBUG("cannot open file [%s]",argv[2*fileID+1]);
-                exit(0);
-            }
-            
-            char line[1024];
-            double H, V, apparentVelocity;
-            double solarElongation, lunarElongation;
-            double solarAltitude, lunarAltitude;
-            double lunarPhase;
-            double airMass, azimuth;
-            double galacticLongitude, galacticLatitude;
-            double activeTime;
-            char id[1024];
-            int epochFromField;
-            int observed;
-            int discovered;
-            while (fgets(line,1024,fp)) {
-                sscanf(line,"%lf %s %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %i %i %i",
-                       &H,
-                       id,
-                       &V,
-                       &apparentVelocity,
-                       &solarElongation,
-                       &lunarElongation,
-                       &solarAltitude,
-                       &lunarAltitude,
-                       &lunarPhase,
-                       &airMass,
-                       &azimuth,
-                       &galacticLongitude,
-                       &galacticLatitude,
-                       &activeTime,
-                       &epochFromField,
-                       &observed,
-                       &discovered);
-                // convert
-                apparentVelocity  = orsa::FromUnits(apparentVelocity*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-                solarElongation   = orsa::degToRad()*solarElongation;
-                lunarElongation   = orsa::degToRad()*lunarElongation;
-                solarAltitude     = orsa::degToRad()*solarAltitude;
-                lunarAltitude     = orsa::degToRad()*lunarAltitude;
-                lunarPhase        = orsa::degToRad()*lunarPhase;
-                azimuth           = orsa::degToRad()*azimuth;
-                galacticLongitude = orsa::degToRad()*galacticLongitude;
-                galacticLatitude  = orsa::degToRad()*galacticLatitude;
-                activeTime        = orsa::FromUnits(activeTime,orsa::Unit::HOUR);
-                //
-                EfficiencyData ed;
-                ed.H=H;
-                if (atoi(id) != 0) {
-                    ed.number = atoi(id);
-                } else {
-                    ed.designation = id;
-                }
-                ed.V = V;
-                ed.apparentVelocity  = apparentVelocity;
-                ed.solarElongation   = solarElongation;
-                ed.lunarElongation   = lunarElongation;
-                ed.solarAltitude     = solarAltitude;
-                ed.lunarAltitude     = lunarAltitude;
-                ed.lunarPhase        = lunarPhase;
-                ed.airMass           = airMass;
-                ed.azimuth           = azimuth;
-                ed.galacticLongitude = galacticLongitude;
-                ed.galacticLatitude  = galacticLatitude;
-                ed.activeTime        = activeTime;
-                ed.epochFromField    = (epochFromField==1);
-                ed.observed          = (observed==1);
-                ed.discovered        = (discovered==1);
-                //
-                etaData.push_back(ed);
-            }
-            
-            fclose(fp);
-            
-            ORSA_DEBUG("etaData.size(): %i",etaData.size());
-        }
-
+        readEfficiencyDataFile(etaData,argv[2*fileID+1]);
+        
+        ORSA_DEBUG("etaData.size(): %i",etaData.size());
+        
         osg::ref_ptr<CountStats> countStats = 
             new CountStats(varDefinition);
         

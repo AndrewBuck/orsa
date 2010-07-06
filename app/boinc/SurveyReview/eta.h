@@ -25,6 +25,119 @@ public:
     orsa::Cache<bool>   discovered;
 };
 
+void writeEfficiencyDataFile(const std::vector<EfficiencyData> & etaData,
+                             const std::string & filename) {
+    ORSA_DEBUG("writing file: [%s]",filename.c_str());
+    FILE * fp_allEta = fopen(filename.c_str(),"w");
+    for (unsigned int k=0; k<etaData.size(); ++k) {
+        const EfficiencyData & ed = etaData[k];
+        char id[1024];
+        if (ed.number.isSet()) {
+            sprintf(id,"%i",ed.number.getRef());
+        } else if (ed.designation.isSet()) {
+            sprintf(id,"%s",ed.designation.getRef().c_str());
+        }
+        fprintf(fp_allEta,
+                "%5.2f %7s %5.2f %7.2f %6.2f %6.2f %+7.2f %+7.2f %6.2f %6.3f %5.1f %+8.3f %+7.3f %5.2f %1i %1i %1i\n",
+                ed.H.getRef(),
+                id,
+                ed.V.getRef(),
+                orsa::FromUnits(ed.apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR), // arcsec/hour
+                orsa::radToDeg()*ed.solarElongation.getRef(),
+                orsa::radToDeg()*ed.lunarElongation.getRef(),
+                orsa::radToDeg()*ed.solarAltitude.getRef(),
+                orsa::radToDeg()*ed.lunarAltitude.getRef(),
+                orsa::radToDeg()*ed.lunarPhase.getRef(),
+                ed.airMass.getRef(),
+                orsa::radToDeg()*ed.azimuth.getRef(),
+                orsa::radToDeg()*ed.galacticLongitude.getRef(),
+                orsa::radToDeg()*ed.galacticLatitude.getRef(),
+                orsa::FromUnits(ed.activeTime.getRef(),orsa::Unit::HOUR,-1), 
+                ed.epochFromField.getRef(),
+                ed.observed.getRef(),
+                ed.discovered.getRef());
+    }
+    fclose(fp_allEta);
+}
+
+void readEfficiencyDataFile(std::vector<EfficiencyData> & etaData,
+                            const std::string & filename) {
+    FILE * fp = fopen(filename.c_str(),"r");
+    if (!fp) {
+        ORSA_DEBUG("cannot open file [%s]",filename.c_str());
+        exit(0);
+    }
+    char line[1024];
+    double H, V, apparentVelocity;
+    double solarElongation, lunarElongation;
+    double solarAltitude, lunarAltitude;
+    double lunarPhase;
+    double airMass, azimuth;
+    double galacticLongitude, galacticLatitude;
+    double activeTime;
+    char id[1024];
+    int epochFromField;
+    int observed;
+    int discovered;
+    while (fgets(line,1024,fp)) {
+        sscanf(line,"%lf %s %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %i %i %i",
+               &H,
+               id,
+               &V,
+               &apparentVelocity,
+               &solarElongation,
+               &lunarElongation,
+               &solarAltitude,
+               &lunarAltitude,
+               &lunarPhase,
+               &airMass,
+               &azimuth,
+               &galacticLongitude,
+               &galacticLatitude,
+               &activeTime,
+               &epochFromField,
+               &observed,
+               &discovered);
+        // convert
+        apparentVelocity  = orsa::FromUnits(apparentVelocity*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+        solarElongation   = orsa::degToRad()*solarElongation;
+        lunarElongation   = orsa::degToRad()*lunarElongation;
+        solarAltitude     = orsa::degToRad()*solarAltitude;
+        lunarAltitude     = orsa::degToRad()*lunarAltitude;
+        lunarPhase        = orsa::degToRad()*lunarPhase;
+        azimuth           = orsa::degToRad()*azimuth;
+        galacticLongitude = orsa::degToRad()*galacticLongitude;
+        galacticLatitude  = orsa::degToRad()*galacticLatitude;
+        activeTime        = orsa::FromUnits(activeTime,orsa::Unit::HOUR);
+        //
+        EfficiencyData ed;
+        ed.H=H;
+        if (atoi(id) != 0) {
+            ed.number = atoi(id);
+        } else {
+            ed.designation = id;
+        }
+        ed.V = V;
+        ed.apparentVelocity  = apparentVelocity;
+        ed.solarElongation   = solarElongation;
+        ed.lunarElongation   = lunarElongation;
+        ed.solarAltitude     = solarAltitude;
+        ed.lunarAltitude     = lunarAltitude;
+        ed.lunarPhase        = lunarPhase;
+        ed.airMass           = airMass;
+        ed.azimuth           = azimuth;
+        ed.galacticLongitude = galacticLongitude;
+        ed.galacticLatitude  = galacticLatitude;
+        ed.activeTime        = activeTime;
+        ed.epochFromField    = (epochFromField==1);
+        ed.observed          = (observed==1);
+        ed.discovered        = (discovered==1);
+        //
+        etaData.push_back(ed);
+    }
+    fclose(fp);
+}
+
 class EfficiencyMultifit : public orsa::Multifit {
 public:
     class DataElement {

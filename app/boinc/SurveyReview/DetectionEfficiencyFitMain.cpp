@@ -24,81 +24,8 @@ int main(int argc, char ** argv) {
         
         basename[fileID] = SkyCoverage::basename(argv[fileID+1]);
         
-        FILE * fp = fopen(argv[fileID+1],"r");
-        if (!fp) {
-            ORSA_DEBUG("cannot open file [%s]",argv[fileID+1]);
-            exit(0);
-        }
-        char line[1024];
-        double H, V, apparentVelocity;
-        double solarElongation, lunarElongation;
-        double solarAltitude, lunarAltitude;
-        double lunarPhase;
-        double airMass, azimuth;
-        double galacticLongitude, galacticLatitude;
-        double activeTime;
-        char id[1024];
-        int epochFromField;
-        int observed;
-        int discovered;
-        while (fgets(line,1024,fp)) {
-            sscanf(line,"%lf %s %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %i %i %i",
-                   &H,
-                   id,
-                   &V,
-                   &apparentVelocity,
-                   &solarElongation,
-                   &lunarElongation,
-                   &solarAltitude,
-                   &lunarAltitude,
-                   &lunarPhase,
-                   &airMass,
-                   &azimuth,
-                   &galacticLongitude,
-                   &galacticLatitude,
-                   &activeTime,
-                   &epochFromField,
-                   &observed,
-                   &discovered);
-            // convert
-            apparentVelocity  = orsa::FromUnits(apparentVelocity*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-            solarElongation   = orsa::degToRad()*solarElongation;
-            lunarElongation   = orsa::degToRad()*lunarElongation;
-            solarAltitude     = orsa::degToRad()*solarAltitude;
-            lunarAltitude     = orsa::degToRad()*lunarAltitude;
-            lunarPhase        = orsa::degToRad()*lunarPhase;
-            azimuth           = orsa::degToRad()*azimuth;
-            galacticLongitude = orsa::degToRad()*galacticLongitude;
-            galacticLatitude  = orsa::degToRad()*galacticLatitude;
-            activeTime        = orsa::FromUnits(activeTime,orsa::Unit::HOUR);
-            //
-            EfficiencyData ed;
-            ed.H=H;
-            if (atoi(id) != 0) {
-                ed.number = atoi(id);
-            } else {
-                ed.designation = id;
-            }
-            ed.V = V;
-            ed.apparentVelocity  = apparentVelocity;
-            ed.solarElongation   = solarElongation;
-            ed.lunarElongation   = lunarElongation;
-            ed.solarAltitude     = solarAltitude;
-            ed.lunarAltitude     = lunarAltitude;
-            ed.lunarPhase        = lunarPhase;
-            ed.airMass           = airMass;
-            ed.azimuth           = azimuth;
-            ed.galacticLongitude = galacticLongitude;
-            ed.galacticLatitude  = galacticLatitude;
-            ed.activeTime        = activeTime;
-            ed.epochFromField    = (epochFromField==1);
-            ed.observed          = (observed==1);
-            ed.discovered        = (discovered==1);
-            //
-            etaData[fileID].push_back(ed);
-        }
-        
-        fclose(fp);
+        readEfficiencyDataFile(etaData[fileID],
+                               argv[fileID+1]);
         
         ORSA_DEBUG("etaData[%06i].size(): %i",fileID,etaData[fileID].size());
     }
@@ -396,19 +323,59 @@ int main(int argc, char ** argv) {
             // U pars
             sprintf(varName,"U_limit_%06i",fileID); par->insert(varName, initial_U_limit, 0.0000001*initial_U_limit);
             sprintf(varName,    "w_U_%06i",fileID); par->insert(varName,     initial_w_U, 0.0000001*initial_w_U); 
+            
+            // hard limits
+            // sprintf(varName, "eta0_V_%06i",fileID); par->setRange(varName, 0.00, 1.00);
+            // sprintf(varName,    "c_V_%06i",fileID); par->setRangeMin(varName, 0.00);
+            
+            /* 
+               {
+               // test: neutral V,U,
+               sprintf(varName,"V_limit_%06i",fileID); par->set(varName, 30.00); par->setFixed(varName,true);
+               sprintf(varName, "eta0_V_%06i",fileID); par->set(varName,  1.00); par->setFixed(varName,true);
+               sprintf(varName,    "c_V_%06i",fileID); par->set(varName,  0.00); par->setFixed(varName,true);
+               sprintf(varName,    "w_V_%06i",fileID); par->set(varName,  0.01); par->setFixed(varName,true);
+               //
+               sprintf(varName,    "w_U_%06i",fileID); par->set(varName, orsa::FromUnits( 0.01*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)); par->setFixed(varName,true);
+               sprintf(varName,"U_limit_%06i",fileID); par->set(varName, orsa::FromUnits( 0.01*orsa::arcsecToRad(),orsa::Unit::HOUR,-1)); par->setFixed(varName,true);
+               }
+            */
         }
+        
         // AM
         par->insert("peak_AM", 1.00, 0.0000001);
         par->insert("scale_AM",1.00, 0.0000001);
         par->insert("shape_AM",0.10, 0.0000001);
         // GB
-        par->insert("drop_GB",   0.00, 0.0000001);
-        par->insert("scale_GB", 10.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
+        par->insert("drop_GB",   0.20, 0.0000001);
+        par->insert("scale_GB", 50.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
         par->insert("center_GB", 0.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
         // GL
-        par->insert("scale_GL", 10.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
+        par->insert("scale_GL",100.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
         par->insert("shape_GL",  0.1, 0.0000001);
-        //
+        
+        // hard limits
+        par->setRange("drop_GB",
+                      0.01,
+                      1.00);
+        par->setRange("scale_GB",
+                      05.0*orsa::degToRad(),
+                      50.0*orsa::degToRad());
+        par->setRange("center_GB",
+                      -7.0*orsa::degToRad(),
+                      +7.0*orsa::degToRad());
+        par->setFixed("center_GB",true);
+        // par->setFixed("shape_GL",true);
+        
+        /* 
+           {
+           // test: neutral AM
+           par->set("peak_AM", 100.00); par->setFixed("peak_AM", true);
+           par->set("scale_AM",100.00); par->setFixed("scale_AM",true);
+           par->set("shape_AM",  0.00); par->setFixed("shape_AM",true);
+           }
+        */
+        
         // mixing angle
         // par->insert("beta",     0.0, 0.000001);
         // Galactic latitude
