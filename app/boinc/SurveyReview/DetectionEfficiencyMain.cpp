@@ -736,7 +736,17 @@ int main(int argc, char ** argv) {
         if (l > orsa::pi()) l -= orsa::twopi();
         const double galacticLongitude = l;
         const double galacticLatitude  = b;
-    
+        // ecliptic coordinates
+        const orsa::Vector dr = obs2orb.normalized();
+        const double phi      = fmod(atan2(dr.getY(),dr.getX())+orsa::twopi(),orsa::twopi());
+        const double theta    = asin(dr.getZ()/dr.length());
+        const orsa::Vector dr_sun = obs2sun.normalized();
+        const double phi_sun      = fmod(atan2(dr_sun.getY(),dr_sun.getX())+orsa::twopi(),orsa::twopi());
+        const double theta_sun    = asin(dr_sun.getZ()/dr_sun.length());
+        const double tmp_eclipticLongitude = fmod(phi-phi_sun+orsa::twopi(),orsa::twopi());
+        const double eclipticLongitude = (tmp_eclipticLongitude>orsa::pi()) ? (tmp_eclipticLongitude-orsa::twopi()) : (tmp_eclipticLongitude);
+        const double eclipticLatitude  = theta-theta_sun;
+        
         EfficiencyData ed;
         ed.H = orbitFile->_data[korb].H.getRef();
         if (orbitFile->_data[korb].number.isSet()) {
@@ -760,6 +770,8 @@ int main(int argc, char ** argv) {
         ed.azimuth = azimuth;
         ed.galacticLongitude = galacticLongitude;
         ed.galacticLatitude  = galacticLatitude;
+        ed.eclipticLongitude = eclipticLongitude;
+        ed.eclipticLatitude  = eclipticLatitude;
         ed.activeTime = activeTime.get_d();
         ed.epochFromField = epochFromField;
         ed.observed = observed;

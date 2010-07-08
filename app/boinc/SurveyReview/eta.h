@@ -19,6 +19,8 @@ public:
     orsa::Cache<double> azimuth;
     orsa::Cache<double> galacticLongitude;
     orsa::Cache<double> galacticLatitude;
+    orsa::Cache<double> eclipticLongitude; // Sun at longitude 0
+    orsa::Cache<double> eclipticLatitude; 
     orsa::Cache<double> activeTime;
     orsa::Cache<bool>   epochFromField;
     orsa::Cache<bool>   observed;
@@ -38,7 +40,7 @@ void writeEfficiencyDataFile(const std::vector<EfficiencyData> & etaData,
             sprintf(id,"%s",ed.designation.getRef().c_str());
         }
         fprintf(fp_allEta,
-                "%5.2f %7s %5.2f %7.2f %6.2f %6.2f %+7.2f %+7.2f %6.2f %6.3f %5.1f %+8.3f %+7.3f %5.2f %1i %1i %1i\n",
+                "%5.2f %7s %5.2f %7.2f %6.2f %6.2f %+7.2f %+7.2f %6.2f %6.3f %5.1f %+8.3f %+7.3f %+8.3f %+7.3f %5.2f %1i %1i %1i\n",
                 ed.H.getRef(),
                 id,
                 ed.V.getRef(),
@@ -52,6 +54,8 @@ void writeEfficiencyDataFile(const std::vector<EfficiencyData> & etaData,
                 orsa::radToDeg()*ed.azimuth.getRef(),
                 orsa::radToDeg()*ed.galacticLongitude.getRef(),
                 orsa::radToDeg()*ed.galacticLatitude.getRef(),
+                orsa::radToDeg()*ed.eclipticLongitude.getRef(),
+                orsa::radToDeg()*ed.eclipticLatitude.getRef(),
                 orsa::FromUnits(ed.activeTime.getRef(),orsa::Unit::HOUR,-1), 
                 ed.epochFromField.getRef(),
                 ed.observed.getRef(),
@@ -74,13 +78,14 @@ void readEfficiencyDataFile(std::vector<EfficiencyData> & etaData,
     double lunarPhase;
     double airMass, azimuth;
     double galacticLongitude, galacticLatitude;
+    double eclipticLongitude, eclipticLatitude;
     double activeTime;
     char id[1024];
     int epochFromField;
     int observed;
     int discovered;
     while (fgets(line,1024,fp)) {
-        sscanf(line,"%lf %s %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %i %i %i",
+        sscanf(line,"%lf %s %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %i %i %i",
                &H,
                id,
                &V,
@@ -94,6 +99,8 @@ void readEfficiencyDataFile(std::vector<EfficiencyData> & etaData,
                &azimuth,
                &galacticLongitude,
                &galacticLatitude,
+               &eclipticLongitude,
+               &eclipticLatitude,
                &activeTime,
                &epochFromField,
                &observed,
@@ -108,6 +115,8 @@ void readEfficiencyDataFile(std::vector<EfficiencyData> & etaData,
         azimuth           = orsa::degToRad()*azimuth;
         galacticLongitude = orsa::degToRad()*galacticLongitude;
         galacticLatitude  = orsa::degToRad()*galacticLatitude;
+        eclipticLongitude = orsa::degToRad()*eclipticLongitude;
+        eclipticLatitude  = orsa::degToRad()*eclipticLatitude;
         activeTime        = orsa::FromUnits(activeTime,orsa::Unit::HOUR);
         //
         EfficiencyData ed;
@@ -128,6 +137,8 @@ void readEfficiencyDataFile(std::vector<EfficiencyData> & etaData,
         ed.azimuth           = azimuth;
         ed.galacticLongitude = galacticLongitude;
         ed.galacticLatitude  = galacticLatitude;
+        ed.eclipticLongitude = eclipticLongitude;
+        ed.eclipticLatitude  = eclipticLatitude;
         ed.activeTime        = activeTime;
         ed.epochFromField    = (epochFromField==1);
         ed.observed          = (observed==1);
