@@ -68,9 +68,9 @@ int main(int argc, char ** argv) {
   ORSA_DEBUG("select start/stop:");
   orsa::print(obsFile->select_startEpoch.getRef());
   orsa::print(obsFile->select_stopEpoch.getRef());
-  obsFile->setFileName("mpn.arc.gz");
+  obsFile->setFileName("NumObs.txt.gz");
   obsFile->read();
-  obsFile->setFileName("mpu.arc.gz");
+  obsFile->setFileName("UnnObs.txt.gz");
   obsFile->read();
   
   return 0;
