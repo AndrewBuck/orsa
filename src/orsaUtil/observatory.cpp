@@ -39,6 +39,7 @@ bool  StandardObservatoryPositionCallback::getPosition(orsa::Vector & position,
                                                        const orsa::Time  & t) const {
     const orsaSolarSystem::Observatory & observatory = obsCodeFile->_data.observatory[obsCode];
     if (observatory.moving()) {
+        ORSA_DEBUG("problems...");
         return false;
     }
     osg::ref_ptr<orsaSolarSystem::Observation> obs = new orsaSolarSystem::Observation;
@@ -55,7 +56,7 @@ bool StandardObservatoryPositionCallback::getPosVel(orsa::Vector      & position
   
     orsa::Vector rEarth, vEarth;
     if (!bg->getInterpolatedPosVel(rEarth,vEarth,earth.get(),t)) { 
-        ORSA_DEBUG("problems");
+        ORSA_DEBUG("problems...");
         return false;
     }
   
@@ -95,6 +96,7 @@ bool StandardObservatoryPositionCallback::getPosVel(orsa::Vector & position,
                                                     const orsa::Time  & t) const {
     const orsaSolarSystem::Observatory & observatory = obsCodeFile->_data.observatory[obsCode];
     if (observatory.moving()) {
+        ORSA_DEBUG("problems...");
         return false;
     }
     osg::ref_ptr<orsaSolarSystem::Observation> obs = new orsaSolarSystem::Observation;
