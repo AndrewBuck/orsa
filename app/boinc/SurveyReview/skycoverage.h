@@ -156,7 +156,9 @@ public:
                const double & U,
                const double & AM,
                const double & GB,
-               const double & GL) const;
+               const double & GL,
+               const double & EB,
+               const double & EL) const;
     
 public:
     static double eta(const double & V,
@@ -178,7 +180,14 @@ public:
                       const double & center_GB,
                       const double & GL,
                       const double & scale_GL,
-                      const double & shape_GL);
+                      const double & shape_GL,
+                      const double & EB,
+                      const double & drop_EB,
+                      const double & scale_EB,
+                      const double & center_EB,
+                      const double & EL,
+                      const double & scale_EL,
+                      const double & shape_EL);
 public:
     // nominal eta values, mostly for plotting purposes, no mixing angle
     static double nominal_eta_V(const double & V,
@@ -211,6 +220,9 @@ public:
     //
     orsa::Cache<double> drop_GB, scale_GB, center_GB;
     orsa::Cache<double> scale_GL, shape_GL;
+    //
+    orsa::Cache<double> drop_EB, scale_EB, center_EB;
+    orsa::Cache<double> scale_EL, shape_EL;
     
 public:
     // return filename, stripping path and suffix (after first dot)

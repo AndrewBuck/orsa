@@ -59,6 +59,7 @@ std::string SkyCoverage::alias(const std::string & fileCode) {
     if (fileCode=="LONEOS")     return "699";
     if (fileCode=="NEAT")       return "644";
     if (fileCode=="SPACEWATCH") return "291";
+    if (fileCode=="WISE")       return "C51";
     return fileCode;
 } 
 
@@ -77,12 +78,14 @@ bool SkyCoverage::setField(const double & x1,
                            const double & V) {
   
     // check if data is in standard order and format [should check more]
-    if ( (y1 != y2) || 
-         (y3 != y4) ) {
-        ORSA_DEBUG("data not in standard format");
-        return false;
-    }
-  
+#warning re-insert this check?
+    /* if ( (y1 != y2) || 
+       (y3 != y4) ) {
+       ORSA_DEBUG("data not in standard format");
+       return false;
+       }
+    */
+    
     const orsa::Vector u1 = unitVector(x1,y1);
     const orsa::Vector u2 = unitVector(x2,y2);
     const orsa::Vector u3 = unitVector(x3,y3);
@@ -90,12 +93,14 @@ bool SkyCoverage::setField(const double & x1,
   
     const double field_RA  = acos(u1*u2);
     const double field_DEC = acos(u2*u3);
-  
+    
+#warning fields are not read correctly with WISE data, need to rewrite this part...
+    
     /* ORSA_DEBUG("field: %f x %f [deg^2] [RAxDEC]",
        orsa::radToDeg()*field_RA,
        orsa::radToDeg()*field_DEC);
     */
-  
+    
     SkyCoverageElement e;
   
     // in Ecliptic coords...
@@ -327,7 +332,9 @@ double SkyCoverage::eta(const double & V,
                         const double & U,
                         const double & AM,
                         const double & GB,
-                        const double & GL) const {
+                        const double & GL,
+                        const double & EB,
+                        const double & EL) const {
     return SkyCoverage::eta(V,
                             V_limit.getRef(),
                             eta0_V.getRef(),
@@ -347,7 +354,14 @@ double SkyCoverage::eta(const double & V,
                             center_GB.getRef(),
                             GL,
                             scale_GL.getRef(),
-                            shape_GL.getRef());
+                            shape_GL.getRef(),
+                            EB,
+                            drop_EB.getRef(),
+                            scale_EB.getRef(),
+                            center_EB.getRef(),
+                            EL,
+                            scale_EL.getRef(),
+                            shape_EL.getRef());
 }
 
 double SkyCoverage::eta(const double & V,
@@ -369,12 +383,20 @@ double SkyCoverage::eta(const double & V,
                         const double & center_GB,
                         const double & GL,
                         const double & scale_GL,
-                        const double & shape_GL) {
+                        const double & shape_GL,
+                        const double & EB,
+                        const double & drop_EB,
+                        const double & scale_EB,
+                        const double & center_EB,
+                        const double & EL,
+                        const double & scale_EL,
+                        const double & shape_EL) {
     double retVal =
         nominal_eta_V(V,V_limit,eta0_V,V0,c_V,w_V) *
         nominal_eta_U(U,U_limit,w_U) *
         nominal_eta_AM(AM,peak_AM,scale_AM,shape_AM) *
-        nominal_eta_GB_GL(GB,drop_GB,scale_GB,center_GB,GL,scale_GL,shape_GL);
+        nominal_eta_GB_GL(GB,drop_GB,scale_GB,center_GB,GL,scale_GL,shape_GL) *
+        nominal_eta_GB_GL(EB,drop_EB,scale_EB,center_EB,EL,scale_EL,shape_EL);
     if (retVal < 0.0) retVal=0.0;
     if (retVal > 1.0) retVal=1.0;
     return retVal;
@@ -507,9 +529,16 @@ bool SkyCoverage::processFilename(const std::string & filename_in,
         s_dayOfYear.assign(compactDate,4,3);
         year = atoi(s_year.c_str());
         dayOfYear = atoi(s_dayOfYear.c_str());
-        epoch = orsaSolarSystem::gregorTime(year,
-                                            1,
-                                            dayOfYear+1.0-observatory.lon.getRef()/orsa::twopi());
+        if (!observatory.moving()) {
+            epoch = orsaSolarSystem::gregorTime(year,
+                                                1,
+                                                dayOfYear+1.0-observatory.lon.getRef()/orsa::twopi());
+        } else {
+            epoch = orsaSolarSystem::gregorTime(year,
+                                                1,
+                                                dayOfYear+1.0);
+#warning Check this one!
+        }
         // orsa::print(epoch);
     } else {
         // ORSA_DEBUG("problems...");

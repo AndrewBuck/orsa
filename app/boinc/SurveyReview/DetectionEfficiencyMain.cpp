@@ -109,10 +109,12 @@ public:
                 for (unsigned int k=0; k<obsFile->_data.size(); ++k) {
                     obs = dynamic_cast<orsaSolarSystem::OpticalObservation *> (obsFile->_data[k].get());
                     if (obs) {
-                        if (!obs->mag.isSet()) {
-                            // ORSA_DEBUG("mag not set, skipping");
-                            continue;
-                        }
+                        /* 
+                           if (!obs->mag.isSet()) {
+                           // ORSA_DEBUG("mag not set, skipping");
+                           continue;
+                           }
+                        */
                         if (obs->designation.isSet() && _data[_data.size()-1].designation.isSet()) {
                             if (obs->designation.getRef() == _data[_data.size()-1].designation.getRef()) {
                                 present=true;
@@ -314,17 +316,21 @@ public:
                 for (unsigned int k=0; k<obsFile->_data.size(); ++k) {
                     obs = dynamic_cast<orsaSolarSystem::OpticalObservation *> (obsFile->_data[k].get());
                     if (obs) {
-                        if (!obs->mag.isSet()) {
-                            // ORSA_DEBUG("mag not set, skipping");
-                            continue;
-                        }
+                        /* 
+                           if (!obs->mag.isSet()) {
+                           // ORSA_DEBUG("mag not set, skipping");
+                           continue;
+                           }
+                        */
                         if (obs->designation.isSet() && _data[_data.size()-1].designation.isSet()) {
+                            // ORSA_DEBUG("obs: [%s]   orb: [%s]",obs->designation.getRef().c_str(),_data[_data.size()-1].designation.getRef().c_str());
                             if (obs->designation.getRef() == _data[_data.size()-1].designation.getRef()) {
                                 ++observed;
                                 break;
                             }
                         }
                         if (obs->number.isSet() && _data[_data.size()-1].number.isSet()) {
+                            // ORSA_DEBUG("obs: [%i]   orb: [%i]",obs->number.getRef(),_data[_data.size()-1].number.getRef());
                             if (obs->number.getRef() == _data[_data.size()-1].number.getRef()) {
                                 ++observed;
                                 break;
@@ -468,9 +474,9 @@ int main(int argc, char ** argv) {
         //
         obsFile->select_obsCode = obsCode;
         //
-        /* obsFile->setFileName("mpn.arc.gz");
+        /* obsFile->setFileName("NumObs.txt.gz");
            obsFile->read();
-           obsFile->setFileName("mpu.arc.gz");
+           obsFile->setFileName("UnnObs.txt.gz");
            obsFile->read();
         */
         char filename[1024];
@@ -487,10 +493,12 @@ int main(int argc, char ** argv) {
         for (unsigned int k=0; k<obsFile->_data.size(); ++k) {
             obs = dynamic_cast<orsaSolarSystem::OpticalObservation *> (obsFile->_data[k].get());
             if (obs) {
-                if (!obs->mag.isSet()) {
-                    // ORSA_DEBUG("mag not set, skipping");
-                    continue;
-                }
+                /* 
+                   if (!obs->mag.isSet()) {
+                   // ORSA_DEBUG("mag not set, skipping");
+                   continue;
+                   }
+                */
                 ++inFieldCandidates;
                 if (skyCoverage->fastGet(obs->ra.getRef(),
                                          obs->dec.getRef())) {	
@@ -518,15 +526,12 @@ int main(int argc, char ** argv) {
         new CustomMPCAsteroidFile(sunPosition,obsPosition);
     orbitFile->skyCoverage = skyCoverage.get();
     orbitFile->obsFile = obsFile.get();
-    orbitFile->setFileName("MPCORB.DAT");
-    orbitFile->read();
-#warning double-check if all the members of NEA.DAT are already included in MPCORB.DAT
-    orbitFile->setFileName("NEA.DAT");
+    orbitFile->setFileName("MPCORB.DAT.gz");
     orbitFile->read();
     ORSA_DEBUG("selected orbits: %i   observed: %i",
                orbitFile->_data.size(),
                orbitFile->observed);
-  
+    
     {
         // dump lists
         if (0) {
@@ -746,6 +751,8 @@ int main(int argc, char ** argv) {
         const double tmp_eclipticLongitude = fmod(phi-phi_sun+orsa::twopi(),orsa::twopi());
         const double eclipticLongitude = (tmp_eclipticLongitude>orsa::pi()) ? (tmp_eclipticLongitude-orsa::twopi()) : (tmp_eclipticLongitude);
         const double eclipticLatitude  = theta-theta_sun;
+        
+        ORSA_DEBUG("ra: %g  dec: %g",ra*orsa::radToDeg(),dec*orsa::radToDeg());
         
         EfficiencyData ed;
         ed.H = orbitFile->_data[korb].H.getRef();

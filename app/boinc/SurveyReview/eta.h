@@ -154,7 +154,7 @@ public:
     class DataElement {
     public:
         orsa::Cache<double> V, U, AM, eta, sigmaEta;
-        orsa::Cache<double> SE, LE, LP, GL, GB, AZ, LA, SA;
+        orsa::Cache<double> SE, LE, LP, GL, GB, EL, EB, AZ, LA, SA;
         orsa::Cache<unsigned int> Nobs, Ndsc, Ntot;
         orsa::Cache<unsigned int> fileID;
     };
@@ -191,6 +191,8 @@ public:
         fitData->insertVariable("AM");
         fitData->insertVariable("GB");
         fitData->insertVariable("GL");
+        fitData->insertVariable("EB");
+        fitData->insertVariable("EL");
         fitData->insertVariable("fileID");
         //
         {
@@ -202,6 +204,8 @@ public:
                     fitData->insertD("AM",row,data[fileID][l].AM.getRef());
                     fitData->insertD("GB",row,data[fileID][l].GB.getRef());
                     fitData->insertD("GL",row,data[fileID][l].GL.getRef());
+                    fitData->insertD("EB",row,data[fileID][l].EB.getRef());
+                    fitData->insertD("EL",row,data[fileID][l].EL.getRef());
                     //
                     fitData->insertZ("fileID",row,fileID);
                     //
@@ -282,7 +286,14 @@ protected:
                                             localPar->get("center_GB"),
                                             data->getD("GL",row),
                                             localPar->get("scale_GL"),
-                                            localPar->get("shape_GL"));
+                                            localPar->get("shape_GL"),
+                                            data->getD("EB",row),
+                                            localPar->get("drop_EB"),
+                                            localPar->get("scale_EB"),
+                                            localPar->get("center_EB"),
+                                            data->getD("EL",row),
+                                            localPar->get("scale_EL"),
+                                            localPar->get("shape_EL"));
         return eta;
     }
 protected: 
@@ -338,15 +349,18 @@ protected:
             unsigned int gslIndex=0;
             for (unsigned int p=0; p<_par->totalSize(); ++p) {
                 // first, specific cases where unit conversions or factors are needed
-                if ((_par->name(p).find("U_limit") != std::string::npos) || 
-                    (_par->name(p).find("w_U") != std::string::npos)) {
+                if ( (_par->name(p).find("U_limit") != std::string::npos) || 
+                     (_par->name(p).find("w_U") != std::string::npos) ) {
                     ORSA_DEBUG("%14s: %g +/- %g [arcsec/hour]",
                                _par->name(p).c_str(),
                                orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
                                _par->isFixed(p)?0.0:orsa::FromUnits(factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex))*orsa::radToArcsec(),orsa::Unit::HOUR));
-                } else if ((_par->name(p).find("scale_GB") != std::string::npos) ||
-                           (_par->name(p).find("center_GB") != std::string::npos)||
-                           (_par->name(p).find("scale_GL") != std::string::npos)) {
+                } else if ( (_par->name(p).find("scale_GB")  != std::string::npos) ||
+                            (_par->name(p).find("center_GB") != std::string::npos) ||
+                            (_par->name(p).find("scale_GL")  != std::string::npos) ||
+                            (_par->name(p).find("scale_EB")  != std::string::npos) ||
+                            (_par->name(p).find("center_EB") != std::string::npos) ||
+                            (_par->name(p).find("scale_EL")  != std::string::npos) ) {
                     ORSA_DEBUG("%14s: %g +/- %g [deg]",
                                _par->name(p).c_str(),
                                orsa::radToDeg()*_par->get(p),
@@ -516,9 +530,12 @@ protected:
                                     "%+.3e %+.3e ",
                                     orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
                                     _par->isFixed(p)?0.0:orsa::FromUnits(factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex))*orsa::radToArcsec(),orsa::Unit::HOUR));
-                        } else if ((_par->name(p).find("scale_GB") != std::string::npos) ||
-                                   (_par->name(p).find("center_GB") != std::string::npos)||
-                                   (_par->name(p).find("scale_GL") != std::string::npos)) {
+                        } else if ( (_par->name(p).find("scale_GB")  != std::string::npos) ||
+                                    (_par->name(p).find("center_GB") != std::string::npos) ||
+                                    (_par->name(p).find("scale_GL")  != std::string::npos) ||
+                                    (_par->name(p).find("scale_EB")  != std::string::npos) ||
+                                    (_par->name(p).find("center_EB") != std::string::npos) ||
+                                    (_par->name(p).find("scale_EL")  != std::string::npos) ) {
                             fprintf(fp,
                                     "%+.3e %+.3e ",
                                     orsa::radToDeg()*_par->get(p),

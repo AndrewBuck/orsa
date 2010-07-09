@@ -64,6 +64,14 @@ int main(int argc, char ** argv) {
     osg::ref_ptr<CountStats::LinearVar> var_GL = new CountStats::LinearVar(start_GL,stop_GL,step_GL);
     varDefinition.push_back(var_GL.get());
     
+    // [5] ecliptic latitude
+    osg::ref_ptr<CountStats::LinearVar> var_EB = new CountStats::LinearVar(start_EB,stop_EB,step_EB);
+    varDefinition.push_back(var_EB.get());
+    
+    // [6] ecliptic longitude
+    osg::ref_ptr<CountStats::LinearVar> var_EL = new CountStats::LinearVar(start_EL,stop_EL,step_EL);
+    varDefinition.push_back(var_EL.get());
+    
     std::vector< osg::ref_ptr<CountStats> > countStats;
     countStats.resize(numFiles);
     // allocated in loop below
@@ -83,115 +91,11 @@ int main(int argc, char ** argv) {
             xVector[2] = etaData[fileID][k].airMass.getRef();
             xVector[3] = etaData[fileID][k].galacticLatitude.getRef();
             xVector[4] = etaData[fileID][k].galacticLongitude.getRef();
+            xVector[5] = etaData[fileID][k].eclipticLatitude.getRef();
+            xVector[6] = etaData[fileID][k].eclipticLongitude.getRef();
             const bool goodInsert = countStats[fileID]->insert(xVector,
                                                                etaData[fileID][k].observed.getRef(),
                                                                etaData[fileID][k].discovered.getRef());
-            if (0) if (!goodInsert) {
-                if (etaData[fileID][k].number.isSet()) {
-                    ORSA_DEBUG("problems inserting: [%i] %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f",
-                               etaData[fileID][k].number.getRef(),
-                               etaData[fileID][k].V.getRef(),
-                               orsa::FromUnits(etaData[fileID][k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
-                               etaData[fileID][k].solarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].lunarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].airMass.getRef(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLatitude.getRef()*orsa::radToDeg());
-                } else if (etaData[fileID][k].designation.isSet()) {
-                    ORSA_DEBUG("problems inserting: [%s] %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f",
-                               etaData[fileID][k].designation.getRef().c_str(),
-                               etaData[fileID][k].V.getRef(),
-                               orsa::FromUnits(etaData[fileID][k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
-                               etaData[fileID][k].solarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].lunarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].airMass.getRef(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLatitude.getRef()*orsa::radToDeg());
-                } else {
-                    ORSA_DEBUG("problems inserting: [anonymous] %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f",
-                               etaData[fileID][k].V.getRef(),
-                               orsa::FromUnits(etaData[fileID][k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
-                               etaData[fileID][k].solarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].lunarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].airMass.getRef(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLatitude.getRef()*orsa::radToDeg());
-                }
-            }
-    
-            if (0) if (goodInsert) {
-                if (etaData[fileID][k].number.isSet()) {
-                    gmp_printf("inserting: [%i] %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n",
-                               etaData[fileID][k].number.getRef(),
-                               etaData[fileID][k].V.getRef(),
-                               orsa::FromUnits(etaData[fileID][k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
-                               etaData[fileID][k].solarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].lunarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].airMass.getRef(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLatitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg());
-                } else if (etaData[fileID][k].designation.isSet()) {
-                    gmp_printf("inserting: [%s] %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n",
-                               etaData[fileID][k].designation.getRef().c_str(),
-                               etaData[fileID][k].V.getRef(),
-                               orsa::FromUnits(etaData[fileID][k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
-                               etaData[fileID][k].solarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].lunarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].airMass.getRef(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLatitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg());
-                } else {
-                    gmp_printf("inserting: [anonymous] %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n",
-                               etaData[fileID][k].V.getRef(),
-                               orsa::FromUnits(etaData[fileID][k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
-                               etaData[fileID][k].solarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].lunarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].airMass.getRef(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLatitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg());
-                }
-            }
-    
-            // specific cases
-            if (0) if ( (etaData[fileID][k].V.getRef()>=10.0) && 
-                        (etaData[fileID][k].V.getRef()< 10.1) )	 {
-                if (etaData[fileID][k].number.isSet()) {
-                    gmp_printf("special: [%i] %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n",
-                               etaData[fileID][k].number.getRef(),
-                               etaData[fileID][k].V.getRef(),
-                               orsa::FromUnits(etaData[fileID][k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
-                               etaData[fileID][k].solarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].lunarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].airMass.getRef(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLatitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg());
-                } else if (etaData[fileID][k].designation.isSet()) {
-                    gmp_printf("special: [%s] %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n",
-                               etaData[fileID][k].designation.getRef().c_str(),
-                               etaData[fileID][k].V.getRef(),
-                               orsa::FromUnits(etaData[fileID][k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
-                               etaData[fileID][k].solarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].lunarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].airMass.getRef(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLatitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg());
-                } else {
-                    gmp_printf("special: [anonymous] %.1f %.1f %.1f %.1f %.1f %.1f %.1f %.1f\n",
-                               etaData[fileID][k].V.getRef(),
-                               orsa::FromUnits(etaData[fileID][k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
-                               etaData[fileID][k].solarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].lunarElongation.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].airMass.getRef(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLatitude.getRef()*orsa::radToDeg(),
-                               etaData[fileID][k].galacticLongitude.getRef()*orsa::radToDeg());
-                }
-            }
         }
     }
     
@@ -232,6 +136,8 @@ int main(int argc, char ** argv) {
                 el.AM=xVector[2];
                 el.GB=xVector[3];
                 el.GL=xVector[4];
+                el.EB=xVector[5];
+                el.EL=xVector[6];
                 //
                 el.eta=eta;
                 el.sigmaEta=sigmaEta;
@@ -353,6 +259,13 @@ int main(int argc, char ** argv) {
         // GL
         par->insert("scale_GL",100.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
         par->insert("shape_GL",  0.1, 0.0000001);
+        // EB
+        par->insert("drop_EB",   0.20, 0.0000001);
+        par->insert("scale_EB", 50.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
+        par->insert("center_EB", 0.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
+        // EL
+        par->insert("scale_EL",100.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
+        par->insert("shape_EL",  0.1, 0.0000001);
         
         // hard limits
         par->setRange("drop_GB",
@@ -365,6 +278,19 @@ int main(int argc, char ** argv) {
                       -7.0*orsa::degToRad(),
                       +7.0*orsa::degToRad());
         par->setFixed("center_GB",true);
+        // par->setFixed("shape_GL",true);
+        
+        // hard limits
+        par->setRange("drop_EB",
+                      0.01,
+                      1.00);
+        par->setRange("scale_EB",
+                      05.0*orsa::degToRad(),
+                      50.0*orsa::degToRad());
+        par->setRange("center_EB",
+                      -7.0*orsa::degToRad(),
+                      +7.0*orsa::degToRad());
+        par->setFixed("center_EB",true);
         // par->setFixed("shape_GL",true);
         
         /* 

@@ -12,6 +12,8 @@ public:
     double peak_AM, scale_AM, shape_AM;
     double drop_GB, scale_GB, center_GB;
     double scale_GL, shape_GL;
+    double drop_EB, scale_EB, center_EB;
+    double scale_EL, shape_EL;
     double chisq_dof;
     unsigned int Nobs, Ndsc, Ntot;
     double degSq;
@@ -93,7 +95,7 @@ void PlotUtil(double (*fun)(const double, const FitFileDataElement &),
     }        
     {
         std::vector<XYE> xye_vec;
-        ORSA_DEBUG("histo.getData().size: %i",histo.getData().size());
+        // ORSA_DEBUG("histo.getData().size: %i",histo.getData().size());
         for (unsigned int j=0; j<histo.getData().size(); ++j) {
             XYE xye;
             xye.x=xfactor*histo.getData()[j]->center;
@@ -108,7 +110,7 @@ void PlotUtil(double (*fun)(const double, const FitFileDataElement &),
             }
         }
         const int nPoints=xye_vec.size();
-        ORSA_DEBUG("nPoints: %i",nPoints);
+        // ORSA_DEBUG("nPoints: %i",nPoints);
         float xray[nPoints], yray[nPoints];  
         float eray[nPoints];
         for (int j=0; j<nPoints; ++j) {
@@ -222,20 +224,28 @@ int main(int argc, char ** argv) {
     // [6] galactic latitude
     osg::ref_ptr<CountStats::LinearVar> var_GB = new CountStats::LinearVar(start_GB,stop_GB,step_GB);
     varDefinition.push_back(var_GB.get());
+    
+    // [7] ecliptic longitude
+    osg::ref_ptr<CountStats::LinearVar> var_EL = new CountStats::LinearVar(start_EL,stop_EL,step_EL);
+    varDefinition.push_back(var_EL.get());
   
-    // [7] azimuth
+    // [8] ecliptic latitude
+    osg::ref_ptr<CountStats::LinearVar> var_EB = new CountStats::LinearVar(start_EB,stop_EB,step_EB);
+    varDefinition.push_back(var_EB.get());
+  
+    // [9] azimuth
     osg::ref_ptr<CountStats::LinearVar> var_AZ = new CountStats::LinearVar(start_AZ,stop_AZ,step_AZ);
     varDefinition.push_back(var_AZ.get());
   
-    // [8] lunar altitude
+    // [10] lunar altitude
     osg::ref_ptr<CountStats::LinearVar> var_LA = new CountStats::LinearVar(start_LA,stop_LA,step_LA);
     varDefinition.push_back(var_LA.get());
   
-    // [9] solar altitude
+    // [11] solar altitude
     osg::ref_ptr<CountStats::LinearVar> var_SA = new CountStats::LinearVar(start_SA,stop_SA,step_SA);
     varDefinition.push_back(var_SA.get());
   
-    // [10] lunar phase
+    // [12] lunar phase
     osg::ref_ptr<CountStats::LinearVar> var_LP = new CountStats::LinearVar(start_LP,stop_LP,step_LP);
     varDefinition.push_back(var_LP.get());
     
@@ -247,6 +257,8 @@ int main(int argc, char ** argv) {
     Histo<CountStats::LinearVar> histo_AM(var_AM.get());
     Histo<CountStats::LinearVar> histo_GB(var_GB.get());
     Histo<CountStats::LinearVar> histo_GL(var_GL.get());
+    Histo<CountStats::LinearVar> histo_EB(var_EB.get());
+    Histo<CountStats::LinearVar> histo_EL(var_EL.get());
     Histo<CountStats::LinearVar> histo_AZ(var_AZ.get());
     Histo<CountStats::LinearVar> histo_LA(var_LA.get());
     Histo<CountStats::LinearVar> histo_SA(var_SA.get());
@@ -268,9 +280,9 @@ int main(int argc, char ** argv) {
         while (fgets(line,1024,fp)) {
             if (line[0]=='#') continue; // comment
             // UPDATE THIS NUMBER
-            if (23 == sscanf(line,
+            if (28 == sscanf(line,
                              // "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
                              &e.JD,
                              &e.year,
                              &e.V_limit,
@@ -287,6 +299,11 @@ int main(int argc, char ** argv) {
                              &e.center_GB,
                              &e.scale_GL,
                              &e.shape_GL,
+                             &e.drop_EB,
+                             &e.scale_EB,
+                             &e.center_EB,
+                             &e.scale_EL,
+                             &e.shape_EL,
                              &e.chisq_dof,
                              &e.Nobs,
                              &e.Ndsc,
@@ -300,6 +317,9 @@ int main(int argc, char ** argv) {
                 e.scale_GB  = orsa::degToRad()*e.scale_GB;
                 e.center_GB = orsa::degToRad()*e.center_GB;
                 e.scale_GL  = orsa::degToRad()*e.scale_GL;
+                e.scale_EB  = orsa::degToRad()*e.scale_EB;
+                e.center_EB = orsa::degToRad()*e.center_EB;
+                e.scale_EL  = orsa::degToRad()*e.scale_EL;
                 // 
                 ffd[fileID] = e;
                 break;
@@ -333,17 +353,19 @@ int main(int argc, char ** argv) {
             xVector.resize(varDefinition.size());
             for (unsigned int k=0; k<etaData.size(); ++k) {
                 // keep vars aligned with varDefinition content
-                xVector[0] = etaData[k].V.getRef();
-                xVector[1] = etaData[k].apparentVelocity.getRef();
-                xVector[2] = etaData[k].solarElongation.getRef();
-                xVector[3] = etaData[k].lunarElongation.getRef();
-                xVector[4] = etaData[k].airMass.getRef();
-                xVector[5] = etaData[k].galacticLongitude.getRef();
-                xVector[6] = etaData[k].galacticLatitude.getRef();
-                xVector[7] = etaData[k].azimuth.getRef();
-                xVector[8] = etaData[k].lunarAltitude.getRef();
-                xVector[9] = etaData[k].solarAltitude.getRef();
-                xVector[10]= etaData[k].lunarPhase.getRef();
+                xVector[0]  = etaData[k].V.getRef();
+                xVector[1]  = etaData[k].apparentVelocity.getRef();
+                xVector[2]  = etaData[k].solarElongation.getRef();
+                xVector[3]  = etaData[k].lunarElongation.getRef();
+                xVector[4]  = etaData[k].airMass.getRef();
+                xVector[5]  = etaData[k].galacticLongitude.getRef();
+                xVector[6]  = etaData[k].galacticLatitude.getRef();
+                xVector[7]  = etaData[k].eclipticLongitude.getRef();
+                xVector[8]  = etaData[k].eclipticLatitude.getRef();
+                xVector[9]  = etaData[k].azimuth.getRef();
+                xVector[10] = etaData[k].lunarAltitude.getRef();
+                xVector[11] = etaData[k].solarAltitude.getRef();
+                xVector[12] = etaData[k].lunarPhase.getRef();
                 countStats->insert(xVector,
                                    etaData[k].observed.getRef(),
                                    etaData[k].discovered.getRef());
@@ -384,10 +406,12 @@ int main(int argc, char ** argv) {
                     el.AM=xVector[4];
                     el.GL=xVector[5];
                     el.GB=xVector[6];
-                    el.AZ=xVector[7];
-                    el.LA=xVector[8];
-                    el.SA=xVector[9];
-                    el.LP=xVector[10];
+                    el.EL=xVector[7];
+                    el.EB=xVector[8];
+                    el.AZ=xVector[9];
+                    el.LA=xVector[10];
+                    el.SA=xVector[11];
+                    el.LP=xVector[12];
                     //
                     el.eta=eta;
                     el.sigmaEta=sigmaEta;
@@ -428,7 +452,14 @@ int main(int argc, char ** argv) {
                                                     e.center_GB,
                                                     data[k].GL.getRef(),
                                                     e.scale_GL,
-                                                    e.shape_GL);
+                                                    e.shape_GL,
+                                                    data[k].EB.getRef(),
+                                                    e.drop_EB,
+                                                    e.scale_EB,
+                                                    e.center_EB,
+                                                    data[k].EL.getRef(),
+                                                    e.scale_EL,
+                                                    e.shape_EL);
                 
                 const double nominal_eta_V = SkyCoverage::nominal_eta_V(data[k].V.getRef(),
                                                                         e.V_limit,
