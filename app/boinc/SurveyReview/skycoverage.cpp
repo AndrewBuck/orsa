@@ -77,11 +77,39 @@ bool SkyCoverage::setField(const double & x1,
                            const double & y4,
                            const double & V) {
     
+    /* Here, the only assumption is that the four points are numbered consecutively,
+     * either CW or CCW, without cutting trought the diagonal, i.e.:
+     *
+     *  2------3    2------1
+     *  |      |    |      |
+     *  |      | OR |      |
+     *  |      |    |      |
+     *  1------4    3------4
+     *
+     */
+    
     // temporary vectors
     orsa::Vector s1 = unitVector(x1,y1);
     orsa::Vector s2 = unitVector(x2,y2);
     orsa::Vector s3 = unitVector(x3,y3);
     orsa::Vector s4 = unitVector(x4,y4);
+
+    // check assumption: diagonals must be longer than sides
+    {
+        // using scalar products instead of acos(...), so min and max are inverted
+        const double min_side = std::min(std::min(s1*s2,s3*s4),std::min(s2*s3,s1*s4));
+        const double max_diag = std::max(s1*s3,s2*s4);
+        if (max_diag > min_side) {
+            ORSA_DEBUG("error: data points not numbered consecutively along field perimeter)");
+            
+            ORSA_DEBUG("s1 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s1.getY(),s1.getX())*orsa::radToDeg(),asin(s1.getZ())*orsa::radToDeg());
+            ORSA_DEBUG("s2 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s2.getY(),s2.getX())*orsa::radToDeg(),asin(s2.getZ())*orsa::radToDeg());
+            ORSA_DEBUG("s3 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s3.getY(),s3.getX())*orsa::radToDeg(),asin(s3.getZ())*orsa::radToDeg());
+            ORSA_DEBUG("s4 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s4.getY(),s4.getX())*orsa::radToDeg(),asin(s4.getZ())*orsa::radToDeg());
+            
+            return false;
+        }
+    }
     
     if (!obscode.isSet()) {
         ORSA_DEBUG("problems: obscode is not set...");
@@ -144,22 +172,30 @@ bool SkyCoverage::setField(const double & x1,
     // reference axis in ecliptic coords
     // default: north equatorial pole, for all terrestrial observatories
     // except for C51 (WISE satellite) where it is north ecliptic pole
-    const orsa::Vector zeta_axis =
-        (obscode.getRef()=="C51") ?
-        (orsa::Vector(0,0,1)) :
-        (orsaSolarSystem::equatorialToEcliptic()*orsa::Vector(0,0,1));
-    
+    /* const orsa::Vector zeta_axis =
+       (obscode.getRef()=="C51") ?
+       (orsa::Vector(0,0,1)) :
+       (orsaSolarSystem::equatorialToEcliptic()*orsa::Vector(0,0,1));
+       
+       e.u_centerField = (u1+u2+u3+u4).normalized();
+       e.u_X = orsa::externalProduct(zeta_axis,e.u_centerField).normalized();
+       e.u_Y = orsa::externalProduct(e.u_centerField,e.u_X).normalized();
+       
+       if (fabs((u2-u1)*e.u_X) > fabs((u3-u2)*e.u_X)) {
+       e.halfFieldSize_X = 0.25*(acos(u1*u2)+acos(u3*u4));
+       e.halfFieldSize_Y = 0.25*(acos(u2*u3)+acos(u4*u1));
+       } else {
+       e.halfFieldSize_X = 0.25*(acos(u2*u3)+acos(u4*u1));
+       e.halfFieldSize_Y = 0.25*(acos(u1*u2)+acos(u3*u4));
+       }
+    */
+    //    
+    // better and more generic, as it does not require to assume a reference axis (equatorial or ecliptic)
     e.u_centerField = (u1+u2+u3+u4).normalized();
-    e.u_X = orsa::externalProduct(zeta_axis,e.u_centerField).normalized();
-    e.u_Y = orsa::externalProduct(e.u_centerField,e.u_X).normalized();
-    
-    if (fabs((u2-u1)*e.u_X) > fabs((u3-u2)*e.u_X)) {
-        e.halfFieldSize_X = 0.25*(acos(u1*u2)+acos(u3*u4));
-        e.halfFieldSize_Y = 0.25*(acos(u2*u3)+acos(u4*u1));
-    } else {
-        e.halfFieldSize_X = 0.25*(acos(u2*u3)+acos(u4*u1));
-        e.halfFieldSize_Y = 0.25*(acos(u1*u2)+acos(u3*u4));
-    }
+    e.u_X = (u4-u1+u3-u2).normalized();
+    e.u_Y = (u2-u1+u3-u4).normalized();
+    e.halfFieldSize_X = 0.25*(acos(u1*u2)+acos(u3*u4));
+    e.halfFieldSize_Y = 0.25*(acos(u2*u3)+acos(u4*u1));
     
     e.minScalarProduct  = std::min(std::min(e.u_centerField*u1,
                                             e.u_centerField*u2),
