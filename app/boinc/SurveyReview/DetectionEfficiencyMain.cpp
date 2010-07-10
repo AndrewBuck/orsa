@@ -409,9 +409,11 @@ int main(int argc, char ** argv) {
     osg::ref_ptr<SkyCoverageFile> skyCoverageFile = new SkyCoverageFile;
     skyCoverageFile->setFileName(argv[1]);
     skyCoverageFile->read();
-  
+    
     osg::ref_ptr<SkyCoverage> skyCoverage = skyCoverageFile->_data;
-  
+    
+    ORSA_DEBUG("sky coverage fields loaded: %i",skyCoverage->size());
+    
     if (0) {
         // test skycoverage
         // const int randomSeed=35092;
@@ -752,7 +754,7 @@ int main(int argc, char ** argv) {
         const double eclipticLongitude = (tmp_eclipticLongitude>orsa::pi()) ? (tmp_eclipticLongitude-orsa::twopi()) : (tmp_eclipticLongitude);
         const double eclipticLatitude  = theta-theta_sun;
         
-        ORSA_DEBUG("ra: %g  dec: %g",ra*orsa::radToDeg(),dec*orsa::radToDeg());
+        // ORSA_DEBUG("ra: %g  dec: %g",ra*orsa::radToDeg(),dec*orsa::radToDeg());
         
         EfficiencyData ed;
         ed.H = orbitFile->_data[korb].H.getRef();

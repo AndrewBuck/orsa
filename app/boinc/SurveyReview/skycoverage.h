@@ -146,6 +146,8 @@ public:
 protected:
     typedef std::vector<SkyCoverageElement> DataType;
     DataType data;
+public:
+    size_t size() const { return data.size(); }
     
 public:
     orsa::Cache<orsa::Time>  epoch;   // local midnight epoch
