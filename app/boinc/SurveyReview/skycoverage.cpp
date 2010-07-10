@@ -205,7 +205,7 @@ bool SkyCoverage::setField(const double & x1,
     
     data.push_back(e);
     
-    ORSA_DEBUG("field: %.2f x %.2f [deg x deg]",2*e.halfFieldSize_X*orsa::radToDeg(),2*e.halfFieldSize_Y*orsa::radToDeg());
+    // ORSA_DEBUG("field: %.2f x %.2f [deg x deg]",2*e.halfFieldSize_X*orsa::radToDeg(),2*e.halfFieldSize_Y*orsa::radToDeg());
     
     // ORSA_DEBUG("data size: %i   minScalarProduct: %f",data.size(),e.minScalarProduct);
     
