@@ -131,10 +131,10 @@ public:
         }
     public:
         orsa::Vector u_centerField;
-        orsa::Vector u_RA;
-        orsa::Vector u_DEC;
-        double halfFieldSize_RA;
-        double halfFieldSize_DEC;
+        orsa::Vector u_X; // old R.A.
+        orsa::Vector u_Y; // old Dec.
+        double halfFieldSize_X; // old R.A.
+        double halfFieldSize_Y; // old Dec.
         double minScalarProduct;
         double limitingMagnitude;
     public:

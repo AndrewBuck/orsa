@@ -76,58 +76,103 @@ bool SkyCoverage::setField(const double & x1,
                            const double & x4,
                            const double & y4,
                            const double & V) {
-  
-    // check if data is in standard order and format [should check more]
-#warning re-insert this check?
-    /* if ( (y1 != y2) || 
-       (y3 != y4) ) {
-       ORSA_DEBUG("data not in standard format");
-       return false;
-       }
+    
+    // temporary vectors
+    orsa::Vector s1 = unitVector(x1,y1);
+    orsa::Vector s2 = unitVector(x2,y2);
+    orsa::Vector s3 = unitVector(x3,y3);
+    orsa::Vector s4 = unitVector(x4,y4);
+    
+    if (!obscode.isSet()) {
+        ORSA_DEBUG("problems: obscode is not set...");
+        return false;
+    }
+    if (obscode.getRef()=="C51") {
+        // fix for C51, where the field width in the direction of the ecliptic longitude
+        // is not scaled by cos(eclipticLatitude), so we do it here
+        // NOTE: code still has some problems when the field includes one of the ecliptic poles
+        const double phi1=atan2(s1.getY(),s1.getX());
+        const double phi2=atan2(s2.getY(),s2.getX());
+        const double phi3=atan2(s3.getY(),s3.getX());
+        const double phi4=atan2(s4.getY(),s4.getX());
+        //
+        const double theta1=asin(s1.getZ());
+        const double theta2=asin(s2.getZ());
+        const double theta3=asin(s3.getZ());
+        const double theta4=asin(s4.getZ());
+        //
+        double delta_phi_2_3=phi3-phi2;
+        if (fabs(delta_phi_2_3+orsa::twopi()) < fabs(delta_phi_2_3)) delta_phi_2_3+=orsa::twopi();
+        if (fabs(delta_phi_2_3-orsa::twopi()) < fabs(delta_phi_2_3)) delta_phi_2_3-=orsa::twopi();
+        delta_phi_2_3/=cos(0.5*(theta2+theta3));
+        const double new_phi3=0.5*(phi2+phi3+delta_phi_2_3);
+        const double new_phi2=0.5*(phi2+phi3-delta_phi_2_3);
+        //
+        double delta_phi_4_1=phi1-phi4;
+        if (fabs(delta_phi_4_1+orsa::twopi()) < fabs(delta_phi_4_1)) delta_phi_4_1+=orsa::twopi();
+        if (fabs(delta_phi_4_1-orsa::twopi()) < fabs(delta_phi_4_1)) delta_phi_4_1-=orsa::twopi();
+        delta_phi_4_1/=cos(0.5*(theta4+theta1));
+        //
+        const double new_phi1=0.5*(phi4+phi1+delta_phi_4_1);
+        const double new_phi4=0.5*(phi4+phi1-delta_phi_4_1);
+        //
+        s1 = orsa::Vector(cos(theta1)*cos(new_phi1),cos(theta1)*sin(new_phi1),sin(theta1));
+        s2 = orsa::Vector(cos(theta2)*cos(new_phi2),cos(theta2)*sin(new_phi2),sin(theta2));
+        s3 = orsa::Vector(cos(theta3)*cos(new_phi3),cos(theta3)*sin(new_phi3),sin(theta3));
+        s4 = orsa::Vector(cos(theta4)*cos(new_phi4),cos(theta4)*sin(new_phi4),sin(theta4));
+    }
+    
+    const orsa::Vector u1 = s1;
+    const orsa::Vector u2 = s2;
+    const orsa::Vector u3 = s3;
+    const orsa::Vector u4 = s4;
+    
+    /* ORSA_DEBUG("u1 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(u1.getY(),u1.getX())*orsa::radToDeg(),asin(u1.getZ())*orsa::radToDeg());
+       ORSA_DEBUG("u2 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(u2.getY(),u2.getX())*orsa::radToDeg(),asin(u2.getZ())*orsa::radToDeg());
+       ORSA_DEBUG("u3 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(u3.getY(),u3.getX())*orsa::radToDeg(),asin(u3.getZ())*orsa::radToDeg());
+       ORSA_DEBUG("u4 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(u4.getY(),u4.getX())*orsa::radToDeg(),asin(u4.getZ())*orsa::radToDeg());
     */
     
-    const orsa::Vector u1 = unitVector(x1,y1);
-    const orsa::Vector u2 = unitVector(x2,y2);
-    const orsa::Vector u3 = unitVector(x3,y3);
-    const orsa::Vector u4 = unitVector(x4,y4);
-  
-    const double field_RA  = acos(u1*u2);
-    const double field_DEC = acos(u2*u3);
-    
-#warning fields are not read correctly with WISE data, need to rewrite this part...
-    
-    /* ORSA_DEBUG("field: %f x %f [deg^2] [RAxDEC]",
-       orsa::radToDeg()*field_RA,
-       orsa::radToDeg()*field_DEC);
+    /* ORSA_DEBUG("acos(u1*u2): %.3f [deg]",acos(u1*u2)*orsa::radToDeg());
+       ORSA_DEBUG("acos(u2*u3): %.3f [deg]",acos(u2*u3)*orsa::radToDeg());
+       ORSA_DEBUG("acos(u3*u4): %.3f [deg]",acos(u3*u4)*orsa::radToDeg());
+       ORSA_DEBUG("acos(u4*u1): %.3f [deg]",acos(u4*u1)*orsa::radToDeg());
     */
     
     SkyCoverageElement e;
-  
-    // in Ecliptic coords...
-    const orsa::Vector northEquatorialPole = orsaSolarSystem::equatorialToEcliptic()*orsa::Vector(0,0,1);
-  
+    
+    // reference axis in ecliptic coords
+    // default: north equatorial pole, for all terrestrial observatories
+    // except for C51 (WISE satellite) where it is north ecliptic pole
+    const orsa::Vector zeta_axis =
+        (obscode.getRef()=="C51") ?
+        (orsa::Vector(0,0,1)) :
+        (orsaSolarSystem::equatorialToEcliptic()*orsa::Vector(0,0,1));
+    
     e.u_centerField = (u1+u2+u3+u4).normalized();
-    e.u_RA  = orsa::externalProduct(northEquatorialPole,e.u_centerField).normalized();
-    e.u_DEC = orsa::externalProduct(e.u_centerField,e.u_RA).normalized();
-    e.halfFieldSize_RA  = 0.5*field_RA;
-    e.halfFieldSize_DEC = 0.5*field_DEC;
+    e.u_X = orsa::externalProduct(zeta_axis,e.u_centerField).normalized();
+    e.u_Y = orsa::externalProduct(e.u_centerField,e.u_X).normalized();
+    
+    if (fabs((u2-u1)*e.u_X) > fabs((u3-u2)*e.u_X)) {
+        e.halfFieldSize_X = 0.25*(acos(u1*u2)+acos(u3*u4));
+        e.halfFieldSize_Y = 0.25*(acos(u2*u3)+acos(u4*u1));
+    } else {
+        e.halfFieldSize_X = 0.25*(acos(u2*u3)+acos(u4*u1));
+        e.halfFieldSize_Y = 0.25*(acos(u1*u2)+acos(u3*u4));
+    }
+    
     e.minScalarProduct  = std::min(std::min(e.u_centerField*u1,
                                             e.u_centerField*u2),
                                    std::min(e.u_centerField*u3,
                                             e.u_centerField*u4));
     e.limitingMagnitude = V;
-  
+    
     data.push_back(e);
-  
+    
+    ORSA_DEBUG("field: %.2f x %.2f [deg x deg]",2*e.halfFieldSize_X*orsa::radToDeg(),2*e.halfFieldSize_Y*orsa::radToDeg());
+    
     // ORSA_DEBUG("data size: %i   minScalarProduct: %f",data.size(),e.minScalarProduct);
-  
-    /* 
-       {
-       // some testing before leaving
-       ORSA_DEBUG("consinstency checks");
-       }
-    */
-  
+    
     return true;
 }
 
@@ -143,12 +188,12 @@ bool SkyCoverage::get(const orsa::Vector & u,
             // orsa::print((*it).u_centerField);
         }
         if (u*(*it).u_centerField > (*it).minScalarProduct) {
-            const double delta_RA  = fabs(asin(u*(*it).u_RA));
-            // if (verbose) ORSA_DEBUG("delta_RA: %f [deg]",orsa::radToDeg()*delta_RA);
-            if (delta_RA < (*it).halfFieldSize_RA) {
-                const double delta_DEC = fabs(asin(u*(*it).u_DEC));
-                // if (verbose) ORSA_DEBUG("delta_DEC: %f [deg]",orsa::radToDeg()*delta_DEC);
-                if (delta_DEC < (*it).halfFieldSize_DEC) {
+            const double delta_X  = fabs(asin(u*(*it).u_X));
+            // if (verbose) ORSA_DEBUG("delta_X: %f [deg]",orsa::radToDeg()*delta_X);
+            if (delta_X < (*it).halfFieldSize_X) {
+                const double delta_Y = fabs(asin(u*(*it).u_Y));
+                // if (verbose) ORSA_DEBUG("delta_Y: %f [deg]",orsa::radToDeg()*delta_Y);
+                if (delta_Y < (*it).halfFieldSize_Y) {
                     // if (verbose)  ORSA_DEBUG("found in one field, V: %f",(*it).limitingMagnitude);
                     if (local_V.isSet()) {
                         local_V = std::max(local_V.getRef(),
@@ -174,8 +219,8 @@ bool SkyCoverage::fastGet(const orsa::Vector & u) const {
     DataType::const_iterator it = data.begin();
     while (it != data.end()) {
         if (u*(*it).u_centerField > (*it).minScalarProduct) {
-            if (fabs(asin(u*(*it).u_RA)) < (*it).halfFieldSize_RA) {
-                if (fabs(asin(u*(*it).u_DEC)) < (*it).halfFieldSize_DEC) {
+            if (fabs(asin(u*(*it).u_X)) < (*it).halfFieldSize_X) {
+                if (fabs(asin(u*(*it).u_Y)) < (*it).halfFieldSize_Y) {
                     return true;
                 }
             }
@@ -192,8 +237,8 @@ bool SkyCoverage::insertFieldTime(const orsa::Time & epoch,
     DataType::iterator it = data.begin();
     while (it != data.end()) {
         if (u*(*it).u_centerField > (*it).minScalarProduct) {
-            if (fabs(asin(u*(*it).u_RA)) < (*it).halfFieldSize_RA) {
-                if (fabs(asin(u*(*it).u_DEC)) < (*it).halfFieldSize_DEC) {
+            if (fabs(asin(u*(*it).u_X)) < (*it).halfFieldSize_X) {
+                if (fabs(asin(u*(*it).u_Y)) < (*it).halfFieldSize_Y) {
                     bool unique=true;
                     for (unsigned int z=0; z<(*it).epochVec.size(); ++z) {
                         if (epoch == (*it).epochVec[z]) {
@@ -220,8 +265,8 @@ bool SkyCoverage::getFieldAverageTime(orsa::Time & epoch,
     DataType::const_iterator it = data.begin();
     while (it != data.end()) {
         if (u*(*it).u_centerField > (*it).minScalarProduct) {
-            if (fabs(asin(u*(*it).u_RA)) < (*it).halfFieldSize_RA) {
-                if (fabs(asin(u*(*it).u_DEC)) < (*it).halfFieldSize_DEC) {
+            if (fabs(asin(u*(*it).u_X)) < (*it).halfFieldSize_X) {
+                if (fabs(asin(u*(*it).u_Y)) < (*it).halfFieldSize_Y) {
                     for (unsigned int k=0; k<(*it).epochVec.size(); ++k) {
                         epochStat_JD->insert(orsaSolarSystem::timeToJulian((*it).epochVec[k]));
                     }
@@ -287,8 +332,8 @@ bool SkyCoverage::pickFieldTime(orsa::Time & epoch,
     DataType::const_iterator it = data.begin();
     while (it != data.end()) {
         if (u*(*it).u_centerField > (*it).minScalarProduct) {
-            if (fabs(asin(u*(*it).u_RA)) < (*it).halfFieldSize_RA) {
-                if (fabs(asin(u*(*it).u_DEC)) < (*it).halfFieldSize_DEC) {
+            if (fabs(asin(u*(*it).u_X)) < (*it).halfFieldSize_X) {
+                if (fabs(asin(u*(*it).u_Y)) < (*it).halfFieldSize_Y) {
                     for (unsigned int k=0; k<(*it).epochVec.size(); ++k) {
                         epochVec.push_back((*it).epochVec[k]);
                     }
@@ -309,7 +354,7 @@ double SkyCoverage::totalDegSq() const {
     double area=0;
     DataType::const_iterator it = data.begin();
     while (it != data.end()) {
-        area += (*it).halfFieldSize_RA*(*it).halfFieldSize_DEC;
+        area += (*it).halfFieldSize_X*(*it).halfFieldSize_Y;
         ++it;
     }
     // factor four because dealing with half-sizes above
