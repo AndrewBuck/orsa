@@ -48,6 +48,29 @@ public:
         }
         return retVal;
     }
+public:
+    orsaSolarSystem::OpticalObservation * getOpticalObservationNearEpoch(const orsa::Time & epoch) const {
+        if (_data.size()==0) return 0;
+        orsaSolarSystem::OpticalObservation * obs_near_epoch = 0;
+        orsaSolarSystem::OpticalObservation * obs;
+        for (unsigned int k=0; k<_data.size(); ++k) {
+            obs = dynamic_cast<orsaSolarSystem::OpticalObservation *> (_data[k].get());
+            if (obs) {
+                if (obs_near_epoch != 0) {
+                    if (fabs((obs->epoch.getRef()-epoch).get_d()) < fabs((obs_near_epoch->epoch.getRef()-epoch).get_d())) {
+                        obs_near_epoch = obs;
+                    }
+                } else {
+                    obs_near_epoch = obs;
+                }
+            }
+        }
+        if (obs_near_epoch != 0) {
+            ORSA_DEBUG("final epoch offset: %.3f [hours]",
+                       orsa::FromUnits((obs_near_epoch->epoch.getRef()-epoch).get_d(),orsa::Unit::HOUR,-1));
+        }
+        return obs_near_epoch;
+    }    
 protected:
     unsigned int processedLines;
 };
@@ -63,6 +86,13 @@ public:
         processedLines=0;
         observed=0;
     }
+public:
+    // absolute (ecliptic) positions at skyCoverage->epoch
+    /* CustomMPCAsteroidFile() : orsaInputOutput::MPCAsteroidFile() {
+       processedLines=0;
+       observed=0;
+       }
+    */
 public:
     bool processLine(const char * line) {
     
@@ -354,6 +384,7 @@ public:
     }
 public:
     osg::ref_ptr<SkyCoverage> skyCoverage;
+    osg::ref_ptr<orsaUtil::StandardObservatoryPositionCallback> obsPosCB;
     const orsa::Vector sunPosition;
     const orsa::Vector obsPosition;
 public:
@@ -430,34 +461,19 @@ int main(int argc, char ** argv) {
   
 
     osg::ref_ptr<orsa::BodyGroup> bg = new orsa::BodyGroup;
-  
+    
     // SUN
     osg::ref_ptr<orsa::Body> sun   = SPICEBody("SUN",orsaSolarSystem::Data::MSun());
     bg->addBody(sun.get());
-  
+    
     // EARTH
     osg::ref_ptr<orsa::Body> earth = SPICEBody("EARTH",orsaSolarSystem::Data::MEarth());
     bg->addBody(earth.get());
-  
+    
     // MOON
     osg::ref_ptr<orsa::Body> moon  = SPICEBody("MOON",orsaSolarSystem::Data::MMoon());
     bg->addBody(moon.get());
-  
-    orsa::Vector r;
-  
-    bg->getInterpolatedPosition(r,sun.get(),epoch);
-    const orsa::Vector sunPosition = r;
-    // bg->getInterpolatedPosition(r,sun.get(),epoch+dt);
-    // const orsa::Vector sunPosition_dt = r;
-    // bg->getInterpolatedPosition(r,moon.get(),epoch);
-    // const orsa::Vector moonPosition = r;
-    // bg->getInterpolatedPosition(r,moon.get(),epoch+dt);
-    // const orsa::Vector moonPosition_dt = r;
-    obsPosCB->getPosition(r,obsCode,epoch);
-    const orsa::Vector obsPosition = r;
-    // obsPosCB->getPosition(r,obsCode,epoch+dt);
-    // const orsa::Vector obsPosition_dt = r;
-  
+    
     // const orsaSolarSystem::Observatory observatory = obsPosCB->getObservatory(obsCode);
     // const double observatoryLatitude = observatory.latitude();
   
@@ -488,7 +504,44 @@ int main(int argc, char ** argv) {
         //
         ORSA_DEBUG("total selected observations: %i",obsFile->_data.size());
     }
-  
+
+    
+    osg::ref_ptr<orsaSolarSystem::OpticalObservation> obs_near_epoch =
+        obsFile->getOpticalObservationNearEpoch(epoch);
+    epoch = obs_near_epoch->epoch.getRef();
+    /* {
+       orsaSolarSystem::OpticalObservation * obs;
+       for (unsigned int k=0; k<obsFile->_data.size(); ++k) {
+       obs = dynamic_cast<orsaSolarSystem::OpticalObservation *> (obsFile->_data[k].get());
+       if (obs) {
+       if (obs_near_epoch.get()) {
+       if (fabs((obs->epoch.getRef()-epoch).get_d()) < fabs((obs_near_epoch->epoch.getRef()-epoch).get_d())) {
+       obs_near_epoch = obs;
+       }
+       } else {
+       obs_near_epoch = obs;
+       }
+       }
+       }
+       }
+    */
+    
+    orsa::Vector r;
+    
+    bg->getInterpolatedPosition(r,sun.get(),epoch);
+    const orsa::Vector sunPosition = r;
+    // bg->getInterpolatedPosition(r,sun.get(),epoch+dt);
+    // const orsa::Vector sunPosition_dt = r;
+    // bg->getInterpolatedPosition(r,moon.get(),epoch);
+    // const orsa::Vector moonPosition = r;
+    // bg->getInterpolatedPosition(r,moon.get(),epoch+dt);
+    // const orsa::Vector moonPosition_dt = r;
+    obsPosCB->getPosition(r,obs_near_epoch.get());
+    const orsa::Vector obsPosition = r;
+    // obsPosCB->getPosition(r,obsCode,epoch+dt);
+    // const orsa::Vector obsPosition_dt = r;
+    
+    
     {
         unsigned int inField=0,inFieldCandidates=0;
         orsaSolarSystem::OpticalObservation * obs;
@@ -524,9 +577,10 @@ int main(int argc, char ** argv) {
         skyCoverage->writeFieldTimeFile(filename);
     }
     
-    osg::ref_ptr<CustomMPCAsteroidFile> orbitFile = 
-        new CustomMPCAsteroidFile(sunPosition,obsPosition);
+    osg::ref_ptr<CustomMPCAsteroidFile> orbitFile = new CustomMPCAsteroidFile(sunPosition,obsPosition);
+    // osg::ref_ptr<CustomMPCAsteroidFile> orbitFile = new CustomMPCAsteroidFile;
     orbitFile->skyCoverage = skyCoverage.get();
+    orbitFile->obsPosCB = obsPosCB.get();
     orbitFile->obsFile = obsFile.get();
     orbitFile->setFileName("MPCORB.DAT.gz");
     orbitFile->read();
@@ -653,6 +707,8 @@ int main(int argc, char ** argv) {
             orsaSolarSystem::OrbitWithEpoch orbit = orbitFile->_data[korb].orbit.getRef();
             const double orbitPeriod = orbit.period();
             const double original_M  = orbit.M;
+            //
+            orsa::Vector r;
             //
             orbit.M = original_M + fmod(orsa::twopi() * (epoch-orbit.epoch.getRef()).get_d() / orbitPeriod, orsa::twopi());
             orbit.relativePosition(r);
