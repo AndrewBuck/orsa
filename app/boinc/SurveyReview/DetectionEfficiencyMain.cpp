@@ -68,10 +68,10 @@ public:
                 }
             }
         }
-        if (obs_near_epoch != 0) {
-            ORSA_DEBUG("final epoch offset: %.3f [hours]",
-                       orsa::FromUnits((obs_near_epoch->epoch.getRef()-epoch).get_d(),orsa::Unit::HOUR,-1));
-        }
+        /* if (obs_near_epoch != 0) {
+           ORSA_DEBUG("final epoch offset: %.3f [hours]",orsa::FromUnits((obs_near_epoch->epoch.getRef()-epoch).get_d(),orsa::Unit::HOUR,-1));
+           }
+        */
         return obs_near_epoch;
     }    
 protected:
