@@ -735,6 +735,7 @@ int main(int argc, char ** argv) {
 
         if (epoch == epoch_dt) {
             ORSA_DEBUG("problems: null dt");
+            continue;
         }
         
         // replace vectors for current epoch
