@@ -823,7 +823,7 @@ int main(int argc, char ** argv) {
         const double eclipticLongitude = (tmp_eclipticLongitude>orsa::pi()) ? (tmp_eclipticLongitude-orsa::twopi()) : (tmp_eclipticLongitude);
         const double eclipticLatitude  = theta-theta_sun;
         
-        // ORSA_DEBUG("ra: %g  dec: %g",ra*orsa::radToDeg(),dec*orsa::radToDeg());
+        // ORSA_DEBUG("ra: %g  dec: %g",ra*orsa::radToDeg()/15.0,dec*orsa::radToDeg());
         
         EfficiencyData ed;
         ed.H = orbitFile->_data[korb].H.getRef();
