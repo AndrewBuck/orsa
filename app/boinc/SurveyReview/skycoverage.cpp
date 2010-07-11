@@ -101,12 +101,11 @@ bool SkyCoverage::setField(const double & x1,
         const double max_diag = std::max(s1*s3,s2*s4);
         if (max_diag > min_side) {
             ORSA_DEBUG("error: data points not numbered consecutively along field perimeter)");
-            
-            ORSA_DEBUG("s1 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s1.getY(),s1.getX())*orsa::radToDeg(),asin(s1.getZ())*orsa::radToDeg());
-            ORSA_DEBUG("s2 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s2.getY(),s2.getX())*orsa::radToDeg(),asin(s2.getZ())*orsa::radToDeg());
-            ORSA_DEBUG("s3 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s3.getY(),s3.getX())*orsa::radToDeg(),asin(s3.getZ())*orsa::radToDeg());
-            ORSA_DEBUG("s4 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s4.getY(),s4.getX())*orsa::radToDeg(),asin(s4.getZ())*orsa::radToDeg());
-            
+            /* ORSA_DEBUG("s1 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s1.getY(),s1.getX())*orsa::radToDeg(),asin(s1.getZ())*orsa::radToDeg());
+               ORSA_DEBUG("s2 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s2.getY(),s2.getX())*orsa::radToDeg(),asin(s2.getZ())*orsa::radToDeg());
+               ORSA_DEBUG("s3 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s3.getY(),s3.getX())*orsa::radToDeg(),asin(s3.getZ())*orsa::radToDeg());
+               ORSA_DEBUG("s4 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s4.getY(),s4.getX())*orsa::radToDeg(),asin(s4.getZ())*orsa::radToDeg());
+            */
             return false;
         }
     }
@@ -615,10 +614,10 @@ bool SkyCoverage::processFilename(const std::string & filename_in,
                                                 1,
                                                 dayOfYear+1.0-observatory.lon.getRef()/orsa::twopi());
         } else {
+            // tested on C51/WISE data
             epoch = orsaSolarSystem::gregorTime(year,
                                                 1,
-                                                dayOfYear+1.0);
-#warning Check this one!
+                                                dayOfYear+0.5);
         }
         // orsa::print(epoch);
     } else {
@@ -627,5 +626,3 @@ bool SkyCoverage::processFilename(const std::string & filename_in,
     }   
     return true;
 }
-
-
