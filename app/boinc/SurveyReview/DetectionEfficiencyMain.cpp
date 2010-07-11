@@ -63,6 +63,9 @@ public:
                 } else {
                     obs_near_epoch = obs;
                 }
+                if (obs_near_epoch->epoch.getRef() == epoch) {
+                    break;
+                }
             }
         }
         if (obs_near_epoch != 0) {
@@ -413,9 +416,7 @@ int main(int argc, char ** argv) {
     const std::string basename = SkyCoverage::basename(argv[1]);
   
     orsaSPICE::SPICE::instance()->loadKernel("de405.bsp");
-  
-    const orsa::Time dt(0,0,10,0,0); // used to compute apparent velocity
-  
+    
     osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile = new orsaInputOutput::MPCObsCodeFile;
     obsCodeFile->setFileName("obscode.dat");
     obsCodeFile->read();
@@ -442,8 +443,6 @@ int main(int argc, char ** argv) {
     skyCoverageFile->read();
     
     osg::ref_ptr<SkyCoverage> skyCoverage = skyCoverageFile->_data;
-    
-    ORSA_DEBUG("sky coverage fields loaded: %i",skyCoverage->size());
     
     if (0) {
         // test skycoverage
@@ -504,7 +503,6 @@ int main(int argc, char ** argv) {
         //
         ORSA_DEBUG("total selected observations: %i",obsFile->_data.size());
     }
-
     
     osg::ref_ptr<orsaSolarSystem::OpticalObservation> obs_near_epoch =
         obsFile->getOpticalObservationNearEpoch(epoch);
@@ -724,23 +722,37 @@ int main(int argc, char ** argv) {
         }
     
         orsa::Vector r;
-    
+        
+        osg::ref_ptr<orsaSolarSystem::OpticalObservation> obs_near_epoch =
+            obsFile->getOpticalObservationNearEpoch(epoch);
+        
+        osg::ref_ptr<orsaSolarSystem::OpticalObservation> obs_near_epoch_dt =
+            obsFile->getOpticalObservationNearEpoch(epoch+orsa::Time(0,1,0,0,0));
+        
+        epoch = obs_near_epoch->epoch.getRef();
+        
+        const orsa::Time epoch_dt = obs_near_epoch_dt->epoch.getRef();
+
+        if (epoch == epoch_dt) {
+            ORSA_DEBUG("problems: null dt");
+        }
+        
         // replace vectors for current epoch
         bg->getInterpolatedPosition(r,sun.get(),epoch);
         const orsa::Vector sunPosition = r;
-        bg->getInterpolatedPosition(r,sun.get(),epoch+dt);
+        bg->getInterpolatedPosition(r,sun.get(),epoch_dt);
         const orsa::Vector sunPosition_dt = r;
         bg->getInterpolatedPosition(r,earth.get(),epoch);
         const orsa::Vector earthPosition = r;
-        bg->getInterpolatedPosition(r,earth.get(),epoch+dt);
+        bg->getInterpolatedPosition(r,earth.get(),epoch_dt);
         const orsa::Vector earthPosition_dt = r;
         bg->getInterpolatedPosition(r,moon.get(),epoch);
         const orsa::Vector moonPosition = r;
-        bg->getInterpolatedPosition(r,moon.get(),epoch+dt);
+        bg->getInterpolatedPosition(r,moon.get(),epoch_dt);
         const orsa::Vector moonPosition_dt = r;
-        obsPosCB->getPosition(r,obsCode,epoch);
+        obsPosCB->getPosition(r,obs_near_epoch);
         const orsa::Vector obsPosition = r;
-        obsPosCB->getPosition(r,obsCode,epoch+dt);
+        obsPosCB->getPosition(r,obs_near_epoch_dt);
         const orsa::Vector obsPosition_dt = r;
         
         orsaSolarSystem::OrbitWithEpoch orbit = orbitFile->_data[korb].orbit.getRef();
@@ -751,7 +763,7 @@ int main(int argc, char ** argv) {
         orbit.relativePosition(r);
         const orsa::Vector orbitPosition = r + sunPosition;
         // now at t+dt
-        orbit.M = original_M + fmod(orsa::twopi() * (epoch+dt-orbit.epoch.getRef()).get_d() / orbitPeriod, orsa::twopi());
+        orbit.M = original_M + fmod(orsa::twopi() * (epoch_dt-orbit.epoch.getRef()).get_d() / orbitPeriod, orsa::twopi());
         orsa::Vector r_dt;
         orbit.relativePosition(r_dt);
         const orsa::Vector orbitPosition_dt = r_dt + sunPosition_dt;
@@ -825,7 +837,7 @@ int main(int argc, char ** argv) {
                                  phaseAngle,
                                  orb2obs.length(),
                                  orb2sun.length()); 
-        ed.apparentVelocity = acos(obs2orb_dt.normalized()*obs2orb.normalized())/dt.get_d();
+        ed.apparentVelocity = acos(obs2orb_dt.normalized()*obs2orb.normalized())/fabs((epoch_dt-epoch).get_d());
         ed.solarElongation = solarElongation;
         ed.lunarElongation = lunarElongation;
         ed.solarAltitude = solarAltitude;

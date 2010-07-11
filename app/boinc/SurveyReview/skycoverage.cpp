@@ -93,14 +93,14 @@ bool SkyCoverage::setField(const double & x1,
     orsa::Vector s2 = unitVector(x2,y2);
     orsa::Vector s3 = unitVector(x3,y3);
     orsa::Vector s4 = unitVector(x4,y4);
-
+    
     // check assumption: diagonals must be longer than sides
     {
         // using scalar products instead of acos(...), so min and max are inverted
         const double min_side = std::min(std::min(s1*s2,s3*s4),std::min(s2*s3,s1*s4));
         const double max_diag = std::max(s1*s3,s2*s4);
         if (max_diag > min_side) {
-            ORSA_DEBUG("error: data points not numbered consecutively along field perimeter)");
+            // ORSA_DEBUG("error: data points not numbered consecutively along field perimeter)");
             /* ORSA_DEBUG("s1 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s1.getY(),s1.getX())*orsa::radToDeg(),asin(s1.getZ())*orsa::radToDeg());
                ORSA_DEBUG("s2 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s2.getY(),s2.getX())*orsa::radToDeg(),asin(s2.getZ())*orsa::radToDeg());
                ORSA_DEBUG("s3 -- phi: %6.2f [deg]  theta: %+6.2f [deg]",atan2(s3.getY(),s3.getX())*orsa::radToDeg(),asin(s3.getZ())*orsa::radToDeg());

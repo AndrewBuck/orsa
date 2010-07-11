@@ -238,8 +238,7 @@ public:
                                 int & dayOfYear);    
 };
 
-class SkyCoverageFile : 
-    public orsaInputOutput::InputFile < orsaInputOutput::PlainFile, osg::ref_ptr<SkyCoverage> > {
+class SkyCoverageFile : public orsaInputOutput::InputFile < orsaInputOutput::PlainFile, osg::ref_ptr<SkyCoverage> > {
 public:
     SkyCoverageFile() : 
         orsaInputOutput::InputFile < orsaInputOutput::PlainFile, osg::ref_ptr<SkyCoverage> > () {
@@ -272,6 +271,17 @@ public:
         orsaInputOutput::InputFile < orsaInputOutput::PlainFile, osg::ref_ptr<SkyCoverage> >::setFileName(filename);
     }
 public:
+    bool read() {
+        goodFields=0;
+        totalFields=0;
+        // now, regular call
+        const bool retVal = orsaInputOutput::InputFile < orsaInputOutput::PlainFile, osg::ref_ptr<SkyCoverage> >::read();
+        ORSA_DEBUG("accepted %i/%i fields",goodFields,totalFields);
+        return retVal;
+    }
+protected:
+    unsigned int goodFields,totalFields;
+public:
     bool processLine(const char * line) {
         double x1,x2,x3,x4; // ra
         double y1,y2,y3,y4; // dec
@@ -282,13 +292,18 @@ public:
                             &x3,&y3,
                             &x4,&y4,
                             &V)) {
+            ++totalFields;
             SkyCoverage::normalize(x1,y1);
             SkyCoverage::normalize(x2,y2);
             SkyCoverage::normalize(x3,y3);
             SkyCoverage::normalize(x4,y4);
             //
-            _data->setField(x1,y1,x2,y2,x3,y3,x4,y4,V);
-            return true;
+            if (_data->setField(x1,y1,x2,y2,x3,y3,x4,y4,V)) {
+                ++goodFields;
+                return true;
+            } else {
+                return false;
+            }
         } else {
             return false;
         }
