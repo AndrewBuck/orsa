@@ -414,7 +414,10 @@ int main(int argc, char ** argv) {
     osg::ref_ptr<orsa::RNG> rnd = new orsa::RNG(85719);
     
     const std::string basename = SkyCoverage::basename(argv[1]);
-  
+    
+    char allEtaFilename[1024];
+    sprintf(allEtaFilename,"%s.allEta.dat",basename.c_str());
+    
     orsaSPICE::SPICE::instance()->loadKernel("de405.bsp");
     
     osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile = new orsaInputOutput::MPCObsCodeFile;
@@ -502,6 +505,13 @@ int main(int argc, char ** argv) {
         obsFile->read();
         //
         ORSA_DEBUG("total selected observations: %i",obsFile->_data.size());
+    }
+
+    if (obsFile->_data.size()==0) {
+        // write dummy file and exit
+        FILE * fp = fopen(allEtaFilename,"w");
+        fclose(fp);
+        exit(0);
     }
     
     osg::ref_ptr<orsaSolarSystem::OpticalObservation> obs_near_epoch =
@@ -858,10 +868,8 @@ int main(int argc, char ** argv) {
     }
     //    
     {
-        char filename[1024];
-        sprintf(filename,"%s.allEta.dat",basename.c_str());
-        writeEfficiencyDataFile(etaData,filename);
+        writeEfficiencyDataFile(etaData,allEtaFilename);
     }
-  
+    
     return 0;
 }
