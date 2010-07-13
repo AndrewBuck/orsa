@@ -43,14 +43,6 @@ int main(int argc, char ** argv) {
     // [1] apparent velocity
     osg::ref_ptr<CountStats::LinearVar> var_U = new CountStats::LinearVar(start_U,stop_U,step_U);
     varDefinition.push_back(var_U.get());
-  
-    // [ ] solar elongation
-    // osg::ref_ptr<CountStats::LinearVar> var_SE = new CountStats::LinearVar(start_SE,stop_SE,step_SE);
-    // varDefinition.push_back(var_SE.get());
-  
-    // [ ] lunar elongation
-    // osg::ref_ptr<CountStats::LinearVar> var_LE = new CountStats::LinearVar(start_LE,stop_LE,step_LE);
-    // varDefinition.push_back(var_LE.get());
     
     // [2] airmass
     osg::ref_ptr<CountStats::LinearVar> var_AM = new CountStats::LinearVar(start_AM,stop_AM,step_AM);
@@ -72,6 +64,18 @@ int main(int argc, char ** argv) {
     osg::ref_ptr<CountStats::LinearVar> var_EL = new CountStats::LinearVar(start_EL,stop_EL,step_EL);
     varDefinition.push_back(var_EL.get());
     
+    // [7] solar altitude
+    osg::ref_ptr<CountStats::LinearVar> var_SA = new CountStats::LinearVar(start_SA,stop_SA,step_SA);
+    varDefinition.push_back(var_SA.get());
+    
+    // [8] lunar altitude
+    osg::ref_ptr<CountStats::LinearVar> var_LA = new CountStats::LinearVar(start_LA,stop_LA,step_LA);
+    varDefinition.push_back(var_LA.get());
+    
+    // [9] lunar elongation
+    osg::ref_ptr<CountStats::LinearVar> var_LE = new CountStats::LinearVar(start_LE,stop_LE,step_LE);
+    varDefinition.push_back(var_LE.get());
+    
     std::vector< osg::ref_ptr<CountStats> > countStats;
     countStats.resize(numFiles);
     // allocated in loop below
@@ -86,16 +90,17 @@ int main(int argc, char ** argv) {
             // keep vars aligned with varDefinition content
             xVector[0] = etaData[fileID][k].V.getRef();
             xVector[1] = etaData[fileID][k].apparentVelocity.getRef();
-            // xVector[ ] = etaData[fileID][k].solarElongation.getRef();
-            // xVector[ ] = etaData[fileID][k].lunarElongation.getRef();
             xVector[2] = etaData[fileID][k].airMass.getRef();
             xVector[3] = etaData[fileID][k].galacticLatitude.getRef();
             xVector[4] = etaData[fileID][k].galacticLongitude.getRef();
             xVector[5] = etaData[fileID][k].eclipticLatitude.getRef();
             xVector[6] = etaData[fileID][k].eclipticLongitude.getRef();
-            const bool goodInsert = countStats[fileID]->insert(xVector,
-                                                               etaData[fileID][k].observed.getRef(),
-                                                               etaData[fileID][k].discovered.getRef());
+            xVector[7] = etaData[fileID][k].solarAltitude.getRef();
+            xVector[8] = etaData[fileID][k].lunarAltitude.getRef();
+            xVector[9] = etaData[fileID][k].lunarElongation.getRef();
+            countStats[fileID]->insert(xVector,
+                                       etaData[fileID][k].observed.getRef(),
+                                       etaData[fileID][k].discovered.getRef());
         }
     }
     
@@ -130,14 +135,14 @@ int main(int argc, char ** argv) {
                 //
                 el.V =xVector[0];
                 el.U =xVector[1];		 
-                // el.SE=xVector[ ];	 
-                // el.LE=xVector[ ];
-                // add lunar phase here
                 el.AM=xVector[2];
                 el.GB=xVector[3];
                 el.GL=xVector[4];
                 el.EB=xVector[5];
                 el.EL=xVector[6];
+                el.SA=xVector[7];
+                el.LA=xVector[8];
+                el.LE=xVector[9];
                 //
                 el.eta=eta;
                 el.sigmaEta=sigmaEta;
@@ -266,6 +271,18 @@ int main(int argc, char ** argv) {
         // EL
         par->insert("scale_EL",100.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
         par->insert("shape_EL",  0.1, 0.0000001);
+        // SA
+        par->insert("peak_SA", -20.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
+        par->insert("scale_SA", 10.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
+        par->insert("shape_SA",  0.10, 0.0000001);
+        // LA
+        par->insert("peak_LA",  30.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
+        par->insert("scale_LA", 10.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
+        par->insert("shape_LA",  0.10, 0.0000001);
+        // LE
+        par->insert("peak_LE",  30.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
+        par->insert("scale_LE", 10.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
+        par->insert("shape_LE",  0.10, 0.0000001);
         
         // hard limits
         par->setRange("drop_GB",

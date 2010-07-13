@@ -14,6 +14,9 @@ public:
     double scale_GL, shape_GL;
     double drop_EB, scale_EB, center_EB;
     double scale_EL, shape_EL;
+    double peak_SA, scale_SA, shape_SA;
+    double peak_LA, scale_LA, shape_LA;
+    double peak_LE, scale_LE, shape_LE;
     double chisq_dof;
     unsigned int Nobs, Ndsc, Ntot;
     double degSq;
@@ -174,6 +177,30 @@ double PlotUtil_fun_GL(const double GL,
                                           GL,
                                           e.scale_GL,
                                           e.shape_GL);
+}
+
+double PlotUtil_fun_SA(const double SA,
+                       const FitFileDataElement & e) {
+    return SkyCoverage::nominal_eta_AM(SA,
+                                       e.peak_SA,
+                                       e.scale_SA,
+                                       e.shape_SA);
+}
+
+double PlotUtil_fun_LA(const double LA,
+                       const FitFileDataElement & e) {
+    return SkyCoverage::nominal_eta_AM(LA,
+                                       e.peak_LA,
+                                       e.scale_LA,
+                                       e.shape_LA);
+}
+
+double PlotUtil_fun_LE(const double LE,
+                       const FitFileDataElement & e) {
+    return SkyCoverage::nominal_eta_LE(LE,
+                                       e.peak_LE,
+                                       e.scale_LE,
+                                       e.shape_LE);
 }
 
 double PlotUtil_fun_one(const double,
@@ -459,7 +486,19 @@ int main(int argc, char ** argv) {
                                                     e.center_EB,
                                                     data[k].EL.getRef(),
                                                     e.scale_EL,
-                                                    e.shape_EL);
+                                                    e.shape_EL,
+                                                    data[k].SA.getRef(),
+                                                    e.peak_SA,
+                                                    e.scale_SA,
+                                                    e.shape_SA,
+                                                    data[k].LA.getRef(),
+                                                    e.peak_LA,
+                                                    e.scale_LA,
+                                                    e.shape_LA,
+                                                    data[k].LE.getRef(),
+                                                    e.peak_LE,
+                                                    e.scale_LE,
+                                                    e.shape_LE);
                 
                 const double nominal_eta_V = SkyCoverage::nominal_eta_V(data[k].V.getRef(),
                                                                         e.V_limit,
@@ -493,6 +532,21 @@ int main(int argc, char ** argv) {
                                                                              e.scale_GL,
                                                                              e.shape_GL);
                 
+                const double nominal_eta_SA = SkyCoverage::nominal_eta_AM(data[k].SA.getRef(),
+                                                                          e.peak_SA,
+                                                                          e.scale_SA,
+                                                                          e.shape_SA);
+                
+                const double nominal_eta_LA = SkyCoverage::nominal_eta_AM(data[k].LA.getRef(),
+                                                                          e.peak_LA,
+                                                                          e.scale_LA,
+                                                                          e.shape_LA);
+                
+                const double nominal_eta_LE = SkyCoverage::nominal_eta_LE(data[k].LE.getRef(),
+                                                                          e.peak_LE,
+                                                                          e.scale_LE,
+                                                                          e.shape_LE);
+                
                 // at this point, small sigmas can become very large because divided by a very small eta's
                 if (data[k].sigmaEta.getRef() > 0) {
                     if (eta != 0) {
@@ -509,9 +563,11 @@ int main(int argc, char ** argv) {
                         histo_SE.insert(data[k].SE.getRef(),
                                         data[k].eta.getRef()/eta,
                                         orsa::square(eta/(data[k].sigmaEta.getRef())));
-                        histo_LE.insert(data[k].LE.getRef(),
-                                        data[k].eta.getRef()/eta,
-                                        orsa::square(eta/(data[k].sigmaEta.getRef())));
+                        if (nominal_eta_LE != 0) {
+                            histo_LE.insert(data[k].LE.getRef(),
+                                            data[k].eta.getRef()*nominal_eta_LE/eta,
+                                            orsa::square(eta/(nominal_eta_LE*data[k].sigmaEta.getRef())));
+                        }
                         if (nominal_eta_AM != 0) {
                             histo_AM.insert(data[k].AM.getRef(),
                                             data[k].eta.getRef()*nominal_eta_AM/eta,
@@ -530,12 +586,16 @@ int main(int argc, char ** argv) {
                         histo_AZ.insert(data[k].AZ.getRef(),
                                         data[k].eta.getRef()/eta,
                                         orsa::square(eta/(data[k].sigmaEta.getRef())));
-                        histo_LA.insert(data[k].LA.getRef(),
-                                        data[k].eta.getRef()/eta,
-                                        orsa::square(eta/(data[k].sigmaEta.getRef())));
-                        histo_SA.insert(data[k].SA.getRef(),
-                                        data[k].eta.getRef()/eta,
-                                        orsa::square(eta/(data[k].sigmaEta.getRef())));
+                        if (nominal_eta_LA != 0) {
+                            histo_LA.insert(data[k].LA.getRef(),
+                                            data[k].eta.getRef()*nominal_eta_LA/eta,
+                                            orsa::square(eta/(nominal_eta_LA*data[k].sigmaEta.getRef())));
+                        }
+                        if (nominal_eta_SA != 0) {
+                            histo_SA.insert(data[k].SA.getRef(),
+                                            data[k].eta.getRef()*nominal_eta_SA/eta,
+                                            orsa::square(eta/(nominal_eta_SA*data[k].sigmaEta.getRef())));
+                        }
                         histo_LP.insert(data[k].LP.getRef(),
                                         data[k].eta.getRef()/eta,
                                         orsa::square(eta/(data[k].sigmaEta.getRef())));
@@ -770,7 +830,7 @@ int main(int argc, char ** argv) {
         
     ny += ly;
         
-    PlotUtil((&PlotUtil_fun_one),
+    PlotUtil((&PlotUtil_fun_SA),
              ffd,
              histo_SA,
              orsa::radToDeg(),

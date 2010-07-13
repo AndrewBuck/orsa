@@ -193,6 +193,9 @@ public:
         fitData->insertVariable("GL");
         fitData->insertVariable("EB");
         fitData->insertVariable("EL");
+        fitData->insertVariable("SA");
+        fitData->insertVariable("LA");
+        fitData->insertVariable("LE");
         fitData->insertVariable("fileID");
         //
         {
@@ -206,6 +209,9 @@ public:
                     fitData->insertD("GL",row,data[fileID][l].GL.getRef());
                     fitData->insertD("EB",row,data[fileID][l].EB.getRef());
                     fitData->insertD("EL",row,data[fileID][l].EL.getRef());
+                    fitData->insertD("SA",row,data[fileID][l].SA.getRef());
+                    fitData->insertD("LA",row,data[fileID][l].LA.getRef());
+                    fitData->insertD("LE",row,data[fileID][l].LE.getRef());
                     //
                     fitData->insertZ("fileID",row,fileID);
                     //
@@ -293,7 +299,19 @@ protected:
                                             localPar->get("center_EB"),
                                             data->getD("EL",row),
                                             localPar->get("scale_EL"),
-                                            localPar->get("shape_EL"));
+                                            localPar->get("shape_EL"),
+                                            data->getD("SA",row),
+                                            localPar->get("peak_SA"),
+                                            localPar->get("scale_SA"),
+                                            localPar->get("shape_SA"),
+                                            data->getD("LA",row),
+                                            localPar->get("peak_LA"),
+                                            localPar->get("scale_LA"),
+                                            localPar->get("shape_LA"),
+                                            data->getD("LE",row),
+                                            localPar->get("peak_LE"),
+                                            localPar->get("scale_LE"),
+                                            localPar->get("shape_LE"));
         return eta;
     }
 protected: 
@@ -360,7 +378,13 @@ protected:
                             (_par->name(p).find("scale_GL")  != std::string::npos) ||
                             (_par->name(p).find("scale_EB")  != std::string::npos) ||
                             (_par->name(p).find("center_EB") != std::string::npos) ||
-                            (_par->name(p).find("scale_EL")  != std::string::npos) ) {
+                            (_par->name(p).find("scale_EL")  != std::string::npos) ||
+                            (_par->name(p).find("peak_SA")   != std::string::npos) ||
+                            (_par->name(p).find("scale_SA")  != std::string::npos) ||
+                            (_par->name(p).find("peak_LA")   != std::string::npos) ||
+                            (_par->name(p).find("scale_LA")  != std::string::npos) ||
+                            (_par->name(p).find("peak_LE")   != std::string::npos) ||
+                            (_par->name(p).find("scale_LE")  != std::string::npos) ) {
                     ORSA_DEBUG("%14s: %g +/- %g [deg]",
                                _par->name(p).c_str(),
                                orsa::radToDeg()*_par->get(p),
@@ -535,7 +559,13 @@ protected:
                                     (_par->name(p).find("scale_GL")  != std::string::npos) ||
                                     (_par->name(p).find("scale_EB")  != std::string::npos) ||
                                     (_par->name(p).find("center_EB") != std::string::npos) ||
-                                    (_par->name(p).find("scale_EL")  != std::string::npos) ) {
+                                    (_par->name(p).find("scale_EL")  != std::string::npos) ||
+                                    (_par->name(p).find("peak_SA")   != std::string::npos) ||
+                                    (_par->name(p).find("scale_SA")  != std::string::npos) ||
+                                    (_par->name(p).find("peak_LA")   != std::string::npos) ||
+                                    (_par->name(p).find("scale_LA")  != std::string::npos) ||
+                                    (_par->name(p).find("peak_LE")   != std::string::npos) ||
+                                    (_par->name(p).find("scale_LE")  != std::string::npos) ) {
                             fprintf(fp,
                                     "%+.3e %+.3e ",
                                     orsa::radToDeg()*_par->get(p),

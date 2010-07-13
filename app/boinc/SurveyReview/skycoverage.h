@@ -160,7 +160,10 @@ public:
                const double & GB,
                const double & GL,
                const double & EB,
-               const double & EL) const;
+               const double & EL,
+               const double & SA,
+               const double & LA,
+               const double & LE) const;
     
 public:
     static double eta(const double & V,
@@ -189,7 +192,19 @@ public:
                       const double & center_EB,
                       const double & EL,
                       const double & scale_EL,
-                      const double & shape_EL);
+                      const double & shape_EL,
+                      const double & SA,
+                      const double & peak_SA,
+                      const double & scale_SA,
+                      const double & shape_SA,
+                      const double & LA,
+                      const double & peak_LA,
+                      const double & scale_LA,
+                      const double & shape_LA,
+                      const double & LE,
+                      const double & peak_LE,
+                      const double & scale_LE,
+                      const double & shape_LE);
 public:
     // nominal eta values, mostly for plotting purposes, no mixing angle
     static double nominal_eta_V(const double & V,
@@ -212,6 +227,10 @@ public:
                                     const double & GL,
                                     const double & scale_GL,
                                     const double & shape_GL);
+    static double nominal_eta_LE(const double & LE,
+                                 const double & peak_LE,
+                                 const double & scale_LE,
+                                 const double & shape_LE);
 public:
     // coefficients for efficiency as function of apparent magnitude V
     orsa::Cache<double> V_limit, eta0_V, V0, c_V, w_V;
@@ -225,7 +244,10 @@ public:
     //
     orsa::Cache<double> drop_EB, scale_EB, center_EB;
     orsa::Cache<double> scale_EL, shape_EL;
-    
+    //
+    orsa::Cache<double> peak_SA, scale_SA, shape_SA;
+    orsa::Cache<double> peak_LA, scale_LA, shape_LA;
+    orsa::Cache<double> peak_LE, scale_LE, shape_LE;
 public:
     // return filename, stripping path and suffix (after first dot)
     static std::string basename(const std::string & filename);

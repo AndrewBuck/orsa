@@ -733,6 +733,11 @@ int main() {
                                                                 earth.get(),
                                                                 epoch);
                                     
+                                    orsa::Vector moonPosition_epoch;
+                                    bg->getInterpolatedPosition(moonPosition_epoch,
+                                                                moon.get(),
+                                                                epoch);
+                                    
                                     // earth north pole
                                     const orsa::Vector northPole = (orsaSolarSystem::equatorialToEcliptic()*orsa::Vector(0,0,1)).normalized();
                                     
@@ -755,6 +760,7 @@ int main() {
                                     const orsa::Vector obs2orb    = -orb2obs;
                                     const orsa::Vector orb2sun    = sunPosition_epoch      - orbitPosition_epoch;
                                     const orsa::Vector obs2sun    = sunPosition_epoch      - observerPosition_epoch;
+                                    const orsa::Vector obs2moon   = moonPosition_epoch     - observerPosition_epoch;
                                     const double       phaseAngle = acos((orb2obs.normalized())*(orb2sun.normalized()));
                                     
                                     // apparent magnitude V moved later, in H loop
@@ -777,6 +783,14 @@ int main() {
                                     // const double airMass = ((observed||epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):-1.0);
                                     // const double azimuth = fmod(orsa::twopi()+atan2(obs2orb_localEast,obs2orb_localNorth),orsa::twopi());
                                     const double AM = ((epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):100.0);
+                                    
+                                    const double solarAltitude = orsa::halfpi()-acos(zenith*obs2sun.normalized());
+                                    const double lunarAltitude = orsa::halfpi()-acos(zenith*obs2moon.normalized());
+                                    const double lunarElongation = acos(obs2moon.normalized()*obs2orb.normalized());
+                                    //
+                                    const double SA = solarAltitude;
+                                    const double LA = lunarAltitude;
+                                    const double LE = lunarElongation;
                                     
                                     // galactic latitude
                                     const orsa::Vector obs2orb_Equatorial = orsaSolarSystem::eclipticToEquatorial()*obs2orb;
@@ -820,7 +834,7 @@ int main() {
                                                                            orb2sun.length());
 
                                         // detection efficiency
-                                        const double eta = skyCoverage->eta(V,U,AM,GB,GL,EB,EL);
+                                        const double eta = skyCoverage->eta(V,U,AM,GB,GL,EB,EL,SA,LA,LE);
                                         
                                         if (boinc_is_standalone()) {
                                             ORSA_DEBUG("a: %f [AU] e: %f i: %f [deg] H: %f V: %f eta: %e",
