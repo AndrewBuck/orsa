@@ -307,9 +307,9 @@ int main(int argc, char ** argv) {
         while (fgets(line,1024,fp)) {
             if (line[0]=='#') continue; // comment
             // UPDATE THIS NUMBER
-            if (28 == sscanf(line,
+            if (37 == sscanf(line,
                              // "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
                              &e.JD,
                              &e.year,
                              &e.V_limit,
@@ -331,6 +331,15 @@ int main(int argc, char ** argv) {
                              &e.center_EB,
                              &e.scale_EL,
                              &e.shape_EL,
+                             &e.peak_SA,
+                             &e.scale_SA,
+                             &e.shape_SA,
+                             &e.peak_LA,
+                             &e.scale_LA,
+                             &e.shape_LA,
+                             &e.peak_LE,
+                             &e.scale_LE,
+                             &e.shape_LE,
                              &e.chisq_dof,
                              &e.Nobs,
                              &e.Ndsc,
