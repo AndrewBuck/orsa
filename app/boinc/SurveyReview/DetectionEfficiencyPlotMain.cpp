@@ -356,6 +356,12 @@ int main(int argc, char ** argv) {
                 e.scale_EB  = orsa::degToRad()*e.scale_EB;
                 e.center_EB = orsa::degToRad()*e.center_EB;
                 e.scale_EL  = orsa::degToRad()*e.scale_EL;
+                e.peak_SA   = orsa::degToRad()*e.peak_SA;
+                e.scale_SA  = orsa::degToRad()*e.scale_SA;  
+                e.peak_LA   = orsa::degToRad()*e.peak_LA;
+                e.scale_LA  = orsa::degToRad()*e.scale_LA;
+                e.peak_LE   = orsa::degToRad()*e.peak_LE;
+                e.scale_LE  = orsa::degToRad()*e.scale_LE;
                 // 
                 ffd[fileID] = e;
                 break;
