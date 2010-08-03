@@ -17,4 +17,5 @@ unix:!macx {
 	SUBDIRS += SurveyReviewAssimilator.app.pro
 	SUBDIRS += Inspect.app.pro
 	SUBDIRS += InspectPlot.app.pro
+	SUBDIRS += LunationCopy.app.pro
 }
