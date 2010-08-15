@@ -13,7 +13,7 @@ int main(int argc, char ** argv) {
     
     ORSA_DEBUG("pid: %i",getpid());
 
-    unsigned int numFiles=argc-1;
+    const unsigned int numFiles=argc-1;
     
     std::vector< std::string > basename;
     basename.resize(numFiles);
