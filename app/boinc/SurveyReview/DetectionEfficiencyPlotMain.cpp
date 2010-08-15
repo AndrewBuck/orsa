@@ -49,7 +49,7 @@ public:
 
 void PlotUtil(double (*fun)(const double, const FitFileDataElement &),
               const FitFileData & ffd,
-              const Histo<CountStats::LinearVar> & histo,
+              const Histo & histo,
               const double xfactor,
               const int xpos,
               const int ypos,
@@ -220,7 +220,7 @@ int main(int argc, char ** argv) {
     ORSA_DEBUG("pid: %i",getpid());
     
     // this is HALF the number of files, because each data set is composed by two files
-    unsigned int numFiles=(argc-1)/2;
+    const unsigned int numFiles=(argc-1)/2;
     
     std::vector< osg::ref_ptr<CountStats::Var> > varDefinition;
     //
@@ -277,19 +277,33 @@ int main(int argc, char ** argv) {
     varDefinition.push_back(var_LP.get());
     
     // for data plots
-    Histo<CountStats::LinearVar> histo_V (var_V.get());
-    Histo<CountStats::LinearVar> histo_U (var_U.get());
-    Histo<CountStats::LinearVar> histo_SE(var_SE.get());
-    Histo<CountStats::LinearVar> histo_LE(var_LE.get());
-    Histo<CountStats::LinearVar> histo_AM(var_AM.get());
-    Histo<CountStats::LinearVar> histo_GB(var_GB.get());
-    Histo<CountStats::LinearVar> histo_GL(var_GL.get());
-    Histo<CountStats::LinearVar> histo_EB(var_EB.get());
-    Histo<CountStats::LinearVar> histo_EL(var_EL.get());
-    Histo<CountStats::LinearVar> histo_AZ(var_AZ.get());
-    Histo<CountStats::LinearVar> histo_LA(var_LA.get());
-    Histo<CountStats::LinearVar> histo_SA(var_SA.get());
-    Histo<CountStats::LinearVar> histo_LP(var_LP.get());
+    Histo histo_V (var_V.get());
+    Histo histo_U (var_U.get());
+    Histo histo_SE(var_SE.get());
+    Histo histo_LE(var_LE.get());
+    Histo histo_AM(var_AM.get());
+    Histo histo_GB(var_GB.get());
+    Histo histo_GL(var_GL.get());
+    Histo histo_EB(var_EB.get());
+    Histo histo_EL(var_EL.get());
+    Histo histo_AZ(var_AZ.get());
+    Histo histo_LA(var_LA.get());
+    Histo histo_SA(var_SA.get());
+    Histo histo_LP(var_LP.get());
+    
+    // specialized, 2D Histo
+    Histo2D histo2D_galactic(var_GB.get(),var_GL.get());
+    Histo2D histo2D_galactic_eta(var_GB.get(),var_GL.get());
+    // ecliptic
+    Histo2D histo2D_ecliptic(var_EB.get(),var_EL.get());
+    Histo2D histo2D_ecliptic_eta(var_EB.get(),var_EL.get());
+    //
+    // lunar (choose ONE and update code everywhere)
+    // Histo2D histo2D_lunar(var_LA.get(),var_LE.get());
+    // Histo2D histo2D_lunar_eta(var_LA.get(),var_LE.get());
+    //
+    Histo2D histo2D_lunar(var_LP.get(),var_LE.get());
+    Histo2D histo2D_lunar_eta(var_LP.get(),var_LE.get());
     
     // read fit files
     FitFileData ffd;
@@ -614,9 +628,91 @@ int main(int argc, char ** argv) {
                         histo_LP.insert(data[k].LP.getRef(),
                                         data[k].eta.getRef()/eta,
                                         orsa::square(eta/(data[k].sigmaEta.getRef())));
+
+                        {
+                            const double nominal_eta_galactic =
+                                SkyCoverage::nominal_eta_GB_GL(data[k].GB.getRef(),
+                                                               e.drop_GB,
+                                                               e.scale_GB,
+                                                               e.center_GB,
+                                                               data[k].GL.getRef(),
+                                                               e.scale_GL,
+                                                               e.shape_GL);  
+                            if (nominal_eta_galactic != 0) {
+                                histo2D_galactic.insert(data[k].GB.getRef(),
+                                                        data[k].GL.getRef(),
+                                                        data[k].eta.getRef()*nominal_eta_galactic/eta,
+                                                        orsa::square(eta/(nominal_eta_galactic*data[k].sigmaEta.getRef())));
+                                // this tracks the fitting function only, not the data!
+                                histo2D_galactic_eta.insert(data[k].GB.getRef(),
+                                                            data[k].GL.getRef(),
+                                                            nominal_eta_galactic,
+                                                            1.0); // OK to use constant sigma for fitting function?
+                            }
+                        }
+                        
+                        {
+                            const double nominal_eta_ecliptic =
+                                SkyCoverage::nominal_eta_GB_GL(data[k].EB.getRef(),
+                                                               e.drop_EB,
+                                                               e.scale_EB,
+                                                               e.center_EB,
+                                                               data[k].EL.getRef(),
+                                                               e.scale_EL,
+                                                               e.shape_EL);  
+                            if (nominal_eta_ecliptic != 0) {
+                                histo2D_ecliptic.insert(data[k].EB.getRef(),
+                                                        data[k].EL.getRef(),
+                                                        data[k].eta.getRef()*nominal_eta_ecliptic/eta,
+                                                        orsa::square(eta/(nominal_eta_ecliptic*data[k].sigmaEta.getRef())));
+                                // this tracks the fitting function only, not the data!
+                                histo2D_ecliptic_eta.insert(data[k].EB.getRef(),
+                                                            data[k].EL.getRef(),
+                                                            nominal_eta_ecliptic,
+                                                            1.0); // OK to use constant sigma for fitting function?
+                            }
+                        }
+
+                        /* {
+                           const double nominal_eta_lunar =
+                           SkyCoverage::nominal_eta_LE(data[k].LE.getRef(),
+                           e.peak_LE,
+                           e.scale_LE,
+                           e.shape_LE);
+                           if (nominal_eta_lunar != 0) {
+                           histo2D_lunar.insert(data[k].LA.getRef(),
+                           data[k].LE.getRef(),
+                           data[k].eta.getRef()*nominal_eta_lunar/eta,
+                           orsa::square(eta/(nominal_eta_lunar*data[k].sigmaEta.getRef())));
+                           // this tracks the fitting function only, not the data!
+                           histo2D_lunar_eta.insert(data[k].LA.getRef(),
+                           data[k].LE.getRef(),
+                           nominal_eta_lunar,
+                           1.0); // OK to use constant sigma for fitting function?
+                           }
+                           }
+                        */
+                        
+                        {
+                            const double nominal_eta_lunar =
+                                SkyCoverage::nominal_eta_LE(data[k].LE.getRef(),
+                                                            e.peak_LE,
+                                                            e.scale_LE,
+                                                            e.shape_LE);
+                            if (nominal_eta_lunar != 0) {
+                                histo2D_lunar.insert(data[k].LP.getRef(),
+                                                     data[k].LE.getRef(),
+                                                     data[k].eta.getRef()*nominal_eta_lunar/eta,
+                                                     orsa::square(eta/(nominal_eta_lunar*data[k].sigmaEta.getRef())));
+                                // this tracks the fitting function only, not the data!
+                                histo2D_lunar_eta.insert(data[k].LP.getRef(),
+                                                         data[k].LE.getRef(),
+                                                         nominal_eta_lunar,
+                                                         1.0); // OK to use constant sigma for fitting function?
+                            }
+                        }
                     }
-                }
-      
+                }      
             }
         }
     }
@@ -719,6 +815,153 @@ int main(int argc, char ** argv) {
                     U90/arcsecPerHour,
                     U95/arcsecPerHour,
                     U99/arcsecPerHour);
+        }
+        fclose(fp);
+    }
+    
+    for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
+        char filename[1024];
+        sprintf(filename,"%s.galactic.dat",basename[fileID].c_str());
+        ORSA_DEBUG("writing file [%s]",filename);
+        FILE * fp = fopen(filename,"w");
+        for (unsigned int j=0; j<histo2D_galactic.getData().size(); ++j) {
+            for (unsigned int k=0; k<histo2D_galactic.getData()[j].size(); ++k) {
+                const EfficiencyStatistics2D * es = histo2D_galactic.getData()[j][k];
+                if (es->entries()>0) {
+                    gmp_fprintf(fp,
+                                "%+5.1f %+6.1f %5.3f %5.3f %5.3f %Zi\n",
+                                orsa::radToDeg()*es->centerX,
+                                orsa::radToDeg()*es->centerY,
+                                es->average(),
+                                es->standardDeviation(),
+                                histo2D_galactic_eta.getData()[j][k]->average(),
+                                es->entries().get_mpz_t());
+                }
+            }
+        }        
+        fclose(fp);
+    }
+    
+    // 1 deg by 1 deg mesh of fiitting function, for contour plots
+    for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
+        char filename[1024];
+        sprintf(filename,"%s.fit.galactic.contour.dat",basename[fileID].c_str());
+        ORSA_DEBUG("writing file [%s]",filename);
+        FILE * fp = fopen(filename,"w");
+        const FitFileDataElement & e = ffd[fileID];
+        for (int gl=-180; gl<=180; ++gl) {
+            for (int gb=-90; gb<=90; ++gb) {
+                const double nominal_eta_galactic =
+                    SkyCoverage::nominal_eta_GB_GL(gb*orsa::degToRad(),
+                                                   e.drop_GB,
+                                                   e.scale_GB,
+                                                   e.center_GB,
+                                                   gl*orsa::degToRad(),
+                                                   e.scale_GL,
+                                                   e.shape_GL);
+                gmp_fprintf(fp,
+                            "%+3i %+2i %5.3f\n",
+                            gl,
+                            gb,
+                            nominal_eta_galactic);
+            }
+        }
+        fclose(fp);
+    }
+    
+    for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
+        char filename[1024];
+        sprintf(filename,"%s.ecliptic.dat",basename[fileID].c_str());
+        ORSA_DEBUG("writing file [%s]",filename);
+        FILE * fp = fopen(filename,"w");
+        for (unsigned int j=0; j<histo2D_ecliptic.getData().size(); ++j) {
+            for (unsigned int k=0; k<histo2D_ecliptic.getData()[j].size(); ++k) {
+                const EfficiencyStatistics2D * es = histo2D_ecliptic.getData()[j][k];
+                if (es->entries()>0) {
+                    gmp_fprintf(fp,
+                                "%+5.1f %+6.1f %5.3f %5.3f %5.3f %Zi\n",
+                                orsa::radToDeg()*es->centerX,
+                                orsa::radToDeg()*es->centerY,
+                                es->average(),
+                                es->standardDeviation(),
+                                histo2D_ecliptic_eta.getData()[j][k]->average(),
+                                es->entries().get_mpz_t());
+                }
+            }
+        }        
+        fclose(fp);
+    }
+
+    // 1 deg by 1 deg mesh of fiitting function, for contour plots
+    for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
+        char filename[1024];
+        sprintf(filename,"%s.fit.ecliptic.contour.dat",basename[fileID].c_str());
+        ORSA_DEBUG("writing file [%s]",filename);
+        FILE * fp = fopen(filename,"w");
+        const FitFileDataElement & e = ffd[fileID];
+        for (int gl=-180; gl<=180; ++gl) {
+            for (int gb=-90; gb<=90; ++gb) {
+                const double nominal_eta_ecliptic =
+                    SkyCoverage::nominal_eta_GB_GL(gb*orsa::degToRad(),
+                                                   e.drop_EB,
+                                                   e.scale_EB,
+                                                   e.center_EB,
+                                                   gl*orsa::degToRad(),
+                                                   e.scale_EL,
+                                                   e.shape_EL);
+                gmp_fprintf(fp,
+                            "%+3i %+2i %5.3f\n",
+                            gl,
+                            gb,
+                            nominal_eta_ecliptic);
+            }
+        }
+        fclose(fp);
+    }
+    
+    for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
+        char filename[1024];
+        sprintf(filename,"%s.lunar.dat",basename[fileID].c_str());
+        ORSA_DEBUG("writing file [%s]",filename);
+        FILE * fp = fopen(filename,"w");
+        for (unsigned int j=0; j<histo2D_lunar.getData().size(); ++j) {
+            for (unsigned int k=0; k<histo2D_lunar.getData()[j].size(); ++k) {
+                const EfficiencyStatistics2D * es = histo2D_lunar.getData()[j][k];
+                if (es->entries()>0) {
+                    gmp_fprintf(fp,
+                                "%+5.1f %+6.1f %5.3f %5.3f %5.3f %Zi\n",
+                                orsa::radToDeg()*es->centerX,
+                                orsa::radToDeg()*es->centerY,
+                                es->average(),
+                                es->standardDeviation(),
+                                histo2D_lunar_eta.getData()[j][k]->average(),
+                                es->entries().get_mpz_t());
+                }
+            }
+        }        
+        fclose(fp);
+    }
+
+    // 1 deg by 1 deg mesh of fiitting function, for contour plots
+    for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
+        char filename[1024];
+        sprintf(filename,"%s.fit.lunar.contour.dat",basename[fileID].c_str());
+        ORSA_DEBUG("writing file [%s]",filename);
+        FILE * fp = fopen(filename,"w");
+        const FitFileDataElement & e = ffd[fileID];
+        for (int le=-180; le<=180; ++le) { 
+            for (int lx=-90; lx<=90; ++lx) { // LA or LP...
+                const double nominal_eta_lunar =
+                    SkyCoverage::nominal_eta_LE(le*orsa::degToRad(),
+                                                e.peak_LE,
+                                                e.scale_LE,
+                                                e.shape_LE);
+                gmp_fprintf(fp,
+                            "%+3i %+2i %5.3f\n",
+                            le,
+                            lx,
+                            nominal_eta_lunar);
+            }
         }
         fclose(fp);
     }

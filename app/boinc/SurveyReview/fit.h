@@ -51,12 +51,23 @@ const double  step_LP =   10.0*orsa::degToRad();
 
 class EfficiencyStatistics : public orsa::WeightedStatistic<double> {
 public:
-    EfficiencyStatistics(const double & aux) : 
+    EfficiencyStatistics(const double & Center) : 
         orsa::WeightedStatistic<double>(),
-        center(aux) { }
+        center(Center) { }
 public:
     const double center;
-    // orsa::Cache<double> fit;
+};
+
+typedef EfficiencyStatistics EfficiencyStatistics1D;
+
+class EfficiencyStatistics2D : public orsa::WeightedStatistic<double> {
+public:
+    EfficiencyStatistics2D(const double & CenterX,
+                           const double & CenterY) : 
+        orsa::WeightedStatistic<double>(),
+        centerX(CenterX), centerY(CenterY) { }
+public:
+    const double centerX, centerY;
 };
 
 // for sorting
@@ -331,19 +342,50 @@ public:
     }
 };
 
-template <class T> class Histo : public T {
+/* 
+   template <class T> class Histo : public T {
+   public:
+   Histo(const T * orig) : T(*orig) {
+   histo.resize(T::size());
+   for (unsigned int k=0; k<histo.size(); ++k) {
+   histo[k] = new EfficiencyStatistics(T::binCenter(k));
+   }
+   }
+   public:
+   bool insert(const double x,
+   const double val,
+   const double sigma) {
+   const size_t histo_bin = T::bin(x);
+   if (histo_bin == ((size_t)-1)) {
+   // out of boundaries
+   return false;
+   } else {
+   histo[histo_bin]->insert(val,sigma);
+   return true;
+   }
+   }
+   public:
+   typedef std::vector< osg::ref_ptr< EfficiencyStatistics > > HistoDataType;
+   protected:
+   HistoDataType histo;
+   public:
+   const HistoDataType & getData() const { return histo; }
+   };
+*/
+
+class Histo {
 public:
-    Histo(const T * orig) : T(*orig) {
-        histo.resize(T::size());
+    Histo(const CountStats::Var * Var) : var(Var) {
+        histo.resize(var->size());
         for (unsigned int k=0; k<histo.size(); ++k) {
-            histo[k] = new EfficiencyStatistics(T::binCenter(k));
+            histo[k] = new EfficiencyStatistics(var->binCenter(k));
         }
     }
 public:
     bool insert(const double x,
                 const double val,
                 const double sigma) {
-        const size_t histo_bin = T::bin(x);
+        const size_t histo_bin = var->bin(x);
         if (histo_bin == ((size_t)-1)) {
             // out of boundaries
             return false;
@@ -358,6 +400,51 @@ protected:
     HistoDataType histo;
 public:
     const HistoDataType & getData() const { return histo; }
+protected:
+    const CountStats::Var * var;  
+};
+
+typedef Histo Histo1D;
+
+class Histo2D {
+public:
+    Histo2D(const CountStats::Var * VarX,
+            const CountStats::Var * VarY) : varx(VarX), vary(VarY) {
+        histo.resize(varx->size());
+        for (unsigned int j=0; j<varx->size(); ++j) {
+            histo[j].resize(vary->size());
+            for (unsigned int k=0; k<vary->size(); ++k) {
+                histo[j][k] = new EfficiencyStatistics2D(varx->binCenter(j),vary->binCenter(k));
+            }
+        }
+    }
+public:
+    bool insert(const double x,
+                const double y,
+                const double val,
+                const double sigma) {
+        const size_t histo_binx = varx->bin(x);
+        if (histo_binx == ((size_t)-1)) {
+            // out of boundaries
+            return false;
+        }
+        const size_t histo_biny = vary->bin(y);
+        if (histo_biny == ((size_t)-1)) {
+            // out of boundaries
+            return false;
+        }
+        histo[histo_binx][histo_biny]->insert(val,sigma);
+        return true;
+    }
+public:
+    typedef std::vector< std::vector< osg::ref_ptr< EfficiencyStatistics2D > > > HistoDataType;
+protected:
+    HistoDataType histo;
+public:
+    const HistoDataType & getData() const { return histo; }
+protected:
+    const CountStats::Var * varx;
+    const CountStats::Var * vary;
 };
 
 #endif // __FIT_H__
