@@ -78,7 +78,7 @@ int main(int argc, char ** argv) {
                                               end,
                                               lunationID);
         char lunationDir[1024];
-        sprintf(lunationDir,"%s/L%i",baseDir.c_str(),lunationID);
+        sprintf(lunationDir,"%s/L%03i",baseDir.c_str(),lunationID);
         sprintf(cmd,"mkdir -p %s",lunationDir);
         run(cmd);
         sprintf(cmd,"cp -a %s %s %s",argv[arg],allEtaFilename,lunationDir);
