@@ -49,11 +49,11 @@ public:
 int main(int argc, char **argv) { 
     
     // choose H
-    const int z_H_fix = 180;
+    const int z_H_fix = 220;
     
     // choose NEO or PHO
-    const std::string OBJ = "NEO"; 
-    // const std::string OBJ = "PHO"; 
+    // const std::string OBJ = "NEO"; 
+    const std::string OBJ = "PHO"; 
     
     // also choose below if plotting "field" coverage, detection efficiency, or observation efficiency
     
@@ -68,34 +68,43 @@ int main(int argc, char **argv) {
         exit(0);
     }
 
-    const double a_step = 0.05;
-    const double a_min  = 0.90;
-    const double a_max  = 2.20;
+    // a,e
+    const double x_step = 0.05;
+    const double x_min  = 0.90;
+    const double x_max  = 2.20;
     //
-    const double e_step =  0.05;
-    const double e_min  =  0.00;
-    const double e_max  =  1.00;
+    const double y_step =  0.05;
+    const double y_min  =  0.00;
+    const double y_max  =  1.00;
+    // a,i
+    /* const double x_step = 0.05;
+       const double x_min  = 0.90;
+       const double x_max  = 2.20;
+       //
+       const double y_step =  5.00;
+       const double y_min  =  0.00;
+       const double y_max  = 85.00;
+       #warning check why points with inclination between 85 and 90 deg are not plotted
+    */
     //
-    /* const double i_step =   5.0;
-       const double i_min  =   0.0;
-       const double i_max  = 150.0;
+    // a,L (L=node+peri+M
+    /* const double x_step = 0.05;
+       const double x_min  = 0.90;
+       const double x_max  = 2.20;
+       //
+       const double y_step =  30.0;
+       const double y_min  =   0.0;
+       const double y_max  = 360.0;
     */
     
     std::vector< osg::ref_ptr<PlotStats::Var> > varDefinition;
     //
-    // [0] a
-    osg::ref_ptr<PlotStats::LinearVar> var_a = new PlotStats::LinearVar(a_min+1*a_step,a_max+3*a_step,a_step);
-    varDefinition.push_back(var_a.get());
+    osg::ref_ptr<PlotStats::LinearVar> var_x = new PlotStats::LinearVar(x_min+1*x_step,x_max+3*x_step,x_step);
+    varDefinition.push_back(var_x.get());
     //
-    // [1] e
-    osg::ref_ptr<PlotStats::LinearVar> var_e = new PlotStats::LinearVar(e_min+1*e_step,e_max+3*e_step,e_step);
-    varDefinition.push_back(var_e.get());
-    //
-    // [2]
-    /* osg::ref_ptr<PlotStats::LinearVar> var_i = new PlotStats::LinearVar(i_min,i_max,i_step);
-       varDefinition.push_back(var_i.get());
-    */
-    //
+    osg::ref_ptr<PlotStats::LinearVar> var_y = new PlotStats::LinearVar(y_min+1*y_step,y_max+3*y_step,y_step);
+    varDefinition.push_back(var_y.get());
+    
     osg::ref_ptr<PlotStats> plotStats = 
         new PlotStats(varDefinition);
     {
@@ -106,6 +115,11 @@ int main(int argc, char **argv) {
         int z_a_min, z_a_max;
         int z_e_min, z_e_max;
         int z_i_min, z_i_max;
+        /* int z_node_min, z_node_max;
+           int z_peri_min, z_peri_max;
+           int z_M_min, z_M_max;
+        */
+        int z_L_min, z_L_max;
         int z_H;
         double eta_field, sigma_eta_field;
         int entries_field;
@@ -113,12 +127,13 @@ int main(int argc, char **argv) {
         int entries_detect;
         double eta_obs, sigma_eta_obs;
         while (fgets(line,1024,fp)) {
-            if (16 != sscanf(line,
-                             "%s %i %i %i %i %i %i %i %lf %lf %i %lf %lf %i %lf %lf",
+            if (18 != sscanf(line,
+                             "%s %i %i %i %i %i %i %i %i %i %lf %lf %i %lf %lf %i %lf %lf",
                              obj,
                              &z_a_min, &z_a_max,
                              &z_e_min, &z_e_max,
                              &z_i_min, &z_i_max,
+                             &z_L_min, &z_L_max,
                              &z_H,
                              &eta_field, &sigma_eta_field,
                              &entries_field,
@@ -129,19 +144,33 @@ int main(int argc, char **argv) {
                 continue;
             } else {
 
+                // local center bin
+                const double center_a    = 0.5*(z_a_max+z_a_min)*grain_a_AU;
+                const double center_e    = 0.5*(z_e_max+z_e_min)*grain_e;
+                const double center_i    = 0.5*(z_i_max+z_i_min)*grain_i_DEG;
+                // assuming grain size for node=peri=M=L
+                const double center_L = 0.5*(z_L_max+z_L_min)*grain_node_DEG;
+                
                 if ( (z_H == z_H_fix) &&
                      (obj == OBJ) &&
                      (entries_detect >= 1) ) {
                     // keep vars aligned with varDefinition content
-                    xVector[0] = a_step+0.5*(z_a_max+z_a_min)*grain_a_AU;
-                    xVector[1] = e_step+0.5*(z_e_max+z_e_min)*grain_e;
-                    // xVector[2] = 0.5*(z_i_max+z_i_min)*grain_i_DEG;
-                    // ORSA_DEBUG("xVector: %g %g",xVector[0],xVector[1]);
+
+                    // a,e
+                    xVector[0] = x_step+center_a;
+                    xVector[1] = y_step+center_e;
+                    // a,i
+                    /* xVector[0] = x_step+center_a;
+                       xVector[1] = y_step+center_i;
+                    */
                     //
-                    /* xVector[0] = z_a_min*grain_a_AU;
-                       xVector[1] = z_e_min*grain_e;
-                       // xVector[2] = z_i_min*grain_i_DEG;
-                       */
+                    // a,L
+                    /* xVector[0] = x_step+center_a;
+                       xVector[1] = y_step+fmod(center_L,360.0);
+                    */
+                    
+                    // ORSA_DEBUG("xVector: %g %g",xVector[0],xVector[1]);
+                    
                     // CHOOSE one insert here
                     // plotStats->insert(xVector, eta_field,  1.0);
                     // plotStats->insert(xVector, eta_detect, 1.0);
@@ -164,25 +193,23 @@ int main(int argc, char **argv) {
         mesh = (float*)calloc(meshSize,sizeof(float));
         std::vector<double> xVector;
         xVector.resize(varDefinition.size());
-        for (unsigned j=0; j<var_a->size(); ++j) {
-            for (unsigned k=0; k<var_e->size(); ++k) {
-                const unsigned int mesh_id = j*var_e->size()+k;
-                xVector[0] = a_min+a_step*(j+0.5);
-                xVector[1] = e_min+e_step*(k+0.5);
+        for (unsigned j=0; j<var_x->size(); ++j) {
+            for (unsigned k=0; k<var_y->size(); ++k) {
+                const unsigned int mesh_id = j*var_y->size()+k;
+                xVector[0] = x_min+x_step*(j+0.5);
+                xVector[1] = y_min+y_step*(k+0.5);
                 std::vector<size_t> binVector;
                 if (plotStats->bin(binVector,xVector)) {
-                    // ORSA_DEBUG("mesh[%i]  totalSize: %i  j: %i k: %i bv[0]: %i bv[1]: %i",j*var_e->size()+k,plotStats->size().get_si(),j,k,binVector[0],binVector[1]);
                     const PlotStatsElement * e =  plotStats->stats(plotStats->index(binVector));
                     if (e) {
-                        // mesh[mesh_id] = e->average();
-
                         if (e->average() > 0) {
-                            mesh[mesh_id] = log10(e->average());
+                            // mesh[mesh_id] = pow10(e->average());
+                            mesh[mesh_id] = e->average();
+                            // mesh[mesh_id] = log10(e->average());
                         } else {
+                            // mesh[mesh_id] = 1e-20;
                             mesh[mesh_id] = -1000;
                         }
-                        
-                        // ORSA_DEBUG("a: %g   e: %g   j: %i   k: %i   mesh[%06i] = %g",xVector[0],xVector[1],j,k,mesh_id,mesh[mesh_id]);
                     } else {
                         mesh[mesh_id] = empty_mesh_val;
                     }
@@ -238,7 +265,7 @@ int main(int argc, char **argv) {
     // good for printing: metafl("POST") + psfont("AvantGarde-Book")
     
     /*** DISLIN ***/
-    page(2000,1500);
+    page(2300,1300);
     pagmod("LAND");
     
     // output file name
@@ -273,13 +300,16 @@ int main(int argc, char **argv) {
     // psfont("AvantGarde-Book");
     // color("fore");
     
-    penwid(0.2);
+    penwid(5.0);
     height(36); // text height
     
     // paghdr("","",2,0);
     
-    axspos(200,1300);
-    axslen(1350,1050);
+    /* axspos(200,1300);
+       axslen(1350,1050);
+    */
+    axspos( 300,1100);
+    axslen(1350, 850);
     
     // select a color table
     setvlt("RAIN"); // TEMP,GREY,RGREY,VGA,RAIN,SPEC...
@@ -294,7 +324,7 @@ int main(int argc, char **argv) {
     // titlin("NEOs In-Field Probability for G96",4);
     // titlin("H=18 NEOs Detection Efficiency for 703",4);
     // titlin("H=18 NEOs Detection Efficiency for G96",4);
-    titlin("H=18 NEOs Observation Probability for 703",4);
+    // titlin("H=18 NEOs Observation Probability for 703",4);
     // titlin("H=18 NEOs Observation Probability for G96",4);
     // 
     // PHOs
@@ -306,8 +336,10 @@ int main(int argc, char **argv) {
     // titlin("H=18 PHOs Observation Probability for G96",4);
     //
     // misc
+    // titlin("H=20 PHOs Observation Probability for 703",4);
+    // titlin("H=20 PHOs Observation Probability for G96",4);
     // titlin("H=22 PHOs Observation Probability for 703",4);
-    // titlin("H=22 PHOs Observation Probability for G96",4);
+    titlin("H=22 PHOs Observation Probability for G96",4);
     
     // titlin("3-D Colour Plot of the Function",2);
     // titlin("F(X,Y) = 2 * SIN(X) * SIN(Y)",4);
@@ -318,12 +350,21 @@ int main(int argc, char **argv) {
     // name("eccentricity","y");
     // name("Z-axis","z");
 
+    // a,e
     name("Semi-Major Axis [AU]","x");
     name("Eccentricity","y");
+    // a,i
+    /* name("Semi-Major Axis [AU]","x");
+       name("Inclination [deg]","y");
+    */
+    // a,L
+    /* name("Semi-Major Axis [AU]","x");
+       name("True Longitude [deg]","y");
+    */
     //
-    // name("Log$_{10}$ Probability","z");
-    // name("Log$_{10}$ Detection Efficiency","z");
-    name("Log$_{10}$ Probability","z");
+    // name("Probability","z");
+    // name("Detection Efficiency","z");
+    // name("Probability","z");
     
     // name("Long.","x");
     // name("Lat.","y");
@@ -334,54 +375,42 @@ int main(int argc, char **argv) {
     setgrf("NAME","NAME","NONE","NONE");
     
     intax();
-    autres(var_a->size()+3,
-           var_e->size()+3);
-    // axspos(300,1850);
-    // ax3len(2200,1400,1400);
-    // digits(0,"X");
-    digits(1,"X"); 
-    // digits(2,"Y");
-    digits(1,"Y");
-    digits(0,"Z");
+
+    // a,e
+    autres(var_x->size()+3,
+           var_y->size()+3);
+    // a,i
+    /* autres(var_x->size()+3,
+       var_y->size()+3);
+    */
+    // a,L
+    /* autres(var_x->size()+3,
+       var_y->size()+1);
+    */
     
-    ticks(1,"X");
-    ticks(1,"Y");
-    ticks(5,"Z");
-    
-    // lin
-    /* graf3(a_min-a_step/2,a_max+a_step/2,a_min,0.1,
-       e_min-e_step/2,e_max+e_step/2,e_min,0.1,
-       0,mesh_max,0,mesh_step);
-       crvmat(mesh,var_a->size(),var_e->size(),1,1);
-    */
-    // log
-    /* graf3(a_min-a_step/2,a_max+a_step/2,a_min,0.1,
-       e_min-e_step/2,e_max+e_step/2,e_min,0.1,
-       mesh_min,mesh_max,mesh_min,mesh_step);
-    */
-    /* graf3(a_min,a_max,a_min,0.1,
-       e_min,e_max,e_min,0.1,
-       mesh_min,mesh_max,mesh_min,mesh_step);
-       crvmat(mesh,var_a->size(),var_e->size(),1,1);
-    */
-    /* graf3(a_min-a_step/2,a_max+a_step/2,a_min,0.1,
-       e_min-e_step/2,e_max+e_step/2,e_min,0.1,
-       mesh_min,mesh_max,mesh_min,mesh_step);
-       crvmat(mesh,var_a->size(),var_e->size(),1,1);
-    */
+    labtyp("vert","z"); // vertical labels for z axis
+
+    // a,e
     //
     // NEOs
-    // const double z_min=-4; const double z_max=-1;
-    // const double z_min=-3; const double z_max=-1;
-    const double z_min=-5; const double z_max=-3;
+    // const double z_min=1e-4; const double z_max=1e-1;
+    // const double z_min=1e-3; const double z_max=1e-1;
+    // const double z_min=1e-5; const double z_max=1e-3;
     //
     // PHOs
-    // const double z_min=-4; const double z_max=-1;
-    // const double z_min=-3; const double z_max=0;
-    // const double z_min=-6; const double z_max=-3;
+    // const double z_min=1e-4; const double z_max=1e-1;
+    // const double z_min=1e-3; const double z_max=1e0;
+    const double z_min=1e-6; const double z_max=1e-3;
     //
     // other...
-    // const double z_min=-6; const double z_max=-3;
+    // const double z_min=1e-6; const double z_max=1e-3;
+    //
+    // a,i
+    // const double z_min=1e-5; const double z_max=1e-3;
+    //
+    // a,L
+    // const double z_min=1e-5; const double z_max=1e-3;
+    //
     // 
     {
         // bound z
@@ -391,13 +420,57 @@ int main(int argc, char **argv) {
             if (mesh[k]>z_max) mesh[k]=z_max;
         }
     }
-    //
-    graf3(a_min-a_step/2,a_max+a_step/2,a_min,0.1,
-          e_min-e_step/2,e_max+e_step/2,e_min,0.1,
-          z_min,z_max,z_min,1);
-    crvmat(mesh,var_a->size(),var_e->size(),1,1);
+    // a,e
+    {
+        digits(1,"X"); 
+        digits(1,"Y");
+        digits(0,"Z");
+        ticks(1,"X");
+        ticks(1,"Y");
+        ticks(5,"Z");
+        axsscl("log","z");
+        labels("log","z");
+        frame(5); // frame thickness
+        graf3(x_min-x_step/2,x_max+x_step/2,1.0,0.2,
+              y_min-y_step/2,y_max+y_step/2,y_min,0.1,
+              log10(z_min),log10(z_max),log10(z_min),1);
+        crvmat(mesh,var_x->size(),var_y->size(),1,1);
+    }
+    // a,i
+    /* {
+       digits(1,"X"); 
+       digits(0,"Y");
+       digits(0,"Z");
+       ticks(1,"X");
+       ticks(1,"Y");
+       ticks(5,"Z");
+       axsscl("log","z");
+       labels("log","z");
+       frame(5); // frame thickness
+       graf3(x_min-x_step/2,x_max+x_step/2,1.0,0.2,
+       y_min-y_step/2,y_max+y_step/2,0.0,15.0,
+       log10(z_min),log10(z_max),log10(z_min),1);
+       crvmat(mesh,var_x->size(),var_y->size(),1,1);
+       }
+    */
+    // a,L
+    /* {
+       digits(1,"X"); 
+       digits(0,"Y");
+       digits(0,"Z");
+       ticks(1,"X");
+       ticks(3,"Y");
+       ticks(5,"Z");
+       axsscl("log","z");
+       labels("log","z");
+       frame(5); // frame thickness
+       graf3(x_min-x_step/2,x_max+x_step/2,1.0,0.2,
+       y_min-y_step/2,y_max+y_step/2,y_min,90.0,
+       log10(z_min),log10(z_max),log10(z_min),1);
+       crvmat(mesh,var_x->size(),var_y->size(),1,1);
+       }
+    */
     
-    // ORSA_DEBUG("var_a->size(): %i",var_a->size());
     
     /* 
        if (1) {
@@ -413,6 +486,7 @@ int main(int argc, char **argv) {
     */
     
     // title only
+    vkytit(-50); // title closer to plot
     height(50); // text height
     title();
     
