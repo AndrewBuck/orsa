@@ -12,11 +12,8 @@ public:
     double peak_AM, scale_AM, shape_AM;
     double drop_GB, scale_GB, center_GB;
     double scale_GL, shape_GL;
-    double drop_EB, scale_EB, center_EB;
-    double scale_EL, shape_EL;
     double peak_SA, scale_SA, shape_SA;
-    double peak_LA, scale_LA, shape_LA;
-    double peak_LE, scale_LE, shape_LE;
+    double LA_LI_limit_const, LA_LI_limit_linear, LA_LI_w_const, LA_LI_w_linear;
     double chisq_dof;
     unsigned int Nobs, Ndsc, Ntot;
     double degSq;
@@ -181,27 +178,29 @@ double PlotUtil_fun_GL(const double GL,
 
 double PlotUtil_fun_SA(const double SA,
                        const FitFileDataElement & e) {
-    return SkyCoverage::nominal_eta_AM(SA,
+    return SkyCoverage::nominal_eta_SA(SA,
                                        e.peak_SA,
                                        e.scale_SA,
                                        e.shape_SA);
 }
 
-double PlotUtil_fun_LA(const double LA,
-                       const FitFileDataElement & e) {
-    return SkyCoverage::nominal_eta_AM(LA,
-                                       e.peak_LA,
-                                       e.scale_LA,
-                                       e.shape_LA);
-}
+/* double PlotUtil_fun_LA(const double LA,
+   const FitFileDataElement & e) {
+   return SkyCoverage::nominal_eta_AM(LA,
+   e.peak_LA,
+   e.scale_LA,
+   e.shape_LA);
+   }
+*/
 
-double PlotUtil_fun_LE(const double LE,
-                       const FitFileDataElement & e) {
-    return SkyCoverage::nominal_eta_LE(LE,
-                                       e.peak_LE,
-                                       e.scale_LE,
-                                       e.shape_LE);
-}
+/* double PlotUtil_fun_LE(const double LE,
+   const FitFileDataElement & e) {
+   return SkyCoverage::nominal_eta_LE(LE,
+   e.peak_LE,
+   e.scale_LE,
+   e.shape_LE);
+   }
+*/
 
 double PlotUtil_fun_one(const double,
                         const FitFileDataElement &) {
@@ -232,78 +231,100 @@ int main(int argc, char ** argv) {
     osg::ref_ptr<CountStats::LinearVar> var_U = new CountStats::LinearVar(start_U,stop_U,step_U);
     varDefinition.push_back(var_U.get());
   
-    // [2] solar elongation
-    osg::ref_ptr<CountStats::LinearVar> var_SE = new CountStats::LinearVar(start_SE,stop_SE,step_SE);
-    varDefinition.push_back(var_SE.get());
-  
-    // [3] lunar elongation
-    osg::ref_ptr<CountStats::LinearVar> var_LE = new CountStats::LinearVar(start_LE,stop_LE,step_LE);
-    varDefinition.push_back(var_LE.get());
-  
-    // [4] airmass
+    // [ ] solar elongation
+    /* osg::ref_ptr<CountStats::LinearVar> var_SE = new CountStats::LinearVar(start_SE,stop_SE,step_SE);
+       varDefinition.push_back(var_SE.get());
+    */
+    
+    // [ ] lunar elongation
+    /* osg::ref_ptr<CountStats::LinearVar> var_LE = new CountStats::LinearVar(start_LE,stop_LE,step_LE);
+       varDefinition.push_back(var_LE.get());
+    */
+    
+    // [2] airmass
     osg::ref_ptr<CountStats::LinearVar> var_AM = new CountStats::LinearVar(start_AM,stop_AM,step_AM);
     varDefinition.push_back(var_AM.get());
   
-    // [5] galactic longitude
+    // [3] galactic longitude
     osg::ref_ptr<CountStats::LinearVar> var_GL = new CountStats::LinearVar(start_GL,stop_GL,step_GL);
     varDefinition.push_back(var_GL.get());
   
-    // [6] galactic latitude
+    // [4] galactic latitude
     osg::ref_ptr<CountStats::LinearVar> var_GB = new CountStats::LinearVar(start_GB,stop_GB,step_GB);
     varDefinition.push_back(var_GB.get());
     
-    // [7] ecliptic longitude
-    osg::ref_ptr<CountStats::LinearVar> var_EL = new CountStats::LinearVar(start_EL,stop_EL,step_EL);
-    varDefinition.push_back(var_EL.get());
-  
-    // [8] ecliptic latitude
-    osg::ref_ptr<CountStats::LinearVar> var_EB = new CountStats::LinearVar(start_EB,stop_EB,step_EB);
-    varDefinition.push_back(var_EB.get());
-  
-    // [9] azimuth
+    // [ ] ecliptic longitude
+    /* osg::ref_ptr<CountStats::LinearVar> var_EL = new CountStats::LinearVar(start_EL,stop_EL,step_EL);
+       varDefinition.push_back(var_EL.get());
+    */
+    
+    // [ ] ecliptic latitude
+    /* osg::ref_ptr<CountStats::LinearVar> var_EB = new CountStats::LinearVar(start_EB,stop_EB,step_EB);
+       varDefinition.push_back(var_EB.get());
+    */
+    
+    // [5] azimuth
     osg::ref_ptr<CountStats::LinearVar> var_AZ = new CountStats::LinearVar(start_AZ,stop_AZ,step_AZ);
     varDefinition.push_back(var_AZ.get());
   
-    // [10] lunar altitude
-    osg::ref_ptr<CountStats::LinearVar> var_LA = new CountStats::LinearVar(start_LA,stop_LA,step_LA);
-    varDefinition.push_back(var_LA.get());
-  
-    // [11] solar altitude
+    // [ ] lunar altitude
+    /* osg::ref_ptr<CountStats::LinearVar> var_LA = new CountStats::LinearVar(start_LA,stop_LA,step_LA);
+       varDefinition.push_back(var_LA.get());
+    */
+    
+    // [6] solar altitude
     osg::ref_ptr<CountStats::LinearVar> var_SA = new CountStats::LinearVar(start_SA,stop_SA,step_SA);
     varDefinition.push_back(var_SA.get());
-  
-    // [12] lunar phase
-    osg::ref_ptr<CountStats::LinearVar> var_LP = new CountStats::LinearVar(start_LP,stop_LP,step_LP);
-    varDefinition.push_back(var_LP.get());
+    
+    // [ ] lunar phase
+    /* osg::ref_ptr<CountStats::LinearVar> var_LP = new CountStats::LinearVar(start_LP,stop_LP,step_LP);
+       varDefinition.push_back(var_LP.get());
+    */
+    
+    // [7] lunar altitude
+    osg::ref_ptr<CountStats::LinearVar> var_LA = new CountStats::LinearVar(start_LA,stop_LA,step_LA);
+    varDefinition.push_back(var_LA.get());
+    
+    // [8] lunar illumination
+    osg::ref_ptr<CountStats::LinearVar> var_LI = new CountStats::LinearVar(start_LI,stop_LI,step_LI);
+    varDefinition.push_back(var_LI.get());
     
     // for data plots
     Histo histo_V (var_V.get());
     Histo histo_U (var_U.get());
-    Histo histo_SE(var_SE.get());
-    Histo histo_LE(var_LE.get());
+    // Histo histo_SE(var_SE.get());
+    // Histo histo_LE(var_LE.get());
     Histo histo_AM(var_AM.get());
     Histo histo_GB(var_GB.get());
     Histo histo_GL(var_GL.get());
-    Histo histo_EB(var_EB.get());
-    Histo histo_EL(var_EL.get());
+    // Histo histo_EB(var_EB.get());
+    // Histo histo_EL(var_EL.get());
     Histo histo_AZ(var_AZ.get());
-    Histo histo_LA(var_LA.get());
     Histo histo_SA(var_SA.get());
-    Histo histo_LP(var_LP.get());
+    // Histo histo_LP(var_LP.get());
+    Histo histo_LA(var_LA.get());
+    Histo histo_LI(var_LI.get());
     
     // specialized, 2D Histo
     Histo2D histo2D_galactic(var_GB.get(),var_GL.get());
     Histo2D histo2D_galactic_eta(var_GB.get(),var_GL.get());
     // ecliptic
-    Histo2D histo2D_ecliptic(var_EB.get(),var_EL.get());
-    Histo2D histo2D_ecliptic_eta(var_EB.get(),var_EL.get());
+    /* Histo2D histo2D_ecliptic(var_EB.get(),var_EL.get());
+       Histo2D histo2D_ecliptic_eta(var_EB.get(),var_EL.get());
+    */
     //
     // lunar (choose ONE and update code everywhere)
     // Histo2D histo2D_lunar(var_LA.get(),var_LE.get());
     // Histo2D histo2D_lunar_eta(var_LA.get(),var_LE.get());
     //
-    Histo2D histo2D_lunar(var_LP.get(),var_LE.get());
-    Histo2D histo2D_lunar_eta(var_LP.get(),var_LE.get());
+    // Histo2D histo2D_lunar(var_LE.get(),var_LP.get());
+    // Histo2D histo2D_lunar_eta(var_LE.get(),var_LP.get());
+    //
+    // Histo2D histo2D_lunar(var_LA.get(),var_LP.get());
+    // Histo2D histo2D_lunar_eta(var_LA.get(),var_LP.get());
+    // 
+    Histo2D histo2D_lunar(var_LA.get(),var_LI.get());
+    Histo2D histo2D_lunar_eta(var_LA.get(),var_LI.get());
     
     // read fit files
     FitFileData ffd;
@@ -321,9 +342,11 @@ int main(int argc, char ** argv) {
         while (fgets(line,1024,fp)) {
             if (line[0]=='#') continue; // comment
             // UPDATE THIS NUMBER
-            if (37 == sscanf(line,
+#warning FIX THIS!!
+            if (30 == sscanf(line,
                              // "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                             // "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
                              &e.JD,
                              &e.year,
                              &e.V_limit,
@@ -340,20 +363,13 @@ int main(int argc, char ** argv) {
                              &e.center_GB,
                              &e.scale_GL,
                              &e.shape_GL,
-                             &e.drop_EB,
-                             &e.scale_EB,
-                             &e.center_EB,
-                             &e.scale_EL,
-                             &e.shape_EL,
                              &e.peak_SA,
                              &e.scale_SA,
                              &e.shape_SA,
-                             &e.peak_LA,
-                             &e.scale_LA,
-                             &e.shape_LA,
-                             &e.peak_LE,
-                             &e.scale_LE,
-                             &e.shape_LE,
+                             &e.LA_LI_limit_const,
+                             &e.LA_LI_limit_linear,
+                             &e.LA_LI_w_const,
+                             &e.LA_LI_w_linear,
                              &e.chisq_dof,
                              &e.Nobs,
                              &e.Ndsc,
@@ -367,15 +383,12 @@ int main(int argc, char ** argv) {
                 e.scale_GB  = orsa::degToRad()*e.scale_GB;
                 e.center_GB = orsa::degToRad()*e.center_GB;
                 e.scale_GL  = orsa::degToRad()*e.scale_GL;
-                e.scale_EB  = orsa::degToRad()*e.scale_EB;
-                e.center_EB = orsa::degToRad()*e.center_EB;
-                e.scale_EL  = orsa::degToRad()*e.scale_EL;
                 e.peak_SA   = orsa::degToRad()*e.peak_SA;
                 e.scale_SA  = orsa::degToRad()*e.scale_SA;  
-                e.peak_LA   = orsa::degToRad()*e.peak_LA;
-                e.scale_LA  = orsa::degToRad()*e.scale_LA;
-                e.peak_LE   = orsa::degToRad()*e.peak_LE;
-                e.scale_LE  = orsa::degToRad()*e.scale_LE;
+                e.LA_LI_limit_const  = orsa::degToRad()*e.LA_LI_limit_const; 
+                e.LA_LI_limit_linear = orsa::degToRad()*e.LA_LI_limit_linear;
+                e.LA_LI_w_const      = orsa::degToRad()*e.LA_LI_w_const ;
+                e.LA_LI_w_linear     = orsa::degToRad()*e.LA_LI_w_linear;
                 // 
                 ffd[fileID] = e;
                 break;
@@ -411,17 +424,18 @@ int main(int argc, char ** argv) {
                 // keep vars aligned with varDefinition content
                 xVector[0]  = etaData[k].V.getRef();
                 xVector[1]  = etaData[k].apparentVelocity.getRef();
-                xVector[2]  = etaData[k].solarElongation.getRef();
-                xVector[3]  = etaData[k].lunarElongation.getRef();
-                xVector[4]  = etaData[k].airMass.getRef();
-                xVector[5]  = etaData[k].galacticLongitude.getRef();
-                xVector[6]  = etaData[k].galacticLatitude.getRef();
-                xVector[7]  = etaData[k].eclipticLongitude.getRef();
-                xVector[8]  = etaData[k].eclipticLatitude.getRef();
-                xVector[9]  = etaData[k].azimuth.getRef();
-                xVector[10] = etaData[k].lunarAltitude.getRef();
-                xVector[11] = etaData[k].solarAltitude.getRef();
-                xVector[12] = etaData[k].lunarPhase.getRef();
+                // xVector[ ]  = etaData[k].solarElongation.getRef();
+                // xVector[ ]  = etaData[k].lunarElongation.getRef();
+                xVector[2]  = etaData[k].airMass.getRef();
+                xVector[3]  = etaData[k].galacticLongitude.getRef();
+                xVector[4]  = etaData[k].galacticLatitude.getRef();
+                // xVector[ ]  = etaData[k].eclipticLongitude.getRef();
+                // xVector[ ]  = etaData[k].eclipticLatitude.getRef();
+                xVector[5]  = etaData[k].azimuth.getRef();
+                xVector[6] = etaData[k].solarAltitude.getRef();
+                // xVector[ ] = etaData[k].lunarPhase.getRef();
+                xVector[7] = etaData[k].lunarAltitude.getRef();
+                xVector[8] = LP2LI(etaData[k].lunarPhase.getRef());
                 countStats->insert(xVector,
                                    etaData[k].observed.getRef(),
                                    etaData[k].discovered.getRef());
@@ -457,17 +471,18 @@ int main(int argc, char ** argv) {
                     //
                     el.V =xVector[0];
                     el.U =xVector[1];		 
-                    el.SE=xVector[2];	 
-                    el.LE=xVector[3];
-                    el.AM=xVector[4];
-                    el.GL=xVector[5];
-                    el.GB=xVector[6];
-                    el.EL=xVector[7];
-                    el.EB=xVector[8];
-                    el.AZ=xVector[9];
-                    el.LA=xVector[10];
-                    el.SA=xVector[11];
-                    el.LP=xVector[12];
+                    // el.SE=xVector[ ];	 
+                    // el.LE=xVector[ ];
+                    el.AM=xVector[2];
+                    el.GL=xVector[3];
+                    el.GB=xVector[4];
+                    // el.EL=xVector[ ];
+                    // el.EB=xVector[ ];
+                    el.AZ=xVector[5];
+                    el.SA=xVector[6];
+                    // el.LP=xVector[ ];
+                    el.LA=xVector[7];
+                    el.LI=xVector[8];                        
                     //
                     el.eta=eta;
                     el.sigmaEta=sigmaEta;
@@ -509,25 +524,16 @@ int main(int argc, char ** argv) {
                                                     data[k].GL.getRef(),
                                                     e.scale_GL,
                                                     e.shape_GL,
-                                                    data[k].EB.getRef(),
-                                                    e.drop_EB,
-                                                    e.scale_EB,
-                                                    e.center_EB,
-                                                    data[k].EL.getRef(),
-                                                    e.scale_EL,
-                                                    e.shape_EL,
                                                     data[k].SA.getRef(),
                                                     e.peak_SA,
                                                     e.scale_SA,
                                                     e.shape_SA,
                                                     data[k].LA.getRef(),
-                                                    e.peak_LA,
-                                                    e.scale_LA,
-                                                    e.shape_LA,
-                                                    data[k].LE.getRef(),
-                                                    e.peak_LE,
-                                                    e.scale_LE,
-                                                    e.shape_LE);
+                                                    data[k].LI.getRef(),
+                                                    e.LA_LI_limit_const,
+                                                    e.LA_LI_limit_linear,
+                                                    e.LA_LI_w_const,
+                                                    e.LA_LI_w_linear);
                 
                 const double nominal_eta_V = SkyCoverage::nominal_eta_V(data[k].V.getRef(),
                                                                         e.V_limit,
@@ -561,20 +567,10 @@ int main(int argc, char ** argv) {
                                                                              e.scale_GL,
                                                                              e.shape_GL);
                 
-                const double nominal_eta_SA = SkyCoverage::nominal_eta_AM(data[k].SA.getRef(),
+                const double nominal_eta_SA = SkyCoverage::nominal_eta_SA(data[k].SA.getRef(),
                                                                           e.peak_SA,
                                                                           e.scale_SA,
                                                                           e.shape_SA);
-                
-                const double nominal_eta_LA = SkyCoverage::nominal_eta_AM(data[k].LA.getRef(),
-                                                                          e.peak_LA,
-                                                                          e.scale_LA,
-                                                                          e.shape_LA);
-                
-                const double nominal_eta_LE = SkyCoverage::nominal_eta_LE(data[k].LE.getRef(),
-                                                                          e.peak_LE,
-                                                                          e.scale_LE,
-                                                                          e.shape_LE);
                 
                 // at this point, small sigmas can become very large because divided by a very small eta's
                 if (data[k].sigmaEta.getRef() > 0) {
@@ -589,14 +585,10 @@ int main(int argc, char ** argv) {
                                            data[k].eta.getRef()*nominal_eta_U/eta,
                                            orsa::square(eta/(nominal_eta_U*data[k].sigmaEta.getRef())));
                         }
-                        histo_SE.insert(data[k].SE.getRef(),
-                                        data[k].eta.getRef()/eta,
-                                        orsa::square(eta/(data[k].sigmaEta.getRef())));
-                        if (nominal_eta_LE != 0) {
-                            histo_LE.insert(data[k].LE.getRef(),
-                                            data[k].eta.getRef()*nominal_eta_LE/eta,
-                                            orsa::square(eta/(nominal_eta_LE*data[k].sigmaEta.getRef())));
-                        }
+                        /* histo_SE.insert(data[k].SE.getRef(),
+                           data[k].eta.getRef()/eta,
+                           orsa::square(eta/(data[k].sigmaEta.getRef())));
+                        */
                         if (nominal_eta_AM != 0) {
                             histo_AM.insert(data[k].AM.getRef(),
                                             data[k].eta.getRef()*nominal_eta_AM/eta,
@@ -615,20 +607,11 @@ int main(int argc, char ** argv) {
                         histo_AZ.insert(data[k].AZ.getRef(),
                                         data[k].eta.getRef()/eta,
                                         orsa::square(eta/(data[k].sigmaEta.getRef())));
-                        if (nominal_eta_LA != 0) {
-                            histo_LA.insert(data[k].LA.getRef(),
-                                            data[k].eta.getRef()*nominal_eta_LA/eta,
-                                            orsa::square(eta/(nominal_eta_LA*data[k].sigmaEta.getRef())));
-                        }
                         if (nominal_eta_SA != 0) {
                             histo_SA.insert(data[k].SA.getRef(),
                                             data[k].eta.getRef()*nominal_eta_SA/eta,
                                             orsa::square(eta/(nominal_eta_SA*data[k].sigmaEta.getRef())));
                         }
-                        histo_LP.insert(data[k].LP.getRef(),
-                                        data[k].eta.getRef()/eta,
-                                        orsa::square(eta/(data[k].sigmaEta.getRef())));
-
                         {
                             const double nominal_eta_galactic =
                                 SkyCoverage::nominal_eta_GB_GL(data[k].GB.getRef(),
@@ -652,61 +635,21 @@ int main(int argc, char ** argv) {
                         }
                         
                         {
-                            const double nominal_eta_ecliptic =
-                                SkyCoverage::nominal_eta_GB_GL(data[k].EB.getRef(),
-                                                               e.drop_EB,
-                                                               e.scale_EB,
-                                                               e.center_EB,
-                                                               data[k].EL.getRef(),
-                                                               e.scale_EL,
-                                                               e.shape_EL);  
-                            if (nominal_eta_ecliptic != 0) {
-                                histo2D_ecliptic.insert(data[k].EB.getRef(),
-                                                        data[k].EL.getRef(),
-                                                        data[k].eta.getRef()*nominal_eta_ecliptic/eta,
-                                                        orsa::square(eta/(nominal_eta_ecliptic*data[k].sigmaEta.getRef())));
-                                // this tracks the fitting function only, not the data!
-                                histo2D_ecliptic_eta.insert(data[k].EB.getRef(),
-                                                            data[k].EL.getRef(),
-                                                            nominal_eta_ecliptic,
-                                                            1.0); // OK to use constant sigma for fitting function?
-                            }
-                        }
-
-                        /* {
-                           const double nominal_eta_lunar =
-                           SkyCoverage::nominal_eta_LE(data[k].LE.getRef(),
-                           e.peak_LE,
-                           e.scale_LE,
-                           e.shape_LE);
-                           if (nominal_eta_lunar != 0) {
-                           histo2D_lunar.insert(data[k].LA.getRef(),
-                           data[k].LE.getRef(),
-                           data[k].eta.getRef()*nominal_eta_lunar/eta,
-                           orsa::square(eta/(nominal_eta_lunar*data[k].sigmaEta.getRef())));
-                           // this tracks the fitting function only, not the data!
-                           histo2D_lunar_eta.insert(data[k].LA.getRef(),
-                           data[k].LE.getRef(),
-                           nominal_eta_lunar,
-                           1.0); // OK to use constant sigma for fitting function?
-                           }
-                           }
-                        */
-                        
-                        {
                             const double nominal_eta_lunar =
-                                SkyCoverage::nominal_eta_LE(data[k].LE.getRef(),
-                                                            e.peak_LE,
-                                                            e.scale_LE,
-                                                            e.shape_LE);
+                                SkyCoverage::nominal_eta_LA_LI(data[k].LA.getRef(),
+                                                               data[k].LI.getRef(),
+                                                               e.LA_LI_limit_const,
+                                                               e.LA_LI_limit_linear,
+                                                               e.LA_LI_w_const,
+                                                               e.LA_LI_w_linear);
                             if (nominal_eta_lunar != 0) {
-                                histo2D_lunar.insert(data[k].LP.getRef(),
-                                                     data[k].LE.getRef(),
+                                histo2D_lunar.insert(data[k].LA.getRef(),
+                                                     data[k].LI.getRef(),
                                                      data[k].eta.getRef()*nominal_eta_lunar/eta,
                                                      orsa::square(eta/(nominal_eta_lunar*data[k].sigmaEta.getRef())));
                                 // this tracks the fitting function only, not the data!
-                                histo2D_lunar_eta.insert(data[k].LP.getRef(),
-                                                         data[k].LE.getRef(),
+                                histo2D_lunar_eta.insert(data[k].LA.getRef(),
+                                                         data[k].LI.getRef(),
                                                          nominal_eta_lunar,
                                                          1.0); // OK to use constant sigma for fitting function?
                             }
@@ -841,7 +784,7 @@ int main(int argc, char ** argv) {
         }        
         fclose(fp);
     }
-    
+
     // 1 deg by 1 deg mesh of fiitting function, for contour plots
     for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
         char filename[1024];
@@ -871,56 +814,6 @@ int main(int argc, char ** argv) {
     
     for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
         char filename[1024];
-        sprintf(filename,"%s.ecliptic.dat",basename[fileID].c_str());
-        ORSA_DEBUG("writing file [%s]",filename);
-        FILE * fp = fopen(filename,"w");
-        for (unsigned int j=0; j<histo2D_ecliptic.getData().size(); ++j) {
-            for (unsigned int k=0; k<histo2D_ecliptic.getData()[j].size(); ++k) {
-                const EfficiencyStatistics2D * es = histo2D_ecliptic.getData()[j][k];
-                if (es->entries()>0) {
-                    gmp_fprintf(fp,
-                                "%+5.1f %+6.1f %5.3f %5.3f %5.3f %Zi\n",
-                                orsa::radToDeg()*es->centerX,
-                                orsa::radToDeg()*es->centerY,
-                                es->average(),
-                                es->standardDeviation(),
-                                histo2D_ecliptic_eta.getData()[j][k]->average(),
-                                es->entries().get_mpz_t());
-                }
-            }
-        }        
-        fclose(fp);
-    }
-
-    // 1 deg by 1 deg mesh of fiitting function, for contour plots
-    for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
-        char filename[1024];
-        sprintf(filename,"%s.fit.ecliptic.contour.dat",basename[fileID].c_str());
-        ORSA_DEBUG("writing file [%s]",filename);
-        FILE * fp = fopen(filename,"w");
-        const FitFileDataElement & e = ffd[fileID];
-        for (int gl=-180; gl<=180; ++gl) {
-            for (int gb=-90; gb<=90; ++gb) {
-                const double nominal_eta_ecliptic =
-                    SkyCoverage::nominal_eta_GB_GL(gb*orsa::degToRad(),
-                                                   e.drop_EB,
-                                                   e.scale_EB,
-                                                   e.center_EB,
-                                                   gl*orsa::degToRad(),
-                                                   e.scale_EL,
-                                                   e.shape_EL);
-                gmp_fprintf(fp,
-                            "%+3i %+2i %5.3f\n",
-                            gl,
-                            gb,
-                            nominal_eta_ecliptic);
-            }
-        }
-        fclose(fp);
-    }
-    
-    for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
-        char filename[1024];
         sprintf(filename,"%s.lunar.dat",basename[fileID].c_str());
         ORSA_DEBUG("writing file [%s]",filename);
         FILE * fp = fopen(filename,"w");
@@ -929,9 +822,9 @@ int main(int argc, char ** argv) {
                 const EfficiencyStatistics2D * es = histo2D_lunar.getData()[j][k];
                 if (es->entries()>0) {
                     gmp_fprintf(fp,
-                                "%+5.1f %+6.1f %5.3f %5.3f %5.3f %Zi\n",
+                                "%+5.1f %+6.3f %5.3f %5.3f %5.3f %Zi\n",
                                 orsa::radToDeg()*es->centerX,
-                                orsa::radToDeg()*es->centerY,
+                                es->centerY,
                                 es->average(),
                                 es->standardDeviation(),
                                 histo2D_lunar_eta.getData()[j][k]->average(),
@@ -941,7 +834,7 @@ int main(int argc, char ** argv) {
         }        
         fclose(fp);
     }
-
+    
     // 1 deg by 1 deg mesh of fiitting function, for contour plots
     for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
         char filename[1024];
@@ -949,17 +842,19 @@ int main(int argc, char ** argv) {
         ORSA_DEBUG("writing file [%s]",filename);
         FILE * fp = fopen(filename,"w");
         const FitFileDataElement & e = ffd[fileID];
-        for (int le=-180; le<=180; ++le) { 
-            for (int lx=-90; lx<=90; ++lx) { // LA or LP...
+        for (int li=0; li<=100; ++li) { 
+            for (int la=-90; la<=90; ++la) {
                 const double nominal_eta_lunar =
-                    SkyCoverage::nominal_eta_LE(le*orsa::degToRad(),
-                                                e.peak_LE,
-                                                e.scale_LE,
-                                                e.shape_LE);
+                    SkyCoverage::nominal_eta_LA_LI(la*orsa::degToRad(),
+                                                   li*0.01,
+                                                   e.LA_LI_limit_const,
+                                                   e.LA_LI_limit_linear,
+                                                   e.LA_LI_w_const,
+                                                   e.LA_LI_w_linear);
                 gmp_fprintf(fp,
                             "%+3i %+2i %5.3f\n",
-                            le,
-                            lx,
+                            li,
+                            la,
                             nominal_eta_lunar);
             }
         }
@@ -1098,14 +993,15 @@ int main(int argc, char ** argv) {
         
     ny += ly;
         
-    PlotUtil((&PlotUtil_fun_one),
-             ffd,
-             histo_SE,
-             orsa::radToDeg(),
-             nx,ny,px,py,
-             0,180,30,0,3,"solar elongation [deg]",
-             etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
-        
+    /* PlotUtil((&PlotUtil_fun_one),
+       ffd,
+       histo_SE,
+       orsa::radToDeg(),
+       nx,ny,px,py,
+       0,180,30,0,3,"solar elongation [deg]",
+       etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+    */
+    
     // second row of plots
     nx += lx;
     ny  = ny0;
@@ -1159,24 +1055,26 @@ int main(int argc, char ** argv) {
         
     ny += ly;
         
-    PlotUtil((&PlotUtil_fun_one),
-             ffd,
-             histo_LA,
-             orsa::radToDeg(),
-             nx,ny,px,py,
-             -90,90,30,0,3,"lunar altitude [deg]",
-             etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
-        
+    /* PlotUtil((&PlotUtil_fun_one),
+       ffd,
+       histo_LA,
+       orsa::radToDeg(),
+       nx,ny,px,py,
+       -90,90,30,0,3,"lunar altitude [deg]",
+       etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+    */
+    
     ny += ly;
         
-    PlotUtil((&PlotUtil_fun_one),
-             ffd,
-             histo_LE,
-             orsa::radToDeg(),
-             nx,ny,px,py,
-             0,180,30,0,3,"lunar elongation [deg]",
-             etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
-        
+    /* PlotUtil((&PlotUtil_fun_one),
+       ffd,
+       histo_LE,
+       orsa::radToDeg(),
+       nx,ny,px,py,
+       0,180,30,0,3,"lunar elongation [deg]",
+       etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+    */
+    
     disfin();
     
     exit(0);
