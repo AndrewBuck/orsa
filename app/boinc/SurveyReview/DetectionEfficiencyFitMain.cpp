@@ -56,25 +56,22 @@ int main(int argc, char ** argv) {
     osg::ref_ptr<CountStats::LinearVar> var_GL = new CountStats::LinearVar(start_GL,stop_GL,step_GL);
     varDefinition.push_back(var_GL.get());
     
-    // [5] ecliptic latitude
-    osg::ref_ptr<CountStats::LinearVar> var_EB = new CountStats::LinearVar(start_EB,stop_EB,step_EB);
-    varDefinition.push_back(var_EB.get());
-    
-    // [6] ecliptic longitude
-    osg::ref_ptr<CountStats::LinearVar> var_EL = new CountStats::LinearVar(start_EL,stop_EL,step_EL);
-    varDefinition.push_back(var_EL.get());
-    
-    // [7] solar altitude
+    // [5] solar altitude
     osg::ref_ptr<CountStats::LinearVar> var_SA = new CountStats::LinearVar(start_SA,stop_SA,step_SA);
     varDefinition.push_back(var_SA.get());
     
-    // [8] lunar altitude
+    // [6] lunar altitude
     osg::ref_ptr<CountStats::LinearVar> var_LA = new CountStats::LinearVar(start_LA,stop_LA,step_LA);
     varDefinition.push_back(var_LA.get());
     
-    // [9] lunar elongation
-    osg::ref_ptr<CountStats::LinearVar> var_LE = new CountStats::LinearVar(start_LE,stop_LE,step_LE);
-    varDefinition.push_back(var_LE.get());
+    // [ ] lunar phase
+    /* osg::ref_ptr<CountStats::LinearVar> var_LP = new CountStats::LinearVar(start_LP,stop_LP,step_LP);
+       varDefinition.push_back(var_LP.get());
+    */
+    
+    // [7] lunar illumination
+    osg::ref_ptr<CountStats::LinearVar> var_LI = new CountStats::LinearVar(start_LI,stop_LI,step_LI);
+    varDefinition.push_back(var_LI.get());
     
     std::vector< osg::ref_ptr<CountStats> > countStats;
     countStats.resize(numFiles);
@@ -93,11 +90,9 @@ int main(int argc, char ** argv) {
             xVector[2] = etaData[fileID][k].airMass.getRef();
             xVector[3] = etaData[fileID][k].galacticLatitude.getRef();
             xVector[4] = etaData[fileID][k].galacticLongitude.getRef();
-            xVector[5] = etaData[fileID][k].eclipticLatitude.getRef();
-            xVector[6] = etaData[fileID][k].eclipticLongitude.getRef();
-            xVector[7] = etaData[fileID][k].solarAltitude.getRef();
-            xVector[8] = etaData[fileID][k].lunarAltitude.getRef();
-            xVector[9] = etaData[fileID][k].lunarElongation.getRef();
+            xVector[5] = etaData[fileID][k].solarAltitude.getRef();
+            xVector[6] = etaData[fileID][k].lunarAltitude.getRef();
+            xVector[7] = LP2LI(etaData[fileID][k].lunarPhase.getRef());
             countStats[fileID]->insert(xVector,
                                        etaData[fileID][k].observed.getRef(),
                                        etaData[fileID][k].discovered.getRef());
@@ -138,11 +133,9 @@ int main(int argc, char ** argv) {
                 el.AM=xVector[2];
                 el.GB=xVector[3];
                 el.GL=xVector[4];
-                el.EB=xVector[5];
-                el.EL=xVector[6];
-                el.SA=xVector[7];
-                el.LA=xVector[8];
-                el.LE=xVector[9];
+                el.SA=xVector[5];
+                el.LA=xVector[6];
+                el.LI=xVector[7];
                 //
                 el.eta=eta;
                 el.sigmaEta=sigmaEta;
@@ -264,25 +257,15 @@ int main(int argc, char ** argv) {
         // GL
         par->insert("scale_GL",100.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
         par->insert("shape_GL",  0.1, 0.0000001);
-        // EB
-        par->insert("drop_EB",   0.20, 0.0000001);
-        par->insert("scale_EB", 50.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
-        par->insert("center_EB", 0.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
-        // EL
-        par->insert("scale_EL",100.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
-        par->insert("shape_EL",  0.1, 0.0000001);
         // SA
-        par->insert("peak_SA", -20.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
-        par->insert("scale_SA", 10.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
-        par->insert("shape_SA",  0.10, 0.0000001);
-        // LA
-        par->insert("peak_LA",  30.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
-        par->insert("scale_LA", 10.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
-        par->insert("shape_LA",  0.10, 0.0000001);
-        // LE
-        par->insert("peak_LE",  30.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
-        par->insert("scale_LE", 10.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
-        par->insert("shape_LE",  0.10, 0.0000001);
+        par->insert("peak_SA", -18.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
+        par->insert("scale_SA",  3.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
+        par->insert("shape_SA",  0.5, 0.0000001);
+        // LA & LI
+        par->insert("LA_LI_limit_const",  30.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
+        par->insert("LA_LI_limit_linear", 20.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
+        par->insert("LA_LI_w_const",      10.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
+        par->insert("LA_LI_w_linear",     20.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
         
         // hard limits
         par->setRange("drop_GB",
@@ -290,24 +273,35 @@ int main(int argc, char ** argv) {
                       1.00);
         par->setRange("scale_GB",
                       05.0*orsa::degToRad(),
-                      50.0*orsa::degToRad());
+                      75.0*orsa::degToRad());
         par->setRange("center_GB",
                       -7.0*orsa::degToRad(),
                       +7.0*orsa::degToRad());
-        par->setFixed("center_GB",true);
-        // par->setFixed("shape_GL",true);
+        par->setFixed("center_GB",true); // don't fit center_GB (make sure it's set to 0 then!)
+        
+        par->setRange("peak_SA",
+                      -30.0*orsa::degToRad(),
+                      -10.0*orsa::degToRad());
+        par->setFixed("peak_SA",true);
+        par->setFixed("scale_SA",true);
+        par->setFixed("shape_SA",true);
+        
+        par->setRange("LA_LI_limit_const",
+                      -25.0*orsa::degToRad(),
+                      +90.0*orsa::degToRad());
         
         // hard limits
-        par->setRange("drop_EB",
-                      0.01,
-                      1.00);
-        par->setRange("scale_EB",
-                      05.0*orsa::degToRad(),
-                      50.0*orsa::degToRad());
-        par->setRange("center_EB",
-                      -7.0*orsa::degToRad(),
-                      +7.0*orsa::degToRad());
-        par->setFixed("center_EB",true);
+        /* par->setRange("drop_EB",
+           0.01,
+           1.00);
+           par->setRange("scale_EB",
+           05.0*orsa::degToRad(),
+           50.0*orsa::degToRad());
+           par->setRange("center_EB",
+           -7.0*orsa::degToRad(),
+           +7.0*orsa::degToRad());
+           par->setFixed("center_EB",true);
+        */
         // par->setFixed("shape_GL",true);
         
         /* 
@@ -356,17 +350,6 @@ int main(int argc, char ** argv) {
     
     {
         V0 = 16.0;
-        /* while (V0.getRef() <= 21.0) {
-        // reset initial values
-        par->set("V_limit",19.00);
-        par->set("eta0_V",  0.99);
-        par->set("c_V",     0.001);
-        par->set("w_V",     0.3);
-        par->set("U_limit",    initial_U_limit);
-        par->set("w_U",        initial_w_U);
-        
-        ORSA_DEBUG("V0: %g",V0.getRef());
-        */
         success = etaFit->fit(par.get(),
                               data,
                               V0.getRef(),
@@ -374,15 +357,6 @@ int main(int argc, char ** argv) {
                               basename,
                               obsCodeFile.get(),
                               false); 
-        /* if ( (success || (etaFit->getIter() == etaFit->maxIter)) &&
-           (par->get("c_V") >= 0.0) ) {
-           break;
-           } else {
-           V0 += 1.0;
-           }
-           }
-        */
-        
         if (success || (etaFit->getIter() == etaFit->maxIter)) {
             // deep copy
             (*lastGoodPar.get()) = (*par.get());
