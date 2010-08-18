@@ -52,10 +52,6 @@ const double start_LI =       0.0;
 const double  stop_LI =       1.0;
 const double  step_LI =       0.05;
 
-inline double LP2LI(const double & LP) {
-    return 0.5*(1.0+cos(LP));
-}
-
 class EfficiencyStatistics : public orsa::WeightedStatistic<double> {
 public:
     EfficiencyStatistics(const double & Center) : 

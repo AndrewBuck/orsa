@@ -331,4 +331,8 @@ public:
     }
 };
 
+inline double LP2LI(const double & LP) {
+    return 0.5*(1.0+cos(LP));
+}
+
 #endif // SURVEY_REVIEW_SKY_COVERAGE

@@ -763,6 +763,9 @@ int main() {
                                     const orsa::Vector obs2moon   = moonPosition_epoch     - observerPosition_epoch;
                                     const double       phaseAngle = acos((orb2obs.normalized())*(orb2sun.normalized()));
                                     
+                                    const orsa::Vector moon2obs = observerPosition_epoch - moonPosition_epoch;
+                                    const orsa::Vector moon2sun =      sunPosition_epoch - moonPosition_epoch;
+                                    
                                     // apparent magnitude V moved later, in H loop
                                     
                                     // apparent velocity
@@ -786,11 +789,13 @@ int main() {
                                     
                                     const double solarAltitude = orsa::halfpi()-acos(zenith*obs2sun.normalized());
                                     const double lunarAltitude = orsa::halfpi()-acos(zenith*obs2moon.normalized());
-                                    const double lunarElongation = acos(obs2moon.normalized()*obs2orb.normalized());
+                                    // const double lunarElongation = acos(obs2moon.normalized()*obs2orb.normalized());
+                                    const double lunarPhase = acos(moon2obs.normalized()*moon2sun.normalized());
                                     //
                                     const double SA = solarAltitude;
                                     const double LA = lunarAltitude;
-                                    const double LE = lunarElongation;
+                                    // const double LE = lunarElongation;
+                                    const double LP = lunarPhase;
                                     
                                     // galactic latitude
                                     const orsa::Vector obs2orb_Equatorial = orsaSolarSystem::eclipticToEquatorial()*obs2orb;
@@ -807,17 +812,18 @@ int main() {
                                     const double GB = b;
                                     const double GL = l;
                                     // ecliptic coordinates
-                                    const orsa::Vector dr = obs2orb.normalized();
-                                    const double phi      = fmod(atan2(dr.getY(),dr.getX())+orsa::twopi(),orsa::twopi());
-                                    const double theta    = asin(dr.getZ()/dr.length());
-                                    const orsa::Vector dr_sun = obs2sun.normalized();
-                                    const double phi_sun      = fmod(atan2(dr_sun.getY(),dr_sun.getX())+orsa::twopi(),orsa::twopi());
-                                    const double theta_sun    = asin(dr_sun.getZ()/dr_sun.length());
-                                    const double tmp_eclipticLongitude = fmod(phi-phi_sun+orsa::twopi(),orsa::twopi());
-                                    const double eclipticLongitude = (tmp_eclipticLongitude>orsa::pi()) ? (tmp_eclipticLongitude-orsa::twopi()) : (tmp_eclipticLongitude);
-                                    const double eclipticLatitude  = theta-theta_sun;
-                                    const double EL = eclipticLongitude;
-                                    const double EB = eclipticLatitude;
+                                    /* const orsa::Vector dr = obs2orb.normalized();
+                                       const double phi      = fmod(atan2(dr.getY(),dr.getX())+orsa::twopi(),orsa::twopi());
+                                       const double theta    = asin(dr.getZ()/dr.length());
+                                       const orsa::Vector dr_sun = obs2sun.normalized();
+                                       const double phi_sun      = fmod(atan2(dr_sun.getY(),dr_sun.getX())+orsa::twopi(),orsa::twopi());
+                                       const double theta_sun    = asin(dr_sun.getZ()/dr_sun.length());
+                                       const double tmp_eclipticLongitude = fmod(phi-phi_sun+orsa::twopi(),orsa::twopi());
+                                       const double eclipticLongitude = (tmp_eclipticLongitude>orsa::pi()) ? (tmp_eclipticLongitude-orsa::twopi()) : (tmp_eclipticLongitude);
+                                       const double eclipticLatitude  = theta-theta_sun;
+                                       const double EL = eclipticLongitude;
+                                       const double EB = eclipticLatitude;
+                                    */
                                     
                                     // total: size_H iterations
                                     for (int z_H=z_H_min; z_H<=z_H_max; z_H+=z_H_delta) {
@@ -834,7 +840,8 @@ int main() {
                                                                            orb2sun.length());
 
                                         // detection efficiency
-                                        const double eta = skyCoverage->eta(V,U,AM,GB,GL,EB,EL,SA,LA,LE);
+                                        // const double eta = skyCoverage->eta(V,U,AM,GB,GL,EB,EL,SA,LA,LE);
+                                        const double eta = skyCoverage->eta(V,U,AM,GB,GL,SA,LA,LP2LI(LP));
                                         
                                         if (boinc_is_standalone()) {
                                             ORSA_DEBUG("a: %f [AU] e: %f i: %f [deg] H: %f V: %f eta: %e",
