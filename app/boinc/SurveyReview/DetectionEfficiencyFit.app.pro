@@ -6,7 +6,7 @@ CONFIG += qt
 
 QT -= gui
 
-CONFIG += boinc_include boinc_lib gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib spice_include spice_lib zlib_include
+CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib spice_include spice_lib zlib_include
 
 win32 {
 	CONFIG += osg_lib
