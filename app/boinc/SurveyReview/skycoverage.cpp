@@ -413,11 +413,9 @@ double SkyCoverage::eta(const double & V,
                         const double & AM,
                         const double & GB,
                         const double & GL,
-                        const double & EB,
-                        const double & EL,
                         const double & SA,
                         const double & LA,
-                        const double & LE) const {
+                        const double & LI) const {
     return SkyCoverage::eta(V,
                             V_limit.getRef(),
                             eta0_V.getRef(),
@@ -438,25 +436,16 @@ double SkyCoverage::eta(const double & V,
                             GL,
                             scale_GL.getRef(),
                             shape_GL.getRef(),
-                            EB,
-                            drop_EB.getRef(),
-                            scale_EB.getRef(),
-                            center_EB.getRef(),
-                            EL,
-                            scale_EL.getRef(),
-                            shape_EL.getRef(),
                             SA,
                             peak_SA.getRef(),
                             scale_SA.getRef(),
                             shape_SA.getRef(),
                             LA,
-                            peak_LA.getRef(),
-                            scale_LA.getRef(),
-                            shape_LA.getRef(),
-                            LE,
-                            peak_LE.getRef(),
-                            scale_LE.getRef(),
-                            shape_LE.getRef());
+                            LI,
+                            LA_LI_limit_const.getRef(),
+                            LA_LI_limit_linear.getRef(),
+                            LA_LI_w_const.getRef(),
+                            LA_LI_w_linear.getRef());
 }
 
 double SkyCoverage::eta(const double & V,
@@ -479,34 +468,23 @@ double SkyCoverage::eta(const double & V,
                         const double & GL,
                         const double & scale_GL,
                         const double & shape_GL,
-                        const double & EB,
-                        const double & drop_EB,
-                        const double & scale_EB,
-                        const double & center_EB,
-                        const double & EL,
-                        const double & scale_EL,
-                        const double & shape_EL,
                         const double & SA,
                         const double & peak_SA,
                         const double & scale_SA,
                         const double & shape_SA,
                         const double & LA,
-                        const double & peak_LA,
-                        const double & scale_LA,
-                        const double & shape_LA,
-                        const double & LE,
-                        const double & peak_LE,
-                        const double & scale_LE,
-                        const double & shape_LE) {
+                        const double & LI,
+                        const double & LA_LI_limit_const,
+                        const double & LA_LI_limit_linear,
+                        const double & LA_LI_w_const,
+                        const double & LA_LI_w_linear) {
     double retVal =
         nominal_eta_V(V,V_limit,eta0_V,V0,c_V,w_V) *
         nominal_eta_U(U,U_limit,w_U) *
         nominal_eta_AM(AM,peak_AM,scale_AM,shape_AM) *
         nominal_eta_GB_GL(GB,drop_GB,scale_GB,center_GB,GL,scale_GL,shape_GL) *
-        nominal_eta_GB_GL(EB,drop_EB,scale_EB,center_EB,EL,scale_EL,shape_EL) *
-        nominal_eta_AM(SA,peak_SA,scale_SA,shape_SA) *
-        nominal_eta_AM(LA,peak_LA,scale_LA,shape_LA) *
-        nominal_eta_LE(LE,peak_LE,scale_LE,shape_LE);
+        nominal_eta_SA(SA,peak_SA,scale_SA,shape_SA) *
+        nominal_eta_LA_LI(LA,LI,LA_LI_limit_const,LA_LI_limit_linear,LA_LI_w_const,LA_LI_w_linear);
     if (retVal < 0.0) retVal=0.0;
     if (retVal > 1.0) retVal=1.0;
     return retVal;
@@ -554,6 +532,7 @@ double SkyCoverage::nominal_eta_AM(const double & AM,
     if (retVal > 1.0) retVal=1.0;
     return retVal;
 }
+
 double SkyCoverage::nominal_eta_GB_GL(const double & GB,
                                       const double & drop_GB,
                                       const double & scale_GB,
@@ -566,16 +545,52 @@ double SkyCoverage::nominal_eta_GB_GL(const double & GB,
     if (retVal > 1.0) retVal=1.0;
     return retVal;
 }
-double SkyCoverage::nominal_eta_LE(const double & LE,
-                                   const double & peak_LE,
-                                   const double & scale_LE,
-                                   const double & shape_LE) {
-    double retVal;
-    if (LE>peak_LE) {
-        retVal = 1.0;
-    } else {
-        retVal = 1.0+fabs(shape_LE)-sqrt(orsa::square((LE-peak_LE)/scale_LE)+orsa::square(shape_LE));
-    }
+
+/* double SkyCoverage::nominal_eta_SA(const double & SA,
+   const double & peak_SA,
+   const double & scale_SA,
+   const double & shape_SA) {
+   double retVal;
+   if (SA<peak_SA) {
+   retVal = 1.0;
+   } else {
+   retVal = 1.0+fabs(shape_SA)-sqrt(orsa::square((SA-peak_SA)/scale_SA)+orsa::square(shape_SA));
+   }
+   if (retVal < 0.0) retVal=0.0;
+   if (retVal > 1.0) retVal=1.0;
+   return retVal;
+   }
+*/
+#warning TEST!! REWRITE THIS CORRECTLY or REMOVE IT
+double SkyCoverage::nominal_eta_SA(const double & ,
+                                   const double & ,
+                                   const double & ,
+                                   const double & ) {
+    return 1.0;
+}
+
+/* 
+   #warning TEST!! REWRITE THIS CORRECTLY
+   double SkyCoverage::nominal_eta_SA(const double & SA,
+   const double & peak_SA,
+   const double & scale_SA,
+   const double & shape_SA) {
+   double retVal = (1.0/(1.0+exp((SA-peak_SA)/scale_SA)));
+   if (retVal < 0.0) retVal=0.0;
+   if (retVal > 1.0) retVal=1.0;
+   return retVal;
+   }
+*/
+
+double SkyCoverage::nominal_eta_LA_LI(const double & LA,
+                                      const double & LI,
+                                      const double & LA_LI_limit_const,
+                                      const double & LA_LI_limit_linear,
+                                      const double & LA_LI_w_const,
+                                      const double & LA_LI_w_linear) {
+    const double LA_limit = LA_LI_limit_const + (1.0 - LI) * LA_LI_limit_linear;
+    const double LA_w     = LA_LI_w_const     + (1.0 - LI) * LA_LI_w_linear;
+    double retVal = 1.0 / (1.0+exp((LA-LA_limit)/LA_w));
     if (retVal < 0.0) retVal=0.0;
     if (retVal > 1.0) retVal=1.0;
     return retVal;
