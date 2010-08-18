@@ -20,7 +20,7 @@ const double  stop_SE =  180.0*orsa::degToRad();
 const double  step_SE =   10.0*orsa::degToRad();
 const double start_LE =    0.0*orsa::degToRad();
 const double  stop_LE =  180.0*orsa::degToRad();
-const double  step_LE =   10.0*orsa::degToRad();
+const double  step_LE =    5.0*orsa::degToRad();
 const double start_AM =    1.00;
 const double  stop_AM =    3.00;
 const double  step_AM =    0.10;
@@ -30,24 +30,31 @@ const double  step_GL =   10.0*orsa::degToRad();
 const double start_GB =  -90.0*orsa::degToRad();
 const double  stop_GB =   90.0*orsa::degToRad();
 const double  step_GB =    5.0*orsa::degToRad();
-const double start_EL = -180.0*orsa::degToRad();
-const double  stop_EL =  180.0*orsa::degToRad();
-const double  step_EL =   10.0*orsa::degToRad();
-const double start_EB =  -90.0*orsa::degToRad();
-const double  stop_EB =   90.0*orsa::degToRad();
-const double  step_EB =    5.0*orsa::degToRad();
+/* const double start_EL = -180.0*orsa::degToRad();
+   const double  stop_EL =  180.0*orsa::degToRad();
+   const double  step_EL =   10.0*orsa::degToRad();
+   const double start_EB =  -90.0*orsa::degToRad();
+   const double  stop_EB =   90.0*orsa::degToRad();
+   const double  step_EB =    5.0*orsa::degToRad(); */
 const double start_AZ =    0.0*orsa::degToRad();
 const double  stop_AZ =  360.0*orsa::degToRad();
 const double  step_AZ =   20.0*orsa::degToRad();
 const double start_LA =  -90.0*orsa::degToRad();
 const double  stop_LA =   90.0*orsa::degToRad();
-const double  step_LA =   10.0*orsa::degToRad();
+const double  step_LA =    5.0*orsa::degToRad();
 const double start_SA =  -90.0*orsa::degToRad();
-const double  stop_SA =   90.0*orsa::degToRad();
-const double  step_SA =   10.0*orsa::degToRad();
-const double start_LP =    0.0*orsa::degToRad();
-const double  stop_LP =  180.0*orsa::degToRad();
-const double  step_LP =   10.0*orsa::degToRad();
+const double  stop_SA =    0.0*orsa::degToRad();
+const double  step_SA =    5.0*orsa::degToRad();
+/* const double start_LP =    0.0*orsa::degToRad();
+   const double  stop_LP =  180.0*orsa::degToRad();
+   const double  step_LP =    5.0*orsa::degToRad(); */
+const double start_LI =       0.0;
+const double  stop_LI =       1.0;
+const double  step_LI =       0.05;
+
+inline double LP2LI(const double & LP) {
+    return 0.5*(1.0+cos(LP));
+}
 
 class EfficiencyStatistics : public orsa::WeightedStatistic<double> {
 public:
