@@ -408,14 +408,53 @@ double SkyCoverage::minDistance(const orsa::Vector & u,
     return minArc;
 }
 
+/* 
+   double SkyCoverage::eta(const double & V,
+   const double & U,
+   const double & AM,
+   const double & GB,
+   const double & GL,
+   const double & SA,
+   const double & LA,
+   const double & LI) const {
+   return SkyCoverage::eta(V,
+   V_limit.getRef(),
+   eta0_V.getRef(),
+   V0.getRef(),
+   c_V.getRef(),
+   w_V.getRef(),
+   U,
+   U_limit.getRef(),
+   w_U.getRef(),
+   AM,
+   peak_AM.getRef(),
+   scale_AM.getRef(),
+   shape_AM.getRef(),
+   GB,
+   drop_GB.getRef(),
+   scale_GB.getRef(),
+   center_GB.getRef(),
+   GL,
+   scale_GL.getRef(),
+   shape_GL.getRef(),
+   SA,
+   peak_SA.getRef(),
+   scale_SA.getRef(),
+   shape_SA.getRef(),
+   LA,
+   LI,
+   LA_LI_limit_const.getRef(),
+   LA_LI_limit_linear.getRef(),
+   LA_LI_w_const.getRef(),
+   LA_LI_w_linear.getRef());
+   }
+*/
+
 double SkyCoverage::eta(const double & V,
                         const double & U,
                         const double & AM,
                         const double & GB,
-                        const double & GL,
-                        const double & SA,
-                        const double & LA,
-                        const double & LI) const {
+                        const double & GL) const {
     return SkyCoverage::eta(V,
                             V_limit.getRef(),
                             eta0_V.getRef(),
@@ -432,21 +471,54 @@ double SkyCoverage::eta(const double & V,
                             GB,
                             drop_GB.getRef(),
                             scale_GB.getRef(),
-                            center_GB.getRef(),
                             GL,
                             scale_GL.getRef(),
-                            shape_GL.getRef(),
-                            SA,
-                            peak_SA.getRef(),
-                            scale_SA.getRef(),
-                            shape_SA.getRef(),
-                            LA,
-                            LI,
-                            LA_LI_limit_const.getRef(),
-                            LA_LI_limit_linear.getRef(),
-                            LA_LI_w_const.getRef(),
-                            LA_LI_w_linear.getRef());
+                            shape_GL.getRef());
 }
+
+/* 
+   double SkyCoverage::eta(const double & V,
+   const double & V_limit,
+   const double & eta0_V,
+   const double & V0,
+   const double & c_V,
+   const double & w_V,
+   const double & U,
+   const double & U_limit,
+   const double & w_U,
+   const double & AM,
+   const double & peak_AM,
+   const double & scale_AM,
+   const double & shape_AM,
+   const double & GB,
+   const double & drop_GB,
+   const double & scale_GB,
+   const double & center_GB,
+   const double & GL,
+   const double & scale_GL,
+   const double & shape_GL,
+   const double & SA,
+   const double & peak_SA,
+   const double & scale_SA,
+   const double & shape_SA,
+   const double & LA,
+   const double & LI,
+   const double & LA_LI_limit_const,
+   const double & LA_LI_limit_linear,
+   const double & LA_LI_w_const,
+   const double & LA_LI_w_linear) {
+   double retVal =
+   nominal_eta_V(V,V_limit,eta0_V,V0,c_V,w_V) *
+   nominal_eta_U(U,U_limit,w_U) *
+   nominal_eta_AM(AM,peak_AM,scale_AM,shape_AM) *
+   nominal_eta_GB_GL(GB,drop_GB,scale_GB,center_GB,GL,scale_GL,shape_GL) *
+   nominal_eta_SA(SA,peak_SA,scale_SA,shape_SA) *
+   nominal_eta_LA_LI(LA,LI,LA_LI_limit_const,LA_LI_limit_linear,LA_LI_w_const,LA_LI_w_linear);
+   if (retVal < 0.0) retVal=0.0;
+   if (retVal > 1.0) retVal=1.0;
+   return retVal;
+   }
+*/
 
 double SkyCoverage::eta(const double & V,
                         const double & V_limit,
@@ -464,27 +536,14 @@ double SkyCoverage::eta(const double & V,
                         const double & GB,
                         const double & drop_GB,
                         const double & scale_GB,
-                        const double & center_GB,
                         const double & GL,
                         const double & scale_GL,
-                        const double & shape_GL,
-                        const double & SA,
-                        const double & peak_SA,
-                        const double & scale_SA,
-                        const double & shape_SA,
-                        const double & LA,
-                        const double & LI,
-                        const double & LA_LI_limit_const,
-                        const double & LA_LI_limit_linear,
-                        const double & LA_LI_w_const,
-                        const double & LA_LI_w_linear) {
+                        const double & shape_GL) {
     double retVal =
         nominal_eta_V(V,V_limit,eta0_V,V0,c_V,w_V) *
         nominal_eta_U(U,U_limit,w_U) *
         nominal_eta_AM(AM,peak_AM,scale_AM,shape_AM) *
-        nominal_eta_GB_GL(GB,drop_GB,scale_GB,center_GB,GL,scale_GL,shape_GL) *
-        nominal_eta_SA(SA,peak_SA,scale_SA,shape_SA) *
-        nominal_eta_LA_LI(LA,LI,LA_LI_limit_const,LA_LI_limit_linear,LA_LI_w_const,LA_LI_w_linear);
+        nominal_eta_GB_GL(GB,drop_GB,scale_GB,GL,scale_GL,shape_GL);
     if (retVal < 0.0) retVal=0.0;
     if (retVal > 1.0) retVal=1.0;
     return retVal;
@@ -536,11 +595,10 @@ double SkyCoverage::nominal_eta_AM(const double & AM,
 double SkyCoverage::nominal_eta_GB_GL(const double & GB,
                                       const double & drop_GB,
                                       const double & scale_GB,
-                                      const double & center_GB,
                                       const double & GL,
                                       const double & scale_GL,
                                       const double & shape_GL) {
-    double retVal = 1.0-drop_GB*(1+fabs(shape_GL)-sqrt(orsa::square(shape_GL)+orsa::square(GL/scale_GL)))/(1+orsa::square((GB-center_GB)/scale_GB));
+    double retVal = 1.0-drop_GB*(1+fabs(shape_GL)-sqrt(orsa::square(shape_GL)+orsa::square(GL/scale_GL)))/(1+orsa::square(GB/scale_GB));
     if (retVal < 0.0) retVal=0.0;
     if (retVal > 1.0) retVal=1.0;
     return retVal;

@@ -152,17 +152,60 @@ public:
 public:
     orsa::Cache<orsa::Time>  epoch;   // local midnight epoch
     orsa::Cache<std::string> obscode;
-  
+
+    /* 
+       public:
+       double eta(const double & V,
+       const double & U,
+       const double & AM,
+       const double & GB,
+       const double & GL,
+       const double & SA,
+       const double & LA,
+       const double & LI) const;
+    */
+    
 public:
     double eta(const double & V,
                const double & U,
                const double & AM,
                const double & GB,
-               const double & GL,
-               const double & SA,
-               const double & LA,
-               const double & LI) const;
-    
+               const double & GL) const;
+
+    /* 
+       public:
+       static double eta(const double & V,
+       const double & V_limit,
+       const double & eta0_V,
+       const double & V0,
+       const double & c_V,
+       const double & w_V,
+       const double & U,
+       const double & U_limit,
+       const double & w_U,
+       const double & AM,
+       const double & peak_AM,
+       const double & scale_AM,
+       const double & shape_AM,
+       const double & GB,
+       const double & drop_GB,
+       const double & scale_GB,
+       const double & center_GB,
+       const double & GL,
+       const double & scale_GL,
+       const double & shape_GL,
+       const double & SA,
+       const double & peak_SA,
+       const double & scale_SA,
+       const double & shape_SA,
+       const double & LA,
+       const double & LI,
+       const double & LA_LI_limit_const,
+       const double & LA_LI_limit_linear,
+       const double & LA_LI_w_const,
+       const double & LA_LI_w_linear);
+    */
+
 public:
     static double eta(const double & V,
                       const double & V_limit,
@@ -180,20 +223,10 @@ public:
                       const double & GB,
                       const double & drop_GB,
                       const double & scale_GB,
-                      const double & center_GB,
                       const double & GL,
                       const double & scale_GL,
-                      const double & shape_GL,
-                      const double & SA,
-                      const double & peak_SA,
-                      const double & scale_SA,
-                      const double & shape_SA,
-                      const double & LA,
-                      const double & LI,
-                      const double & LA_LI_limit_const,
-                      const double & LA_LI_limit_linear,
-                      const double & LA_LI_w_const,
-                      const double & LA_LI_w_linear);
+                      const double & shape_GL);
+
 public:
     // nominal eta values, mostly for plotting purposes, no mixing angle
     static double nominal_eta_V(const double & V,
@@ -212,7 +245,6 @@ public:
     static double nominal_eta_GB_GL(const double & GB,
                                     const double & drop_GB,
                                     const double & scale_GB,
-                                    const double & center_GB,
                                     const double & GL,
                                     const double & scale_GL,
                                     const double & shape_GL);
@@ -234,15 +266,17 @@ public:
     //
     orsa::Cache<double> peak_AM, scale_AM, shape_AM;
     //
-    orsa::Cache<double> drop_GB, scale_GB, center_GB;
+    orsa::Cache<double> drop_GB, scale_GB;
     orsa::Cache<double> scale_GL, shape_GL;
     //
-    orsa::Cache<double> peak_SA, scale_SA, shape_SA;
-    //
-    orsa::Cache<double> LA_LI_limit_const;
-    orsa::Cache<double> LA_LI_limit_linear;
-    orsa::Cache<double> LA_LI_w_const;
-    orsa::Cache<double> LA_LI_w_linear;
+    /* 
+       orsa::Cache<double> peak_SA, scale_SA, shape_SA;
+       //
+       orsa::Cache<double> LA_LI_limit_const;
+       orsa::Cache<double> LA_LI_limit_linear;
+       orsa::Cache<double> LA_LI_w_const;
+       orsa::Cache<double> LA_LI_w_linear;
+    */
 public:
     // return filename, stripping path and suffix (after first dot)
     static std::string basename(const std::string & filename);

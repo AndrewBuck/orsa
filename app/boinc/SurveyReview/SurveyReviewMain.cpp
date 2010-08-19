@@ -173,7 +173,7 @@ int main() {
         double V_limit, eta0_V, c_V, w_V;
         double U_limit, w_U;
         double peak_AM, scale_AM, shape_AM;
-        double drop_GB, scale_GB, center_GB;
+        double drop_GB, scale_GB;
         double scale_GL, shape_GL;
         double chisq_dof;
         unsigned int Nobs, Ndsc, Ntot;
@@ -194,9 +194,9 @@ int main() {
         while (fgets(line,1024,fp)) {
             if (line[0]=='#') continue; // comment
             // UPDATE THIS NUMBER
-            if (23 == sscanf(line,
+            if (22 == sscanf(line,
                              // "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
                              &JD,
                              &year,
                              &V_limit,
@@ -210,7 +210,6 @@ int main() {
                              &shape_AM,
                              &drop_GB,
                              &scale_GB,
-                             &center_GB,
                              &scale_GL,
                              &shape_GL,
                              &chisq_dof,
@@ -224,7 +223,6 @@ int main() {
                 U_limit   = orsa::FromUnits(U_limit*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
                 w_U       = orsa::FromUnits(    w_U*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
                 scale_GB  = orsa::degToRad()*scale_GB;
-                center_GB = orsa::degToRad()*center_GB;
                 scale_GL  = orsa::degToRad()*scale_GL;
                 
                 std::string obsCode;
@@ -260,7 +258,6 @@ int main() {
                 //
                 skyCoverage->drop_GB   = drop_GB;
                 skyCoverage->scale_GB  = scale_GB;
-                skyCoverage->center_GB = center_GB;
                 //
                 skyCoverage->scale_GL = scale_GL;
                 skyCoverage->shape_GL = shape_GL;
@@ -841,7 +838,8 @@ int main() {
 
                                         // detection efficiency
                                         // const double eta = skyCoverage->eta(V,U,AM,GB,GL,EB,EL,SA,LA,LE);
-                                        const double eta = skyCoverage->eta(V,U,AM,GB,GL,SA,LA,LP2LI(LP));
+                                        // const double eta = skyCoverage->eta(V,U,AM,GB,GL,SA,LA,LP2LI(LP));
+                                        const double eta = skyCoverage->eta(V,U,AM,GB,GL);
                                         
                                         if (boinc_is_standalone()) {
                                             ORSA_DEBUG("a: %f [AU] e: %f i: %f [deg] H: %f V: %f eta: %e",

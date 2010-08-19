@@ -192,9 +192,9 @@ public:
         fitData->insertVariable("AM");
         fitData->insertVariable("GB");
         fitData->insertVariable("GL");
-        fitData->insertVariable("SA");
-        fitData->insertVariable("LA");
-        fitData->insertVariable("LI");
+        /* fitData->insertVariable("SA");
+           fitData->insertVariable("LA");
+           fitData->insertVariable("LI"); */
         fitData->insertVariable("fileID");
         //
         {
@@ -206,9 +206,9 @@ public:
                     fitData->insertD("AM",row,data[fileID][l].AM.getRef());
                     fitData->insertD("GB",row,data[fileID][l].GB.getRef());
                     fitData->insertD("GL",row,data[fileID][l].GL.getRef());
-                    fitData->insertD("SA",row,data[fileID][l].SA.getRef());
-                    fitData->insertD("LA",row,data[fileID][l].LA.getRef());
-                    fitData->insertD("LI",row,data[fileID][l].LI.getRef());
+                    /* fitData->insertD("SA",row,data[fileID][l].SA.getRef());
+                       fitData->insertD("LA",row,data[fileID][l].LA.getRef());
+                       fitData->insertD("LI",row,data[fileID][l].LI.getRef()); */
                     //
                     fitData->insertZ("fileID",row,fileID);
                     //
@@ -270,6 +270,38 @@ protected:
         char varName_U_limit[1024]; sprintf(varName_U_limit,"U_limit_%06i",fileID);
         char     varName_w_U[1024]; sprintf(varName_w_U,        "w_U_%06i",fileID);
         
+        /* const double eta = SkyCoverage::eta(data->getD("V",row),
+           localPar->get(varName_V_limit),
+           localPar->get(varName_eta0_V),
+           V0,
+           localPar->get(varName_c_V),
+           localPar->get(varName_w_V),
+           data->getD("U",row),
+           localPar->get(varName_U_limit),
+           localPar->get(varName_w_U),
+           data->getD("AM",row),
+           localPar->get("peak_AM"),
+           localPar->get("scale_AM"),
+           localPar->get("shape_AM"),
+           data->getD("GB",row),
+           localPar->get("drop_GB"),
+           localPar->get("scale_GB"),
+           localPar->get("center_GB"),
+           data->getD("GL",row),
+           localPar->get("scale_GL"),
+           localPar->get("shape_GL"),
+           data->getD("SA",row),
+           localPar->get("peak_SA"),
+           localPar->get("scale_SA"),
+           localPar->get("shape_SA"),
+           data->getD("LA",row),
+           data->getD("LI",row),
+           localPar->get("LA_LI_limit_const"),
+           localPar->get("LA_LI_limit_linear"),
+           localPar->get("LA_LI_w_const"),
+           localPar->get("LA_LI_w_linear")); 
+        */
+        //
         const double eta = SkyCoverage::eta(data->getD("V",row),
                                             localPar->get(varName_V_limit),
                                             localPar->get(varName_eta0_V),
@@ -286,20 +318,9 @@ protected:
                                             data->getD("GB",row),
                                             localPar->get("drop_GB"),
                                             localPar->get("scale_GB"),
-                                            localPar->get("center_GB"),
                                             data->getD("GL",row),
                                             localPar->get("scale_GL"),
-                                            localPar->get("shape_GL"),
-                                            data->getD("SA",row),
-                                            localPar->get("peak_SA"),
-                                            localPar->get("scale_SA"),
-                                            localPar->get("shape_SA"),
-                                            data->getD("LA",row),
-                                            data->getD("LI",row),
-                                            localPar->get("LA_LI_limit_const"),
-                                            localPar->get("LA_LI_limit_linear"),
-                                            localPar->get("LA_LI_w_const"),
-                                            localPar->get("LA_LI_w_linear"));
+                                            localPar->get("shape_GL"));
         return eta;
     }
 protected: 
@@ -362,11 +383,7 @@ protected:
                                orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
                                _par->isFixed(p)?0.0:orsa::FromUnits(factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex))*orsa::radToArcsec(),orsa::Unit::HOUR));
                 } else if ( (_par->name(p).find("scale_GB")  != std::string::npos) ||
-                            (_par->name(p).find("center_GB") != std::string::npos) ||
-                            (_par->name(p).find("scale_GL")  != std::string::npos) ||
-                            (_par->name(p).find("peak_SA")   != std::string::npos) ||
-                            (_par->name(p).find("scale_SA")  != std::string::npos) ||
-                            (_par->name(p).find("LA_LI")     != std::string::npos) ) {
+                            (_par->name(p).find("scale_GL")  != std::string::npos) ) {
                     ORSA_DEBUG("%20s: %g +/- %g [deg]",
                                _par->name(p).c_str(),
                                orsa::radToDeg()*_par->get(p),
@@ -386,7 +403,7 @@ protected:
         
         gsl_matrix_free(covar);
         
-        // if (writeFile) writeOutputFiles(s);
+        if (writeFile) writeOutputFiles(s);
     }
 protected:
     void runCompleted(const bool /* success */, const gsl_multifit_fdfsolver * s) const {
@@ -537,11 +554,7 @@ protected:
                                     orsa::FromUnits(_par->get(p)*orsa::radToArcsec(),orsa::Unit::HOUR),
                                     _par->isFixed(p)?0.0:orsa::FromUnits(factor*sqrt(gsl_matrix_get(covar,gslIndex,gslIndex))*orsa::radToArcsec(),orsa::Unit::HOUR));
                         } else if ( (_par->name(p).find("scale_GB")  != std::string::npos) ||
-                                    (_par->name(p).find("center_GB") != std::string::npos) ||
-                                    (_par->name(p).find("scale_GL")  != std::string::npos) ||
-                                    (_par->name(p).find("peak_SA")   != std::string::npos) ||
-                                    (_par->name(p).find("scale_SA")  != std::string::npos) ||
-                                    (_par->name(p).find("LA_LI")     != std::string::npos) ) {
+                                    (_par->name(p).find("scale_GL")  != std::string::npos) ) {
                             fprintf(fp,
                                     "%+.3e %+.3e ",
                                     orsa::radToDeg()*_par->get(p),
