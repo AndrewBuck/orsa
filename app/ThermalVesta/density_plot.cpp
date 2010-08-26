@@ -13,7 +13,7 @@
 #define   NY  36
 
 float mesh[NX][NY];
-int  count[NX][NY];
+int   entries[NX][NY];
 
 typedef struct {
   double x,y,z;
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
   
   for (int nx=0; nx<NX; ++nx) {
     for (int ny=0; ny<NY; ++ny) {
-      count[nx][ny]=0;
+      entries[nx][ny]=0;
       mesh[nx][ny]=0.0;
     }
   }
@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
       // printf("%i %i\n",i_x, i_y);
       
       mesh[i_x][i_y] += z;
-      count[i_x][i_y] += 1;
+      entries[i_x][i_y] += 1;
       
       if (z < T_min) T_min=z;
       if (z > T_max) T_max=z;
@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
   
   for (int nx=0; nx<NX; ++nx) {
     for (int ny=0; ny<NY; ++ny) {
-      if (count[nx][ny]>0) mesh[nx][ny] /= count[nx][ny];
+      if (entries[nx][ny]>0) mesh[nx][ny] /= entries[nx][ny];
     }
   }
   
