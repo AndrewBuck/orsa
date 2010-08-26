@@ -426,12 +426,14 @@ int main(int argc,
         } else {
             converged=false;
         }
-    
+
+        // base filename
+        char filename[1024];
+        
         // physical output
         if (1) {
             static unsigned int fileCounter=0;
             ++fileCounter;
-            char filename[1024];
             sprintf(filename,"temperature_orbital_%+05.2f_%g_%sgcm2_v%03i.dat",lat*orsa::radToDeg(),lon*orsa::radToDeg(),argv[3],fileCounter);
             ORSA_DEBUG("writing output file %s",filename);
             FILE * fp = fopen(filename,"w");
@@ -500,9 +502,14 @@ int main(int argc,
             }
             deep_T = new_deep_T;
         } else {
+            char cmd[1024];
+            sprintf(cmd,"cp %s temperature_orbital_%+05.2f_%g_%sgcm2_final.dat",filename,lat*orsa::radToDeg(),lon*orsa::radToDeg(),argv[3]);
+            ORSA_DEBUG("executing: [%s]",cmd);
+            int retval = system(cmd);
+            if (retval != 0) ORSA_DEBUG("problems with the system call...");
             ORSA_DEBUG("converged");
         }
-    
+        
     }
   
   
