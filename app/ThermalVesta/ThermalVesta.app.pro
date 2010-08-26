@@ -23,7 +23,7 @@ unix:!macx {
 }
 
 macx {
-	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -losg -losgText -losgGA -losgViewer
+	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaQt -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads
 }
 
 HEADERS += vesta.h
