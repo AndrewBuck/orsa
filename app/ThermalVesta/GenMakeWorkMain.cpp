@@ -16,7 +16,7 @@ int main(int argc, char ** argv) {
 
     const double lon = +10.0;
     
-    // before all, write this rule
+    // include this rule to keep intermediate files
     {
         printf(".SECONDARY:\n");
         printf("\n");
