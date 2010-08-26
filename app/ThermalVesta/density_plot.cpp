@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
   
     double T_min = 1.0e10;
     double T_max = 0.0;
-  
+    
     for (int infile=2; infile<argc; ++infile) {
     
         if ( (input_file = fopen(argv[infile],"r")) == 0) {
@@ -75,16 +75,19 @@ int main(int argc, char **argv) {
         // const double t0 = 2455788.50000; // 2011 Aug 15
         // const double t0 = 2455880.50000; // 2011 Nov 15
         const double t0 = JD;
-    
+        
+        // include data from several rotations, to avoid empty bins
+        const double T_select = 25*T_rot;
+        
         // while (fscanf(input_file,"%lf %lf %lf %*s %*s %*s %*s %lf %*s",&jd,&x,&z,&y) != EOF) { // Temperature
         while (fscanf(input_file,"%lf %lf %*s %*s %*s %*s %lf %lf %*s",&jd,&x,&z,&y) != EOF) { // GRaND coefficient
         
             // exclude some points
             if (jd < t0) continue;
-            if (jd > t0+T_rot) continue;
+            if (jd > t0+T_select) continue;
       
-            // if strictly time ordered, can break after jd > t0+T_rot
-            if (jd > t0+T_rot) break;
+            // if strictly time ordered, can break after jd > t0+T_select
+            if (jd > t0+T_select) break;
       
             const int i_x = (int)round((NX-1)*(x/360.0));
             const int i_y = (int)round((NY-1)*((y+90.0)/180.0));
@@ -251,7 +254,7 @@ int main(int argc, char **argv) {
             FILE * fp = fopen(outfilename,"w");
             for (unsigned int j=0; j<NX; ++j) {
                 for (unsigned int k=0; k<NY; ++k) {
-                    fprintf(fp,"%3i %+3i %6.2f\n",j*5-180,k*5-90,mesh[j][k]);
+                    fprintf(fp,"%+4i %+3i %6.2f\n",j*5-180,k*5-90,mesh[j][k]);
                 }
             }
             fclose(fp);
