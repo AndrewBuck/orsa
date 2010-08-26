@@ -432,7 +432,7 @@ int main(int argc,
             static unsigned int fileCounter=0;
             ++fileCounter;
             char filename[1024];
-            sprintf(filename,"temperature_orbital_%+.2f_%.2f_%sgcm2_v%03i.dat",lat*orsa::radToDeg(),lon*orsa::radToDeg(),argv[3],fileCounter);
+            sprintf(filename,"temperature_orbital_%+05.2f_%g_%sgcm2_v%03i.dat",lat*orsa::radToDeg(),lon*orsa::radToDeg(),argv[3],fileCounter);
             ORSA_DEBUG("writing output file %s",filename);
             FILE * fp = fopen(filename,"w");
             for (unsigned int j=0; j<history.size(); ++j) {
@@ -481,7 +481,7 @@ int main(int argc,
             fclose(fp);
             //
             char cmd[1024];
-            sprintf(cmd,"cp %s temperature_orbital_%+.2f_%.2f_%sgcm2_latest.dat",filename,lat*orsa::radToDeg(),lon*orsa::radToDeg(),argv[3]);
+            sprintf(cmd,"cp %s temperature_orbital_%+05.2f_%g_%sgcm2_latest.dat",filename,lat*orsa::radToDeg(),lon*orsa::radToDeg(),argv[3]);
             ORSA_DEBUG("executing: [%s]",cmd);
             int retval = system(cmd);
             if (retval != 0) ORSA_DEBUG("problems with the system call...");
