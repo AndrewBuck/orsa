@@ -149,6 +149,78 @@ void readEfficiencyDataFile(std::vector<EfficiencyData> & etaData,
     fclose(fp);
 }
 
+class FitFileDataElement {
+public:
+    double JD, year;
+    double V_limit, eta0_V, c_V, w_V;
+    double U_limit, w_U;
+    double peak_AM, scale_AM, shape_AM;
+    double drop_GB, scale_GB;
+    double scale_GL, shape_GL;
+    // double peak_SA, scale_SA, shape_SA;
+    // double LA_LI_limit_const, LA_LI_limit_linear, LA_LI_w_const, LA_LI_w_linear;
+    double chisq_dof;
+    unsigned int Nobs, Ndsc, Ntot;
+    double degSq;
+    double V0;
+    char jobID[1024];
+};
+typedef std::vector<FitFileDataElement> FitFileData;
+
+bool readFitFile(FitFileDataElement & e,
+                 const std::string  & filename) {
+    FILE * fp = fopen(filename.c_str(),"r");
+    if (fp) {
+        ORSA_DEBUG("reading file: [%s]",filename.c_str());
+    } else {
+        ORSA_DEBUG("problems reading file: [%s]",filename.c_str());
+        return false;
+    }
+    char line[1024];
+    while (fgets(line,1024,fp)) {
+        if (line[0]=='#') continue; // comment
+        // UPDATE THIS NUMBER
+        if (22 == sscanf(line,
+                         "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
+                         &e.JD,
+                         &e.year,
+                         &e.V_limit,
+                         &e.eta0_V,
+                         &e.c_V,
+                         &e.w_V,
+                         &e.U_limit,
+                         &e.w_U,
+                         &e.peak_AM,
+                         &e.scale_AM,
+                         &e.shape_AM,
+                         &e.drop_GB,
+                         &e.scale_GB,
+                         &e.scale_GL,
+                         &e.shape_GL,
+                         &e.chisq_dof,
+                         &e.Nobs,
+                         &e.Ndsc,
+                         &e.Ntot,
+                         &e.degSq,
+                         &e.V0,
+                         e.jobID)) {
+            // conversion
+            e.U_limit   = orsa::FromUnits(e.U_limit*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+            e.w_U       = orsa::FromUnits(    e.w_U*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+            e.scale_GB  = orsa::degToRad()*e.scale_GB;
+            e.scale_GL  = orsa::degToRad()*e.scale_GL;
+            break;
+        } else {
+            ORSA_DEBUG("problems reading fit file: [%s]",filename.c_str());
+            // leaving
+            fclose(fp);
+            return false;
+        }
+    }
+    fclose(fp);
+    return true;
+}
+
 class EfficiencyMultifit : public orsa::Multifit {
 public:
     class DataElement {
@@ -270,38 +342,6 @@ protected:
         char varName_U_limit[1024]; sprintf(varName_U_limit,"U_limit_%06i",fileID);
         char     varName_w_U[1024]; sprintf(varName_w_U,        "w_U_%06i",fileID);
         
-        /* const double eta = SkyCoverage::eta(data->getD("V",row),
-           localPar->get(varName_V_limit),
-           localPar->get(varName_eta0_V),
-           V0,
-           localPar->get(varName_c_V),
-           localPar->get(varName_w_V),
-           data->getD("U",row),
-           localPar->get(varName_U_limit),
-           localPar->get(varName_w_U),
-           data->getD("AM",row),
-           localPar->get("peak_AM"),
-           localPar->get("scale_AM"),
-           localPar->get("shape_AM"),
-           data->getD("GB",row),
-           localPar->get("drop_GB"),
-           localPar->get("scale_GB"),
-           localPar->get("center_GB"),
-           data->getD("GL",row),
-           localPar->get("scale_GL"),
-           localPar->get("shape_GL"),
-           data->getD("SA",row),
-           localPar->get("peak_SA"),
-           localPar->get("scale_SA"),
-           localPar->get("shape_SA"),
-           data->getD("LA",row),
-           data->getD("LI",row),
-           localPar->get("LA_LI_limit_const"),
-           localPar->get("LA_LI_limit_linear"),
-           localPar->get("LA_LI_w_const"),
-           localPar->get("LA_LI_w_linear")); 
-        */
-        //
         const double eta = SkyCoverage::eta(data->getD("V",row),
                                             localPar->get(varName_V_limit),
                                             localPar->get(varName_eta0_V),
@@ -513,7 +553,7 @@ protected:
                 }
             }
             fprintf(fp," chisq/dof ");
-            fprintf(fp," Nobs  Ndsc  Ntot ");
+            fprintf(fp,"   Nobs    Ndsc    Ntot ");
             fprintf(fp,"    degSq ");
             fprintf(fp,"   V0 ");
             fprintf(fp,"      jobID ");
@@ -573,7 +613,7 @@ protected:
                 } 
             }
             fprintf(fp,"%+.3e ",chi*chi/(dof>0?dof:1.0));
-            fprintf(fp,"%5i %5i %5i ",sNobs,sNdsc,sNtot);
+            fprintf(fp,"%7i %7i %7i ",sNobs,sNdsc,sNtot);
             fprintf(fp,"%.3e ",degSq);
             fprintf(fp,"%.2f ",V0);
             fprintf(fp,"%s ",jobID[fileID].c_str());
@@ -582,9 +622,49 @@ protected:
             fclose(fp);
         
             gsl_matrix_free(covar);
-        }
+        }        
+    }
+protected:
+    void readOutputFiles() {
         
-    } 
+        const unsigned int numFiles = data.size();
+        
+        jobID.resize(numFiles);
+        
+        char varName[1024];
+        
+        for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
+            
+            FitFileDataElement e;
+            if (!readFitFile(e,outputFile[fileID].c_str())) {
+                ORSA_DEBUG("problems...");
+                return;
+            }
+            
+            // V
+            sprintf(varName,"V_limit_%06i",fileID); _par->set(varName,e.V_limit);
+            sprintf(varName, "eta0_V_%06i",fileID); _par->set(varName,e.eta0_V);
+            sprintf(varName,    "c_V_%06i",fileID); _par->set(varName,e.c_V);
+            sprintf(varName,    "w_V_%06i",fileID); _par->set(varName,e.w_V);
+            // U
+            sprintf(varName,"U_limit_%06i",fileID); _par->set(varName,e.U_limit);
+            sprintf(varName,    "w_U_%06i",fileID); _par->set(varName,e.w_U);
+            // AM
+            _par->set( "peak_AM",e.peak_AM);
+            _par->set("scale_AM",e.scale_AM);
+            _par->set("shape_AM",e.shape_AM);
+            // GB
+            _par->set( "drop_GB",e.drop_GB);
+            _par->set("scale_GB",e.scale_GB);
+            // GL
+            _par->set("scale_GL",e.scale_GL);
+            _par->set("shape_GL",e.shape_GL);
+            // V0
+            V0 = e.V0;
+            // jobID
+            jobID[fileID]=e.jobID;
+        }           
+    }    
 protected:
     std::vector<DataStorage> data;
     double V0;

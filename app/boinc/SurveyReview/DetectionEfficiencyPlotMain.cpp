@@ -4,24 +4,6 @@
 #include <vector>
 #include "dislin.h"
 
-class FitFileDataElement {
-public:
-    double JD, year;
-    double V_limit, eta0_V, c_V, w_V;
-    double U_limit, w_U;
-    double peak_AM, scale_AM, shape_AM;
-    double drop_GB, scale_GB;
-    double scale_GL, shape_GL;
-    // double peak_SA, scale_SA, shape_SA;
-    // double LA_LI_limit_const, LA_LI_limit_linear, LA_LI_w_const, LA_LI_w_linear;
-    double chisq_dof;
-    unsigned int Nobs, Ndsc, Ntot;
-    double degSq;
-    double V0;
-    char jobID[1024];
-};
-typedef std::vector<FitFileDataElement> FitFileData;
-
 double bigfun(double (*fun)(const double, const FitFileDataElement &),
               const FitFileData & ffd,
               const double & x) {
@@ -330,90 +312,12 @@ int main(int argc, char ** argv) {
     FitFileData ffd;
     ffd.resize(numFiles);
     for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
-        
-        FILE * fp = fopen(argv[2*fileID+2],"r");
-        if (!fp) {
-            ORSA_DEBUG("cannot open file [%s]",argv[2*fileID+2]);
+        FitFileDataElement e;
+        if (!readFitFile(e,argv[2*fileID+2])) {
+            ORSA_DEBUG("problems...");
             exit(0);
         }
-        
-        FitFileDataElement e;
-        char line[1024];
-        while (fgets(line,1024,fp)) {
-            if (line[0]=='#') continue; // comment
-            // UPDATE THIS NUMBER
-            /* if (30 == sscanf(line,
-               "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-               &e.JD,
-               &e.year,
-               &e.V_limit,
-               &e.eta0_V,
-               &e.c_V,
-               &e.w_V,
-               &e.U_limit,
-               &e.w_U,
-               &e.peak_AM,
-               &e.scale_AM,
-               &e.shape_AM,
-               &e.drop_GB,
-               &e.scale_GB,
-               &e.center_GB,
-               &e.scale_GL,
-               &e.shape_GL,
-               &e.peak_SA,
-               &e.scale_SA,
-               &e.shape_SA,
-               &e.LA_LI_limit_const,
-               &e.LA_LI_limit_linear,
-               &e.LA_LI_w_const,
-               &e.LA_LI_w_linear,
-               &e.chisq_dof,
-               &e.Nobs,
-               &e.Ndsc,
-               &e.Ntot,
-               &e.degSq,
-               &e.V0,
-               e.jobID)) {
-            */
-            //
-            if (22 == sscanf(line,
-                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-                             &e.JD,
-                             &e.year,
-                             &e.V_limit,
-                             &e.eta0_V,
-                             &e.c_V,
-                             &e.w_V,
-                             &e.U_limit,
-                             &e.w_U,
-                             &e.peak_AM,
-                             &e.scale_AM,
-                             &e.shape_AM,
-                             &e.drop_GB,
-                             &e.scale_GB,
-                             &e.scale_GL,
-                             &e.shape_GL,
-                             &e.chisq_dof,
-                             &e.Nobs,
-                             &e.Ndsc,
-                             &e.Ntot,
-                             &e.degSq,
-                             &e.V0,
-                             e.jobID)) {
-                // conversion
-                e.U_limit   = orsa::FromUnits(e.U_limit*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-                e.w_U       = orsa::FromUnits(    e.w_U*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-                e.scale_GB  = orsa::degToRad()*e.scale_GB;
-                e.scale_GL  = orsa::degToRad()*e.scale_GL;
-                ffd[fileID] = e;
-                break;
-            } else {
-                ORSA_DEBUG("empty fit file: [%s]",argv[2*fileID+2]);
-                exit(0);
-            }
-        }
-        
-        fclose(fp);
+        ffd[fileID] = e;
     }
     
     std::vector<std::string> basename;
