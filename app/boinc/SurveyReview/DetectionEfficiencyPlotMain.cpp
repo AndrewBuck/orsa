@@ -351,10 +351,10 @@ int main(int argc, char ** argv) {
                 // xVector[ ]  = etaData[k].eclipticLongitude.getRef();
                 // xVector[ ]  = etaData[k].eclipticLatitude.getRef();
                 xVector[5]  = etaData[k].azimuth.getRef();
-                xVector[6] = etaData[k].solarAltitude.getRef();
+                xVector[6]  = etaData[k].solarAltitude.getRef();
                 // xVector[ ] = etaData[k].lunarPhase.getRef();
-                xVector[7] = etaData[k].lunarAltitude.getRef();
-                xVector[8] = LP2LI(etaData[k].lunarPhase.getRef());
+                xVector[7]  = etaData[k].lunarAltitude.getRef();
+                xVector[8]  = LP2LI(etaData[k].lunarPhase.getRef());
                 countStats->insert(xVector,
                                    etaData[k].observed.getRef(),
                                    etaData[k].discovered.getRef());

@@ -1,6 +1,7 @@
 #include "SurveyReview.h"
 #include "grain.h"
 #include "skycoverage.h"
+#include "eta.h"
 
 #include <orsa/debug.h>
 #include <orsa/print.h>
@@ -168,107 +169,51 @@ int main() {
     
     {
         // read fit.dat file
-        // global, bad but straightforward
-        double JD, year;
-        double V_limit, eta0_V, c_V, w_V;
-        double U_limit, w_U;
-        double peak_AM, scale_AM, shape_AM;
-        double drop_GB, scale_GB;
-        double scale_GL, shape_GL;
-        double chisq_dof;
-        unsigned int Nobs, Ndsc, Ntot;
-        double degSq;
-        double V0;
-        char jobID[1024];
         
-        // read fit.dat file
-        
+        FitFileDataElement e;
         boinc_resolve_filename_s("fit.dat",resolvedFileName);
-        FILE * fp = boinc_fopen(resolvedFileName.c_str(),"r"); 
-        if (!fp) {
+        if (!readFitFile(e,resolvedFileName.c_str())) {
             ORSA_DEBUG("cannot open file [%s]",resolvedFileName.c_str());
             boinc_finish(0); 
         }
         
-        char line[1024];
-        while (fgets(line,1024,fp)) {
-            if (line[0]=='#') continue; // comment
-            // UPDATE THIS NUMBER
-            if (22 == sscanf(line,
-                             // "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-                             "%lf %lf %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %*s %lf %i %i %i %lf %lf %s",
-                             &JD,
-                             &year,
-                             &V_limit,
-                             &eta0_V,
-                             &c_V,
-                             &w_V,
-                             &U_limit,
-                             &w_U,
-                             &peak_AM,
-                             &scale_AM,
-                             &shape_AM,
-                             &drop_GB,
-                             &scale_GB,
-                             &scale_GL,
-                             &shape_GL,
-                             &chisq_dof,
-                             &Nobs,
-                             &Ndsc,
-                             &Ntot,
-                             &degSq,
-                             &V0,
-                             jobID)) {
-                // conversion
-                U_limit   = orsa::FromUnits(U_limit*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-                w_U       = orsa::FromUnits(    w_U*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-                scale_GB  = orsa::degToRad()*scale_GB;
-                scale_GL  = orsa::degToRad()*scale_GL;
-                
-                std::string obsCode;
-                orsa::Time epoch;
-                int int_year;
-                int int_dayOfYear;
-                if (!SkyCoverage::processFilename(jobID,
-                                                  obsCodeFile.get(),
-                                                  obsCode,
-                                                  epoch,
-                                                  int_year,
-                                                  int_dayOfYear)) {
-                    ORSA_DEBUG("problems...");
-                    boinc_finish(0); 
-                }
-                
-                // update skyCoverage
-                skyCoverage->obscode  = obsCode;
-                skyCoverage->epoch    = epoch;
-                //
-                skyCoverage->V_limit  = V_limit;
-                skyCoverage->eta0_V   = eta0_V;
-                skyCoverage->V0       = V0;
-                skyCoverage->c_V      = c_V;
-                skyCoverage->w_V      = w_V;
-                //
-                skyCoverage->U_limit  = U_limit;
-                skyCoverage->w_U      = w_U;
-                //
-                skyCoverage->peak_AM  = peak_AM;
-                skyCoverage->scale_AM = scale_AM;
-                skyCoverage->shape_AM = shape_AM;
-                //
-                skyCoverage->drop_GB   = drop_GB;
-                skyCoverage->scale_GB  = scale_GB;
-                //
-                skyCoverage->scale_GL = scale_GL;
-                skyCoverage->shape_GL = shape_GL;
-                break;
-            } else {
-                ORSA_DEBUG("empty fit.dat file");
-                boinc_finish(0); 
-            }
+        std::string obsCode;
+        orsa::Time epoch;
+        int int_year;
+        int int_dayOfYear;
+        if (!SkyCoverage::processFilename(e.jobID,
+                                          obsCodeFile.get(),
+                                          obsCode,
+                                          epoch,
+                                          int_year,
+                                          int_dayOfYear)) {
+            ORSA_DEBUG("problems...");
+            boinc_finish(0); 
         }
         
-        fclose(fp);
+        // update skyCoverage
+        skyCoverage->obscode  = obsCode;
+        skyCoverage->epoch    = epoch;
+        //
+        skyCoverage->V_limit  = e.V_limit;
+        skyCoverage->eta0_V   = e.eta0_V;
+        skyCoverage->c_V      = e.c_V;
+        skyCoverage->w_V      = e.w_V;
+        //
+        skyCoverage->U_limit  = e.U_limit;
+        skyCoverage->w_U      = e.w_U;
+        //
+        skyCoverage->peak_AM  = e.peak_AM;
+        skyCoverage->scale_AM = e.scale_AM;
+        skyCoverage->shape_AM = e.shape_AM;
+        //
+        skyCoverage->drop_GB   = e.drop_GB;
+        skyCoverage->scale_GB  = e.scale_GB;
+        //
+        skyCoverage->scale_GL = e.scale_GL;
+        skyCoverage->shape_GL = e.shape_GL;
+        //
+        skyCoverage->V0       = e.V0;
     }
     
     // orsa::Vector sunPosition, earthPosition, moonPosition;
@@ -784,15 +729,15 @@ int main() {
                                     // const double azimuth = fmod(orsa::twopi()+atan2(obs2orb_localEast,obs2orb_localNorth),orsa::twopi());
                                     const double AM = ((epochFromField)&&(zenithAngle<orsa::halfpi())?(1.0/cos(zenithAngle)):100.0);
                                     
-                                    const double solarAltitude = orsa::halfpi()-acos(zenith*obs2sun.normalized());
-                                    const double lunarAltitude = orsa::halfpi()-acos(zenith*obs2moon.normalized());
+                                    // const double solarAltitude = orsa::halfpi()-acos(zenith*obs2sun.normalized());
+                                    // const double lunarAltitude = orsa::halfpi()-acos(zenith*obs2moon.normalized());
                                     // const double lunarElongation = acos(obs2moon.normalized()*obs2orb.normalized());
-                                    const double lunarPhase = acos(moon2obs.normalized()*moon2sun.normalized());
+                                    // const double lunarPhase = acos(moon2obs.normalized()*moon2sun.normalized());
                                     //
-                                    const double SA = solarAltitude;
-                                    const double LA = lunarAltitude;
+                                    // const double SA = solarAltitude;
+                                    // const double LA = lunarAltitude;
                                     // const double LE = lunarElongation;
-                                    const double LP = lunarPhase;
+                                    // const double LP = lunarPhase;
                                     
                                     // galactic latitude
                                     const orsa::Vector obs2orb_Equatorial = orsaSolarSystem::eclipticToEquatorial()*obs2orb;
