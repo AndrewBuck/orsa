@@ -556,7 +556,7 @@ protected:
             fprintf(fp,"   Nobs    Ndsc    Ntot ");
             fprintf(fp,"    degSq ");
             fprintf(fp,"   V0 ");
-            fprintf(fp,"      jobID ");
+            fprintf(fp,"                   jobID ");
             fprintf(fp,"\n");
 
             // then: the values
@@ -616,7 +616,7 @@ protected:
             fprintf(fp,"%7i %7i %7i ",sNobs,sNdsc,sNtot);
             fprintf(fp,"%.3e ",degSq);
             fprintf(fp,"%.2f ",V0);
-            fprintf(fp,"%s ",jobID[fileID].c_str());
+            fprintf(fp,"%24s ",jobID[fileID].c_str());
             fprintf(fp,"\n");
         
             fclose(fp);

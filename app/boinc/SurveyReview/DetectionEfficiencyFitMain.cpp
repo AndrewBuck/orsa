@@ -93,9 +93,9 @@ int main(int argc, char ** argv) {
             xVector[2] = etaData[fileID][k].airMass.getRef();
             xVector[3] = etaData[fileID][k].galacticLatitude.getRef();
             xVector[4] = etaData[fileID][k].galacticLongitude.getRef();
-            // xVector[5] = etaData[fileID][k].solarAltitude.getRef();
-            // xVector[6] = etaData[fileID][k].lunarAltitude.getRef();
-            // xVector[7] = LP2LI(etaData[fileID][k].lunarPhase.getRef());
+            // xVector[ ] = etaData[fileID][k].solarAltitude.getRef();
+            // xVector[ ] = etaData[fileID][k].lunarAltitude.getRef();
+            // xVector[ ] = LP2LI(etaData[fileID][k].lunarPhase.getRef());
             countStats[fileID]->insert(xVector,
                                        etaData[fileID][k].observed.getRef(),
                                        etaData[fileID][k].discovered.getRef());
@@ -136,9 +136,9 @@ int main(int argc, char ** argv) {
                 el.AM=xVector[2];
                 el.GB=xVector[3];
                 el.GL=xVector[4];
-                // el.SA=xVector[5];
-                // el.LA=xVector[6];
-                // el.LI=xVector[7];
+                // el.SA=xVector[ ];
+                // el.LA=xVector[ ];
+                // el.LI=xVector[ ];
                 //
                 el.eta=eta;
                 el.sigmaEta=sigmaEta;
@@ -194,19 +194,6 @@ int main(int argc, char ** argv) {
         fitFilename[fileID] = tmp_str;
     }
     
-    /* std::vector<unsigned int> non_zero_n;
-       non_zero_n.resize(argc);
-       for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
-       non_zero_n[fileID]=0;
-       for (unsigned int k=0; k<data.size(); ++k) {
-       if (data[fileID][k].eta.getRef()>0.0) {
-       ++non_zero_n[fileID];
-       }	
-       }
-       ORSA_DEBUG("non_zero_n[%06i]: %i",fileID,non_zero_n[fileID]);
-       }
-    */
-    
     osg::ref_ptr<EfficiencyMultifit> etaFit= new EfficiencyMultifit;
     //
     etaFit->maxIter=16;
@@ -217,19 +204,19 @@ int main(int argc, char ** argv) {
     osg::ref_ptr<orsa::MultifitParameters> par = new orsa::MultifitParameters;
     //
     {
-        const double initial_U_limit = orsa::FromUnits( 8.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
+        const double initial_U_limit = orsa::FromUnits(10.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
         const double initial_w_U     = orsa::FromUnits( 1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1); // arcsec/hour
         //
         char varName[1024];
         for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
             // V pars
-            sprintf(varName,"V_limit_%06i",fileID); par->insert(varName, 19.00, 0.0000001);
-            sprintf(varName, "eta0_V_%06i",fileID); par->insert(varName,  1.00, 0.0000001);
-            sprintf(varName,    "c_V_%06i",fileID); par->insert(varName,  0.00, 0.0000001);
-            sprintf(varName,    "w_V_%06i",fileID); par->insert(varName,  1.00, 0.0000001);
+            sprintf(varName,"V_limit_%06i",fileID); par->insert(varName, 19.00, 1.0e-6);
+            sprintf(varName, "eta0_V_%06i",fileID); par->insert(varName,  1.00, 1.0e-6);
+            sprintf(varName,    "c_V_%06i",fileID); par->insert(varName,  0.00, 1.0e-6);
+            sprintf(varName,    "w_V_%06i",fileID); par->insert(varName,  1.00, 1.0e-6);
             // U pars
-            sprintf(varName,"U_limit_%06i",fileID); par->insert(varName, initial_U_limit, 0.0000001*initial_U_limit);
-            sprintf(varName,    "w_U_%06i",fileID); par->insert(varName,     initial_w_U, 0.0000001*initial_w_U); 
+            sprintf(varName,"U_limit_%06i",fileID); par->insert(varName, initial_U_limit, 1.0e-6*initial_U_limit);
+            sprintf(varName,    "w_U_%06i",fileID); par->insert(varName,     initial_w_U, 1.0e-6*initial_w_U); 
             
             // hard limits
             // sprintf(varName, "eta0_V_%06i",fileID); par->setRange(varName, 0.00, 1.00);
@@ -250,104 +237,52 @@ int main(int argc, char ** argv) {
         }
         
         // AM
-        par->insert("peak_AM", 1.00, 0.0000001);
-        par->insert("scale_AM",1.00, 0.0000001);
-        par->insert("shape_AM",0.10, 0.0000001);
+        par->insert("peak_AM", 1.00, 1.0e-6);
+        par->insert("scale_AM",1.00, 1.0e-6);
+        par->insert("shape_AM",0.10, 1.0e-6);
         // GB
-        par->insert("drop_GB",   0.20, 0.0000001);
-        par->insert("scale_GB", 50.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
-        // par->insert("center_GB", 0.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
+        par->insert("drop_GB", 0.20, 1.0e-6);
+        par->insert("scale_GB", 10.0*orsa::degToRad(), 1.0e-6*orsa::degToRad()); // rad
         // GL
-        par->insert("scale_GL",100.0*orsa::degToRad(), 0.0000001*orsa::degToRad()); // rad
-        par->insert("shape_GL",  0.1, 0.0000001);
-        // SA
-        /* par->insert("peak_SA", -18.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
-           par->insert("scale_SA",  3.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
-           par->insert("shape_SA",  0.5, 0.0000001);
-           // LA & LI
-           par->insert("LA_LI_limit_const",  30.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
-           par->insert("LA_LI_limit_linear", 20.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
-           par->insert("LA_LI_w_const",      10.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
-           par->insert("LA_LI_w_linear",     20.0*orsa::degToRad(), 0.0000001*orsa::degToRad());
-        */
+        par->insert("scale_GL",100.0*orsa::degToRad(), 1.0e-6*orsa::degToRad()); // rad
+        par->insert("shape_GL",  0.1, 1.0e-6);
         
         // hard limits
         par->setRange("drop_GB",
-                      0.01,
+                      0.001,
                       1.00);
         par->setRange("scale_GB",
-                      05.0*orsa::degToRad(),
+                      01.0*orsa::degToRad(),
                       75.0*orsa::degToRad());
-        /* par->setRange("center_GB",
-           -7.0*orsa::degToRad(),
-           +7.0*orsa::degToRad());
-           par->setFixed("center_GB",true); // don't fit center_GB (make sure it's set to 0 then!)
-        */
+    }
+    
+    {
+        // use fit files, if present, to overwrite starting values
         
-        /* par->setRange("peak_SA",
-           -30.0*orsa::degToRad(),
-           -10.0*orsa::degToRad());
-           par->setFixed("peak_SA",true);
-           par->setFixed("scale_SA",true);
-           par->setFixed("shape_SA",true);
-           
-           par->setRange("LA_LI_limit_const",
-           -25.0*orsa::degToRad(),
-           +90.0*orsa::degToRad());
-        */
-        
-        // hard limits
-        /* par->setRange("drop_EB",
-           0.01,
-           1.00);
-           par->setRange("scale_EB",
-           05.0*orsa::degToRad(),
-           50.0*orsa::degToRad());
-           par->setRange("center_EB",
-           -7.0*orsa::degToRad(),
-           +7.0*orsa::degToRad());
-           par->setFixed("center_EB",true);
-        */
-        // par->setFixed("shape_GL",true);
-        
-        /* 
-           {
-           // test: neutral AM
-           par->set("peak_AM", 100.00); par->setFixed("peak_AM", true);
-           par->set("scale_AM",100.00); par->setFixed("scale_AM",true);
-           par->set("shape_AM",  0.00); par->setFixed("shape_AM",true);
-           }
-        */
-        
-        // mixing angle
-        // par->insert("beta",     0.0, 0.000001);
-        // Galactic latitude
-        // par->insert("GB_limit",0.0*orsa::degToRad(),0.000001*orsa::degToRad());
-        // par->insert("w_GB",    0.001*orsa::degToRad(),0.000001*orsa::degToRad());
-        // Galactic longitude-latitude mixing
-        // par->insert("Gmix",     0.0, 0.000001);
-        
-        // try to enforce this from beginning
-        // par->setRangeMin("c_V",0.0);
-        /* par->setFixed("U_limit",true);
-           par->setFixed("w_U",true);
-           par->setFixed("V_limit",true);
-           par->setFixed("eta0_V",true);
-           par->setFixed("c_V",true);
-        */
-        //
-        // par->setFixed("c_AM",true);
-        //
-        /* {
-           par->setFixed("peak_AM",true);
-           par->set("scale_AM",1.0e3);
-           par->setFixed("scale_AM",true);
-           par->setFixed("shape_AM",true);
-           //
-           par->setFixed("drop_GB",true);
-           par->setFixed("scale_GB",true);
-           }
-        */        
+        for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
+            FitFileDataElement e;
+            if (readFitFile(e,fitFilename[fileID])) {
+                ORSA_DEBUG("reading fit values from existing file [%s]",fitFilename[fileID].c_str());
+                char varName[1024];
+                sprintf(varName,"V_limit_%06i",fileID); par->set(varName, e.V_limit);
+                sprintf(varName, "eta0_V_%06i",fileID); par->set(varName, e.eta0_V);
+                sprintf(varName,    "c_V_%06i",fileID); par->set(varName, e.c_V);
+                sprintf(varName,    "w_V_%06i",fileID); par->set(varName, e.w_V);
+                // U pars
+                sprintf(varName,"U_limit_%06i",fileID); par->set(varName, e.U_limit);
+                sprintf(varName,    "w_U_%06i",fileID); par->set(varName, e.w_U); 
+                // AM
+                par->set("peak_AM",  e.peak_AM);
+                par->set("scale_AM", e.scale_AM);
+                par->set("shape_AM", e.shape_AM);
+                // GB
+                par->set("drop_GB",  e.drop_GB);
+                par->set("scale_GB", e.scale_GB); // rad
+                // GL
+                par->set("scale_GL", e.scale_GL); // rad
+                par->set("shape_GL", e.shape_GL);
+            }
+        }
     }
     
     osg::ref_ptr<orsa::MultifitParameters> lastGoodPar = new orsa::MultifitParameters;
