@@ -253,12 +253,14 @@ int main(int argc, char ** argv) {
             */
         }
         
+        // set AM, GB, GL fits to "neutral" values (close to unity);
+        
         // AM
         par->insert("peak_AM", 1.00, 1.0e-6);
-        par->insert("scale_AM",1.00, 1.0e-6);
+        par->insert("scale_AM",100.00, 1.0e-6);
         par->insert("shape_AM",0.10, 1.0e-6);
         // GB
-        par->insert("drop_GB", 0.20, 1.0e-6);
+        par->insert("drop_GB", 0.01, 1.0e-6);
         par->insert("scale_GB", 10.0*orsa::degToRad(), 1.0e-6*orsa::degToRad()); // rad
         // GL
         par->insert("scale_GL",100.0*orsa::degToRad(), 1.0e-6*orsa::degToRad()); // rad
