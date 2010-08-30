@@ -2,18 +2,35 @@
 #include "eta.h"
 #include "fit.h"
 
+enum FitMode {
+    UV, // U,V only
+    ALL // all vars
+};
+
+FitMode getFitMode(const std::string & mode) {
+    if (mode=="UV") {
+        return UV;
+    } else if (mode=="ALL") {
+        return ALL;
+    } else {
+        exit(0);
+    }
+}
+
 int main(int argc, char ** argv) {
     
     orsa::Debug::instance()->initTimer();
     
-    if (argc == 1) {
-        printf("Usage: %s <allEta-file(s)>\n",argv[0]);
+    if (argc < 3) {
+        printf("Usage: %s <mode> <allEta-file(s)>\n",argv[0]);
         exit(0);
     }
     
     ORSA_DEBUG("pid: %i",getpid());
-
-    const unsigned int numFiles=argc-1;
+    
+    const FitMode mode=getFitMode(argv[1]);
+    
+    const unsigned int numFiles=argc-2;
     
     std::vector< std::string > basename;
     basename.resize(numFiles);
@@ -22,10 +39,10 @@ int main(int argc, char ** argv) {
     
     for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
         
-        basename[fileID] = SkyCoverage::basename(argv[fileID+1]);
+        basename[fileID] = SkyCoverage::basename(argv[fileID+2]);
         
         readEfficiencyDataFile(etaData[fileID],
-                               argv[fileID+1]);
+                               argv[fileID+2]);
         
         ORSA_DEBUG("etaData[%06i].size(): %i",fileID,etaData[fileID].size());
     }
@@ -257,8 +274,37 @@ int main(int argc, char ** argv) {
     }
     
     {
-        // use fit files, if present, to overwrite starting values
-        
+        // use base fit file, if present, to overwrite starting values   
+        const std::string filename = "common.fit";
+        FitFileDataElement e;
+        if (readFitFile(e,filename)) {
+            ORSA_DEBUG("reading fit values from existing file [%s]",filename.c_str());
+            char varName[1024];
+            for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
+                sprintf(varName,"V_limit_%06i",fileID); par->set(varName, e.V_limit);
+                sprintf(varName, "eta0_V_%06i",fileID); par->set(varName, e.eta0_V);
+                sprintf(varName,    "c_V_%06i",fileID); par->set(varName, e.c_V);
+                sprintf(varName,    "w_V_%06i",fileID); par->set(varName, e.w_V);
+                // U pars
+                sprintf(varName,"U_limit_%06i",fileID); par->set(varName, e.U_limit);
+                sprintf(varName,    "w_U_%06i",fileID); par->set(varName, e.w_U); 
+            }
+            // AM
+            par->set("peak_AM",  e.peak_AM);
+            par->set("scale_AM", e.scale_AM);
+            par->set("shape_AM", e.shape_AM);
+            // GB
+            par->set("drop_GB",  e.drop_GB);
+            par->set("scale_GB", e.scale_GB); // rad
+            // GL
+            par->set("scale_GL", e.scale_GL); // rad
+            par->set("shape_GL", e.shape_GL);
+        }
+    }
+    
+    
+    {
+        // use fit files, if present, to overwrite starting values   
         for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
             FitFileDataElement e;
             if (readFitFile(e,fitFilename[fileID])) {
@@ -283,6 +329,20 @@ int main(int argc, char ** argv) {
                 par->set("shape_GL", e.shape_GL);
             }
         }
+    }
+    
+    // switch vars ON and OFF depending on "mode"
+    if (mode==UV) {
+        //AM
+        par->setFixed("peak_AM",true);
+        par->setFixed("scale_AM",true);
+        par->setFixed("shape_AM",true);
+        // GB
+        par->setFixed("drop_GB",true);
+        par->setFixed("scale_GB",true);
+        // GL
+        par->setFixed("scale_GL",true);
+        par->setFixed("shape_GL",true);
     }
     
     osg::ref_ptr<orsa::MultifitParameters> lastGoodPar = new orsa::MultifitParameters;

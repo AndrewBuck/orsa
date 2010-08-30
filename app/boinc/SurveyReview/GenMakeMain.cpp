@@ -42,7 +42,7 @@ int main(int argc, char ** argv) {
     printf("\n");
     //
     printf("%%.fit.dat: %%.allEta.dat\n");
-    printf("\t./DetectionEfficiencyFit $*.allEta.dat > $*.fit.log 2>&1\n");
+    printf("\t./DetectionEfficiencyFit UV $*.allEta.dat > $*.fit.log 2>&1\n");
     printf("\n");
     //
     printf("%%.fit.pdf %%.fit.Vxx.dat %%.fit.Uxx.dat: %%.allEta.dat %%.fit.dat\n");
