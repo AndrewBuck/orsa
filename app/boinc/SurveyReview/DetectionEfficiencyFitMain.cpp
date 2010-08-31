@@ -201,8 +201,10 @@ int main(int argc, char ** argv) {
     
     osg::ref_ptr<orsaInputOutput::MPCObsCodeFile> obsCodeFile = new orsaInputOutput::MPCObsCodeFile;
     obsCodeFile->setFileName("obscode.dat");
-    obsCodeFile->read();
-
+    if (!obsCodeFile->read()) {
+        exit(0);
+    }
+    
     std::vector<std::string> fitFilename;
     fitFilename.resize(numFiles);
     for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
