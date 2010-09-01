@@ -399,6 +399,12 @@ int main() {
             eta_PHO[h] = new orsa::Statistic<double>;
         }
     }
+
+    {
+        // begin first transaction, and wait for boinc_time_to_checkpoint() to commit it and start a new one
+        sql = "begin";
+        rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+    }
     
     bool firstIter=true;
     for (int z_a=z_a_min; z_a<z_a_max; z_a+=z_a_delta) {
@@ -829,8 +835,10 @@ int main() {
                             
                             {
                                 // all in a transaction
-                                sql = "begin";
-                                rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+                                /* MOVED OUT OF LOOP
+                                   sql = "begin";
+                                   rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+                                */
                                 
                                 // total: size_H iterations
                                 for (int z_H=z_H_min; z_H<=z_H_max; z_H+=z_H_delta) {
@@ -931,14 +939,21 @@ int main() {
                                     free (copyBuffer);
                                 }
                                 
-                                sql = "commit";
-                                do {
-                                    rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
-                                    if (rc==SQLITE_BUSY) {
-                                        ORSA_DEBUG("database busy, retrying...");
-                                    }
-                                } while (rc==SQLITE_BUSY);
-                                
+                                if (boinc_time_to_checkpoint()) {
+                                    
+                                    // commit open transaction, and then start a new one
+                                    
+                                    sql = "commit";
+                                    do {
+                                        rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+                                        if (rc==SQLITE_BUSY) {
+                                            ORSA_DEBUG("database busy, retrying...");
+                                        }
+                                    } while (rc==SQLITE_BUSY);
+
+                                    sql = "begin";
+                                    rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr); 
+                                }
                             }
                             
                             // six // seven "for" iterations...
@@ -949,6 +964,17 @@ int main() {
                 }
             }
         }
+    }
+    
+    {
+        // finally close last transaction
+        sql = "commit";
+        do {
+            rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+            if (rc==SQLITE_BUSY) {
+                ORSA_DEBUG("database busy, retrying...");
+            }
+        } while (rc==SQLITE_BUSY);
     }
     
     // 100% done
