@@ -616,7 +616,7 @@ int main() {
                                 // if (j%10==0) ORSA_DEBUG("j: %i",j);
                                 
                                 osg::ref_ptr<OrbitID> orbit = orbitFactory->sample();
-                                    
+								
                                 if (!orbit->isNEO()) {
                                     continue;
                                 }

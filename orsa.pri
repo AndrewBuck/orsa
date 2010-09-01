@@ -76,6 +76,13 @@ macx {
 win32 {
 	PLATFORM_NAME = "win32"
 	DIR_SEP = "\\"
+
+	QMAKE_CXXFLAGS_RELEASE += -g
+	QMAKE_LFLAGS_RELEASE   += -g
+
+	QMAKE_CXXFLAGS_DEBUG += -pg -ggdb
+	QMAKE_LFLAGS_DEBUG   += -pg -ggdb
+
 }
 #message([$$PLATFORM_NAME])
 
@@ -207,14 +214,14 @@ win32 {
 		LIBS += -L$$ORSA_SUPPORT\gsl\lib -lgsl -lgslcblas
 	}
 	osg_include {
-        	INCLUDEPATH += C:\OpenSceneGraph\include
-#		QMAKE_CXXFLAGS += -DOT_LIBRARY_STATIC -DOSG_LIBRARY_STATIC
+        INCLUDEPATH += C:\OpenSceneGraph\include
+        QMAKE_CXXFLAGS += -DOSG_LIBRARY
 	}
 	osg_lib {
-		LIBS += -LC:\OpenSceneGraph\lib -lOpenThreads -losg
+		LIBS += C:\OpenSceneGraph\lib\libOpenThreads.a C:\OpenSceneGraph\lib\libosg.a
 	}
 	osg_src {
-		OSG_SRC = 
+		OSG_SRC = C:\OpenSceneGraph\src\
 	}
 	qwt_include {
 		INCLUDEPATH += C:\qwt\src

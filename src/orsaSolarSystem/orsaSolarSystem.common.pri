@@ -24,7 +24,7 @@ macx {
 }
 
 win32 {
-	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa
+	LIBS += C:\orsa\lib\win32\liborsa.a
 }
 
 HEADERS = attitude.h \

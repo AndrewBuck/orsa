@@ -16,6 +16,8 @@ MOC_DIR     = .moc/$${PLATFORM_NAME}
 OBJECTS_DIR = .obj/$${PLATFORM_NAME}
 DESTDIR     = ../../lib/$${PLATFORM_NAME}
 
+#LIBS += -lQtCore
+
 unix:!macx {
         LIBS += -lrt
 }
