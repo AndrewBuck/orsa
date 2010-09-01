@@ -478,7 +478,7 @@ protected:
                                               year,
                                               dayOfYear)) {
                 ORSA_DEBUG("problems...");
-                exit(0);
+                // exit(0);
             }
             
             double degSq=0;
