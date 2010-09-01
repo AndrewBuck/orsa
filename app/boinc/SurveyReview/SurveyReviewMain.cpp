@@ -152,19 +152,6 @@ int main() {
     
     osg::ref_ptr<SkyCoverageFile> skyCoverageFile = new SkyCoverageFile;
     //
-    boinc_resolve_filename_s("field.dat",resolvedFileName);
-    skyCoverageFile->setFileName(resolvedFileName);
-    if (!skyCoverageFile->read()) {
-        ORSA_DEBUG("cannot open file [%s]",resolvedFileName.c_str());
-        boinc_finish(0); 
-    }
-    //
-    boinc_resolve_filename_s("fieldTime.dat",resolvedFileName);
-    if (!skyCoverageFile->_data->readFieldTimeFile(resolvedFileName)) {
-        ORSA_DEBUG("cannot open file [%s]",resolvedFileName.c_str());
-        boinc_finish(0); 
-    }
-    //
     osg::ref_ptr<SkyCoverage> skyCoverage = skyCoverageFile->_data;
     
     {
@@ -214,6 +201,19 @@ int main() {
         skyCoverage->shape_GL = e.shape_GL;
         //
         skyCoverage->V0       = e.V0;
+    }
+    
+    boinc_resolve_filename_s("field.dat",resolvedFileName);
+    skyCoverageFile->setFileName(resolvedFileName);
+    if (!skyCoverageFile->read()) {
+        ORSA_DEBUG("cannot open file [%s]",resolvedFileName.c_str());
+        boinc_finish(0); 
+    }
+    //
+    boinc_resolve_filename_s("fieldTime.dat",resolvedFileName);
+    if (!skyCoverageFile->_data->readFieldTimeFile(resolvedFileName)) {
+        ORSA_DEBUG("cannot open file [%s]",resolvedFileName.c_str());
+        boinc_finish(0); 
     }
     
     // orsa::Vector sunPosition, earthPosition, moonPosition;
@@ -942,6 +942,9 @@ int main() {
                                 if (boinc_time_to_checkpoint()) {
                                     
                                     // commit open transaction, and then start a new one
+                                    if (boinc_is_standalone()) {
+                                        ORSA_DEBUG("checkpointing...");
+                                    }
                                     
                                     sql = "commit";
                                     do {
@@ -950,9 +953,11 @@ int main() {
                                             ORSA_DEBUG("database busy, retrying...");
                                         }
                                     } while (rc==SQLITE_BUSY);
-
+                                    
                                     sql = "begin";
                                     rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr); 
+                                    
+                                    boinc_checkpoint_completed();
                                 }
                             }
                             
@@ -993,8 +998,9 @@ int main() {
     // close db
     sqlite3_close(db);
     
+    ORSA_DEBUG("done.");
     boinc_finish(0);
-  
+    
     return 0;
 }
 
