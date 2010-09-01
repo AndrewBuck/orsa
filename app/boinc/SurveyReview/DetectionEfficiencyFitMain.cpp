@@ -279,7 +279,7 @@ int main(int argc, char ** argv) {
     
     {
         // use base fit file, if present, to overwrite starting values   
-        const std::string filename = "common.fit";
+        const std::string filename = "common.fit.dat";
         FitFileDataElement e;
         if (readFitFile(e,filename)) {
             ORSA_DEBUG("reading fit values from existing file [%s]",filename.c_str());
