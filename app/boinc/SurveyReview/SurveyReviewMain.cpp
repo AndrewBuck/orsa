@@ -366,8 +366,8 @@ int main() {
     // computed at skyCoverage->epoch
     const orsa::Vector observerPosition_sk_epoch         = observerPosition_epoch;
     const orsa::Vector observerPosition_sk_epoch_plus_dt = observerPosition_epoch_plus_dt;
-    const orsa::Vector sunPosition_sk_epoch              = sunPosition_sk_epoch;
-    const orsa::Vector sunPosition_sk_epoch_plus_dt      = sunPosition_sk_epoch_plus_dt;
+    const orsa::Vector sunPosition_sk_epoch              = sunPosition_epoch;
+    const orsa::Vector sunPosition_sk_epoch_plus_dt      = sunPosition_epoch_plus_dt;
     
     // double V_nightStart, V_nightStop;
     //
