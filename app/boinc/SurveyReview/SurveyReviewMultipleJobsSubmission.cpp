@@ -83,7 +83,8 @@ int main (int argc, char ** argv) {
     // the other angles all go from 0 to 360 deg in steps of 30 deg, 12 iter factor each
     
     // other args, constant for now
-    const double JD = 2455198.0; // epoch of orbits
+    // const double JD = 2455198.0; // epoch of orbits
+    const double JD = 2455650; // epoch of orbits
     
     mpz_class numJobs = 1;
     numJobs *= (z_a_max-z_a_min)/z_a_delta;
