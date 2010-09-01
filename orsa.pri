@@ -77,11 +77,11 @@ win32 {
 	PLATFORM_NAME = "win32"
 	DIR_SEP = "\\"
 
-	QMAKE_CXXFLAGS_RELEASE += -g
-	QMAKE_LFLAGS_RELEASE   += -g
+#	QMAKE_CXXFLAGS_RELEASE += -g
+#	QMAKE_LFLAGS_RELEASE   += -g
 
-	QMAKE_CXXFLAGS_DEBUG += -pg -ggdb
-	QMAKE_LFLAGS_DEBUG   += -pg -ggdb
+#	QMAKE_CXXFLAGS_DEBUG += -pg -ggdb
+#	QMAKE_LFLAGS_DEBUG   += -pg -ggdb
 
 }
 #message([$$PLATFORM_NAME])
