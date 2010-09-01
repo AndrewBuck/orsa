@@ -1,4 +1,4 @@
 TEMPLATE = subdirs
 
-SUBDIRS += orsaSolarSystem.dynamiclib.pro
+!win32: SUBDIRS += orsaSolarSystem.dynamiclib.pro
 SUBDIRS += orsaSolarSystem.staticlib.pro

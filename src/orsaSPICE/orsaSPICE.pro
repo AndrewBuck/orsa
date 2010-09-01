@@ -1,4 +1,4 @@
 TEMPLATE = subdirs
 
-SUBDIRS += orsaSPICE.dynamiclib.pro
+!win32: SUBDIRS += orsaSPICE.dynamiclib.pro
 SUBDIRS += orsaSPICE.staticlib.pro

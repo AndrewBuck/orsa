@@ -1,4 +1,4 @@
 TEMPLATE = subdirs
 
-SUBDIRS += orsaEssentialOSG.dynamiclib.pro
+!win32: SUBDIRS += orsaEssentialOSG.dynamiclib.pro
 SUBDIRS += orsaEssentialOSG.staticlib.pro
