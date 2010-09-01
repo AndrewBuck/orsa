@@ -46,9 +46,9 @@ namespace orsa {
         inline const double & getY() const { return _y; }
         inline const double & getZ() const { return _z; }
     public:    
-        inline void setX(const double & x) { _x = x; check(); _reset_cache(); }
-        inline void setY(const double & y) { _y = y; check(); _reset_cache(); }
-        inline void setZ(const double & z) { _z = z; check(); _reset_cache(); }    
+        inline void setX(const double & x) { orsa::check(x); _x = x; _reset_cache(); }
+        inline void setY(const double & y) { orsa::check(y); _y = y; _reset_cache(); }
+        inline void setZ(const double & z) { orsa::check(z); _z = z; _reset_cache(); }
     public:
         osg::Vec3f getVec3f() const;
         osg::Vec3d getVec3d() const;
