@@ -76,8 +76,9 @@ int assimilate_handler(WORKUNIT            & wu,
     char cmd[1024];  
     
     char output_dir[1024];
-    sprintf(output_dir,"%s/%s",
+    sprintf(output_dir,"%s/%04i/%s",
             output_dir_base,
+            time(0)%10000, // 4-digits
             wu.name);
     sprintf(cmd,"mkdir -p %s",
             output_dir);
