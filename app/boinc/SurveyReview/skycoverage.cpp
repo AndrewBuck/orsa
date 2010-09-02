@@ -736,7 +736,7 @@ bool SkyCoverage::processFilename(const std::string & filename_in,
         }
         // orsa::print(epoch);
     } else {
-        ORSA_DEBUG("problems...");
+        // ORSA_DEBUG("problems...");
         return false;
     }   
     return true;
