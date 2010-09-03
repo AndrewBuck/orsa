@@ -1,5 +1,22 @@
 #!/bin/bash
 
+# cool countdown function 
+# found at http://www.unix.com/shell-programming-scripting/98889-display-runnning-countdown-bash-script.html
+countdown()
+(
+  IFS=:
+  set -- $*
+  secs=$(( ${1#0} * 3600 + ${2#0} * 60 + ${3#0} ))
+  while [ $secs -gt 0 ]
+  do
+    sleep 1 &
+    printf "\rwill continue in %02d:%02d:%02d" $((secs/3600)) $(( (secs/60)%60)) $((secs%60))
+    secs=$(( $secs - 1 ))
+    wait
+  done
+  echo
+)
+
 # expect 1 argument
 if [ $# -eq 0 ]
 then
@@ -18,8 +35,8 @@ for file in "$@"
   MSG="$MSG $base"
 done
 echo $MSG
-echo will continue in 10 seconds
-sleep 10
+# wait 10 seconds
+countdown "00:00:10"
 
 for file in "$@"
   do

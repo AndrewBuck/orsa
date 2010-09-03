@@ -102,27 +102,37 @@ int main (int argc, char ** argv) {
         cout << "numJobs is too big, are you sure of what you're doing?" << endl;
         exit(0);
     }
-    
-    gmp_printf("Submitting %Zi job(s), proceed? [y/n] ",
-               numJobs.get_mpz_t());
-    
-    const std::string yes = "y";
+
+    bool batch=false;
+    {
+        FILE * fp = fopen(".stage.lock","r");
+        if (fp!=0) {
+            fclose(fp);
+            gmp_printf("assuming batch call...\n");
+            batch=true;
+        }
+    }
     
     std::string yesno;
+    const std::string yes = "y";
+    if (!batch) {
+        gmp_printf("Submitting %Zi job(s), proceed? [y/n] ",
+                   numJobs.get_mpz_t());
+        cin >> yesno;
+        // cout << "yesno: " << yesno << endl;
+    }
     
-    cin >> yesno;
-    
-    // cout << "yesno: " << yesno << endl;
-    
-    if (yesno == yes) {
+    if (batch || (yesno == yes)) {
         
         {
             int waitSec = 5;
             while (waitSec > 0) {
-                cout << "Starting in " << waitSec << " seconds..." << endl;
+                printf("\rStarting in %i seconds...",waitSec);
+                fflush(stdout);
                 sleep(1);
                 --waitSec;
             }
+            cout << endl;
         }
         
         char cmd[1024];
@@ -187,8 +197,11 @@ int main (int argc, char ** argv) {
                     snprintf(cmd,1024,"./SurveyReviewWorkGenerator %s",
                              baseName.c_str());
                     cout << "executing: [" << cmd << "]" << endl;
-                    system(cmd);
-                    usleep(100000);
+                    if (system(cmd)) {
+                        ORSA_DEBUG("problems with system call: [%s]",cmd);
+                        exit(1); 
+                    }
+                    usleep(10000);
                 }
             }
         }
