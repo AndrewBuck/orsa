@@ -108,7 +108,7 @@ int main (int argc, char ** argv) {
         FILE * fp = fopen(".stage.lock","r");
         if (fp!=0) {
             fclose(fp);
-            gmp_printf("assuming batch call...\n");
+            gmp_printf("Submitting %Zi job(s), assuming batch call...\n",numJobs.get_mpz_t());
             batch=true;
         }
     }
@@ -116,8 +116,7 @@ int main (int argc, char ** argv) {
     std::string yesno;
     const std::string yes = "y";
     if (!batch) {
-        gmp_printf("Submitting %Zi job(s), proceed? [y/n] ",
-                   numJobs.get_mpz_t());
+        gmp_printf("Submitting %Zi job(s), proceed? [y/n] ",numJobs.get_mpz_t());
         cin >> yesno;
         // cout << "yesno: " << yesno << endl;
     }
