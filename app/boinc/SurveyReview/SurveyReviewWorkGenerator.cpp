@@ -153,7 +153,7 @@ int main(int argc, char ** argv) {
     outputTemplateVector.push_back(OutputTemplateEntry("results.db", 100*1024*1024, true, true));
     
     // tentative values
-    const double flops_est = 1e12;
+    const double flops_est = 1e13;
     
     const unsigned int min_quorum       = 2;
     const unsigned int target_nresults  = 3;
@@ -235,7 +235,7 @@ int main(int argc, char ** argv) {
     //
     if (retVal != 0) {
         ORSA_DEBUG("problems with boinc_db.open(...)");
-        exit(0);
+        exit(1);
     }
   
     DB_APP app;
@@ -244,7 +244,7 @@ int main(int argc, char ** argv) {
     //
     if (retVal != 0) {
         ORSA_DEBUG("problems with app.lookup(...)");
-        exit(0);
+        exit(1);
     }
   
     char cmd[1024];
@@ -255,9 +255,9 @@ int main(int argc, char ** argv) {
     gmp_snprintf(copyFieldDat,1024,"field.dat.%s",wuName);
     config.download_path(copyFieldDat,path);
     gmp_snprintf(cmd,1024,"cp -f field.dat %s",path);
-    if (system(cmd) == -1) {
+    if (system(cmd)) {
         ORSA_DEBUG("problems with system call: [%s]",cmd);
-        exit(0);
+        exit(1);
     }   
     
     char copyFieldTimeDat[1024];
@@ -265,9 +265,9 @@ int main(int argc, char ** argv) {
     gmp_snprintf(copyFieldTimeDat,1024,"fieldTime.dat.%s",wuName);
     config.download_path(copyFieldTimeDat,path);
     gmp_snprintf(cmd,1024,"cp -f fieldTime.dat %s",path);
-    if (system(cmd) == -1) {
+    if (system(cmd)) {
         ORSA_DEBUG("problems with system call: [%s]",cmd);
-        exit(0);
+        exit(1);
     }   
     
     char copyFitDat[1024];
@@ -275,9 +275,9 @@ int main(int argc, char ** argv) {
     gmp_snprintf(copyFitDat,1024,"fit.dat.%s",wuName);
     config.download_path(copyFitDat,path);
     gmp_snprintf(cmd,1024,"cp -f fit.dat %s",path);
-    if (system(cmd) == -1) {
+    if (system(cmd)) {
         ORSA_DEBUG("problems with system call: [%s]",cmd);
-        exit(0);
+        exit(1);
     }   
     
     char copyGridDat[1024];
@@ -285,9 +285,9 @@ int main(int argc, char ** argv) {
     gmp_snprintf(copyGridDat,1024,"grid.dat.%s",wuName);
     config.download_path(copyGridDat,path);
     gmp_snprintf(cmd,1024,"cp -f grid.dat %s",path);
-    if (system(cmd) == -1) {
+    if (system(cmd)) {
         ORSA_DEBUG("problems with system call: [%s]",cmd);
-        exit(0);
+        exit(1);
     }   
     
     char copyObscodeDat[1024];
@@ -295,9 +295,9 @@ int main(int argc, char ** argv) {
     gmp_snprintf(copyObscodeDat,1024,"obscode.dat.%s",wuName);
     config.download_path(copyObscodeDat,path);
     gmp_snprintf(cmd,1024,"cp -f obscode.dat %s",path);
-    if (system(cmd) == -1) {
+    if (system(cmd)) {
         ORSA_DEBUG("problems with system call: [%s]",cmd);
-        exit(0);
+        exit(1);
     }   
     
     char copyRandomSeedDat[1024];
@@ -305,9 +305,9 @@ int main(int argc, char ** argv) {
     gmp_snprintf(copyRandomSeedDat,1024,"randomSeed.dat.%s",wuName);
     config.download_path(copyRandomSeedDat,path);
     gmp_snprintf(cmd,1024,"cp -f randomSeed.dat %s",path);
-    if (system(cmd) == -1) {
+    if (system(cmd)) {
         ORSA_DEBUG("problems with system call: [%s]",cmd);
-        exit(0);
+        exit(1);
     }   
     
     const char * infiles[] = 
