@@ -153,7 +153,7 @@ int main(int argc, char ** argv) {
     outputTemplateVector.push_back(OutputTemplateEntry("results.db", 100*1024*1024, true, true));
     
     // tentative values
-    const double flops_est = 1e13;
+    const double flops_est = 2e12;
     
     const unsigned int min_quorum       = 2;
     const unsigned int target_nresults  = 3;
