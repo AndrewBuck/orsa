@@ -8,7 +8,7 @@ then
 fi
 
 # configure these parameters
-BATCH_ID=B1 # name of the batch
+BATCH_ID=R3A_1.9-2.3 # name of the batch
 STAGE_DIR=./stage # directory containing the input files
 # parameters for SurveyReviewMultipleJobsSubmission
 MJS_baseName=$1_$BATCH_ID

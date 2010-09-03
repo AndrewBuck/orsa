@@ -31,7 +31,7 @@ for file in "$@"
 # first remove path
   file=`basename $file`
 # then remove extension
-  base=${file%\.*}
+  base=${file%%.*}
   MSG="$MSG $base"
 done
 echo $MSG
@@ -43,7 +43,7 @@ for file in "$@"
 # first remove path
   file=`basename $file`
 # then remove extension
-  base=${file%\.*}
+  base=${file%%.*}
   STAGE_CALL="./SurveyReviewStage.sh $base"
   echo calling $STAGE_CALL
   $STAGE_CALL 
