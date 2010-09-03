@@ -9,12 +9,12 @@
 #include <orsa/crash.h>
 
 // CountStats::LinearVar ranges
-const double start_V  =   16.00;
+const double start_V  =   12.00;
 const double  stop_V  =   24.00;
 const double  step_V  =    0.25;
-const double start_U  = orsa::FromUnits( 0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-const double  stop_U  = orsa::FromUnits(30.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
-const double  step_U  = orsa::FromUnits( 1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+const double start_U  = orsa::FromUnits(  0.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+const double  stop_U  = orsa::FromUnits(600.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
+const double  step_U  = orsa::FromUnits(  1.0*orsa::arcsecToRad(),orsa::Unit::HOUR,-1);
 const double start_SE =    0.0*orsa::degToRad();
 const double  stop_SE =  180.0*orsa::degToRad();
 const double  step_SE =   10.0*orsa::degToRad();
@@ -23,7 +23,7 @@ const double  stop_LE =  180.0*orsa::degToRad();
 const double  step_LE =    5.0*orsa::degToRad();
 const double start_AM =    1.00;
 const double  stop_AM =    3.00;
-const double  step_AM =    0.10;
+const double  step_AM =    0.05;
 const double start_GL = -180.0*orsa::degToRad();
 const double  stop_GL =  180.0*orsa::degToRad();
 const double  step_GL =   10.0*orsa::degToRad();
@@ -288,58 +288,10 @@ public:
             // lazy allocation
             data[idx] = new CountStatsElement;
         }
-
-        /* 
-           {
-           // check!
-           std::vector<size_t> check_binVector = bin(idx);
-           const mpz_class     check_idx       = index(check_binVector);
-           if ( (idx != check_idx) ||
-           (binVector != check_binVector) ) {
-           ORSA_DEBUG("problems!!");
-           ORSA_DEBUG("idx: %Zi    check_idx: %Zi    delta: %Zi",
-           idx.get_mpz_t(),check_idx.get_mpz_t(),mpz_class(idx-check_idx).get_mpz_t());
-           for (unsigned int k=0; k<binVector.size(); ++k) {
-           ORSA_DEBUG("binVector[%2i]: %2i   check_binVector[%2i]: %2i   delta[%2i]: %3i    varSize: %i",
-           k,binVector[k],
-           k,check_binVector[k],
-           k,binVector[k]-check_binVector[k],
-           var[k]->size());
-           }
-           for (unsigned int k=0; k<xVector.size(); ++k) {
-           ORSA_DEBUG("xVector[%i]: %10.3e   ---> %10.3e [arcsec/hour] (where applicable)    (x-30): %g",
-           k,xVector[k],
-           orsa::FromUnits(xVector[k]*orsa::radToArcsec(),orsa::Unit::HOUR),
-           orsa::FromUnits(xVector[k]*orsa::radToArcsec(),orsa::Unit::HOUR)-30.0);
-           }
-           orsa::crash();
-           }
-           }
-        */
-        
-        /*
-        // debug: save old values
-        osg::ref_ptr<CountStatsElement> old_CSE = new CountStatsElement;
-        // deep copy
-        (*old_CSE) = (*data[idx]);
-        */
         
         data[idx]->Ntot++;
         if (obs) data[idx]->Nobs++;
         if (dsc) data[idx]->Ndsc++;
-        
-        /* 
-           if (idx == mpz_class("153924689949131")) {
-           // check before leaving
-           ORSA_DEBUG("obs: %i  Ntot: %i -> %i   Nobs: %i -> %i   index: %Zi [binVector[1]=%i] size: %i ******************",
-           obs,
-           old_CSE->Ntot,data[idx]->Ntot,
-           old_CSE->Nobs,data[idx]->Nobs,
-           idx.get_mpz_t(),
-           binVector[1],
-           data.size());
-           }
-        */
         
         return true; 
     }
