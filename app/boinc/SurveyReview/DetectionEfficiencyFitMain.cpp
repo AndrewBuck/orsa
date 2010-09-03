@@ -98,11 +98,14 @@ int main(int argc, char ** argv) {
     // allocated in loop below
     
     for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
-
+        
         countStats[fileID] = new CountStats(varDefinition);
-
+        
+        if (etaData[fileID].size()==0) continue;
+        
         std::vector<double> xVector;
         xVector.resize(varDefinition.size());
+        unsigned int excluded=0;
         for (unsigned int k=0; k<etaData[fileID].size(); ++k) {
             // keep vars aligned with varDefinition content
             xVector[0] = etaData[fileID][k].V.getRef();
@@ -113,10 +116,25 @@ int main(int argc, char ** argv) {
             // xVector[ ] = etaData[fileID][k].solarAltitude.getRef();
             // xVector[ ] = etaData[fileID][k].lunarAltitude.getRef();
             // xVector[ ] = LP2LI(etaData[fileID][k].lunarPhase.getRef());
-            countStats[fileID]->insert(xVector,
-                                       etaData[fileID][k].observed.getRef(),
-                                       etaData[fileID][k].discovered.getRef());
+            const bool goodInsert = countStats[fileID]->insert(xVector,
+                                                               etaData[fileID][k].observed.getRef(),
+                                                               etaData[fileID][k].discovered.getRef());
+            if (!goodInsert) {
+                // KEEP THIS!
+                ++excluded;
+                //
+                if (0) {
+                    ORSA_DEBUG("excluded: V=%4.1f U=%5.1f AM=%5.2f GB=%+3.0f GL=%+4.0f obs: %i",
+                               etaData[fileID][k].V.getRef(),
+                               orsa::FromUnits(etaData[fileID][k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
+                               etaData[fileID][k].airMass.getRef(),
+                               orsa::radToDeg()*etaData[fileID][k].galacticLatitude.getRef(),
+                               orsa::radToDeg()*etaData[fileID][k].galacticLongitude.getRef(),
+                               etaData[fileID][k].observed.getRef());
+                }
+            }
         }
+        ORSA_DEBUG("etaData[%06i]: excluded %i out of %i [%.2f\%]",fileID,excluded,etaData[fileID].size(),(100.0*excluded)/etaData[fileID].size());
     }
     
     std::vector<EfficiencyMultifit::DataStorage> data;
@@ -269,12 +287,13 @@ int main(int argc, char ** argv) {
         par->insert("shape_GL",  0.1, 1.0e-6);
         
         // hard limits
-        par->setRange("drop_GB",
-                      0.001,
-                      1.00);
-        par->setRange("scale_GB",
-                      01.0*orsa::degToRad(),
-                      75.0*orsa::degToRad());
+        /* par->setRange("drop_GB",
+           0.001,
+           1.00);
+           par->setRange("scale_GB",
+           01.0*orsa::degToRad(),
+           75.0*orsa::degToRad());
+        */
     }
     
     {
@@ -381,20 +400,20 @@ int main(int argc, char ** argv) {
         // now enforce range limits, and call fabs() where needed
         char varName[1024];
         for (unsigned int fileID=0; fileID<numFiles; ++fileID) {
-            sprintf(varName,"V_limit_%06i",fileID); par->setRange(   varName, 10.00, 30.00);
-            sprintf(varName, "eta0_V_%06i",fileID); par->setRange(   varName,  0.00,  1.00);
-            sprintf(varName,    "c_V_%06i",fileID); par->setRangeMin(varName,  0.00);
+            // sprintf(varName,"V_limit_%06i",fileID); par->setRange(   varName, 10.00, 30.00);
+            // sprintf(varName, "eta0_V_%06i",fileID); par->setRange(   varName,  0.00,  1.00);
+            // sprintf(varName,    "c_V_%06i",fileID); par->setRangeMin(varName,  0.00);
             // w_V
             //
             sprintf(varName,"U_limit_%06i",fileID); par->set(varName,fabs(par->get(varName)));
             // w_U
         }
-        par->setRangeMin("peak_AM",1.0);
+        // par->setRangeMin("peak_AM",1.0);
         par->set("shape_AM",fabs(par->get("shape_AM")));
         //
-        par->setRange("drop_GB",0.0,1.0);
+        // par->setRange("drop_GB",0.0,1.0);
         par->set("scale_GB",fabs(par->get("scale_GB")));
-        par->setRangeMin("scale_GB",0.0);
+        // par->setRangeMin("scale_GB",0.0);
         //
         par->set("scale_GL",fabs(par->get("scale_GL")));
         par->set("shape_GL",fabs(par->get("shape_GL")));
