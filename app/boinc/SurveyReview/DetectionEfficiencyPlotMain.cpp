@@ -270,7 +270,7 @@ int main(int argc, char ** argv) {
     // [8] lunar illumination
     osg::ref_ptr<CountStats::LinearVar> var_LI = new CountStats::LinearVar(start_LI,stop_LI,step_LI);
     varDefinition.push_back(var_LI.get());
-    
+
     // for data plots
     Histo histo_V (var_V.get());
     Histo histo_U (var_U.get());
@@ -307,6 +307,14 @@ int main(int argc, char ** argv) {
     // 
     Histo2D histo2D_lunar(var_LA.get(),var_LI.get());
     Histo2D histo2D_lunar_eta(var_LA.get(),var_LI.get());
+
+    // EXTRA
+    //
+    // [ ] apparent velocity
+    osg::ref_ptr<CountStats::LinearVar> var_U_more = new CountStats::LinearVar(start_U,stop_U,20*step_U);
+    varDefinition.push_back(var_U_more.get());
+    //
+    Histo histo_U_more (var_U_more.get());
     
     // read fit files
     FitFileData ffd;
@@ -333,12 +341,15 @@ int main(int argc, char ** argv) {
         
         ORSA_DEBUG("etaData.size(): %i",etaData.size());
         
+        if (etaData.size()==0) continue;
+        
         osg::ref_ptr<CountStats> countStats = 
             new CountStats(varDefinition);
         
         {
             std::vector<double> xVector;
             xVector.resize(varDefinition.size());
+            unsigned int excluded=0;
             for (unsigned int k=0; k<etaData.size(); ++k) {
                 // keep vars aligned with varDefinition content
                 xVector[0]  = etaData[k].V.getRef();
@@ -355,10 +366,25 @@ int main(int argc, char ** argv) {
                 // xVector[ ] = etaData[k].lunarPhase.getRef();
                 xVector[7]  = etaData[k].lunarAltitude.getRef();
                 xVector[8]  = LP2LI(etaData[k].lunarPhase.getRef());
-                countStats->insert(xVector,
-                                   etaData[k].observed.getRef(),
-                                   etaData[k].discovered.getRef());
+                const bool goodInsert = countStats->insert(xVector,
+                                                           etaData[k].observed.getRef(),
+                                                           etaData[k].discovered.getRef());
+                if (!goodInsert) {
+                    // KEEP THIS!
+                    ++excluded;
+                    //
+                    if (0) {
+                        ORSA_DEBUG("excluded: V=%4.1f U=%5.1f AM=%5.2f GB=%+3.0f GL=%+4.0f obs: %i",
+                                   etaData[k].V.getRef(),
+                                   orsa::FromUnits(etaData[k].apparentVelocity.getRef()*orsa::radToArcsec(),orsa::Unit::HOUR),
+                                   etaData[k].airMass.getRef(),
+                                   orsa::radToDeg()*etaData[k].galacticLatitude.getRef(),
+                                   orsa::radToDeg()*etaData[k].galacticLongitude.getRef(),
+                                   etaData[k].observed.getRef());
+                    }
+                }
             }
+            ORSA_DEBUG("etaData: excluded %i out of %i [%.2f\%]",excluded,etaData.size(),(100.0*excluded)/etaData.size());
         }
         
         EfficiencyMultifit::DataStorage data;
@@ -525,6 +551,9 @@ int main(int argc, char ** argv) {
                             histo_U.insert(data[k].U.getRef(),
                                            data[k].eta.getRef()*nominal_eta_U/eta,
                                            orsa::square(eta/(nominal_eta_U*data[k].sigmaEta.getRef())));
+                            histo_U_more.insert(data[k].U.getRef(),
+                                                data[k].eta.getRef()*nominal_eta_U/eta,
+                                                orsa::square(eta/(nominal_eta_U*data[k].sigmaEta.getRef())));
                         }
                         /* histo_SE.insert(data[k].SE.getRef(),
                            data[k].eta.getRef()/eta,
@@ -956,15 +985,25 @@ int main(int argc, char ** argv) {
     // second row of plots
     nx += lx;
     ny  = ny0;
-        
+    
     PlotUtil((&PlotUtil_fun_U),
              ffd,
              histo_U,
              orsa::FromUnits(orsa::radToArcsec(),orsa::Unit::HOUR),
              nx,ny,px,py,
-             0,30,5,0,1,"apparent velocity [arcsec/hour]",
+             0,100,10,0,1,"apparent velocity [arcsec/hour]",
              etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
         
+    ny += ly;
+    
+    PlotUtil((&PlotUtil_fun_U),
+             ffd,
+             histo_U_more,
+             orsa::FromUnits(orsa::radToArcsec(),orsa::Unit::HOUR),
+             nx,ny,px,py,
+             0,600,100,0,2,"apparent velocity [arcsec/hour]",
+             etaMin,etaMax,etaStep,etaDigits,etaTicks,etaLabel);
+    
     ny += ly;
         
     PlotUtil((&PlotUtil_fun_GB),
