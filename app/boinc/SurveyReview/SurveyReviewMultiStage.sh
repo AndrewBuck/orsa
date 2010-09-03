@@ -8,7 +8,7 @@ then
 fi
 
 # first list all arguments, to double-check
-MSG="calling SurveyReviewStage.sh $# times with arguments:"
+MSG="calling SurveyReviewStage.sh on $# argument(s):"
 for file in "$@"
   do
 # first remove path
