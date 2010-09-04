@@ -23,28 +23,29 @@ unix:!macx {
 }
 
 macx {
-        QMAKE_LFLAGS += -static-libgcc
-        LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads /Users/tricaric/boinc/api/libboinc_api.a /Users/tricaric/boinc/lib/libboinc.a 
+	QMAKE_LFLAGS += -static-libgcc
+	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads -lorsaUtil
+	SOURCES += /Users/tricaric/sqlite/sqlite-3.6.23.1/sqlite3.c
 }
 
 win32 {
- 		QMAKE_LFLAGS += -static -static-libgcc
-        LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lorsaUtil
-        LIBS += C:\OpenSceneGraph\lib\libOpenThreads.a
-		LIBS += C:\orsa\support\win32\cspice\lib\cspice.a C:\orsa\support\win32\cspice\lib\csupport.a
-		LIBS += C:\orsa\support\win32\gmp\lib\libgmp.a C:\orsa\support\win32\gmp\lib\libgmpxx.a
-		LIBS += C:\orsa\support\win32\gsl\lib\libgsl.a C:\orsa\support\win32\gsl\lib\libgslcblas.a
-		LIBS += C:\orsa\lib\win32\liborsaSolarSystem.a
-		LIBS += C:\orsa\lib\win32\liborsa.a C:\orsa\lib\win32\liborsaSPICE.a C:\orsa\lib\win32\liborsaInputOutput.a
-		LIBS += C:\orsa\lib\win32\liborsaUtil.a
-		LIBS += C:\orsa\support\win32\gmp\lib\libgmp.a C:\orsa\support\win32\gmp\lib\libgmpxx.a
-		LIBS += C:\orsa\lib\win32\liborsaEssentialOSG.a
-		LIBS += C:\orsa\support\win32\gsl\lib\libgsl.a C:\orsa\support\win32\gsl\lib\libgslcblas.a
-		LIBS += C:\orsa\support\win32\cspice\lib\cspice.a C:\orsa\support\win32\cspice\lib\csupport.a
-		LIBS += C:\orsa\lib\win32\liborsaSolarSystem.a
-		LIBS += C:\Qt\2010.02.1\qt\lib\libQtCore.a
+	QMAKE_LFLAGS += -static -static-libgcc
+	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lorsaUtil
+	LIBS += C:\OpenSceneGraph\lib\libOpenThreads.a
+	LIBS += C:\orsa\support\win32\cspice\lib\cspice.a C:\orsa\support\win32\cspice\lib\csupport.a
+	LIBS += C:\orsa\support\win32\gmp\lib\libgmp.a C:\orsa\support\win32\gmp\lib\libgmpxx.a
+	LIBS += C:\orsa\support\win32\gsl\lib\libgsl.a C:\orsa\support\win32\gsl\lib\libgslcblas.a
+	LIBS += C:\orsa\lib\win32\liborsaSolarSystem.a
+	LIBS += C:\orsa\lib\win32\liborsa.a C:\orsa\lib\win32\liborsaSPICE.a C:\orsa\lib\win32\liborsaInputOutput.a
+	LIBS += C:\orsa\lib\win32\liborsaUtil.a
+	LIBS += C:\orsa\support\win32\gmp\lib\libgmp.a C:\orsa\support\win32\gmp\lib\libgmpxx.a
+	LIBS += C:\orsa\lib\win32\liborsaEssentialOSG.a
+	LIBS += C:\orsa\support\win32\gsl\lib\libgsl.a C:\orsa\support\win32\gsl\lib\libgslcblas.a
+	LIBS += C:\orsa\support\win32\cspice\lib\cspice.a C:\orsa\support\win32\cspice\lib\csupport.a
+	LIBS += C:\orsa\lib\win32\liborsaSolarSystem.a
+	LIBS += C:\Qt\2010.02.1\qt\lib\libQtCore.a
         HEADERS += C:\sqlite-amalgamation-3.6.23\sqlite3.h C:\sqlite-amalgamation-3.6.23\sqlite3ext.h
-		SOURCES += C:\sqlite-amalgamation-3.6.23\sqlite3.c
+	SOURCES += C:\sqlite-amalgamation-3.6.23\sqlite3.c
 }
 
 HEADERS += skycoverage.h   SurveyReview.h   grain.h

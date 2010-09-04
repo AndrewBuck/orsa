@@ -1,4 +1,4 @@
 TEMPLATE = subdirs
 
-!win32: SUBDIRS += orsaQt.dynamiclib.pro
+!win32:!macx SUBDIRS += orsaQt.dynamiclib.pro
 SUBDIRS += orsaQt.staticlib.pro

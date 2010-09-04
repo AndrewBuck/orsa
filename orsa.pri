@@ -65,7 +65,7 @@ macx {
 	DIR_SEP = "/"
 
         QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.5
-        QMAKE_LFLAGS += -undefined dynamic_lookup 
+	QMAKE_LFLAGS += -undefined dynamic_lookup 
 
 	QMAKE_CXXFLAGS += -mmacosx-version-min=10.5 -read_only_relocs suppress
 	QMAKE_LFLAGS   += -mmacosx-version-min=10.5 -read_only_relocs suppress
@@ -150,8 +150,8 @@ macx {
 		INCLUDEPATH +=  /Users/tricaric/boinc/ /Users/tricaric/boinc/api/ /Users/tricaric/boinc/lib
 	}
 	boinc_lib {
-#		LIBS += /Users/tricaric/boinc/api/libboinc_api.a /Users/tricaric/boinc/lib/libboinc.a
-		LIBS += /Users/tricaric/boinc/lib/.libs/libboinc.a /Users/tricaric/boinc/api/.libs/libboinc_api.a
+		LIBS += /Users/tricaric/boinc/mac_build/build/boinc.build/Deployment/libboinc.build/Objects-normal/i386/libboinc.a
+		LIBS += /Users/tricaric/boinc/mac_build/build/boinc.build/Deployment/api_libboinc.build/Objects-normal/i386/libboinc_api.a
 	}
 	gmp_include {
 	     	INCLUDEPATH += $$ORSA_SUPPORT/gmp/include
