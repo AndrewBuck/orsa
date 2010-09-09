@@ -156,10 +156,10 @@ int main(int argc, char ** argv) {
     const double flops_est = 2e12;
     
     const unsigned int min_quorum       = 2;
-    const unsigned int target_nresults  = 3;
+    const unsigned int target_nresults  = 2;
     const double rsc_fpops_est          =    flops_est;
     const double rsc_fpops_bound        = 32*flops_est;
-    const orsa::Time   delay_bound      = orsa::Time(5,0,0,0,0);
+    const orsa::Time   delay_bound      = orsa::Time(3,0,0,0,0);
     const double rsc_memory_bound       = 134217728;
     //
     double rsc_disk_bound = 0;
