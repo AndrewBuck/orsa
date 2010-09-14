@@ -243,7 +243,7 @@ orsa::BodyGroup * run(const double orbitRadius,
     // mass dist.
     osg::ref_ptr<orsa::MassDistribution> massDistribution;
     
-    // UPDATE this when changing shape...
+#warning UPDATE this when changing shape... i.e. ellipsoid with core...
     // double volume = FromUnits(7.875e7,Unit::KM,3); 
     double volume = FromUnits(7.871695441361e7,Unit::KM,3);
     

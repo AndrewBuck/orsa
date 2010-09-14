@@ -1,9 +1,10 @@
 TEMPLATE = app
 
 CONFIG += qt
-QT     -= gui opengl
+QT     -= gui 
+QT     += opengl
 
-CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib qd_include qd_lib qwt_include qwt_lib spice_include spice_lib
+CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib qwt_include qwt_lib spice_include spice_lib
 
 include(../../orsa.pri)
 
@@ -18,7 +19,7 @@ OBJECTS_DIR = .obj/$${PLATFORM_NAME}
 DESTDIR     = ../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
-	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -losg -losgText -losgGA -losgViewer -lfftw3 -lm
+	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -losgViewer -losgText -losgUtil -losgGA -losgdb_freetype -losgDB -losg -lOpenThreads -lfftw3 -lm
 }
 
 macx {
