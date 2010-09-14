@@ -22,7 +22,7 @@ int main(int argc, char ** argv) {
     orsa::Debug::instance()->initTimer();
     
     if (argc < 3) {
-        printf("Usage: %s <mode> <allEta-file(s)>\n",argv[0]);
+        printf("Usage: %s <UV|ALL> <allEta-file(s)>\n",argv[0]);
         exit(0);
     }
     
