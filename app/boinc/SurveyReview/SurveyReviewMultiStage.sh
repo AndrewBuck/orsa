@@ -1,5 +1,12 @@
 #!/bin/bash
 
+LOGFILE=SurveyReviewMultiStage.log
+
+msg() {
+    echo $*
+    echo `date` -- $* >> $LOGFILE
+}
+
 # cool countdown function 
 # found at http://www.unix.com/shell-programming-scripting/98889-display-runnning-countdown-bash-script.html
 countdown()
@@ -34,7 +41,7 @@ for file in "$@"
   base=${file%%.*}
   MSG="$MSG $base"
 done
-echo $MSG
+msg $MSG
 # wait 10 seconds
 countdown "00:00:10"
 
@@ -45,10 +52,10 @@ for file in "$@"
 # then remove extension
   base=${file%%.*}
   STAGE_CALL="./SurveyReviewStage.sh $base"
-  echo calling $STAGE_CALL
+  msg calling $STAGE_CALL
   $STAGE_CALL 
   if [ $? -ne 0 ] ; then
-      echo error: failed to call $STAGE_CALL
+      msg error: failed to call $STAGE_CALL
       exit 1
   fi
 done
