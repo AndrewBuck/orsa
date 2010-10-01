@@ -21,5 +21,5 @@ DESTDIR     = ../../../bin/$${PLATFORM_NAME}
 SOURCES += SurveyReviewMultipleJobsSubmission.cpp SurveyReview.cpp grain.cpp
 
 unix:!macx {
-	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads -lorsaUtil /home/tricaric/boinc/api/libboinc_api.a /home/tricaric/boinc/lib/libboinc.a -L/home/tricaric/sqlite -lsqlite3
+	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads -lorsaUtil /home/buck/Code/orsa/boinc/api/libboinc_api.a /home/buck/Code/orsa/boinc/lib/libboinc.a -L/home/buck/Code/orsa/sqlite -lsqlite3
 }

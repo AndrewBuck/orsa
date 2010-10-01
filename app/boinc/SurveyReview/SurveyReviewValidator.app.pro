@@ -18,14 +18,14 @@ DESTDIR     = ../../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
 	CONFIG += gmp_include gmp_lib
-	INCLUDEPATH += /home/tricaric/boinc/ /home/tricaric/boinc/lib/ /home/tricaric/boinc/tools/ /home/tricaric/boinc/sched/ /home/tricaric/boinc/db/ /usr/include/mysql/
+	INCLUDEPATH += /home/buck/Code/orsa/boinc/ /home/buck/Code/orsa/boinc/lib/ /home/buck/Code/orsa/boinc/tools/ /home/buck/Code/orsa/boinc/sched/ /home/buck/Code/orsa/boinc/db/ /usr/include/mysql/
 	LIBS += -lmysqlclient
-	LIBS += -L/home/tricaric/sqlite -lsqlite3 -ldl -lgmp
+	LIBS += -L/home/buck/Code/orsa/sqlite -lsqlite3 -ldl -lgmp
 }
 
 # BOINC sources needed
 #
-SOURCES += /home/tricaric/boinc/sched/validator.cpp /home/tricaric/boinc/db/boinc_db.cpp /home/tricaric/boinc/db/db_base.cpp /home/tricaric/boinc/sched/sched_msgs.cpp /home/tricaric/boinc/sched/sched_config.cpp /home/tricaric/boinc/sched/credit.cpp /home/tricaric/boinc/sched/sched_util.cpp /home/tricaric/boinc/sched/validate_util2.cpp /home/tricaric/boinc/sched/validate_util.cpp /home/tricaric/boinc/sched/sched_shmem.cpp
+SOURCES += /home/buck/Code/orsa/boinc/sched/validator.cpp /home/buck/Code/orsa/boinc/db/boinc_db.cpp /home/buck/Code/orsa/boinc/db/db_base.cpp /home/buck/Code/orsa/boinc/sched/sched_msgs.cpp /home/buck/Code/orsa/boinc/sched/sched_config.cpp /home/buck/Code/orsa/boinc/sched/credit.cpp /home/buck/Code/orsa/boinc/sched/sched_util.cpp /home/buck/Code/orsa/boinc/sched/validate_util2.cpp /home/buck/Code/orsa/boinc/sched/validate_util.cpp /home/buck/Code/orsa/boinc/sched/sched_shmem.cpp
 
 # local
 #

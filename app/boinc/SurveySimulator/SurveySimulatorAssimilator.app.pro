@@ -21,7 +21,7 @@ OBJECTS_DIR = .obj/$${PLATFORM_NAME}
 DESTDIR     = ../../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
-	INCLUDEPATH += /home/tricaric/boinc/ /home/tricaric/boinc/lib/ /home/tricaric/boinc/tools/ /home/tricaric/boinc/sched/ /home/tricaric/boinc/db/ /usr/include/mysql/
+	INCLUDEPATH += /home/buck/Code/orsa/boinc/ /home/buck/Code/orsa/boinc/lib/ /home/buck/Code/orsa/boinc/tools/ /home/buck/Code/orsa/boinc/sched/ /home/buck/Code/orsa/boinc/db/ /usr/include/mysql/
 	LIBS += -lmysqlclient
 }
 
@@ -35,7 +35,7 @@ win32 {
 
 # BOINC sources needed
 #
-SOURCES += /home/tricaric/boinc/sched/assimilator.cpp /home/tricaric/boinc/sched/validate_util.cpp /home/tricaric/boinc/db/boinc_db.cpp /home/tricaric/boinc/db/db_base.cpp /home/tricaric/boinc/sched/sched_msgs.cpp /home/tricaric/boinc/sched/sched_util.cpp /home/tricaric/boinc/sched/sched_config.cpp
+SOURCES += /home/buck/Code/orsa/boinc/sched/assimilator.cpp /home/buck/Code/orsa/boinc/sched/validate_util.cpp /home/buck/Code/orsa/boinc/db/boinc_db.cpp /home/buck/Code/orsa/boinc/db/db_base.cpp /home/buck/Code/orsa/boinc/sched/sched_msgs.cpp /home/buck/Code/orsa/boinc/sched/sched_util.cpp /home/buck/Code/orsa/boinc/sched/sched_config.cpp
 
 # local
 #

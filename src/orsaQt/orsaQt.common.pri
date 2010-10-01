@@ -7,8 +7,8 @@ CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib
 
 include(../../orsa.pri)
 
-INCLUDEPATH += ../ /Users/tricaric/Universal/src/gmp/include
-DEPENDPATH  += ../ /Users/tricaric/Universal/src/gmp/include
+INCLUDEPATH += ../ /Users/buck/Code/orsa/Universal/src/gmp/include
+DEPENDPATH  += ../ /Users/buck/Code/orsa/Universal/src/gmp/include
 
 UI_DIR      =  .ui/$${PLATFORM_NAME}
 MOC_DIR     = .moc/$${PLATFORM_NAME}

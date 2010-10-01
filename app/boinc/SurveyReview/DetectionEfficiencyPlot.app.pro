@@ -23,8 +23,8 @@ OBJECTS_DIR = .obj/$${PLATFORM_NAME}
 DESTDIR     = ../../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
-	INCLUDEPATH += /home/tricaric/dislin/
-	LIBS += -L/home/tricaric/dislin/ -ldislin
+	INCLUDEPATH += /home/buck/Code/orsa/dislin/
+	LIBS += -L/home/buck/Code/orsa/dislin/ -ldislin
 	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lorsaUtil -lOpenThreads
 }
 

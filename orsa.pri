@@ -19,10 +19,10 @@ macx {
 
 # define ORSA_PRI as the absolute path to this file
 unix:!macx {
-	ORSA_PRI = /home/tricaric/orsa/orsa.pri
+	ORSA_PRI = /home/buck/Code/orsa/orsa/orsa.pri
 }
 macx {
-	ORSA_PRI = /Users/tricaric/orsa/orsa.pri
+	ORSA_PRI = /Users/buck/Code/orsa/orsa/orsa.pri
 }
 win32 {
 	ORSA_PRI = C:\orsa\orsa.pri
@@ -99,10 +99,10 @@ ORSA_SUPPORT = $$ORSA_BASE$$SUPPORT_DIR
 
 unix:!macx {
 	boinc_include {
-		INCLUDEPATH += /home/tricaric/boinc/ /home/tricaric/boinc/api/ /home/tricaric/boinc/lib
+		INCLUDEPATH += /home/buck/Code/orsa/boinc/ /home/buck/Code/orsa/boinc/api/ /home/buck/Code/orsa/boinc/lib
 	}
 	boinc_lib {
-		LIBS += /home/tricaric/boinc/api/libboinc_api.a /home/tricaric/boinc/lib/libboinc.a
+		LIBS += /home/buck/Code/orsa/boinc/api/libboinc_api.a /home/buck/Code/orsa/boinc/lib/libboinc.a
 	}
 	gmp_include {
 		INCLUDEPATH +=
@@ -117,25 +117,25 @@ unix:!macx {
 		LIBS += -lgsl -lgslcblas
 	}
 	osg_include {
-        	INCLUDEPATH += /home/tricaric/OpenSceneGraph/include		
+        	INCLUDEPATH += /home/buck/Code/orsa/OpenSceneGraph/include		
 	}
 	osg_lib {
-		LIBS += -L/home/tricaric/OpenSceneGraph/lib
+		LIBS += -L/home/buck/Code/orsa/OpenSceneGraph/lib
 	}
 	osg_src {
-		OSG_SRC = /home/tricaric/OpenSceneGraph/src/
+		OSG_SRC = /home/buck/Code/orsa/OpenSceneGraph/src/
 	}
 	qwt_include {
-		INCLUDEPATH += /home/tricaric/qwt/src
+		INCLUDEPATH += /home/buck/Code/orsa/qwt/src
 	}
 	qwt_lib {
-		LIBS += -L/home/tricaric/qwt/lib/ -lqwt
+		LIBS += -L/home/buck/Code/orsa/qwt/lib/ -lqwt
 	}
 	spice_include {
-		INCLUDEPATH += /home/tricaric/cspice/include
+		INCLUDEPATH += /home/buck/Code/orsa/cspice/include
 	}
 	spice_lib {
-		LIBS += /home/tricaric/cspice/lib/cspice.a /home/tricaric/cspice/lib/csupport.a
+		LIBS += /home/buck/Code/orsa/cspice/lib/cspice.a /home/buck/Code/orsa/cspice/lib/csupport.a
 	}
 	zlib_include {
         	INCLUDEPATH +=
@@ -147,11 +147,11 @@ unix:!macx {
 
 macx {
 	boinc_include {
-		INCLUDEPATH +=  /Users/tricaric/boinc/ /Users/tricaric/boinc/api/ /Users/tricaric/boinc/lib
+		INCLUDEPATH +=  /Users/buck/Code/orsa/boinc/ /Users/buck/Code/orsa/boinc/api/ /Users/buck/Code/orsa/boinc/lib
 	}
 	boinc_lib {
-		LIBS += /Users/tricaric/boinc/mac_build/build/boinc.build/Deployment/libboinc.build/Objects-normal/i386/libboinc.a
-		LIBS += /Users/tricaric/boinc/mac_build/build/boinc.build/Deployment/api_libboinc.build/Objects-normal/i386/libboinc_api.a
+		LIBS += /Users/buck/Code/orsa/boinc/mac_build/build/boinc.build/Deployment/libboinc.build/Objects-normal/i386/libboinc.a
+		LIBS += /Users/buck/Code/orsa/boinc/mac_build/build/boinc.build/Deployment/api_libboinc.build/Objects-normal/i386/libboinc_api.a
 	}
 	gmp_include {
 	     	INCLUDEPATH += $$ORSA_SUPPORT/gmp/include
@@ -166,19 +166,19 @@ macx {
 		LIBS += -L$$ORSA_SUPPORT/gsl/lib -lgsl -lgslcblas
 	}
 	osg_include {
-        	INCLUDEPATH += /Users/tricaric/OpenSceneGraph/include
+        	INCLUDEPATH += /Users/buck/Code/orsa/OpenSceneGraph/include
 	}
 	osg_lib {
-		LIBS += -L/Users/tricaric/OpenSceneGraph/lib/
+		LIBS += -L/Users/buck/Code/orsa/OpenSceneGraph/lib/
 	}
 	osg_src {
-		OSG_SRC = /Users/tricaric/OpenSceneGraph/src/
+		OSG_SRC = /Users/buck/Code/orsa/OpenSceneGraph/src/
 	}
 	qwt_include {
-		INCLUDEPATH += /Users/tricaric/qwt/src
+		INCLUDEPATH += /Users/buck/Code/orsa/qwt/src
 	}
 	qwt_lib {
-		LIBS += -L/Users/tricaric/qwt/lib/ -lqwt
+		LIBS += -L/Users/buck/Code/orsa/qwt/lib/ -lqwt
 	}
 	spice_include {
 		INCLUDEPATH += $$ORSA_SUPPORT/cspice/include
