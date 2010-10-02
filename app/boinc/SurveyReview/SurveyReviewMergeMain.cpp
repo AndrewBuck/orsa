@@ -184,7 +184,13 @@ int main(int argc, char ** argv) {
             {
                 // begin first transaction, and wait for boinc_time_to_checkpoint() to commit it and start a new one
                 sql = "begin";
-                rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+                do {
+                    rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+                    if (rc==SQLITE_BUSY) {
+                        ORSA_DEBUG("database busy, retrying...");
+                        usleep(100000);
+                    }
+                } while (rc==SQLITE_BUSY);
             }
             
             for (int row=1; row<=nrows_dbf; ++row) {
