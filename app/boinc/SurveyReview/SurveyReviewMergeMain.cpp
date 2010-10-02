@@ -65,8 +65,8 @@ int main(int argc, char ** argv) {
         */
         //
         bool createTable=true;
-        //
-        if (nrows==1) {
+        // should change to look for table name...
+        if (nrows>=1) {
             createTable=false;
         }
         //
@@ -179,6 +179,12 @@ int main(int argc, char ** argv) {
                 }
             }
             
+            {
+                // begin first transaction, and wait for boinc_time_to_checkpoint() to commit it and start a new one
+                sql = "begin";
+                rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+            }
+            
             for (int row=1; row<=nrows_dbf; ++row) {
                 const int z_a_min          = atoi(sql_result_dbf[row*ncols_dbf+0]);
                 const int z_a_max          = atoi(sql_result_dbf[row*ncols_dbf+1]);
@@ -193,10 +199,11 @@ int main(int argc, char ** argv) {
                 const int z_M_min          = atoi(sql_result_dbf[row*ncols_dbf+10]);
                 const int z_M_max          = atoi(sql_result_dbf[row*ncols_dbf+11]);
                 const int z_H              = atoi(sql_result_dbf[row*ncols_dbf+12]);
-                const int N_NEO            = atoi(sql_result_dbf[row*ncols_dbf+13]);
-                const int N_PHO            = atoi(sql_result_dbf[row*ncols_dbf+14]);
-                const int NEO_in_field     = atoi(sql_result_dbf[row*ncols_dbf+15]);
-                const int PHO_in_field     = atoi(sql_result_dbf[row*ncols_dbf+16]);
+                /* const int N_NEO            = atoi(sql_result_dbf[row*ncols_dbf+13]);
+                   const int N_PHO            = atoi(sql_result_dbf[row*ncols_dbf+14]);
+                   const int NEO_in_field     = atoi(sql_result_dbf[row*ncols_dbf+15]);
+                   const int PHO_in_field     = atoi(sql_result_dbf[row*ncols_dbf+16]);
+                */
                 const double eta_NEO       = atof(sql_result_dbf[row*ncols_dbf+17]);
                 const double sigma_eta_NEO = atof(sql_result_dbf[row*ncols_dbf+18]);
                 const double eta_PHO       = atof(sql_result_dbf[row*ncols_dbf+19]);
@@ -232,10 +239,10 @@ int main(int argc, char ** argv) {
                             z_peri_min,z_peri_max,
                             z_M_min,z_M_max,
                             z_H,
-                            N_NEO,
-                            N_PHO,
-                            NEO_in_field,
-                            PHO_in_field,
+                            -1, // N_NEO,
+                            -1, // N_PHO,
+                            -1, // NEO_in_field,
+                            -1, // PHO_in_field,
                             eta_NEO,
                             sigma_eta_NEO,
                             eta_PHO,
@@ -268,7 +275,11 @@ int main(int argc, char ** argv) {
                     const double new_sigma_eta_PHO = sqrt(orsa::square((1.0-eta_PHO)*sigma_eta_PHO_db)+
                                                           orsa::square((1.0-eta_PHO_db)*sigma_eta_PHO));
 
-                    sprintf(sql_line,"UPDATE grid SET eta_NEO=%g,sigma_eta_NEO=%g,eta_PHO=%g,sigma_eta_PHO=%g WHERE z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i and z_H=%i",
+                    sprintf(sql_line,"UPDATE grid SET N_NEO=%i,N_PHO=%i,NEO_in_field=%i,PHO_in_field=%i,eta_NEO=%g,sigma_eta_NEO=%g,eta_PHO=%g,sigma_eta_PHO=%g WHERE z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i and z_H=%i",
+                            -1,
+                            -1,
+                            -1,
+                            -1,
                             new_eta_NEO,
                             new_sigma_eta_NEO,
                             new_eta_PHO,
@@ -295,6 +306,15 @@ int main(int argc, char ** argv) {
                     exit(0); 
                 } 
             }
+
+            // close transaction
+            sql = "commit";
+            do {
+                rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+                if (rc==SQLITE_BUSY) {
+                    ORSA_DEBUG("database busy, retrying...");
+                }
+            } while (rc==SQLITE_BUSY);
             
             sqlite3_free_table(sql_result_dbf);
         }
