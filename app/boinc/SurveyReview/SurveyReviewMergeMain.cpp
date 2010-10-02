@@ -21,6 +21,8 @@ int main(int argc, char ** argv) {
     
     ORSA_DEBUG("process ID: %i",getpid());
     
+#warning "ASK for comfirmation before writing on merged-db (to protect from calls like /path/to/*.db where the first on is an input and the merged one)"
+    
     // needed to work with SQLite database
     sqlite3     * db;
     char        * zErr;
@@ -313,6 +315,7 @@ int main(int argc, char ** argv) {
                 rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
                 if (rc==SQLITE_BUSY) {
                     ORSA_DEBUG("database busy, retrying...");
+                    usleep(100000);
                 }
             } while (rc==SQLITE_BUSY);
             
