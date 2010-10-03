@@ -29,7 +29,7 @@ int main(int argc, char ** argv) {
         FILE * fp = fopen(argv[1],"r");
         if (fp) {
             fclose(fp);
-            ORSA_DEBUG("output file [%s] already exists, exiting");
+            ORSA_DEBUG("output file [%s] already exists, exiting",argv[1]);
             exit(0);
         }
     }
