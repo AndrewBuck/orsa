@@ -290,7 +290,13 @@ int main(int argc, char ** argv) {
                             sigma_eta_NEO,
                             eta_PHO,
                             sigma_eta_PHO);  
-                    rc = sqlite3_exec(db,sql_line,NULL,NULL,&zErr);
+                    do {
+                        rc = sqlite3_exec(db,sql_line,NULL,NULL,&zErr);
+                        if (rc==SQLITE_BUSY) {
+                            ORSA_DEBUG("database busy, retrying...");
+                            usleep(100000);
+                        }
+                    } while (rc==SQLITE_BUSY);
                     if (rc != SQLITE_OK) {
                         if (zErr != NULL) {
                             ORSA_DEBUG("SQL error: %s\n",zErr);
