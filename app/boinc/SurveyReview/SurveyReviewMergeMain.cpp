@@ -55,8 +55,13 @@ int main(int argc, char ** argv) {
         char **result;
         int nrows, ncols;
         sql = "SELECT name FROM sqlite_master";
-        rc = sqlite3_get_table(db,sql.c_str(),&result,&nrows,&ncols,&zErr);
-        //
+        do {
+            rc = sqlite3_get_table(db,sql.c_str(),&result,&nrows,&ncols,&zErr);
+            if (rc==SQLITE_BUSY) {
+                ORSA_DEBUG("database busy, retrying...");
+                usleep(100000);
+            }
+        } while (rc==SQLITE_BUSY);
         if (rc != SQLITE_OK) {
             if (zErr != NULL) {
                 fprintf(stderr,"SQL error: %s\n",zErr);
@@ -86,8 +91,13 @@ int main(int argc, char ** argv) {
         if (createTable) {
             // create results table
             sql = "CREATE TABLE grid(z_a_min INTEGER, z_a_max INTEGER, z_e_min INTEGER, z_e_max INTEGER, z_i_min INTEGER, z_i_max INTEGER, z_node_min INTEGER, z_node_max INTEGER, z_peri_min INTEGER, z_peri_max INTEGER, z_M_min INTEGER, z_M_max INTEGER, z_H INTEGER, N_NEO INTEGER, N_PHO INTEGER, NEO_in_field INTEGER, PHO_in_field INTEGER, eta_NEO REAL, sigma_eta_NEO REAL, eta_PHO REAL, sigma_eta_PHO REAL)";
-            rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
-            //
+            do {
+                rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+                if (rc==SQLITE_BUSY) {
+                    ORSA_DEBUG("database busy, retrying...");
+                    usleep(100000);
+                }
+            } while (rc==SQLITE_BUSY);
             if (rc != SQLITE_OK) {
                 if (zErr != NULL) {
                     fprintf(stderr,"SQL error: %s\n",zErr);
@@ -97,8 +107,13 @@ int main(int argc, char ** argv) {
             }
             // improve SELECT and UPDATE efficiency with an index
             sql = "CREATE INDEX idx on grid(z_a_min,z_a_max,z_e_min,z_e_max,z_i_min,z_i_max,z_node_min,z_node_max,z_peri_min,z_peri_max,z_M_min,z_M_max,z_H)";
-            rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
-            //
+            do {
+                rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+                if (rc==SQLITE_BUSY) {
+                    ORSA_DEBUG("database busy, retrying...");
+                    usleep(100000);
+                }
+            } while (rc==SQLITE_BUSY);
             if (rc != SQLITE_OK) {
                 if (zErr != NULL) {
                     fprintf(stderr,"SQL error: %s\n",zErr);
@@ -114,8 +129,13 @@ int main(int argc, char ** argv) {
         
         int nrows, ncols;
         char * * sql_result;
-        rc = sqlite3_get_table(db,"pragma integrity_check",&sql_result,&nrows,&ncols,&zErr);
-        //
+        do {
+            rc = sqlite3_get_table(db,"pragma integrity_check",&sql_result,&nrows,&ncols,&zErr);
+            if (rc==SQLITE_BUSY) {
+                ORSA_DEBUG("database busy, retrying...");
+                usleep(100000);
+            }
+        } while (rc==SQLITE_BUSY);
         if (rc != SQLITE_OK) {
             if (zErr != NULL) {
                 ORSA_DEBUG("SQL error: %s\n",zErr); 
@@ -160,8 +180,13 @@ int main(int argc, char ** argv) {
             
             int nrows, ncols;
             char * * sql_result;
-            rc = sqlite3_get_table(dbf,"pragma integrity_check",&sql_result,&nrows,&ncols,&zErr);
-            //
+            do {
+                rc = sqlite3_get_table(dbf,"pragma integrity_check",&sql_result,&nrows,&ncols,&zErr);
+                if (rc==SQLITE_BUSY) {
+                    ORSA_DEBUG("database busy, retrying...");
+                    usleep(100000);
+                }
+            } while (rc==SQLITE_BUSY);
             if (rc != SQLITE_OK) {
                 if (zErr != NULL) {
                     ORSA_DEBUG("SQL error: %s\n",zErr); 
@@ -194,7 +219,13 @@ int main(int argc, char ** argv) {
             int nrows_dbf, ncols_dbf;
             char sql_line[1024];
             sprintf(sql_line,"SELECT * FROM grid where eta_PHO>0");
-            rc = sqlite3_get_table(dbf,sql_line,&sql_result_dbf,&nrows_dbf,&ncols_dbf,&zErr);
+            do {
+                rc = sqlite3_get_table(dbf,sql_line,&sql_result_dbf,&nrows_dbf,&ncols_dbf,&zErr);
+                if (rc==SQLITE_BUSY) {
+                    ORSA_DEBUG("database busy, retrying...");
+                    usleep(100000);
+                }
+            } while (rc==SQLITE_BUSY);
             if (rc != SQLITE_OK) {
                 if (zErr != NULL) {
                     ORSA_DEBUG("SQL error: %s\n",zErr);
@@ -262,7 +293,13 @@ int main(int argc, char ** argv) {
                         z_peri_min,z_peri_max,
                         z_M_min,z_M_max,
                         z_H);
-                rc = sqlite3_get_table(db,sql_line,&sql_result_db,&nrows_db,&ncols_db,&zErr);
+                do {
+                    rc = sqlite3_get_table(db,sql_line,&sql_result_db,&nrows_db,&ncols_db,&zErr);
+                    if (rc==SQLITE_BUSY) {
+                        ORSA_DEBUG("database busy, retrying...");
+                        usleep(100000);
+                    }
+                } while (rc==SQLITE_BUSY);
                 if (rc != SQLITE_OK) {
                     if (zErr != NULL) {
                         ORSA_DEBUG("SQL error: %s\n",zErr);
@@ -340,7 +377,13 @@ int main(int argc, char ** argv) {
                             z_peri_min,z_peri_max,
                             z_M_min,z_M_max,
                             z_H);
-                    rc = sqlite3_exec(db,sql_line,NULL,NULL,&zErr);
+                    do {
+                        rc = sqlite3_exec(db,sql_line,NULL,NULL,&zErr);
+                        if (rc==SQLITE_BUSY) {
+                            ORSA_DEBUG("database busy, retrying...");
+                            usleep(100000);
+                        }
+                    } while (rc==SQLITE_BUSY);
                     if (rc != SQLITE_OK) {
                         if (zErr != NULL) {
                             ORSA_DEBUG("SQL error: %s\n",zErr);
@@ -366,10 +409,17 @@ int main(int argc, char ** argv) {
                     usleep(100000);
                 }
             } while (rc==SQLITE_BUSY);
+            if (rc != SQLITE_OK) {
+                if (zErr != NULL) {
+                    fprintf(stderr,"SQL error: %s\n",zErr);
+                    sqlite3_free(zErr);
+                    exit(0); 
+                }
+            }
             
             sqlite3_free_table(sql_result_dbf);
         }
-    
+        
         // close dbf
         sqlite3_close(dbf);
     
