@@ -21,16 +21,14 @@ int main(int argc, char ** argv) {
     
     ORSA_DEBUG("process ID: %i",getpid());
     
-// #warning "ASK for comfirmation before writing on merged-db (to protect from calls like /path/to/*.db where the first on is an input and the merged one)"
+// #warning "should ASK for comfirmation before writing on merged-db (to protect from calls like /path/to/*.db where the first on is an input and the merged one)"
+// #warning "but this prevents running in batch... so for now we just give 3 seconds before continuing..."
     {
-        // need to start each merge from scratch...
-        // if a means to track progress is implemented, then the input file can exist already, but confirmation must be requested explicitely,
-        // because by mistake the first file argument could be an input file
         FILE * fp = fopen(argv[1],"r");
         if (fp) {
             fclose(fp);
-            ORSA_DEBUG("output file [%s] already exists, exiting",argv[1]);
-            exit(0);
+            ORSA_WARNING("output file [%s] already exists; continuing in 3 seconds...",argv[1]);
+            sleep(3);
         }
     }
     
@@ -225,7 +223,7 @@ int main(int argc, char ** argv) {
             
             for (int row=1; row<=nrows_dbf; ++row) {
                 
-                if (row%100==0) ORSA_DEBUG("progress: %i/%i (%6.3f\%)",row,nrows_dbf,100*(double)row/(double)nrows_dbf);
+                if (row%1000==0) ORSA_DEBUG("progress: %i/%i (%6.3f\%)",row,nrows_dbf,100*(double)row/(double)nrows_dbf);
                 
                 const int z_a_min          = atoi(sql_result_dbf[row*ncols_dbf+0]);
                 const int z_a_max          = atoi(sql_result_dbf[row*ncols_dbf+1]);
