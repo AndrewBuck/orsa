@@ -97,6 +97,17 @@ int main(int argc, char ** argv) {
                     exit(0); 
                 }
             }
+            
+            sql = "CREATE INDEX idx on grid(z_a_min,z_a_max,z_e_min,z_e_max,z_i_min,z_i_max,z_node_min,z_node_max,z_peri_min,z_peri_max,z_M_min,z_M_max,z_H)";
+            rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+            //
+            if (rc != SQLITE_OK) {
+                if (zErr != NULL) {
+                    fprintf(stderr,"SQL error: %s\n",zErr);
+                    sqlite3_free(zErr);
+                    exit(0); 
+                }
+            }
         }
     }
     
