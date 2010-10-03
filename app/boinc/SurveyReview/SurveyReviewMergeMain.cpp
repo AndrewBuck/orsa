@@ -334,7 +334,7 @@ int main(int argc, char ** argv) {
                             z_peri_min,z_peri_max,
                             z_M_min,z_M_max,
                             z_H);
-                    rc = sqlite3_get_table(db,sql_line,&sql_result_db,&nrows_db,&ncols_db,&zErr);
+                    rc = sqlite3_exec(db,sql_line,NULL,NULL,&zErr);
                     if (rc != SQLITE_OK) {
                         if (zErr != NULL) {
                             ORSA_DEBUG("SQL error: %s\n",zErr);
