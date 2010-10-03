@@ -21,7 +21,18 @@ int main(int argc, char ** argv) {
     
     ORSA_DEBUG("process ID: %i",getpid());
     
-#warning "ASK for comfirmation before writing on merged-db (to protect from calls like /path/to/*.db where the first on is an input and the merged one)"
+// #warning "ASK for comfirmation before writing on merged-db (to protect from calls like /path/to/*.db where the first on is an input and the merged one)"
+    {
+        // need to start each merge from scratch...
+        // if a means to track progress is implemented, then the input file can exist already, but confirmation must be requested explicitely,
+        // because by mistake the first file argument could be an input file
+        FILE * fp = fopen(argv[1],"r");
+        if (fp) {
+            fclose(fp);
+            ORSA_DEBUG("output file [%s] already exists, exiting");
+            exit(0);
+        }
+    }
     
     // needed to work with SQLite database
     sqlite3     * db;
@@ -191,9 +202,20 @@ int main(int argc, char ** argv) {
                         usleep(100000);
                     }
                 } while (rc==SQLITE_BUSY);
+                if (rc != SQLITE_OK) {
+                    if (zErr != NULL) {
+                        ORSA_DEBUG("SQL error: %s\n",zErr);
+                        sqlite3_free(zErr);
+                        sqlite3_close(db);
+                        continue;
+                    }
+                }
             }
             
             for (int row=1; row<=nrows_dbf; ++row) {
+                
+                if (row%100==0) ORSA_DEBUG("progress: %i/%i (%6.3f\%)",row,nrows_dbf,100*(double)row/(double)nrows_dbf);
+                
                 const int z_a_min          = atoi(sql_result_dbf[row*ncols_dbf+0]);
                 const int z_a_max          = atoi(sql_result_dbf[row*ncols_dbf+1]);
                 const int z_e_min          = atoi(sql_result_dbf[row*ncols_dbf+2]);
