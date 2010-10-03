@@ -137,7 +137,8 @@ int main(int argc, char ** argv) {
             ORSA_DEBUG("SQLite problem: integrity_check failed\n"); 
             sqlite3_close(db);
             exit(0); 
-        }    
+        }
+        sqlite3_free_table(sql_result);
     }
     
     sqlite3 * dbf;
@@ -180,9 +181,11 @@ int main(int argc, char ** argv) {
             }
             if (!integrity_check_passed) {
                 ORSA_DEBUG("SQLite problem: integrity_check failed\n"); 
+                sqlite3_free_table(sql_result);
                 sqlite3_close(dbf);
                 continue; 
             }    
+            sqlite3_free_table(sql_result);
         }
         
         {
@@ -196,6 +199,7 @@ int main(int argc, char ** argv) {
                 if (zErr != NULL) {
                     ORSA_DEBUG("SQL error: %s\n",zErr);
                     sqlite3_free(zErr);
+                    sqlite3_free_table(sql_result_dbf);
                     sqlite3_close(dbf);
                     continue;
                 }
@@ -343,9 +347,10 @@ int main(int argc, char ** argv) {
                     ORSA_DEBUG("SQLite problem: selected %i rows instead of 1\n",nrows_db); 
                     sqlite3_close(db);
                     exit(0); 
-                } 
+                }
+                sqlite3_free_table(sql_result_db);
             }
-
+            
             // close transaction
             sql = "commit";
             do {
