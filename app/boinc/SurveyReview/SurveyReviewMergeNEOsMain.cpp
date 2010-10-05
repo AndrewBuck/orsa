@@ -218,7 +218,7 @@ int main(int argc, char ** argv) {
             char * * sql_result_dbf;
             int nrows_dbf, ncols_dbf;
             char sql_line[1024];
-            sprintf(sql_line,"SELECT * FROM grid where eta_NEO>0");
+            sprintf(sql_line,"SELECT * FROM grid where eta_PHO>0");
             do {
                 rc = sqlite3_get_table(dbf,sql_line,&sql_result_dbf,&nrows_dbf,&ncols_dbf,&zErr);
                 if (rc==SQLITE_BUSY) {
@@ -273,28 +273,15 @@ int main(int argc, char ** argv) {
                 const int z_M_min          = atoi(sql_result_dbf[row*ncols_dbf+10]);
                 const int z_M_max          = atoi(sql_result_dbf[row*ncols_dbf+11]);
                 const int z_H              = atoi(sql_result_dbf[row*ncols_dbf+12]);
-                const int N_NEO            = atoi(sql_result_dbf[row*ncols_dbf+13]);
-                const int N_PHO            = atoi(sql_result_dbf[row*ncols_dbf+14]);
-                const int NEO_in_field     = atoi(sql_result_dbf[row*ncols_dbf+15]);
-                const int PHO_in_field     = atoi(sql_result_dbf[row*ncols_dbf+16]);
+                /* const int N_NEO            = atoi(sql_result_dbf[row*ncols_dbf+13]);
+                   const int N_PHO            = atoi(sql_result_dbf[row*ncols_dbf+14]);
+                   const int NEO_in_field     = atoi(sql_result_dbf[row*ncols_dbf+15]);
+                   const int PHO_in_field     = atoi(sql_result_dbf[row*ncols_dbf+16]);
+                */
                 const double eta_NEO       = atof(sql_result_dbf[row*ncols_dbf+17]);
-                // const double sigma_eta_NEO = atof(sql_result_dbf[row*ncols_dbf+18]);
+                const double sigma_eta_NEO = atof(sql_result_dbf[row*ncols_dbf+18]);
                 const double eta_PHO       = atof(sql_result_dbf[row*ncols_dbf+19]);
-                // const double sigma_eta_PHO = atof(sql_result_dbf[row*ncols_dbf+20]);
-                
-                // if the input file is already a merged file, then use_num is false
-                bool use_num = ( ( (N_NEO==-1) ||
-                                   (N_PHO==-1) ||
-                                   (NEO_in_field==-1) ||
-                                   (PHO_in_field==-1) ) ? false : true);
-
-#warning NO sigma estimates for now, FIX soon!
-                
-                const double       eta_obs_NEO = (N_NEO>0 ? (use_num ? ((double)NEO_in_field/(double)N_NEO)*eta_NEO : eta_NEO) : 0.0);
-                const double sigma_eta_obs_NEO = 0.0;
-                
-                const double       eta_obs_PHO = (N_PHO>0 ? (use_num ? ((double)PHO_in_field/(double)N_PHO)*eta_PHO : eta_PHO) : 0.0);
-                const double sigma_eta_obs_PHO = 0.0;
+                const double sigma_eta_PHO = atof(sql_result_dbf[row*ncols_dbf+20]);
                 
                 char * * sql_result_db;
                 int nrows_db, ncols_db;
@@ -336,10 +323,10 @@ int main(int argc, char ** argv) {
                             -1, // N_PHO,
                             -1, // NEO_in_field,
                             -1, // PHO_in_field,
-                            eta_obs_NEO,
-                            sigma_eta_obs_NEO,
-                            eta_obs_PHO,
-                            sigma_eta_obs_PHO);  
+                            eta_NEO,
+                            sigma_eta_NEO,
+                            eta_PHO,
+                            sigma_eta_PHO);  
                     do {
                         rc = sqlite3_exec(db,sql_line,NULL,NULL,&zErr);
                         if (rc==SQLITE_BUSY) {
@@ -357,51 +344,36 @@ int main(int argc, char ** argv) {
                     }
                 } else if (nrows_db==1) {
                     // update
-                    const int N_NEO_db                = atoi(sql_result_db[ncols_db+13]);
-                    const int N_PHO_db                = atoi(sql_result_db[ncols_db+14]);
-                    const int NEO_in_field_db         = atoi(sql_result_db[ncols_db+15]);
-                    const int PHO_in_field_db         = atoi(sql_result_db[ncols_db+16]);
-                    const double       eta_obs_NEO_db = atof(sql_result_db[ncols_db+17]);
-                    // const double sigma_eta_obs_NEO_db = atof(sql_result_db[ncols_db+18]);
-                    const double       eta_obs_PHO_db = atof(sql_result_db[ncols_db+19]);
-                    // const double sigma_eta_obs_PHO_db = atof(sql_result_db[ncols_db+20]);
-                    //
-                    if ( (N_NEO_db!=-1) ||
-                         (N_PHO_db!=-1) ||
-                         (NEO_in_field_db!=-1) ||
-                         (PHO_in_field_db!=-1) ) {
-                        ORSA_ERROR("in a purely merged db, num values must be all -1. They will change later when real NEOs numbers are inserted.");
-                        exit(0);
-                    }
+                    /* const int N_NEO_db            = atoi(sql_result_db[ncols_db+13]);
+                       const int N_PHO_db            = atoi(sql_result_db[ncols_db+14]);
+                       const int NEO_in_field_db     = atoi(sql_result_db[ncols_db+15]);
+                       const int PHO_in_field_db     = atoi(sql_result_db[ncols_db+16]);
+                    */
+                    const double eta_NEO_db       = atof(sql_result_db[ncols_db+17]);
+                    const double sigma_eta_NEO_db = atof(sql_result_db[ncols_db+18]);
+                    const double eta_PHO_db       = atof(sql_result_db[ncols_db+19]);
+                    const double sigma_eta_PHO_db = atof(sql_result_db[ncols_db+20]);
                     // 
 #warning these defs for sigma allow it to be exactly 0.0 if both input sigmas are 0.0, and this is not physically meaningful or correct
 #warning correct it in SR?
 #warning maybe use sigma=0.5 or so for now, since a sigma 0 means that only one point was available to compute the sigma
                     //
-                    /* const double       new_eta_NEO = 1.0 - (1.0-eta_NEO_db)*(1.0-eta_NEO);
-                       const double new_sigma_eta_NEO = sqrt(orsa::square((1.0-eta_NEO)*sigma_eta_NEO_db)+
-                       orsa::square((1.0-eta_NEO_db)*sigma_eta_NEO));
-                       const double       new_eta_PHO = 1.0 - (1.0-eta_PHO_db)*(1.0-eta_PHO);
-                       const double new_sigma_eta_PHO = sqrt(orsa::square((1.0-eta_PHO)*sigma_eta_PHO_db)+
-                       orsa::square((1.0-eta_PHO_db)*sigma_eta_PHO));
-                    */
-                    
-#warning NO sigma estimates for now, FIX soon!
-                    //
-                    const double new_eta_obs_NEO = 1.0 - (1.0-eta_obs_NEO_db)*(1.0-eta_obs_NEO);
-                    const double new_sigma_eta_obs_NEO = 0.0;
-                    const double new_eta_obs_PHO = 1.0 - (1.0-eta_obs_PHO_db)*(1.0-eta_obs_PHO);
-                    const double new_sigma_eta_obs_PHO = 0.0;
+                    const double       new_eta_NEO = 1.0 - (1.0-eta_NEO_db)*(1.0-eta_NEO);
+                    const double new_sigma_eta_NEO = sqrt(orsa::square((1.0-eta_NEO)*sigma_eta_NEO_db)+
+                                                          orsa::square((1.0-eta_NEO_db)*sigma_eta_NEO));
+                    const double       new_eta_PHO = 1.0 - (1.0-eta_PHO_db)*(1.0-eta_PHO);
+                    const double new_sigma_eta_PHO = sqrt(orsa::square((1.0-eta_PHO)*sigma_eta_PHO_db)+
+                                                          orsa::square((1.0-eta_PHO_db)*sigma_eta_PHO));
                     
                     sprintf(sql_line,"UPDATE grid SET N_NEO=%i,N_PHO=%i,NEO_in_field=%i,PHO_in_field=%i,eta_NEO=%g,sigma_eta_NEO=%g,eta_PHO=%g,sigma_eta_PHO=%g WHERE z_a_min=%i and z_a_max=%i and z_e_min=%i and z_e_max=%i and z_i_min=%i and z_i_max=%i and z_node_min=%i and z_node_max=%i and z_peri_min=%i and z_peri_max=%i and z_M_min=%i and z_M_max=%i and z_H=%i",
                             -1,
                             -1,
                             -1,
                             -1,
-                            new_eta_obs_NEO,
-                            new_sigma_eta_obs_NEO,
-                            new_eta_obs_PHO,
-                            new_sigma_eta_obs_PHO,
+                            new_eta_NEO,
+                            new_sigma_eta_NEO,
+                            new_eta_PHO,
+                            new_sigma_eta_PHO,
                             z_a_min,z_a_max,
                             z_e_min,z_e_max,
                             z_i_min,z_i_max,
