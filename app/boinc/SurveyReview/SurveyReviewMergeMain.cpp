@@ -290,10 +290,10 @@ int main(int argc, char ** argv) {
 
 #warning NO sigma estimates for now, FIX soon!
                 
-                const double       eta_obs_NEO = (N_NEO>0 ? (use_num ? ((double)NEO_in_field/(double)N_NEO)*eta_NEO : eta_NEO) : 0.0);
+                const double       eta_obs_NEO = (use_num ? (N_NEO>0 ? ((double)NEO_in_field/(double)N_NEO)*eta_NEO : 0.0) : eta_NEO);
                 const double sigma_eta_obs_NEO = 0.0;
                 
-                const double       eta_obs_PHO = (N_PHO>0 ? (use_num ? ((double)PHO_in_field/(double)N_PHO)*eta_PHO : eta_PHO) : 0.0);
+                const double       eta_obs_PHO = (use_num ? (N_PHO>0 ? ((double)PHO_in_field/(double)N_PHO)*eta_PHO : 0.0) : eta_PHO);
                 const double sigma_eta_obs_PHO = 0.0;
                 
                 char * * sql_result_db;
