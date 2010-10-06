@@ -120,13 +120,19 @@ unix:!macx {
         	INCLUDEPATH += /home/buck/Code/orsa/OpenSceneGraph/include		
 	}
 	osg_lib {
-		LIBS += -L/home/buck/Code/orsa/OpenSceneGraph/lib
+		LIBS += -L/home/buck/Code/orsa/OpenSceneGraph/lib -L/home/buck/Code/orsa/OpenSceneGraph/lib/osgPlugins-2.8.3
 	}
 	osg_src {
 		OSG_SRC = /home/buck/Code/orsa/OpenSceneGraph/src/
 	}
+	qt_include {
+		INCLUDEPATH += /usr/include/qt3 /usr/include/qt4
+	}
+	qt_lib {
+		LIBS += -L/home/buck/Code/orsa/qwt/lib
+	}
 	qwt_include {
-		INCLUDEPATH += /home/buck/Code/orsa/qwt/src
+		INCLUDEPATH += /usr/include/qwt-qt4
 	}
 	qwt_lib {
 		LIBS += -L/home/buck/Code/orsa/qwt/lib/ -lqwt

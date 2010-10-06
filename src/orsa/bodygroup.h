@@ -12,7 +12,7 @@
 #include <osg/Referenced>
 #include <osg/ref_ptr>
 
-#include <QHash>
+#include <QtCore/QHash>
 
 namespace orsa {
   

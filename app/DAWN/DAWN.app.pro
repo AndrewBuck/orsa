@@ -4,7 +4,7 @@ CONFIG += qt
 QT     -= gui 
 QT     += opengl
 
-CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib qwt_include qwt_lib spice_include spice_lib
+CONFIG += gmp_include gmp_lib gsl_include gsl_lib osg_include osg_lib qt_include qwt_include qwt_lib spice_include spice_lib
 
 include(../../orsa.pri)
 

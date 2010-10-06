@@ -1,3 +1,6 @@
+#include <QtCore/QQueue>
+#include <QtCore/QMutex>
+
 #include "DAWN.h"
 
 #include "multiminPhase.h"

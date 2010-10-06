@@ -4,7 +4,7 @@
 
 #include <cmath>
 
-#include <QDateTime>
+#include <QtCore/QDateTime>
 
 using namespace orsa;
 using namespace orsaSolarSystem;

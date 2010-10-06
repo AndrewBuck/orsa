@@ -1,7 +1,7 @@
 #ifndef _ORSA_SPICE_SPICE_
 #define _ORSA_SPICE_SPICE_
 
-#include <QMutex>
+#include <QtCore/QMutex>
 
 #include <string>
 

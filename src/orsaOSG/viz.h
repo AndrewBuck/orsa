@@ -1,7 +1,7 @@
 #ifndef _ORSA_OSG_VIZ_
 #define _ORSA_OSG_VIZ_
 
-#include <QHash>
+#include <QtCore/QHash>
 
 #include <osg/Referenced>
 #include <osg/ref_ptr>

@@ -4,7 +4,7 @@
 // #include <map>
 #include <vector>
 
-#include <QHash>
+#include <QtCore/QHash>
 
 #include <orsa/integrator.h>
 

@@ -1,7 +1,7 @@
 #ifndef _ORSA_DEBUG_
 #define _ORSA_DEBUG_
 
-#include <QMutex>
+#include <QtCore/QMutex>
 
 #include <cstdarg> // definition of std::va_list
 
