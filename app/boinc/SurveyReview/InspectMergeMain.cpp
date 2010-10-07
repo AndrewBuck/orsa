@@ -44,6 +44,42 @@ public:
     }
 };
 
+void writeOutputFile(const std::string & filename,
+                     PlotStats * plotStats,
+                     const PlotStats::LinearVar * var_x,
+                     const PlotStats::LinearVar * var_y) {
+
+    FILE * fp = fopen(filename.c_str(),"w");    
+    
+    std::vector<double> xVector;
+    xVector.resize(2);
+    
+    for (unsigned j=0; j<var_x->size(); ++j) {
+        for (unsigned k=0; k<var_y->size(); ++k) {
+            
+            xVector[0] = var_x->start+var_x->incr*(j+0.5);
+            xVector[1] = var_y->start+var_y->incr*(k+0.5);
+            
+            std::vector<size_t> binVector;
+            if (plotStats->bin(binVector,xVector)) {
+                const PlotStatsElement * e = plotStats->stats(plotStats->index(binVector));
+                if (e) {
+                    gmp_fprintf(fp,
+                                "%8g %8g %8.6f %8.6f %6Zi\n",
+                                xVector[0],
+                                xVector[1],
+                                e->average(),
+                                e->average()*e->entries().get_d()/(18*12*12*12), // number of sub-bins in each a,e bin -- to account for missing zero entries
+                                e->entries().get_mpz_t());
+#warning the two should be the same for a complete analysis, because over several years, each a,e bin has been observed at least once!
+                }
+            }
+        }
+    }
+    
+    fclose(fp);
+}
+
 int main(int argc, char ** argv) {
     
     if (argc != 2) {
@@ -160,22 +196,25 @@ int main(int argc, char ** argv) {
         varDefinition_ae.push_back(var_a.get());
         varDefinition_ae.push_back(var_e.get());
         //
-        osg::ref_ptr<PlotStats> plotStats_ae_H18 = new PlotStats(varDefinition_ae);
+        osg::ref_ptr<PlotStats> plotStats_ae_NEO_H18 = new PlotStats(varDefinition_ae);
+        osg::ref_ptr<PlotStats> plotStats_ae_PHO_H18 = new PlotStats(varDefinition_ae);
         // a,i
         std::vector< osg::ref_ptr<PlotStats::Var> > varDefinition_ai;
         varDefinition_ai.push_back(var_a.get());
         varDefinition_ai.push_back(var_i.get());
         //
-        osg::ref_ptr<PlotStats> plotStats_ai_H18 = new PlotStats(varDefinition_ai);
+        osg::ref_ptr<PlotStats> plotStats_ai_NEO_H18 = new PlotStats(varDefinition_ai);
+        osg::ref_ptr<PlotStats> plotStats_ai_PHO_H18 = new PlotStats(varDefinition_ai);
         // a,L
         std::vector< osg::ref_ptr<PlotStats::Var> > varDefinition_aL;
         varDefinition_aL.push_back(var_a.get());
         varDefinition_aL.push_back(var_L.get());
-        osg::ref_ptr<PlotStats> plotStats_aL_H18 = new PlotStats(varDefinition_aL);
+        osg::ref_ptr<PlotStats> plotStats_aL_NEO_H18 = new PlotStats(varDefinition_aL);
+        osg::ref_ptr<PlotStats> plotStats_aL_PHO_H18 = new PlotStats(varDefinition_aL);
         
         // size=2 should work for most cases
         std::vector<double> xVector; xVector.resize(2);
-        // xVector_ae.resize(varDefinition_ae.size());
+        // xVector.resize(varDefinition.size());
         
         for (int row=1; row<=nrows; ++row) {
             
@@ -214,9 +253,15 @@ int main(int argc, char ** argv) {
             if (z_H == 180) {
                 xVector[0] = center_a;
                 xVector[1] = center_e;
-                plotStats_ae_H18->insert(xVector, eta_NEO, 1.0);
+                plotStats_ae_NEO_H18->insert(xVector, eta_NEO, 1.0);
+                plotStats_ae_PHO_H18->insert(xVector, eta_PHO, 1.0);
+                //
+                xVector[0] = center_a;
+                xVector[1] = center_i;
+                plotStats_ai_NEO_H18->insert(xVector, eta_NEO, 1.0);
+                plotStats_ai_PHO_H18->insert(xVector, eta_PHO, 1.0);
             }
-
+            
             // L
             std::vector<int> z_L_vec;
             {
@@ -236,48 +281,36 @@ int main(int argc, char ** argv) {
                 if (z_H == 180) {
                     xVector[0] = center_a;
                     xVector[1] = center_L;
-                    plotStats_aL_H18->insert(xVector, eta_NEO, 1.0);
+                    plotStats_aL_NEO_H18->insert(xVector, eta_NEO, 1.0);
+                    plotStats_aL_PHO_H18->insert(xVector, eta_PHO, 1.0);
                 }
             }
             
             
         }
+
+        // time to write output files
+        char filename[1024];
+        //
+        sprintf(filename,"%s_inspect_ae_NEO_H18.dat",argv[1]);
+        writeOutputFile(filename, plotStats_ae_NEO_H18, var_a, var_e);
+        //
+        sprintf(filename,"%s_inspect_ae_PHO_H18.dat",argv[1]);
+        writeOutputFile(filename, plotStats_ae_PHO_H18, var_a, var_e);
+        //
+        sprintf(filename,"%s_inspect_ai_NEO_H18.dat",argv[1]);
+        writeOutputFile(filename, plotStats_ai_NEO_H18, var_a, var_i);
+        //
+        sprintf(filename,"%s_inspect_ai_PHO_H18.dat",argv[1]);
+        writeOutputFile(filename, plotStats_ai_PHO_H18, var_a, var_i);
+        //
+        sprintf(filename,"%s_inspect_aL_NEO_H18.dat",argv[1]);
+        writeOutputFile(filename, plotStats_aL_NEO_H18, var_a, var_L);
+        //
+        sprintf(filename,"%s_inspect_aL_PHO_H18.dat",argv[1]);
+        writeOutputFile(filename, plotStats_aL_PHO_H18, var_a, var_L);
         
-        {
-            // a,e output
-            char filename[1024];
-            // update these few lines
-            sprintf(filename,"%s_inspect_ae_H18.dat",argv[1]);
-            osg::ref_ptr<PlotStats> plotStats = plotStats_ae_H18;
-            osg::ref_ptr<PlotStats::LinearVar> & var_x = var_a;
-            osg::ref_ptr<PlotStats::LinearVar> & var_y = var_e;
-            
-            // all should be good below here
-            FILE * fp = fopen(filename,"w");    
-            for (unsigned j=0; j<var_a->size(); ++j) {
-                for (unsigned k=0; k<var_e->size(); ++k) {
-                    
-                    xVector[0] = var_x->start+var_x->incr*(j+0.5);
-                    xVector[1] = var_y->start+var_y->incr*(k+0.5);
-                    
-                    std::vector<size_t> binVector;
-                    if (plotStats->bin(binVector,xVector)) {
-                        const PlotStatsElement * e =  plotStats->stats(plotStats->index(binVector));
-                        if (e) {
-                            gmp_fprintf(fp,
-                                        "%g %g %8.6f %8.6f %6Zi\n",
-                                        xVector[0],
-                                        xVector[1],
-                                        e->average(),
-                                        e->average()*e->entries().get_d()/(18*12*12*12), // number of sub-bins in each a,e bin -- to account for missing zero entries
-                                        e->entries().get_mpz_t());
-#warning the two should be the same for a complete analysis, because over several years, each a,e bin has been observed at least once!
-                        }
-                    }
-                }
-            }
-            fclose(fp);
-        }
+        
         
         sqlite3_free_table(sql_result);
     }
