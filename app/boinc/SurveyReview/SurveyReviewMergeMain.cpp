@@ -430,6 +430,45 @@ int main(int argc, char ** argv) {
                     exit(0); 
                 }
                 sqlite3_free_table(sql_result_db);
+
+                if (row%1000==0) {
+                    // commit every 1000 entries and start new transaction
+                    
+                    // close transaction
+                    sql = "commit";
+                    do {
+                        rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+                        if (rc==SQLITE_BUSY) {
+                            ORSA_DEBUG("database busy, retrying...");
+                            usleep(100000);
+                        }
+                    } while (rc==SQLITE_BUSY);
+                    if (rc != SQLITE_OK) {
+                        if (zErr != NULL) {
+                            fprintf(stderr,"SQL error: %s\n",zErr);
+                            sqlite3_free(zErr);
+                            exit(0); 
+                        }
+                    }
+                    
+                    // begin new transaction
+                    sql = "begin";
+                    do {
+                        rc = sqlite3_exec(db,sql.c_str(),NULL,NULL,&zErr);
+                        if (rc==SQLITE_BUSY) {
+                            ORSA_DEBUG("database busy, retrying...");
+                            usleep(100000);
+                        }
+                    } while (rc==SQLITE_BUSY);
+                    if (rc != SQLITE_OK) {
+                        if (zErr != NULL) {
+                            ORSA_DEBUG("SQL error: %s\n",zErr);
+                            sqlite3_free(zErr);
+                            sqlite3_close(db);
+                            continue;
+                        }
+                    }
+                }
             }
             
             // close transaction
