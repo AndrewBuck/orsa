@@ -44,11 +44,14 @@ public:
     }
 };
 
+// Nsub is the number of sub-bins in each x,y bin -- to account for missing zero entries
+// i.e. if writing a,e then Nsub=Ni*Nnode*Nperi*Nm=18*12*12*12...
 void writeOutputFile(const std::string & filename,
                      PlotStats * plotStats,
                      const PlotStats::LinearVar * var_x,
-                     const PlotStats::LinearVar * var_y) {
-
+                     const PlotStats::LinearVar * var_y,
+                     const unsigned int Nsub) {
+    
     FILE * fp = fopen(filename.c_str(),"w");    
     
     std::vector<double> xVector;
@@ -69,7 +72,7 @@ void writeOutputFile(const std::string & filename,
                                 xVector[0],
                                 xVector[1],
                                 e->average(),
-                                e->average()*e->entries().get_d()/(18*12*12*12), // number of sub-bins in each a,e bin -- to account for missing zero entries
+                                e->average()*e->entries().get_d()/Nsub, // divide by Nsub to account for missing zero entries
                                 e->entries().get_mpz_t());
 #warning the two should be the same for a complete analysis, because over several years, each a,e bin has been observed at least once!
                 }
@@ -288,28 +291,36 @@ int main(int argc, char ** argv) {
             
             
         }
-
+        
+        // numbers for Nsub
+#warning these can change at each run
+        // no sub_a since it is always plotted
+        const unsigned int sub_e = 20;
+        const unsigned int sub_i = 18;
+        const unsigned int sub_node = 12;
+        const unsigned int sub_peri = 12;
+        const unsigned int sub_M    = 12;
+        
         // time to write output files
         char filename[1024];
         //
         sprintf(filename,"%s_inspect_ae_NEO_H18.dat",argv[1]);
-        writeOutputFile(filename, plotStats_ae_NEO_H18, var_a, var_e);
+        writeOutputFile(filename, plotStats_ae_NEO_H18, var_a, var_e, sub_i*sub_node*sub_peri*sub_M);
         //
         sprintf(filename,"%s_inspect_ae_PHO_H18.dat",argv[1]);
-        writeOutputFile(filename, plotStats_ae_PHO_H18, var_a, var_e);
+        writeOutputFile(filename, plotStats_ae_PHO_H18, var_a, var_e, sub_i*sub_node*sub_peri*sub_M);
         //
         sprintf(filename,"%s_inspect_ai_NEO_H18.dat",argv[1]);
-        writeOutputFile(filename, plotStats_ai_NEO_H18, var_a, var_i);
+        writeOutputFile(filename, plotStats_ai_NEO_H18, var_a, var_i, sub_e*sub_node*sub_peri*sub_M);
         //
         sprintf(filename,"%s_inspect_ai_PHO_H18.dat",argv[1]);
-        writeOutputFile(filename, plotStats_ai_PHO_H18, var_a, var_i);
+        writeOutputFile(filename, plotStats_ai_PHO_H18, var_a, var_i, sub_e*sub_node*sub_peri*sub_M);
         //
         sprintf(filename,"%s_inspect_aL_NEO_H18.dat",argv[1]);
-        writeOutputFile(filename, plotStats_aL_NEO_H18, var_a, var_L);
+        writeOutputFile(filename, plotStats_aL_NEO_H18, var_a, var_L, sub_e*sub_i*sub_node*sub_peri);
         //
         sprintf(filename,"%s_inspect_aL_PHO_H18.dat",argv[1]);
-        writeOutputFile(filename, plotStats_aL_PHO_H18, var_a, var_L);
-        
+        writeOutputFile(filename, plotStats_aL_PHO_H18, var_a, var_L, sub_e*sub_i*sub_node*sub_peri);
         
         
         sqlite3_free_table(sql_result);
