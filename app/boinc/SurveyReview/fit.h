@@ -129,6 +129,7 @@ public:
         }
         size_t bin(const double x) const {
             const size_t retVal = (size_t)((x-start)/incr);
+            // ORSA_DEBUG("x: %g\tbin: %i\tstart: %g\tincr: %g",x,retVal,start,incr);
             // the correct check follows; think twice before changing it!
             if (retVal>=size()) return ((size_t)-1);
             return retVal;
@@ -139,7 +140,7 @@ public:
         double binStop(const size_t bin) const {
             return (start+(bin+1)*incr);
         }
-    protected:
+    public:
         const double start, stop, incr;
     };
 public:	
@@ -169,7 +170,7 @@ public:
         double binStop(const size_t bin) const {
             return (start*orsa::int_pow(factor,bin+1));
         }
-    protected:
+    public:
         const double start, stop, factor;
     };
     

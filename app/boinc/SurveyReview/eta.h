@@ -2,6 +2,7 @@
 #define __ETA_H_
 
 #include <orsa/multifit.h>
+#include <orsaInputOutput/MPC_obscode.h>
 
 class EfficiencyData {
 public:
