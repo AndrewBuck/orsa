@@ -317,10 +317,10 @@ int main(int argc, char ** argv) {
         writeOutputFile(filename, plotStats_ai_PHO_H18, var_a, var_i, sub_e*sub_node*sub_peri*sub_M);
         //
         sprintf(filename,"%s_inspect_aL_NEO_H18.dat",argv[1]);
-        writeOutputFile(filename, plotStats_aL_NEO_H18, var_a, var_L, sub_e*sub_i*sub_node*sub_peri);
+        writeOutputFile(filename, plotStats_aL_NEO_H18, var_a, var_L, sub_e*sub_i*sub_node*sub_peri*3);
         //
         sprintf(filename,"%s_inspect_aL_PHO_H18.dat",argv[1]);
-        writeOutputFile(filename, plotStats_aL_PHO_H18, var_a, var_L, sub_e*sub_i*sub_node*sub_peri);
+        writeOutputFile(filename, plotStats_aL_PHO_H18, var_a, var_L, sub_e*sub_i*sub_node*sub_peri*3);
         
         
         sqlite3_free_table(sql_result);
