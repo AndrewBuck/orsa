@@ -276,7 +276,7 @@ int main(int argc, char ** argv) {
                 const int index_L = z_L_vec[l]; // 0-11
                 
                 // assuming grain size for node=peri=M=L
-                const double center_L = 0.5*index_L*grain_node_DEG;
+                const double center_L = (0.5+index_L)*30.0;
                 
                 if (z_H == 180) {
                     xVector[0] = center_a;
