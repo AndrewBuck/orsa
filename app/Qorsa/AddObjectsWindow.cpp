@@ -160,8 +160,15 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 	customObjectSourceKeplerianGroupBoxGridLayout->addWidget(customObjectSourcePeriapsisLineEdit, 2, 1);
 	customObjectSourceKeplerianGroupBoxGridLayout->addWidget(customObjectSourceAnomalyLineEdit, 2, 4);
 
+	customObjectSourceEpochLabel = new QLabel("Epoch");
+	customObjectSourceEpochDateEdit = new QDateEdit();
+	customObjectSourceEpochTimeEdit = new QTimeEdit();
+	customObjectSourceGridLayout->addWidget(customObjectSourceEpochLabel, 3, 0);
+	customObjectSourceGridLayout->addWidget(customObjectSourceEpochDateEdit, 3, 1);
+	customObjectSourceGridLayout->addWidget(customObjectSourceEpochTimeEdit, 3, 2);
+
 	customObjectSourceInsertButton = new QPushButton("Add Object for Selection");
-	customObjectSourceGridLayout->addWidget(customObjectSourceInsertButton, 3, 2, 1, 2);
+	customObjectSourceGridLayout->addWidget(customObjectSourceInsertButton, 4, 2, 1, 2);
 	QObject::connect(customObjectSourceInsertButton, SIGNAL(released()), this, SLOT(customObjectSourceInsertButtonPressed()));
 
 	customObjectSourceWidget->setLayout(customObjectSourceGridLayout);
@@ -318,12 +325,17 @@ void AddObjectsWindow::customObjectSourceInsertButtonPressed()
 
 		cout << "Object with keplerian elements added:\n";
 	}
-
 	// Create the body in memory and set its name.
 	tempBody = new orsa::Body();
 	tempBody->setName(tempName.toStdString());
 
 	orsa::IBPS tempIBPS;
+
+
+	QDate tempDate = customObjectSourceEpochDateEdit->date();
+	QTime tempTime = customObjectSourceEpochTimeEdit->time();
+	orsa::Time epochTime = orsaSolarSystem::gregorTime(tempDate.year(), tempDate.month(), tempDate.day(), tempTime.hour(), tempTime.minute(), tempTime.second(), 0);
+	tempIBPS.time = epochTime;
 
 	// Set initialize and store the body's inertial parameters (its mass, shape, etc).
 	orsa::PointLikeConstantInertialBodyProperty *tempInertial = new orsa::PointLikeConstantInertialBodyProperty(tempMass);

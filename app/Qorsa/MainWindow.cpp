@@ -115,13 +115,15 @@ void MainWindow::performIntegration(orsa::Time startTime, orsa::Time endTime, or
 			break;
 	}
 
-	cout << "\n\nPerforming integration:\nInitial conditions\nBody\tx\ty\tz\t\tvx\tvy\tvz\n";
+	cout << "Beginning integration...\n";
 
 	integrator->integrate(bodyGroup, startTime, endTime, timeStep);
 
+	cout << "\n\nPerforming integration:\nInitial conditions\nBody\tx\ty\tz\t\tvx\tvy\tvz\n";
 	orsa::BodyGroup::BodyList bl = bodyGroup->getBodyList();
 	for(unsigned int i = 0; i < bl.size(); i++)
 	{
+		cout << "\n\n";
 		const orsa::Body *b = bl[i];
 		orsa::BodyGroup::BodyInterval *bodyInterval = bodyGroup->getBodyInterval(b);
 

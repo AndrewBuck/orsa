@@ -15,6 +15,8 @@
 #include <QtGui/QTextEdit>
 #include <QtGui/QTabWidget>
 #include <QtGui/QSpacerItem>
+#include <QtGui/QDateEdit>
+#include <QtGui/QTimeEdit>
 
 #include <orsa/orbit.h>
 #include <orsa/body.h>
@@ -89,6 +91,7 @@ class AddObjectsWindow : public QWidget
 		QGroupBox *customObjectSourceKeplerianGroupBox;
 		QGridLayout *customObjectSourceVectorGroupBoxGridLayout;
 		QGridLayout *customObjectSourceKeplerianGroupBoxGridLayout;
+		QLabel *customObjectSourceEpochLabel;
 		QLabel *customObjectSourceNameLabel;
 		QLabel *customObjectSourceMassLabel;
 		QLabel *customObjectSourceXLabel;
@@ -103,6 +106,8 @@ class AddObjectsWindow : public QWidget
 		QLabel *customObjectSourceNodeLabel;
 		QLabel *customObjectSourcePeriapsisLabel;
 		QLabel *customObjectSourceAnomalyLabel;
+		QDateEdit *customObjectSourceEpochDateEdit;
+		QTimeEdit *customObjectSourceEpochTimeEdit;
 		QLineEdit *customObjectSourceNameLineEdit;
 		QLineEdit *customObjectSourceMassLineEdit;
 		QLineEdit *customObjectSourceXLineEdit;
