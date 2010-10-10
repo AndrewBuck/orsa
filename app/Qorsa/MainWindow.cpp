@@ -4,6 +4,7 @@ using namespace std;
 #include "Globals.h"
 #include "MainWindow.h"
 #include "AddObjectsWindow.h"
+#include "NewIntegrationWindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -22,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
 	resize(800, 600);
 
 	addObjectsWindow = NULL;
+	newIntegrationWindow = NULL;
 
 	// Create the menubar and menus at the top of the main window.
 	menuBar = new QMenuBar(this);
@@ -56,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
 	integrationsVBoxLayout = new QVBoxLayout();
 	integrationsWidget = new QWidget();
 	newIntegrationPushButton = new QPushButton("New Integration");
-	newIntegrationPushButton->setEnabled(false);
+	//newIntegrationPushButton->setEnabled(false);
 	integrationsWidget->setLayout(integrationsVBoxLayout);
 	integrationsVBoxLayout->addWidget(integrationsLabel);  //TODO:  Make this and the one for objects a QGroupBox.
 	integrationsVBoxLayout->addWidget(integrationsTableView);
@@ -95,6 +97,38 @@ void MainWindow::addBody(orsa::Body *b)
 		newIntegrationPushButton->setEnabled(true);
 }
 
+void MainWindow::performIntegration(orsa::Time startTime, orsa::Time endTime, orsa::Time timeStep)
+{
+	cout << "\n\nPerforming integration:\nInitial conditions\nBody\tx\ty\tz\t\tvx\tvy\tvz\n";
+
+	//TODO Make the integrator user selectable.
+	orsa::Integrator *integrator = new orsa::IntegratorLeapFrog();
+	integrator->integrate(bodyGroup, startTime, endTime, timeStep);
+
+	orsa::BodyGroup::BodyList bl = bodyGroup->getBodyList();
+	for(unsigned int i = 0; i < bl.size(); i++)
+	{
+		const orsa::Body *b = bl[i];
+		orsa::BodyGroup::BodyInterval *bodyInterval = bodyGroup->getBodyInterval(b);
+
+		deque<orsa::IBPS>::iterator itr = bodyInterval->getData().begin();
+		while(itr != bodyInterval->getData().end())
+		{
+			cout << b->getName() << "\t";
+			orsa::Vector position = (*itr).translational->position();
+			orsa::Vector velocity = (*itr).translational->velocity();
+			cout << position.getX() << "\t";
+			cout << position.getY() << "\t";
+			cout << position.getZ() << "\t\t";
+			cout << velocity.getX() << "\t";
+			cout << velocity.getY() << "\t";
+			cout << velocity.getZ() << "\n";
+
+			itr++;
+		}
+	}
+}
+
 void MainWindow::newWorkspace()
 {
 	MainWindow *tempWindow = new MainWindow();
@@ -109,6 +143,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 	if(addObjectsWindow != NULL)
 		addObjectsWindow->close();
+
+	if(addObjectsWindow != NULL)
+		newIntegrationWindow->close();
 
 	QMainWindow::closeEvent(event);
 }
@@ -163,11 +200,17 @@ void MainWindow::addObjectsWindowClosed()
 
 void MainWindow::newIntegration()
 {
-	cout << "Performing a new integration on workspace \'" << workspaceName.toStdString() << "\'\n";
+	if(newIntegrationWindow == NULL)
+	{
+		newIntegrationWindow = new NewIntegrationWindow(this, NULL);
+		newIntegrationWindow->show();
+		QObject::connect(newIntegrationWindow, SIGNAL(newIntegrationWindowClosed()), this, SLOT(newIntegrationWindowClosed()));
+	}
+}
 
-	//if(newIntegrationWindow == NULL)
-	//{
-	//}
+void MainWindow::newIntegrationWindowClosed()
+{
+	newIntegrationWindow = NULL;
 }
 
 void MainWindow::createMenus()

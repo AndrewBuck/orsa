@@ -17,7 +17,7 @@ OBJECTS_DIR = .obj/$${PLATFORM_NAME}
 DESTDIR     = ../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
-	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa    -lgmp -lgmpxx          -losgViewer -losgText -losgUtil -losgGA -losgdb_freetype -losgDB -losg
+	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaSolarSystem    -lgmp -lgmpxx          -losgViewer -losgText -losgUtil -losgGA -losgdb_freetype -losgDB -losg
 }
 
 macx {
@@ -30,10 +30,12 @@ win32 {
 
 HEADERS = MainWindow.h \
 	  AddObjectsWindow.h \
+	  NewIntegrationWindow.h \
 	  BodyTableModel.h
 
 SOURCES = Qorsa.cpp \
 	  MainWindow.cpp \
 	  AddObjectsWindow.cpp \
+	  NewIntegrationWindow.cpp \
 	  BodyTableModel.cpp
 

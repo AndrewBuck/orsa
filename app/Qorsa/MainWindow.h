@@ -12,10 +12,15 @@
 #include <QtGui/QTableView>
 
 #include <orsa/bodygroup.h>
+#include <orsa/datetime.h>
+#include <orsa/integrator.h>
+#include <orsa/integrator_leapfrog.h>
+#include <orsa/integrator_radau.h>
 
 #include "BodyTableModel.h"
 
 class AddObjectsWindow;
+class NewIntegrationWindow;
 
 class MainWindow : public QMainWindow
 {
@@ -26,6 +31,7 @@ class MainWindow : public QMainWindow
 		MainWindow(QWidget *parent = NULL);
 		QString getWorkspaceName();
 		void addBody(orsa::Body *b);
+		void performIntegration(orsa::Time startTime, orsa::Time endTime, orsa::Time timeStep);
 
 		// Public variables
 		//TODO:  Prtoect this via a semaphore lock.
@@ -44,6 +50,7 @@ class MainWindow : public QMainWindow
 		void addObjectsWindowClosed();
 		void removeObjects();
 		void newIntegration();
+		void newIntegrationWindowClosed();
 
 	private:
 		// Private Functions
@@ -72,6 +79,7 @@ class MainWindow : public QMainWindow
 		QSplitter *mainWindowSplitter;
 
 		AddObjectsWindow *addObjectsWindow;
+		NewIntegrationWindow *newIntegrationWindow;
 
 		QString workspaceName;
 };
