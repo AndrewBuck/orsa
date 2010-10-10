@@ -18,9 +18,9 @@
 #include <orsa/integrator_radau.h>
 
 #include "BodyTableModel.h"
+#include "NewIntegrationWindow.h"
 
 class AddObjectsWindow;
-class NewIntegrationWindow;
 
 class MainWindow : public QMainWindow
 {
@@ -31,7 +31,7 @@ class MainWindow : public QMainWindow
 		MainWindow(QWidget *parent = NULL);
 		QString getWorkspaceName();
 		void addBody(orsa::Body *b);
-		void performIntegration(orsa::Time startTime, orsa::Time endTime, orsa::Time timeStep);
+		void performIntegration(orsa::Time startTime, orsa::Time endTime, orsa::Time timeStep, NewIntegrationWindow::IntegratorType integratorType);
 
 		// Public variables
 		//TODO:  Prtoect this via a semaphore lock.

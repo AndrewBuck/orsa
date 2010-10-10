@@ -97,12 +97,26 @@ void MainWindow::addBody(orsa::Body *b)
 		newIntegrationPushButton->setEnabled(true);
 }
 
-void MainWindow::performIntegration(orsa::Time startTime, orsa::Time endTime, orsa::Time timeStep)
+void MainWindow::performIntegration(orsa::Time startTime, orsa::Time endTime, orsa::Time timeStep, NewIntegrationWindow::IntegratorType integratorType)
 {
+	// Create an intance of an integrator of the type passed as an argument.
+	orsa::Integrator *integrator = NULL;
+	cout << "Integrator value is " << integratorType << "\n";
+       	switch(integratorType)
+	{
+		case NewIntegrationWindow::LeapFrogIntegrator:
+			cout << "Using Leap Frog integrator.\n";
+			integrator = new orsa::IntegratorLeapFrog();
+			break;
+
+		case NewIntegrationWindow::RadauIntegrator:
+			cout << "Using Radau integrator.\n";
+			integrator = new orsa::IntegratorRadau();
+			break;
+	}
+
 	cout << "\n\nPerforming integration:\nInitial conditions\nBody\tx\ty\tz\t\tvx\tvy\tvz\n";
 
-	//TODO Make the integrator user selectable.
-	orsa::Integrator *integrator = new orsa::IntegratorLeapFrog();
 	integrator->integrate(bodyGroup, startTime, endTime, timeStep);
 
 	orsa::BodyGroup::BodyList bl = bodyGroup->getBodyList();

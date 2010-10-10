@@ -7,6 +7,7 @@
 #include <QtGui/QLineEdit>
 #include <QtGui/QDateEdit>
 #include <QtGui/QTimeEdit>
+#include <QtGui/QComboBox>
 #include <QtGui/QPushButton>
 
 class MainWindow;
@@ -16,6 +17,7 @@ class NewIntegrationWindow : public QWidget
 	Q_OBJECT
 
 	public:
+		enum IntegratorType {LeapFrogIntegrator=1, RadauIntegrator};
 		NewIntegrationWindow(MainWindow *nSpawningWindow, QWidget *parent = NULL);
 
 	signals:
@@ -36,11 +38,13 @@ class NewIntegrationWindow : public QWidget
 		QLabel *startTimeLabel;
 		QLabel *endTimeLabel;
 		QLabel *timeStepLabel;
+		QLabel *integratorLabel;
 		QDateEdit *startDateEdit;
 		QDateEdit *endDateEdit;
 		QTimeEdit *startTimeEdit;
 		QTimeEdit *endTimeEdit;
 		QLineEdit *timeStepLineEdit;
+		QComboBox *integratorComboBox;
 		QPushButton *okPushButton;
 		QPushButton *cancelPushButton;
 };
