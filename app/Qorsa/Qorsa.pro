@@ -31,11 +31,13 @@ win32 {
 HEADERS = MainWindow.h \
 	  AddObjectsWindow.h \
 	  NewIntegrationWindow.h \
+	  IntegrationTableModel.h \
 	  BodyTableModel.h
 
 SOURCES = Qorsa.cpp \
 	  MainWindow.cpp \
 	  AddObjectsWindow.cpp \
 	  NewIntegrationWindow.cpp \
+	  IntegrationTableModel.cpp \
 	  BodyTableModel.cpp
 

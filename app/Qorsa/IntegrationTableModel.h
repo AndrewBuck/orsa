@@ -1,15 +1,14 @@
-#ifndef QORSABODYTABLEMODEL_H
-#define QORSABODYTABLEMODEL_H
+#ifndef QORSAINTEGRATIONTABLEMODEL_H
+#define QORSAINTEGRATIONTABLEMODEL_H
 
 #include <QtCore/QAbstractTableModel>
 
-#include <orsa/orbit.h>
-#include <orsa/body.h>
+#include <orsa/bodygroup.h>
 
-class BodyTableModel : public QAbstractTableModel
+class IntegrationTableModel : public QAbstractTableModel
 {
 	public:
-		BodyTableModel(QObject *parent = NULL);
+		IntegrationTableModel(QObject *parent = NULL);
 
 		// Functions to enable Read-only access to the model.
 		int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -18,21 +17,19 @@ class BodyTableModel : public QAbstractTableModel
 		QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
 		// My functions
-		void addBody(orsa::Body *b);
-		void removeBody(int index);
-		void clearAndEraseAllBodies();
-		void clearAllBodies();
-		orsa::Body* getBody(int index);
+		void addIntegration(orsa::BodyGroup *bg);
+		void removeIntegration(int index);
+		void clearAndEraseAllIntegrations();
+		void clearAllIntegrations();
+		orsa::BodyGroup* getIntegration(int index);
 
 		// Functions to enable Read-write access to the model.
 		//bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
 		//Qt::ItemFlags flags(const QModelIndex & index) const;
 
 	private:
-		QList<orsa::Body*> bodyList;
+		QList<orsa::BodyGroup*> integrationList;
 };
-
-Q_DECLARE_METATYPE(orsa::Body*)
 
 #endif
 

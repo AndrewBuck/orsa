@@ -18,6 +18,7 @@
 #include <orsa/integrator_radau.h>
 
 #include "BodyTableModel.h"
+#include "IntegrationTableModel.h"
 #include "NewIntegrationWindow.h"
 
 class AddObjectsWindow;
@@ -74,6 +75,7 @@ class MainWindow : public QMainWindow
 		QVBoxLayout *integrationsVBoxLayout;
 		QLabel *integrationsLabel;
 		QTableView *integrationsTableView;
+		IntegrationTableModel *integrationsTableModel;
 		QPushButton *newIntegrationPushButton;
 
 		QSplitter *mainWindowSplitter;

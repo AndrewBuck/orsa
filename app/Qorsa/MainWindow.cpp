@@ -40,6 +40,10 @@ MainWindow::MainWindow(QWidget *parent)
 
 	integrationsLabel = new QLabel("Integrations Performed in this Universe");
 	integrationsTableView = new QTableView(this);
+	integrationsTableModel = new IntegrationTableModel();
+	integrationsTableView->setModel(integrationsTableModel);
+	integrationsTableView->setShowGrid(true);
+	integrationsTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
 	// Create the layouts used by the main window's central widget and fill them with widgets.
 	objectsVBoxLayout = new QVBoxLayout();
@@ -58,7 +62,7 @@ MainWindow::MainWindow(QWidget *parent)
 	integrationsVBoxLayout = new QVBoxLayout();
 	integrationsWidget = new QWidget();
 	newIntegrationPushButton = new QPushButton("New Integration");
-	//newIntegrationPushButton->setEnabled(false);
+	newIntegrationPushButton->setEnabled(false);
 	integrationsWidget->setLayout(integrationsVBoxLayout);
 	integrationsVBoxLayout->addWidget(integrationsLabel);  //TODO:  Make this and the one for objects a QGroupBox.
 	integrationsVBoxLayout->addWidget(integrationsTableView);
@@ -117,8 +121,36 @@ void MainWindow::performIntegration(orsa::Time startTime, orsa::Time endTime, or
 
 	cout << "Beginning integration...\n";
 
+	// Actually carry out the integration.
 	integrator->integrate(bodyGroup, startTime, endTime, timeStep);
 
+	// Store the resulting integration into the results table and allocate a new body group to be used for the next integration.
+	//TODO: Most of this would be done by something like a BodyGroup::clone() function.
+	orsa::BodyGroup *tempBG = bodyGroup;
+	integrationsTableModel->addIntegration(bodyGroup);
+	bodyGroup = new orsa::BodyGroup();
+	objectsTableModel->clearAllBodies();
+	orsa::BodyGroup::BodyList bl = tempBG->getBodyList();
+	for(unsigned int i = 0; i < bl.size(); i++)
+	{
+		orsa::Body *tempBody = new orsa::Body();
+
+		//TODO: The Body::operator= should probably be implemented to do this.
+		tempBody->setInitialConditions(bl[i]->getInitialConditions());
+		tempBody->setName(bl[i]->getName());
+		tempBody->propulsion = bl[i]->propulsion;
+		tempBody->beta = bl[i]->beta;
+		tempBody->betaSun = bl[i]->betaSun;
+		tempBody->birthTime = bl[i]->birthTime;
+		tempBody->deathTime = bl[i]->deathTime;
+		tempBody->isLightSource = bl[i]->isLightSource;
+		tempBody->nonInteractingGroup = bl[i]->nonInteractingGroup;
+
+		objectsTableModel->addBody(tempBody);
+		bodyGroup->addBody(tempBody);
+	}
+
+	/*
 	cout << "\n\nPerforming integration:\nInitial conditions\nBody\tx\ty\tz\t\tvx\tvy\tvz\n";
 	orsa::BodyGroup::BodyList bl = bodyGroup->getBodyList();
 	for(unsigned int i = 0; i < bl.size(); i++)
@@ -143,6 +175,7 @@ void MainWindow::performIntegration(orsa::Time startTime, orsa::Time endTime, or
 			itr++;
 		}
 	}
+	*/
 }
 
 void MainWindow::newWorkspace()
@@ -200,6 +233,7 @@ void MainWindow::removeObjects()
 		orsa::Body *tempBody = objectsTableModel->getBody(index);
 		bodyGroup->removeBody(tempBody);
 		objectsTableModel->removeBody(index);
+		//TODO:  After this object has been removed from the bodyGroup it should be deleted to reclaim the memory.
 	}
 
 	if(objectsTableModel->rowCount() == 0)
