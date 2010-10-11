@@ -39,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
 	objectsTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
 	integrationsLabel = new QLabel("Integrations Performed in this Universe");
-	integrationsTableView = new QTableView(this);
+	integrationsTableView = new IntegrationTableView(this);
 	integrationsTableModel = new IntegrationTableModel();
 	integrationsTableView->setModel(integrationsTableModel);
 	integrationsTableView->setShowGrid(true);
@@ -90,7 +90,7 @@ QString MainWindow::getWorkspaceName()
 	return workspaceName;
 }
 
-void MainWindow::addBody(orsa::Body *b)
+void MainWindow::addBody(const orsa::Body *b)
 {
 		// Add the current body to the bodyList and the body table model.
 		bodyGroup->addBody(b);
@@ -230,7 +230,7 @@ void MainWindow::removeObjects()
 	{
 		int index = selectedRows[i].row();
 
-		orsa::Body *tempBody = objectsTableModel->getBody(index);
+		const orsa::Body *tempBody = objectsTableModel->getBody(index);
 		bodyGroup->removeBody(tempBody);
 		objectsTableModel->removeBody(index);
 		//TODO:  After this object has been removed from the bodyGroup it should be deleted to reclaim the memory.

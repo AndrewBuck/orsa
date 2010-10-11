@@ -67,7 +67,7 @@ QVariant BodyTableModel::headerData(int section, Qt::Orientation orientation, in
 	}
 }
 
-void BodyTableModel::addBody(orsa::Body *b)
+void BodyTableModel::addBody(const orsa::Body *b)
 {
 	beginResetModel();
 
@@ -116,7 +116,7 @@ void BodyTableModel::clearAllBodies()
 	endResetModel();
 }
 
-orsa::Body* BodyTableModel::getBody(int index)
+const orsa::Body* BodyTableModel::getBody(int index)
 {
 	return bodyList[index];
 }

@@ -19,6 +19,7 @@
 
 #include "BodyTableModel.h"
 #include "IntegrationTableModel.h"
+#include "IntegrationTableView.h"
 #include "NewIntegrationWindow.h"
 
 class AddObjectsWindow;
@@ -31,7 +32,7 @@ class MainWindow : public QMainWindow
 		// Public Functions
 		MainWindow(QWidget *parent = NULL);
 		QString getWorkspaceName();
-		void addBody(orsa::Body *b);
+		void addBody(const orsa::Body *b);
 		void performIntegration(orsa::Time startTime, orsa::Time endTime, orsa::Time timeStep, NewIntegrationWindow::IntegratorType integratorType);
 
 		// Public variables

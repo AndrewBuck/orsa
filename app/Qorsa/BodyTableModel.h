@@ -18,18 +18,18 @@ class BodyTableModel : public QAbstractTableModel
 		QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
 		// My functions
-		void addBody(orsa::Body *b);
+		void addBody(const orsa::Body *b);
 		void removeBody(int index);
 		void clearAndEraseAllBodies();
 		void clearAllBodies();
-		orsa::Body* getBody(int index);
+		const orsa::Body* getBody(int index);
 
 		// Functions to enable Read-write access to the model.
 		//bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
 		//Qt::ItemFlags flags(const QModelIndex & index) const;
 
 	private:
-		QList<orsa::Body*> bodyList;
+		QList<const orsa::Body*> bodyList;
 };
 
 Q_DECLARE_METATYPE(orsa::Body*)

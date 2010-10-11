@@ -32,6 +32,8 @@ HEADERS = MainWindow.h \
 	  AddObjectsWindow.h \
 	  NewIntegrationWindow.h \
 	  IntegrationTableModel.h \
+	  IntegrationTableView.h \
+	  AnalyzeIntegrationWindow.h \
 	  BodyTableModel.h
 
 SOURCES = Qorsa.cpp \
@@ -39,5 +41,7 @@ SOURCES = Qorsa.cpp \
 	  AddObjectsWindow.cpp \
 	  NewIntegrationWindow.cpp \
 	  IntegrationTableModel.cpp \
+	  IntegrationTableView.cpp \
+	  AnalyzeIntegrationWindow.cpp \
 	  BodyTableModel.cpp
 
