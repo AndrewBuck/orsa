@@ -17,7 +17,7 @@ OBJECTS_DIR = .obj/$${PLATFORM_NAME}
 DESTDIR     = ../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
-	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaSolarSystem    -lgmp -lgmpxx          -losgViewer -losgText -losgUtil -losgGA -losgdb_freetype -losgDB -losg
+	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaSolarSystem    -lgmp -lgmpxx          -losgViewer -losgText -losgUtil -losgGA -losgdb_freetype -losgDB -losg      -lqwt-qt4
 }
 
 macx {
