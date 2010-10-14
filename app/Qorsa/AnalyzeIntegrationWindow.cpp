@@ -30,7 +30,7 @@ AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawni
 	graphTypeXComboBox->addItem("Z", BodyDataAccessor::ZData);
 	graphTypeYLabel = new QLabel("Graph Type Y");
 	graphTypeYComboBox = new QComboBox();
-	graphTypeYComboBox->addItem("Y", BodyDataAccessor::YData);
+	graphTypeYComboBox->addItem("X", BodyDataAccessor::XData);
 	graphTypeYComboBox->addItem("Y", BodyDataAccessor::YData);
 	graphTypeYComboBox->addItem("Z", BodyDataAccessor::ZData);
 	graphTypeYComboBox->setCurrentIndex(1);
@@ -103,9 +103,76 @@ void AnalyzeIntegrationWindow::performAnalysisButtonPressed()
 
 	if(graphGroupBox->isChecked())
 	{
+		// Clear the old list of data accessors and create a list based on the current selection and axis settings.
+		// Also create a plot curve for each item and attach it to the graph.
+		graphDataAccessors.clear();
+		//FIXME:  Need to clear the old list of graphPlotCurves and detach them from the graph.
 		for(int i = 0; i < selectedRows.size(); i++)
 		{
+			graphDataAccessors.append(BodyDataAccessor(bodyGroup, objectSelectionTableModel->getBody(selectedRows[i].row())));
+			graphDataAccessors[i].xDataType = (BodyDataAccessor::GraphType)(graphTypeXComboBox->itemData(graphTypeXComboBox->currentIndex()).toInt());
+			graphDataAccessors[i].yDataType = (BodyDataAccessor::GraphType)(graphTypeYComboBox->itemData(graphTypeYComboBox->currentIndex()).toInt());
+
+			graphPlotCurves.append(new QwtPlotCurve());
+			graphPlotCurves[i]->setData(graphDataAccessors[i]);
+			graphPlotCurves[i]->attach(graph);
 		}
+
+		graph->replot();
 	}
+}
+
+/* ---------------------------------------------------------------------------- */
+
+BodyDataAccessor::BodyDataAccessor(const orsa::BodyGroup *nBodyGroup, const orsa::Body *nBody)
+{
+	bodyGroup = nBodyGroup;
+	body = nBody;
+	bodyInterval = bodyGroup->getBodyInterval(body);
+
+	xDataType = XData;
+	yDataType = YData;
+}
+
+BodyDataAccessor::~BodyDataAccessor()
+{
+}
+
+double BodyDataAccessor::getDataItem(Axis axis, size_t i) const
+{
+	GraphType dataType;
+
+	switch(axis)
+	{
+		case XAxis:  dataType = xDataType;  break;
+		case YAxis:  dataType = yDataType;  break;
+	}
+
+	switch(dataType)
+	{
+		case XData:  return bodyInterval->getData()[i].translational->position().getX();  break;
+		case YData:  return bodyInterval->getData()[i].translational->position().getY();  break;
+		case ZData:  return bodyInterval->getData()[i].translational->position().getZ();  break;
+	}
+}
+
+QwtData* BodyDataAccessor::copy() const
+{
+	return new BodyDataAccessor(*this);
+}
+
+size_t BodyDataAccessor::size() const
+{
+	return bodyInterval->size();
+}
+
+double BodyDataAccessor::x(size_t i) const
+{
+	return getDataItem(XAxis, i);
+}
+
+double BodyDataAccessor::y(size_t i) const
+{
+	return getDataItem(YAxis, i);
 }
 
