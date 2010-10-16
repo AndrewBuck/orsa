@@ -2,6 +2,9 @@
 using namespace std;
 
 #include <QtCore/QtAlgorithms>
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlRecord>
 
 #include "MainWindow.h"
 #include "AddObjectsWindow.h"
@@ -49,13 +52,16 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 	mysqlDatabaseSourceQueryLabel = new QLabel("Query:");
 	mysqlDatabaseSourceHostnameLineEdit = new QLineEdit("localhost");
 	mysqlDatabaseSourcePortLineEdit = new QLineEdit("3306");
-	mysqlDatabaseSourceUsernameLineEdit = new QLineEdit();
-	mysqlDatabaseSourcePasswordLineEdit = new QLineEdit();
+	mysqlDatabaseSourceUsernameLineEdit = new QLineEdit("qorsa");
+	mysqlDatabaseSourcePasswordLineEdit = new QLineEdit("qorsa");
 	mysqlDatabaseSourcePasswordLineEdit->setEchoMode(QLineEdit::Password);
-	mysqlDatabaseSourceDatabaseLineEdit = new QLineEdit();
-	mysqlDatabaseSourceQueryTextEdit = new QTextEdit();
+	mysqlDatabaseSourceDatabaseLineEdit = new QLineEdit("qorsa");
+	mysqlDatabaseSourceQueryTextEdit = new QTextEdit("select * from objects;");
 	mysqlDatabaseSourceQueryTextEdit->setAcceptRichText(false);
 	mysqlDatabaseSourceQuerySpacer = new QSpacerItem(1, 15);
+	mysqlDatabaseSourceExecuteQueryButton = new QPushButton("Execute Query");
+
+	QObject::connect(mysqlDatabaseSourceExecuteQueryButton, SIGNAL(released()), this, SLOT(mysqlDatabaseSourceExecuteQueryButtonPressed()));
 
 	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourceHostnameLabel, 0, 0);
 	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourcePortLabel, 0, 4);
@@ -71,6 +77,7 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourcePasswordLineEdit, 1, 3);
 	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourceDatabaseLineEdit, 1, 5);
 	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourceQueryTextEdit, 4, 0, 1, -1);
+	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourceExecuteQueryButton, 5, 2, 1, 2);
 
 	mysqlDatabaseSourceWidget->setLayout(mysqlDatabaseSourceGridLayout);
 
@@ -249,6 +256,102 @@ void AddObjectsWindow::cancelButtonPressed()
 	close();
 }
 
+void AddObjectsWindow::mysqlDatabaseSourceExecuteQueryButtonPressed()
+{
+	orsa::Body *tempBody;
+	orsa::Orbit tempOrbit;
+	orsa::Vector tempPosition, tempVelocity;
+	orsa::Time epochTime;
+
+	if(!(mysqlDatabaseSourceHostnameLineEdit->text().length() != 0 && \
+			mysqlDatabaseSourcePortLineEdit->text().length() != 0 && \
+			mysqlDatabaseSourceUsernameLineEdit->text().length() != 0 && \
+			mysqlDatabaseSourcePasswordLineEdit->text().length() != 0 && \
+			mysqlDatabaseSourceDatabaseLineEdit->text().length() != 0 && \
+			mysqlDatabaseSourceQueryTextEdit->toPlainText().length() != 0))
+	{
+		cout << "Some of the required input fields were left empty, aborting query.\n";
+		return;
+	}
+
+	//TODO: Add a QComboBox that lets you select the database driver which will be passed to addDatabase().
+	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+	db.setHostName(mysqlDatabaseSourceHostnameLineEdit->text());
+	db.setPort(mysqlDatabaseSourcePortLineEdit->text().toInt());
+	db.setDatabaseName(mysqlDatabaseSourceDatabaseLineEdit->text());
+	db.setUserName(mysqlDatabaseSourceUsernameLineEdit->text());
+	db.setPassword(mysqlDatabaseSourcePasswordLineEdit->text());
+	if(!db.open())
+	{
+		cerr << "ERROR: Could not open the database connection.\n";
+		return;
+	}
+
+	cout << "Database connection opened successfully.\n";
+
+	QSqlQuery query;
+	query.prepare(mysqlDatabaseSourceQueryTextEdit->toPlainText());
+	if(!query.exec())
+	{
+		cerr << "ERROR: Failed to perform the query.\n";
+		return;
+	}
+
+	cout << "Query completed successfully.  Returned " << query.size() << " rows.\n";
+
+	while(query.next())
+	{
+		int index;
+		QString name;
+		double mass, epoch;
+
+		index = query.record().indexOf("name");
+		if(!query.isNull(index))
+			name = query.value(index).toString();
+		else
+			name = "";
+
+		index = query.record().indexOf("mass");
+		if(!query.isNull(index))
+			mass = query.value(index).toDouble();
+		else
+			mass = 0;
+
+		index = query.record().indexOf("epoch");
+		epoch = query.value(index).toDouble();
+		//FIXME:  The first argument takes an int here so it drops the decimal.  The field should store the julian day or MJD I think.
+		epochTime = orsaSolarSystem::gregorTime(epoch, 1, 1, 0, 0, 0, 0);
+
+		index = query.record().indexOf("sma");
+		tempOrbit.a = orsa::FromUnits(query.value(index).toDouble(), orsa::Unit::M);
+
+		index = query.record().indexOf("eccentricity");
+		tempOrbit.e = query.value(index).toDouble();
+
+		index = query.record().indexOf("inclination");
+		tempOrbit.i = query.value(index).toDouble();
+
+		index = query.record().indexOf("lan");
+		tempOrbit.omega_node = query.value(index).toDouble();
+
+		index = query.record().indexOf("peri");
+		tempOrbit.omega_pericenter = query.value(index).toDouble();
+
+		index = query.record().indexOf("anomaly");
+		tempOrbit.M = query.value(index).toDouble();
+
+		//FIXME: This is the hardcoded mu for the sun, this should be fixed.
+		tempOrbit.mu = 1.326663e20;
+
+		tempOrbit.relativePosVel(tempPosition, tempVelocity);
+
+		tempBody = createNewBody(name, mass, epochTime, tempPosition, tempVelocity);
+
+		// Add the body to the object selection box.
+		objectSelectionTableModel->addBody(tempBody);
+	}
+}
+
 void AddObjectsWindow::customObjectSourceVectorGroupBoxToggled(bool newState)
 {
 	customObjectSourceKeplerianGroupBox->setChecked(!newState);
@@ -325,36 +428,14 @@ void AddObjectsWindow::customObjectSourceInsertButtonPressed()
 
 		cout << "Object with keplerian elements added:\n";
 	}
-	// Create the body in memory and set its name.
-	tempBody = new orsa::Body();
-	tempBody->setName(tempName.toStdString());
-
-	orsa::IBPS tempIBPS;
-
 
 	QDate tempDate = customObjectSourceEpochDateEdit->date();
 	QTime tempTime = customObjectSourceEpochTimeEdit->time();
 	orsa::Time epochTime = orsaSolarSystem::gregorTime(tempDate.year(), tempDate.month(), tempDate.day(), tempTime.hour(), tempTime.minute(), tempTime.second(), 0);
-	tempIBPS.time = epochTime;
 
-	// Set initialize and store the body's inertial parameters (its mass, shape, etc).
-	orsa::PointLikeConstantInertialBodyProperty *tempInertial = new orsa::PointLikeConstantInertialBodyProperty(tempMass);
-	tempIBPS.inertial = tempInertial;
+	tempBody = createNewBody(tempName, tempMass, epochTime, tempPosition, tempVelocity);
 
-	// Set initialize and store the body's translational parameters (position and velocity).
-	orsa::DynamicTranslationalBodyProperty *tempTranslational = new orsa::DynamicTranslationalBodyProperty();
-	tempTranslational->setPosition(tempPosition);
-	tempTranslational->setVelocity(tempVelocity);
-	tempIBPS.translational = tempTranslational;
-
-	//TODO: Set initialize and store the body's rotational parameters.
-
-	// Copy the IBPS into into the newloy created body.
-	tempBody->setInitialConditions(tempIBPS);
-
-	cout << "Created new body with ID " << tempBody->id() << " and name \'" << tempBody->getName() << "\'" << endl;
-
-	//TODO:  Add the body to the object selection box.
+	// Add the body to the object selection box.
 	objectSelectionTableModel->addBody(tempBody);
 }
 
@@ -373,5 +454,36 @@ void AddObjectsWindow::objectSelectionSelectButtonPressed()
 		// Remove the body from this table.
 		objectSelectionTableModel->removeBody(selectedRows[i].row());
 	}
+}
+
+orsa::Body* AddObjectsWindow::createNewBody(QString name, double mass, orsa::Time epoch, orsa::Vector position, orsa::Vector velocity)
+{
+	orsa::Body *tempBody;
+
+	// Create the body in memory and set its name.
+	tempBody = new orsa::Body();
+	tempBody->setName(name.toStdString());
+
+	orsa::IBPS tempIBPS;
+	tempIBPS.time = epoch;
+
+	// Set initialize and store the body's inertial parameters (its mass, shape, etc).
+	orsa::PointLikeConstantInertialBodyProperty *tempInertial = new orsa::PointLikeConstantInertialBodyProperty(mass);
+	tempIBPS.inertial = tempInertial;
+
+	// Set initialize and store the body's translational parameters (position and velocity).
+	orsa::DynamicTranslationalBodyProperty *tempTranslational = new orsa::DynamicTranslationalBodyProperty();
+	tempTranslational->setPosition(position);
+	tempTranslational->setVelocity(velocity);
+	tempIBPS.translational = tempTranslational;
+
+	//TODO: Set initialize and store the body's rotational parameters.
+
+	// Copy the IBPS into into the newloy created body.
+	tempBody->setInitialConditions(tempIBPS);
+
+	cout << "Created new body with ID " << tempBody->id() << " and name \'" << tempBody->getName() << "\'" << endl;
+
+	return tempBody;
 }
 

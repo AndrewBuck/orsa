@@ -6,6 +6,8 @@ CONFIG += qt
 
 CONFIG += qt_include     gmp_include gmp_lib      osg_include osg_lib         gsl_include gsl_lib 
 
+QT += sql
+
 include(../../orsa.pri)
 
 INCLUDEPATH += ../../src/

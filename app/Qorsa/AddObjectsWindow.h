@@ -42,6 +42,7 @@ class AddObjectsWindow : public QWidget
 	private slots:
 		void okButtonPressed();
 		void cancelButtonPressed();
+		void mysqlDatabaseSourceExecuteQueryButtonPressed();
 		void customObjectSourceVectorGroupBoxToggled(bool newState);
 		void customObjectSourceKeplerianGroupBoxToggled(bool newState);
 		void customObjectSourceInsertButtonPressed();
@@ -49,6 +50,9 @@ class AddObjectsWindow : public QWidget
 
 	private:
 		enum objectSourceType {localFile = 1, mysqlDatabase};
+
+		// Private functions
+		orsa::Body* createNewBody(QString name, double mass, orsa::Time epoch, orsa::Vector position, orsa::Vector velocity);
 
 		MainWindow *spawningWindow;
 
@@ -83,6 +87,7 @@ class AddObjectsWindow : public QWidget
 		QLineEdit *mysqlDatabaseSourceDatabaseLineEdit;
 		QTextEdit *mysqlDatabaseSourceQueryTextEdit;
 		QSpacerItem *mysqlDatabaseSourceQuerySpacer;
+		QPushButton *mysqlDatabaseSourceExecuteQueryButton;
 
 		// The "Custom Object" tab
 		QGridLayout *customObjectSourceGridLayout;

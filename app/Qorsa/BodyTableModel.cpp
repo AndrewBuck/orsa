@@ -65,6 +65,8 @@ QVariant BodyTableModel::headerData(int section, Qt::Orientation orientation, in
 	{
 		return section+1;
 	}
+
+	return QVariant();
 }
 
 void BodyTableModel::addBody(const orsa::Body *b)
