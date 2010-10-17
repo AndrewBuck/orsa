@@ -57,8 +57,9 @@ namespace orsa {
         // BodyList & getBodyList() { return _b_list; }
     
     public:
+        const Body * getBody(const orsa::Body::BodyID & bodyID) const;
         const Body * getBody(const std::string & bodyName) const;
-    
+        
         /* 
            public:
            bool setInteractionType(const orsa::Interaction::InteractionType);

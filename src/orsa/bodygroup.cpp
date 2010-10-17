@@ -709,6 +709,17 @@ orsa::BodyGroup::BodyInterval * BodyGroup::getBodyInterval(const orsa::Body * b)
     }
 }
 
+const Body * BodyGroup::getBody(const orsa::Body::BodyID & bodyID) const {
+    BodyList::const_iterator it = _b_list.begin();
+    while (it != _b_list.end()) {
+        if ((*it)->id() == bodyID) {
+            return (*it).get();
+        }
+        ++it;
+    }
+    return 0;
+}
+
 const Body * BodyGroup::getBody(const std::string & bodyName) const {
     // returns the "first" body found with this name, or zero
     BodyList::const_iterator it = _b_list.begin();
