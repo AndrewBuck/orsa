@@ -100,17 +100,17 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 	customObjectSourceGridLayout->addWidget(customObjectSourceKeplerianGroupBox, 2, 3, 1, 2);
 
 	customObjectSourceNameLabel = new QLabel("Name");
-	customObjectSourceMassLabel = new QLabel("Mass");
+	customObjectSourceMassLabel = new QLabel("Mass (kg)");
 
 	customObjectSourceGridLayout->addWidget(customObjectSourceNameLabel, 0, 0);
 	customObjectSourceGridLayout->addWidget(customObjectSourceMassLabel, 0, 3);
 
-	customObjectSourceXLabel = new QLabel("X");
-	customObjectSourceYLabel = new QLabel("Y");
-	customObjectSourceZLabel = new QLabel("Z");
-	customObjectSourceVXLabel = new QLabel("VX");
-	customObjectSourceVYLabel = new QLabel("VY");
-	customObjectSourceVZLabel = new QLabel("VZ");
+	customObjectSourceXLabel = new QLabel("X\n(m)");
+	customObjectSourceYLabel = new QLabel("Y\n(m)");
+	customObjectSourceZLabel = new QLabel("Z\n(m)");
+	customObjectSourceVXLabel = new QLabel("VX\n(m/s)");
+	customObjectSourceVYLabel = new QLabel("VY\n(m/s)");
+	customObjectSourceVZLabel = new QLabel("VZ\n(m/s)");
 
 	customObjectSourceVectorGroupBoxGridLayout->addWidget(customObjectSourceXLabel, 0, 0);
 	customObjectSourceVectorGroupBoxGridLayout->addWidget(customObjectSourceYLabel, 1, 0);
@@ -119,8 +119,9 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 	customObjectSourceVectorGroupBoxGridLayout->addWidget(customObjectSourceVYLabel, 1, 3);
 	customObjectSourceVectorGroupBoxGridLayout->addWidget(customObjectSourceVZLabel, 2, 3);
 
+	customObjectSourceReferenceBodyLabel = new QLabel("Ref. Body");
 	customObjectSourceEccentricityLabel = new QLabel("Ecc.");
-	customObjectSourceSMALabel = new QLabel("Semi Maj.\nAxis");
+	customObjectSourceSMALabel = new QLabel("Semi Maj.\nAxis (m)");
 	customObjectSourceInclinationLabel = new QLabel("Incl.");
 	customObjectSourceNodeLabel = new QLabel("Lon. Asc.\nNode");
 	customObjectSourcePeriapsisLabel = new QLabel("Arg.\nPeriapsis");
@@ -132,6 +133,7 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 	customObjectSourceKeplerianGroupBoxGridLayout->addWidget(customObjectSourceNodeLabel, 1, 3);
 	customObjectSourceKeplerianGroupBoxGridLayout->addWidget(customObjectSourcePeriapsisLabel, 2, 0);
 	customObjectSourceKeplerianGroupBoxGridLayout->addWidget(customObjectSourceAnomalyLabel, 2, 3);
+	customObjectSourceKeplerianGroupBoxGridLayout->addWidget(customObjectSourceReferenceBodyLabel, 3, 0);
 
 	customObjectSourceNameLineEdit = new QLineEdit();
 	customObjectSourceMassLineEdit = new QLineEdit();
@@ -159,6 +161,18 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 	customObjectSourceNodeLineEdit = new QLineEdit();
 	customObjectSourcePeriapsisLineEdit = new QLineEdit();
 	customObjectSourceAnomalyLineEdit = new QLineEdit();
+	customObjectSourceReferenceBodyComboBox = new QComboBox();
+
+	// Loop over the bodies in the main window body group and add any that have a name and a mass to the reference body combo box.
+	const orsa::BodyGroup::BodyList *bl = &(spawningWindow->bodyGroup->getBodyList());
+	for(unsigned int i = 0; i < bl->size(); i++)
+	{
+		if((*bl)[i]->getName().length() != 0 && (*bl)[i]->getInitialConditions().inertial->mass() > 0)
+		{
+			string tempName = (*bl)[i]->getName();
+			customObjectSourceReferenceBodyComboBox->addItem(QString(tempName.c_str()));
+		}
+	}
 
 	customObjectSourceKeplerianGroupBoxGridLayout->addWidget(customObjectSourceSMALineEdit, 0, 1);
 	customObjectSourceKeplerianGroupBoxGridLayout->addWidget(customObjectSourceEccentricityLineEdit, 0, 4);
@@ -166,6 +180,7 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 	customObjectSourceKeplerianGroupBoxGridLayout->addWidget(customObjectSourceNodeLineEdit, 1, 4);
 	customObjectSourceKeplerianGroupBoxGridLayout->addWidget(customObjectSourcePeriapsisLineEdit, 2, 1);
 	customObjectSourceKeplerianGroupBoxGridLayout->addWidget(customObjectSourceAnomalyLineEdit, 2, 4);
+	customObjectSourceKeplerianGroupBoxGridLayout->addWidget(customObjectSourceReferenceBodyComboBox, 3, 1, 1, 4);
 
 	customObjectSourceEpochLabel = new QLabel("Epoch");
 	customObjectSourceEpochDateEdit = new QDateEdit();
@@ -319,8 +334,7 @@ void AddObjectsWindow::mysqlDatabaseSourceExecuteQueryButtonPressed()
 
 		index = query.record().indexOf("epoch");
 		epoch = query.value(index).toDouble();
-		//FIXME:  The first argument takes an int here so it drops the decimal.  The field should store the julian day or MJD I think.
-		epochTime = orsaSolarSystem::gregorTime(epoch, 1, 1, 0, 0, 0, 0);
+		epochTime = orsaSolarSystem::julianToTime(epoch);
 
 		index = query.record().indexOf("sma");
 		tempOrbit.a = orsa::FromUnits(query.value(index).toDouble(), orsa::Unit::M);
@@ -374,7 +388,7 @@ void AddObjectsWindow::customObjectSourceInsertButtonPressed()
 
 	tempString = customObjectSourceMassLineEdit->text();
 	if(tempString.length() == 0)  return;
-	double tempMass = tempString.toDouble();
+	double tempMass = orsa::FromUnits(tempString.toDouble(), orsa::Unit::KG);
 
 	if(customObjectSourceVectorGroupBox->isChecked())
 	{
@@ -385,6 +399,7 @@ void AddObjectsWindow::customObjectSourceInsertButtonPressed()
 			customObjectSourceVYLineEdit->text().length() == 0 || \
 			customObjectSourceVZLineEdit->text().length() == 0)
 		{
+			cout << "Not entering object since at least one required field is left blank.\n";
 			return;
 		}
 
@@ -400,31 +415,45 @@ void AddObjectsWindow::customObjectSourceInsertButtonPressed()
 	}
 	else if(customObjectSourceKeplerianGroupBox->isChecked())
 	{
+		if(customObjectSourceEccentricityLineEdit->text().length() == 0 || \
+			customObjectSourceSMALineEdit->text().length() == 0 || \
+			customObjectSourceInclinationLineEdit->text().length() == 0 || \
+			customObjectSourceNodeLineEdit->text().length() == 0 || \
+			customObjectSourcePeriapsisLineEdit->text().length() == 0 || \
+			customObjectSourceAnomalyLineEdit->text().length() == 0 || \
+			customObjectSourceReferenceBodyComboBox->currentIndex() == -1)
+		{
+			cout << "Not entering object since at least one required field is left blank.\n";
+			return;
+		}
+
 		tempString = customObjectSourceEccentricityLineEdit->text();
-		if(tempString.length() == 0)  return;
 		tempOrbit.e = tempString.toDouble();
 
 		tempString = customObjectSourceSMALineEdit->text();
-		if(tempString.length() == 0)  return;
-		tempOrbit.a = tempString.toDouble();
+		tempOrbit.a = orsa::FromUnits(tempString.toDouble(), orsa::Unit::M);
 
 		tempString = customObjectSourceInclinationLineEdit->text();
-		if(tempString.length() == 0)  return;
 		tempOrbit.i = tempString.toDouble();
 
 		tempString = customObjectSourceNodeLineEdit->text();
-		if(tempString.length() == 0)  return;
 		tempOrbit.omega_node = tempString.toDouble();
 
 		tempString = customObjectSourcePeriapsisLineEdit->text();
-		if(tempString.length() == 0)  return;
 		tempOrbit.omega_pericenter = tempString.toDouble();
 
 		tempString = customObjectSourceAnomalyLineEdit->text();
-		if(tempString.length() == 0)  return;
 		tempOrbit.M = tempString.toDouble();
 
+		const orsa::Body *refBody = spawningWindow->bodyGroup->getBody(customObjectSourceReferenceBodyComboBox->currentText().toStdString());
+		tempOrbit.mu = orsa::Unit::G() * refBody->getInitialConditions().inertial->mass();
+		//FIXME: These position and velocity vectors should be checked to make sure they are the same epoch.
+		orsa::Vector refPosition = refBody->getInitialConditions().translational->position();
+		orsa::Vector refVelocity = refBody->getInitialConditions().translational->velocity();
+
 		tempOrbit.relativePosVel(tempPosition, tempVelocity);
+		tempPosition += refPosition;
+		tempVelocity += refVelocity;
 
 		cout << "Object with keplerian elements added:\n";
 	}

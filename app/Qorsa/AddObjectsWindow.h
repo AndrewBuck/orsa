@@ -17,6 +17,7 @@
 #include <QtGui/QSpacerItem>
 #include <QtGui/QDateEdit>
 #include <QtGui/QTimeEdit>
+#include <QtGui/QComboBox>
 
 #include <orsa/orbit.h>
 #include <orsa/body.h>
@@ -111,6 +112,7 @@ class AddObjectsWindow : public QWidget
 		QLabel *customObjectSourceNodeLabel;
 		QLabel *customObjectSourcePeriapsisLabel;
 		QLabel *customObjectSourceAnomalyLabel;
+		QLabel *customObjectSourceReferenceBodyLabel;
 		QDateEdit *customObjectSourceEpochDateEdit;
 		QTimeEdit *customObjectSourceEpochTimeEdit;
 		QLineEdit *customObjectSourceNameLineEdit;
@@ -127,6 +129,7 @@ class AddObjectsWindow : public QWidget
 		QLineEdit *customObjectSourceNodeLineEdit;
 		QLineEdit *customObjectSourcePeriapsisLineEdit;
 		QLineEdit *customObjectSourceAnomalyLineEdit;
+		QComboBox *customObjectSourceReferenceBodyComboBox;
 		QPushButton *customObjectSourceInsertButton;
 
 		// Widgets for the Object Selection Box
