@@ -85,20 +85,61 @@ int main (int argc, char ** argv) {
     // other args, constant for now
     // const double JD = 2455198.0; // epoch of orbits
     const double JD = 2455650; // epoch of orbits
-    
-    mpz_class numJobs = 1;
-    numJobs *= (z_a_max-z_a_min)/z_a_delta;
-    numJobs *= (z_e_max-z_e_min)/z_e_delta;
-    numJobs *= (z_i_max-z_i_min)/z_i_delta;
+
+    // approx. number of jobs, does not take into account regions with no NEOs or regions to skip
+    /* mpz_class numJobs = 1;
+       numJobs *= (z_a_max-z_a_min)/z_a_delta;
+       numJobs *= (z_e_max-z_e_min)/z_e_delta;
+       numJobs *= (z_i_max-z_i_min)/z_i_delta;
+    */
+    //
+    // first count the real number of jobs
+    // keep this code in sync with the code below
+    mpz_class numJobs=0;
+    for (int z_a=z_a_min; z_a<z_a_max; z_a+=z_a_delta) {
+        for (int z_e=z_e_min; z_e<z_e_max; z_e+=z_e_delta) {
+            for (int z_i=z_i_min; z_i<z_i_max; z_i+=z_i_delta) {
+                
+                {
+                    // quick check if NEO
+                    // minimum perihelion: q = a_min*(1-e_max), with min and max of this specific interval
+                    const double q_min = orsa::FromUnits(grain_a_AU*z_a*(1.0-grain_e*(z_e+z_e_delta)),orsa::Unit::AU);
+                    if (q_min > OrbitID::NEO_max_q) {
+                        // ORSA_DEBUG("skipping, no NEOs in this interval");
+                        continue;
+                    }
+                }                                
+                
+                // check skip list
+                {
+                    bool matching=false;
+                    std::list<SkipData>::const_iterator it = skipList.begin();
+                    while (it != skipList.end()) {
+                        if ( (z_a==(*it).z_a_min) && (z_a+z_a_delta==(*it).z_a_max) &&
+                             (z_e==(*it).z_e_min) && (z_e+z_e_delta==(*it).z_e_max) &&
+                             (z_i==(*it).z_i_min) && (z_i+z_i_delta==(*it).z_i_max) ) {
+                            // ORSA_DEBUG("skipping, matching entry in skip list");
+                            matching=true;
+                            break;
+                        }
+                        ++it;
+                    }
+                    if (matching) continue;
+                }
+                
+                ++numJobs;                    
+            }
+        }
+    }
     
     // should check directly for bins with 0 NEOs
     
     if (numJobs < 1) {
-        cout << "numJobs must be positive" << endl;
+        cout << "numJobs must be greater than 0" << endl;
         exit(0);
     }
     
-    if (numJobs > 9999) {
+    if (numJobs > 99999) {
         cout << "numJobs is too big, are you sure of what you're doing?" << endl;
         exit(0);
     }
@@ -116,6 +157,8 @@ int main (int argc, char ** argv) {
     std::string yesno;
     const std::string yes = "y";
     if (!batch) {
+        
+        
         gmp_printf("Submitting %Zi job(s), proceed? [y/n] ",numJobs.get_mpz_t());
         cin >> yesno;
         // cout << "yesno: " << yesno << endl;
