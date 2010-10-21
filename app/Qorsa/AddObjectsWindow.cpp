@@ -1,9 +1,5 @@
-#include <iostream>
-using namespace std;
-
 #include <QtCore/QtAlgorithms>
 #include <QtSql/QSqlDatabase>
-#include <QtSql/QSqlQuery>
 #include <QtSql/QSqlRecord>
 
 #include "MainWindow.h"
@@ -56,7 +52,7 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 	mysqlDatabaseSourcePasswordLineEdit = new QLineEdit("qorsa");
 	mysqlDatabaseSourcePasswordLineEdit->setEchoMode(QLineEdit::Password);
 	mysqlDatabaseSourceDatabaseLineEdit = new QLineEdit("qorsa");
-	mysqlDatabaseSourceQueryTextEdit = new QTextEdit("select * from objects;");
+	mysqlDatabaseSourceQueryTextEdit = new QTextEdit("select * from objects order by id;");
 	mysqlDatabaseSourceQueryTextEdit->setAcceptRichText(false);
 	mysqlDatabaseSourceQuerySpacer = new QSpacerItem(1, 15);
 	mysqlDatabaseSourceExecuteQueryButton = new QPushButton("Execute Query");
@@ -170,6 +166,7 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 		if((*bl)[i]->getName().length() != 0 && (*bl)[i]->getInitialConditions().inertial->mass() > 0)
 		{
 			string tempName = (*bl)[i]->getName();
+			//TODO: Should also add the body's unique integer ID as the "data" parameter here to avoid name conflicts.
 			customObjectSourceReferenceBodyComboBox->addItem(QString(tempName.c_str()));
 		}
 	}
@@ -273,10 +270,9 @@ void AddObjectsWindow::cancelButtonPressed()
 
 void AddObjectsWindow::mysqlDatabaseSourceExecuteQueryButtonPressed()
 {
-	orsa::Body *tempBody;
-	orsa::Orbit tempOrbit;
-	orsa::Vector tempPosition, tempVelocity;
-	orsa::Time epochTime;
+	map<int, orsa::Body*> referenceBodyMap;
+	vector< pair<int, orsa::Body*> > unresolvedBodies;
+	stack< pair<QSqlQuery*, int> > queryStack;
 
 	if(!(mysqlDatabaseSourceHostnameLineEdit->text().length() != 0 && \
 			mysqlDatabaseSourcePortLineEdit->text().length() != 0 && \
@@ -302,68 +298,197 @@ void AddObjectsWindow::mysqlDatabaseSourceExecuteQueryButtonPressed()
 		return;
 	}
 
-	cout << "Database connection opened successfully.\n";
+	cout << "Database connection opened successfully.  Performing query...\n";
 
-	QSqlQuery query;
-	query.prepare(mysqlDatabaseSourceQueryTextEdit->toPlainText());
-	if(!query.exec())
+	QSqlQuery *query = new QSqlQuery();
+	query->prepare(mysqlDatabaseSourceQueryTextEdit->toPlainText());
+	if(!query->exec())
 	{
 		cerr << "ERROR: Failed to perform the query.\n";
 		return;
 	}
 
-	cout << "Query completed successfully.  Returned " << query.size() << " rows.\n";
+	cout << "Query completed successfully.  Returned " << query->size() << " rows.\n";
 
-	while(query.next())
+	while(query->next())
 	{
-		int index;
-		QString name;
-		double mass, epoch;
+		resolveSqlQueryResult(referenceBodyMap, unresolvedBodies, queryStack, query);
+	}
 
-		index = query.record().indexOf("name");
-		if(!query.isNull(index))
-			name = query.value(index).toString();
+	if(unresolvedBodies.size() > 0)
+	{
+		cout << "\n\n\nWARNING:  There were bodies in the query results which were not added to the object selection box since the reference parent bodies which could not be resolved.\n\n\n";
+	}
+}
+
+void AddObjectsWindow::resolveSqlQueryResult(map<int, orsa::Body*> &referenceBodyMap, vector< pair<int, orsa::Body*> > &unresolvedBodies, stack< pair<QSqlQuery*, int> > &queryStack, QSqlQuery *query)
+{
+	orsa::Body *tempBody;
+	orsa::Orbit tempOrbit;
+	orsa::Vector tempPosition, tempVelocity;
+	orsa::Time epochTime;
+
+	int index;
+	QString name;
+	double mass, epoch;
+	int bodyID, parentBodyID;
+
+	index = query->record().indexOf("id");
+	bodyID = query->value(index).toInt();
+
+	// If this body has already been read in, skip over it.
+	map<int, orsa::Body*>::iterator itr = referenceBodyMap.find(bodyID);
+	if(itr != referenceBodyMap.end())
+		return;
+
+	index = query->record().indexOf("name");
+	if(!query->isNull(index))
+		name = query->value(index).toString();
+	else
+		name = "";
+
+	index = query->record().indexOf("mass");
+	if(!query->isNull(index))
+		mass = query->value(index).toDouble();
+	else
+		mass = 0;
+
+	index = query->record().indexOf("epoch");
+	epoch = query->value(index).toDouble();
+	epochTime = orsaSolarSystem::julianToTime(epoch);
+
+	index = query->record().indexOf("sma");
+	tempOrbit.a = orsa::FromUnits(query->value(index).toDouble(), orsa::Unit::M);
+
+	index = query->record().indexOf("eccentricity");
+	tempOrbit.e = query->value(index).toDouble();
+
+	index = query->record().indexOf("inclination");
+	tempOrbit.i = query->value(index).toDouble()*M_PI/180.0;
+
+	index = query->record().indexOf("lan");
+	tempOrbit.omega_node = query->value(index).toDouble();
+
+	index = query->record().indexOf("peri");
+	tempOrbit.omega_pericenter = query->value(index).toDouble();
+
+	index = query->record().indexOf("anomaly");
+	tempOrbit.M = query->value(index).toDouble();
+
+	index = query->record().indexOf("referenceObject");
+	if(!query->isNull(index))
+		parentBodyID = query->value(index).toInt();
+	else
+		parentBodyID = -1;
+
+	bool referenceBodyResolved = false;
+
+	if(parentBodyID < 0)
+	{
+		// The referenceObject field was NULL so this object should
+		// use the user selected default as the reference body.
+		cout << name.toStdString() << ":  Using the user defined object as the reference body.\n";
+	}
+	else if(parentBodyID == bodyID)
+	{
+		// Place this object at the origin and ignore the keplerian elements.
+		cout << name.toStdString() << ":  Placing this object at the origin.\n";
+
+		tempPosition = tempVelocity = orsa::Vector(0.0, 0.0, 0.0);
+		referenceBodyResolved = true;
+	}
+	else
+	{
+		// Try to resolve the parent body this object references.
+		cout << name.toStdString() << ":  Resolving the reference body for this object...  ";
+
+		map<int, orsa::Body*>::iterator itr = referenceBodyMap.find(parentBodyID);
+		if(itr != referenceBodyMap.end())
+		{
+			// Found the parent body, compute the pos and velocity vectors from it.
+			cout << "Success.\n";
+			tempOrbit.mu = orsa::Unit::G() * (*itr).second->getInitialConditions().inertial->mass();
+			tempOrbit.relativePosVel(tempPosition, tempVelocity);
+			tempPosition += (*itr).second->getInitialConditions().translational->position();
+			tempVelocity += (*itr).second->getInitialConditions().translational->velocity();
+
+			referenceBodyResolved = true;
+		}
 		else
-			name = "";
+		{
+			// Did not find the parent body, save the current place in the query and look at
+			// the rest of the result set to see if the parent body is somewhere later.
+			cout << "Failure.  Checking the rest of the result set...  ";
+			queryStack.push(pair<QSqlQuery*, int>(query, query->at()));
+			bool lookaheadSuccessful = false;
+			while(query->next())
+			{
+				index = query->record().indexOf("id");
+				int tempID = query->value(index).toInt();
 
-		index = query.record().indexOf("mass");
-		if(!query.isNull(index))
-			mass = query.value(index).toDouble();
-		else
-			mass = 0;
+				if(tempID == parentBodyID)
+				{
+					cout << "Success.\n";
+					resolveSqlQueryResult(referenceBodyMap, unresolvedBodies, queryStack, query);
+					map<int, orsa::Body*>::iterator itr = referenceBodyMap.find(parentBodyID);
+					tempOrbit.mu = orsa::Unit::G() * (*itr).second->getInitialConditions().inertial->mass();
+					tempOrbit.relativePosVel(tempPosition, tempVelocity);
+					tempPosition += (*itr).second->getInitialConditions().translational->position();
+					tempVelocity += (*itr).second->getInitialConditions().translational->velocity();
+					referenceBodyResolved = true;
 
-		index = query.record().indexOf("epoch");
-		epoch = query.value(index).toDouble();
-		epochTime = orsaSolarSystem::julianToTime(epoch);
+					lookaheadSuccessful = true;
+					break;
+				}
+			}
 
-		index = query.record().indexOf("sma");
-		tempOrbit.a = orsa::FromUnits(query.value(index).toDouble(), orsa::Unit::M);
+			// Check to see if looking ahead in the result set properly resolved the parent body,
+			// if not we need to perform and additional query to retrieve the parent body.
+			if(!lookaheadSuccessful)
+			{
+				cout << "Failure.\nPerforming additional query:  ";
+				query = new QSqlQuery();
+				QString tempQueryString = QString("select * from objects where id = %1;").arg(parentBodyID);
+				cout << tempQueryString.toStdString() << endl;
+				query->prepare(tempQueryString);
+				if(!query->exec())
+				{
+					cerr << "ERROR: Failed to perform the query.\n";
+					return;
+				}
 
-		index = query.record().indexOf("eccentricity");
-		tempOrbit.e = query.value(index).toDouble();
+				cout << "Query completed successfully.  Returned " << query->size() << " rows.\n";
+				query->next();
+				resolveSqlQueryResult(referenceBodyMap, unresolvedBodies, queryStack, query);
+				map<int, orsa::Body*>::iterator itr = referenceBodyMap.find(parentBodyID);
+				tempOrbit.mu = orsa::Unit::G() * (*itr).second->getInitialConditions().inertial->mass();
+				tempOrbit.relativePosVel(tempPosition, tempVelocity);
+				tempPosition += (*itr).second->getInitialConditions().translational->position();
+				tempVelocity += (*itr).second->getInitialConditions().translational->velocity();
+				referenceBodyResolved = true;
+			}
 
-		index = query.record().indexOf("inclination");
-		tempOrbit.i = query.value(index).toDouble();
+			// Restore the query to where it was before we ran ahead through the rest of the result set.
+			query = queryStack.top().first;
+			query->seek(queryStack.top().second);
+			queryStack.pop();
+		}
+	}
 
-		index = query.record().indexOf("lan");
-		tempOrbit.omega_node = query.value(index).toDouble();
+	tempBody = createNewBody(name, mass, epochTime, tempPosition, tempVelocity);
 
-		index = query.record().indexOf("peri");
-		tempOrbit.omega_pericenter = query.value(index).toDouble();
-
-		index = query.record().indexOf("anomaly");
-		tempOrbit.M = query.value(index).toDouble();
-
-		//FIXME: This is the hardcoded mu for the sun, this should be fixed.
-		tempOrbit.mu = 1.326663e20;
-
-		tempOrbit.relativePosVel(tempPosition, tempVelocity);
-
-		tempBody = createNewBody(name, mass, epochTime, tempPosition, tempVelocity);
+	if(referenceBodyResolved)
+	{
+		referenceBodyMap[bodyID] = tempBody;
 
 		// Add the body to the object selection box.
 		objectSelectionTableModel->addBody(tempBody);
 	}
+	else
+	{
+		unresolvedBodies.push_back(pair<int,orsa::Body*>(parentBodyID, tempBody));
+	}
+
 }
 
 void AddObjectsWindow::customObjectSourceVectorGroupBoxToggled(bool newState)
@@ -511,7 +636,8 @@ orsa::Body* AddObjectsWindow::createNewBody(QString name, double mass, orsa::Tim
 	// Copy the IBPS into into the newloy created body.
 	tempBody->setInitialConditions(tempIBPS);
 
-	cout << "Created new body with ID " << tempBody->id() << " and name \'" << tempBody->getName() << "\'" << endl;
+	cout << "Created new body with ID " << tempBody->id() << " and name \'" << tempBody->getName() << "\'";
+	cout << " and mass " << tempBody->getInitialConditions().inertial->mass() << " kg." << endl;
 
 	return tempBody;
 }

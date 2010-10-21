@@ -1,6 +1,13 @@
 #ifndef QORSAADDOBJECTSWINDOW_H
 #define QORSAADDOBJECTSWINDOW_H
 
+#include <iostream>
+#include <map>
+#include <vector>
+#include <stack>
+#include <utility>
+using namespace std;
+
 #include <QtGui/QWidget>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QHBoxLayout>
@@ -18,6 +25,7 @@
 #include <QtGui/QDateEdit>
 #include <QtGui/QTimeEdit>
 #include <QtGui/QComboBox>
+#include <QtSql/QSqlQuery>
 
 #include <orsa/orbit.h>
 #include <orsa/body.h>
@@ -54,6 +62,7 @@ class AddObjectsWindow : public QWidget
 
 		// Private functions
 		orsa::Body* createNewBody(QString name, double mass, orsa::Time epoch, orsa::Vector position, orsa::Vector velocity);
+		void resolveSqlQueryResult(map<int, orsa::Body*> &referenceBodyMap, vector< pair<int, orsa::Body*> > &unresolvedBodies, stack< pair<QSqlQuery*, int> > &queryStack, QSqlQuery *query);
 
 		MainWindow *spawningWindow;
 
