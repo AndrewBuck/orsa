@@ -41,6 +41,10 @@ class AddObjectsWindow : public QWidget
 	public:
 		AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent = NULL);
 
+		//TODO: This should be moved into the orsa::Unit class.
+		static double parseLengthUnit(double num, string unit);
+		static orsa::Time parseTimeUnit(double num, string unit);
+
 	signals:
 		void addObjectsWindowClosed();
 

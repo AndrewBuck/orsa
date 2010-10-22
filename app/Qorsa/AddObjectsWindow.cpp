@@ -52,7 +52,8 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 	mysqlDatabaseSourcePasswordLineEdit = new QLineEdit("qorsa");
 	mysqlDatabaseSourcePasswordLineEdit->setEchoMode(QLineEdit::Password);
 	mysqlDatabaseSourceDatabaseLineEdit = new QLineEdit("qorsa");
-	mysqlDatabaseSourceQueryTextEdit = new QTextEdit("select * from objects order by id;");
+	mysqlDatabaseSourceQueryTextEdit = new QTextEdit();
+	mysqlDatabaseSourceQueryTextEdit->setPlainText("select * from objects\norder by id\nlimit 10\n;");
 	mysqlDatabaseSourceQueryTextEdit->setAcceptRichText(false);
 	mysqlDatabaseSourceQuerySpacer = new QSpacerItem(1, 15);
 	mysqlDatabaseSourceExecuteQueryButton = new QPushButton("Execute Query");
@@ -238,6 +239,52 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 	setLayout(addObjectsVBoxLayout);
 }
 
+double AddObjectsWindow::parseLengthUnit(double num, string unit)
+{
+	static bool lookupMapInitialized = false;
+	static map<string,orsa::Unit::LengthUnit> lengthUnitMap;
+
+	if(!lookupMapInitialized)
+	{
+		lookupMapInitialized = true;
+		lengthUnitMap["Mpc"] = orsa::Unit::MPARSEC;
+		lengthUnitMap["Kpc"] = orsa::Unit::KPARSEC;
+		lengthUnitMap["pc"] = orsa::Unit::PARSEC;
+		lengthUnitMap["ly"] = orsa::Unit::LY;
+		lengthUnitMap["AU"] = orsa::Unit::AU;
+		lengthUnitMap["au"] = orsa::Unit::AU;
+		lengthUnitMap["km"] = orsa::Unit::KM;
+		lengthUnitMap["m"] = orsa::Unit::M;
+		lengthUnitMap["cm"] = orsa::Unit::CM;
+	}
+
+	map<string,orsa::Unit::LengthUnit>::iterator itr = lengthUnitMap.find(unit);
+	if(itr != lengthUnitMap.end())
+	{
+		return orsa::Unit::FromUnits(num, itr->second);
+	}
+	else
+	{
+		cout << "\n\n\nERROR:  Unrecognized unit \'" << unit << "\' in unit conversion.\n\n\n";
+		return -1;
+	}
+}
+
+orsa::Time AddObjectsWindow::parseTimeUnit(double num, string unit)
+{
+	if(unit.compare("jd") == 0)
+	{
+		return orsaSolarSystem::julianToTime(num);
+	}
+	else if(unit.compare("mjd") == 0)
+	{
+		return orsaSolarSystem::julianToTime(orsaSolarSystem::MJD2JD(num));
+	}
+
+	cout << "\n\n\nERROR:  Unrecognized unit \'" << unit << "\' in unit conversion.\n\n\n";
+	return orsa::Time(0);
+}
+
 void AddObjectsWindow::closeEvent(QCloseEvent *event)
 {
 	emit addObjectsWindowClosed();
@@ -355,10 +402,15 @@ void AddObjectsWindow::resolveSqlQueryResult(map<int, orsa::Body*> &referenceBod
 
 	index = query->record().indexOf("epoch");
 	epoch = query->value(index).toDouble();
-	epochTime = orsaSolarSystem::julianToTime(epoch);
+	index = query->record().indexOf("epochUnit");
+	string epochUnit = query->value(index).toString().toStdString();
+	epochTime = parseTimeUnit(epoch, epochUnit);
 
 	index = query->record().indexOf("sma");
-	tempOrbit.a = orsa::FromUnits(query->value(index).toDouble(), orsa::Unit::M);
+	double tempSMA = query->value(index).toDouble();
+	index = query->record().indexOf("smaUnit");
+	string tempSMAUnit = query->value(index).toString().toStdString();
+	tempOrbit.a = parseLengthUnit(tempSMA, tempSMAUnit);
 
 	index = query->record().indexOf("eccentricity");
 	tempOrbit.e = query->value(index).toDouble();
