@@ -47,6 +47,9 @@ namespace orsaInputOutput {
         // TODO: use lists of objects to read, and exit as soon as all requested object are read
         orsa::Cache<unsigned int> select_number;
         orsa::Cache<std::string>  select_designation;
+        orsa::Cache<bool>         select_NEO;
+    public:
+        static const double NEO_max_q;
     };
     
 }; // orsaInputOutput
