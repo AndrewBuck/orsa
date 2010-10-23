@@ -7,6 +7,9 @@
 #include <orsaSolarSystem/datetime.h>
 #include <orsaSolarSystem/print.h>
 
+#include <orsa/util.h>
+#include <orsaInputOutput/MPC_asteroid.h>
+
 #include "grain.h"
 #include "fit.h"
 #include "skycoverage.h"
@@ -106,6 +109,13 @@ int main(int argc, char ** argv) {
         designation_observed.sort();
         designation_observed.unique();
     }
+
+    osg::ref_ptr<orsaInputOutput::MPCAsteroidFile> orbitFile =
+        new orsaInputOutput::MPCAsteroidFile;
+    orbitFile->select_NEO = true;
+    orbitFile->setFileName("MPCORB.DAT.gz");
+    orbitFile->read();
+    ORSA_DEBUG("selected orbits: %i",orbitFile->_data.size());
     
     {
         // now the real work
