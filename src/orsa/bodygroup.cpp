@@ -50,35 +50,20 @@ const std::string & BodyGroup::getName() const {
 bool BodyGroup::addBody(const Body * b) {
     
     const BodyList::const_iterator _b = find(_b_list.begin(),_b_list.end(),b);
-    //
+    
     if (_b != _b_list.end()) {
         ORSA_ERROR("Body already included in BodyGroup.");
         return false;
     } 
-  
-    /* if (!(b->getInitialConditions().translational.get())) {
-       ORSA_ERROR("...");
-       return false;
-       }	
-    */
-  
-    // if (b->getBodyPosVelCallback()) {
-    if (!(b->getInitialConditions().dynamic())) {
-        _b_list.push_back(b);
-        return true;
-    } else {
-        _b_list.push_back(b);
-        // const osg::ref_ptr<const orsa::BodyInitialConditions> _bic = b->getInitialConditions();
+    
+    _b_list.push_back(b);
+    
+    if (b->getInitialConditions().dynamic()) {
         const IBPS ibps = b->getInitialConditions();
-        // if (ibps != 0) {
         insertIBPS(ibps, b);
-        /* 
-           } else {
-           ORSA_ERROR("Body with undefined initial conditions");
-           }
-        */
-        return true;
     }
+    
+    return true;
 }
 
 bool BodyGroup::removeBody(const Body * b) {
@@ -536,44 +521,27 @@ bool BodyGroup::getClosestCommonTime(orsa::Time       & t,
 }
 
 bool BodyGroup::getCommonInterval(orsa::Time & start, orsa::Time & stop, const bool massive_only) const {
-  
+    
     Cache<Time> _min, _max;
-  
+    
     BodyIntervalMap::const_iterator _bi = _b_interval.begin();
-  
+    
     while (_bi != _b_interval.end()) {
-    
-        /* 
-           ORSA_DEBUG("common--------> body: [%s]    interval size: %i",
-           _bi.key()->getName().c_str(),
-           _bi.value()->size());
-        */
-    
-        /* 
-           if (massive_only && (_bi.key()->getMass() <= epsilon())) {
-           ++_bi;
-           continue;
-           }
-        */
-        //
+        
+        ORSA_DEBUG("considering body [%s]",_bi.key()->getName().c_str());
+        
         if (massive_only && _bi.key()->getInitialConditions().inertial->mass() <= epsilon()) { 
             ++_bi;
             continue;
         }
-        //
-        /* 
-           if (_bi.key()->getBodyPosVelCallback() != 0) {
-           ++_bi;
-           continue;
-           }
-        */
-        //
+        
         if (!(_bi.key()->getInitialConditions().dynamic())) { 
             ++_bi;
             continue;
         }
-    
+        
         const osg::ref_ptr<orsa::BodyGroup::BodyInterval> _interval = _bi.value();
+        
         if ( (!_min.isSet()) && 
              (!_max.isSet()) ) {
             _min.set(_interval->min().time.getRef());
@@ -596,21 +564,18 @@ bool BodyGroup::getCommonInterval(orsa::Time & start, orsa::Time & stop, const b
             // one only is set, quite odd...
             ORSA_ERROR("logic error: we shouldn't be here");
         }
+        
         ++_bi;
     }
+    
     if ( (_min.isSet()) && 
          (_max.isSet()) && 
          (_min.getRef() <= _max.getRef()) ) {
         start = _min.getRef();
         stop  = _max.getRef();
-    
-        // ORSA_DEBUG("common--------> done.");
-    
         return true;
     }
-  
-    // ORSA_DEBUG("common--------> done.");
-  
+    
     return false;  
 }
 
