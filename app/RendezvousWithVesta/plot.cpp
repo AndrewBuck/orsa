@@ -120,7 +120,7 @@ void PlotFillThread::run() {
 	}
 	
 	dataMutex.lock();
-	data->insert(tmpData);
+	data->insert(tmpData,false,false);
 	dataMutex.unlock();
 	
       }
