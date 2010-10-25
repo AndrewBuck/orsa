@@ -13,12 +13,10 @@
 #include <orsa/debug.h>
 
 namespace orsa {
-  
-    // #warning "check where to clear _recent_vars... and its size.."
-  
+    
     // NOTE: it should not be possible to modify an Interval from outside....
     // for the moment, if you modify it, you MUST call update() when you're done! 
-  
+    
     // stored data: only unique values...
     template <typename T> class Interval : public osg::Referenced {
     public:
@@ -26,26 +24,20 @@ namespace orsa {
     public:
         Interval() : Referenced(true) { 
             _store_data = false;
-            // _recent_vars.setSize(16);
         }
     protected:
         virtual ~Interval() { }
     public:
-        bool insert(const T & val, const bool replace = false) {
+        bool insert(const T & val, const bool onlyIfExtending, const bool replaceIfDouble) {
             if (_store_data) {
-                // _recent_vars.insert(val);
-                // if (!valid()) {
                 if (size() == 0) {
                     _data.push_front(val);
-                    // _recent_vars.insert(val);
                 } else {
                     if (val < _min.getRef()) {
                         _data.push_front(val);
-                        // _recent_vars.insert(val);
                     } else if (val > _max.getRef()) {
                         _data.push_back(val);
-                        // _recent_vars.insert(val);
-                    } else {
+                    } else if (!onlyIfExtending) {
                         //
                         typename DataType::iterator _it = lower_bound(_data.begin(),_data.end(),val);
                         // typename DataType::iterator _it = qLowerBound(_data.begin(),_data.end(),val);
@@ -53,14 +45,9 @@ namespace orsa {
                         //
                         if ((*_it) != val) {
                             _data.insert(_it,val);
-                            // _recent_vars.insert(val);
                         } else {
-                            if (replace) {
+                            if (replaceIfDouble) {
                                 *_it = val;
-                                // ORSA_DEBUG("value replaced");
-                                //
-                                // _recent_vars.clear();
-                                // _recent_vars.insert(val);
                             } else {
                                 ORSA_DEBUG("called Interval<T>::insert() with duplicate entry");
                                 // double * q; q[22] = 0; // voluntary segfault, useful for debugging purposes ;-)
@@ -69,15 +56,9 @@ namespace orsa {
                         }
                     }
                 }
-                /* 
-                   if (valid()) {
-                   _min.set(*(_data.begin()));
-                   _max.set(*(--_data.end()));
-                   }
-                */
-	
+                
                 update();
-	
+                
             } else {
                 if (_min.isSet()) {
                     if (val < _min.getRef()) {
@@ -125,7 +106,6 @@ namespace orsa {
     public:
         bool reset() { 
             _data.clear();
-            // _recent_vars.clear();
             _min.reset();
             _max.reset();
             return true;
@@ -144,7 +124,6 @@ namespace orsa {
         */
     public:
         bool update() {
-            // _recent_vars.clear();
             if (_store_data && size()) {
                 _min.set(*(_data.begin()));
                 _max.set(*(--_data.end()));
@@ -161,7 +140,6 @@ namespace orsa {
         bool disableDataStoring() {
             _store_data = false;
             _data.clear();
-            // _recent_vars.clear();
             return true;
         }
     public:    
@@ -213,34 +191,7 @@ namespace orsa {
                 return false;
             }
             // ORSA_DEBUG("//5//");
-      
-            /* 
-               if (size() < 2) {
-               ORSA_ERROR("returning false...");
-               return false;
-               }
-            */
-      
-            /* 
-               {
-               // ORSA_DEBUG("test this part...");
-               T found;
-               if (_recent_vars.find(val,found)) {
-               // ORSA_DEBUG("found in recent vars...");
-               // std::cerr << "[f]";
-               //
-               sub_min = sub_max = found;
-               return true;
-               }
-               }
-            */
-      
-            /* 
-               if (1) {
-               ORSA_DEBUG("size: %i",size());
-               }
-            */
-      
+            
             if (size() == 2) {
                 sub_max = max();
                 sub_min = min();
@@ -306,8 +257,6 @@ namespace orsa {
         DataType _data;
     protected:
         Cache<T> _min, _max;
-    protected:
-        // CachedVars<T> _recent_vars;
     };
   
 }; // namespace orsa

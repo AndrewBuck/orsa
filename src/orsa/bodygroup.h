@@ -164,17 +164,18 @@ namespace orsa {
             }
             return _t;
         }
-  
+        
     public:
         bool insertIBPS(const orsa::IBPS & ibps,
                         const orsa::Body * b,
-                        const bool         replace = false);
-    
+                        const bool         onlyIfExtending,
+                        const bool         replaceIfDouble);
+        
     public:
         bool getIBPS(orsa::IBPS       & ibps,
                      const orsa::Body * b,
                      const Time       & t) const;
-    
+        
     public:
         bool getInterpolatedIBPS(orsa::IBPS       & ibps,
                                  const orsa::Body * b,
@@ -205,21 +206,24 @@ namespace orsa {
         bool getInterpolatedMass(double     & mass,
                                  const Body * b,
                                  const Time & t) const;
-    
+        
+    public:
+        bool haveDynamicBodies(const bool massive_only) const;
+        
     public:
         bool getClosestCommonTime(orsa::Time       & t,
                                   const orsa::Time & refTime,
-                                  const bool         massive_only = false) const;
+                                  const bool         massive_only) const;
     
     public:
         bool getCommonInterval(orsa::Time & start,
                                orsa::Time & stop,
-                               const bool   massive_only = false) const;
+                               const bool   massive_only) const;
     
     public:
         bool getGlobalInterval(orsa::Time & start,
                                orsa::Time & stop,
-                               const bool   massive_only = false) const;
+                               const bool   massive_only) const;
     
     public:
         void centerOfMassPosVel(orsa::Vector & r,

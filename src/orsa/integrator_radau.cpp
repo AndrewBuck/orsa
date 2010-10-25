@@ -771,7 +771,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
 	  
                     ibps.tmp = true;
 	  
-                    bg->insertIBPS(ibps,k,true);
+                    bg->insertIBPS(ibps,k,onlyIfExtending.getRef(),true);
 	  
                     ++bl_it;
                 }
@@ -1529,8 +1529,8 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
                        tmp = std::max(tmp,fabs(bPsi[6][k]));
                     */
                     //
-#warning "check this length()..."
-	  
+                    // #warning "check this length()..."
+                    
                     /* ORSA_DEBUG("tmp test...");
                        print(tmp);
                        print(fabs(bQ[6][k].length()));
@@ -1889,7 +1889,7 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
       
             ibps.tmp = false;
       
-            if (!bg->insertIBPS(ibps,k)) {
+            if (!bg->insertIBPS(ibps,k,onlyIfExtending.getRef(),false)) {
                 ORSA_DEBUG("problem, body: [%s]",(*bl_it).get()->getName().c_str());
             }
       
@@ -1937,7 +1937,9 @@ bool IntegratorRadau::step(orsa::BodyGroup  * bg,
                continue;
                }
             */
-      
+            
+            // ORSA_DEBUG("body [%s]",(*bl_it)->getName().c_str());
+            
             const orsa::Body * k = (*bl_it).get();
       
             if ((*bl_it)->getInitialConditions().translational.get()) {

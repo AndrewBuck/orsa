@@ -103,8 +103,9 @@ namespace orsa {
     public:
         orsa::Cache<unsigned int> progressiveCleaningSteps;
         orsa::Cache<bool>         keepOnlyLastStep;
+        orsa::Cache<bool>         onlyIfExtending; // insert IBPS in bodyGroup interval only when extending the interval
     };
-  
+    
 } // namespace orsa
 
 #endif // _ORSA_INTEGRATOR_

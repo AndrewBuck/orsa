@@ -894,7 +894,7 @@ bool OrbitProxy::insertBOT(OrbitProxy::BOT  & bot,
                       _bg.get(),
                       t);
     
-        _interval->insert(bot);
+        _interval->insert(bot,false,false);
     
         /* 
            ORSA_DEBUG("inserting, body: [%s] parent: [%s] size: %i   a: %g [km]   e: %g",

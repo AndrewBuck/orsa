@@ -10,17 +10,39 @@ using namespace orsa;
 
 Integrator::Integrator() : Referenced(true) {
     progressiveCleaningSteps = 0;
+    onlyIfExtending = true;
 }
 
 bool Integrator::integrate(orsa::BodyGroup  * bg,
                            const orsa::Time & start,
                            const orsa::Time & stop,
                            const orsa::Time & sampling_period) {
-  
-    // #warning "remember: if any of the bodies has propulsion, care should be taken for timestep management, to hit all the intervals where propulsion is used"
-  
+    
+    if (!bg->haveDynamicBodies(false)) {
+        // no integration needed
+        // ORSA_DEBUG("------ LEAVING EARLY -----");
+        return true;
+    }
+    
+    // #warning "remember: if any of the bodies has propulsion, care should be taken for timestep management,
+    // to hit all the intervals where propulsion is used"
+    
     doAbort = false;
-  
+    
+    if (0) {
+        // debug: all bodies in integration
+        const orsa::BodyGroup::BodyList bl = bg->getBodyList();
+        orsa::BodyGroup::BodyList::const_iterator it = bl.begin();
+        while (it != bl.end()) {
+            ORSA_DEBUG("integration includes body [%s] id: %i   time interval: [below]",
+                       (*it)->getName().c_str(),
+                       (*it)->id());
+            orsa::print(start);
+            orsa::print(stop);
+            ++it;
+        }
+    }
+    
     /* ORSA_DEBUG("CALL start: %f [day]",
        FromUnits(start.get_d(),Unit::DAY,-1));
        orsa::print(start);
@@ -36,23 +58,116 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
         // ORSA_DEBUG("inverting...");
         return integrate(bg,stop,start,sampling_period);
     }
-  
+    
+    // first, we need to have a common interval for the massive bodies
+    if (bg->haveDynamicBodies(true)) {
+        Time t1M, t2M;
+        if (!(bg->getCommonInterval(t1M, t2M, true))) {
+            ORSA_ERROR("cannot find common interval [massive bodies only]");
+            return false;
+        }
+    }
+    //
+    // second, we need to have a common interval for all the bodies
+    // if no interval is found, we must integrate massive bodies up to the epoch of the massless ones
+    if (bg->haveDynamicBodies(false)) {
+        bool needMicroIntegrations=false;
+        {
+            Time t1, t2;
+            if (!(bg->getCommonInterval(t1, t2, false))) {
+                needMicroIntegrations=true;
+            }
+        }
+        if (needMicroIntegrations) {
+            // compute global interval
+            Time t1, t2;
+            bg->getGlobalInterval(t1, t2, false);
+            const orsa::Time t1G=t1;
+            const orsa::Time t2G=t2;
+            // extend them to include start,stop if necessary
+            /* Time t1L=t1G;
+               Time t2L=t2G;
+               const Time t_min = std::min(start,stop);
+               const Time t_max = std::max(start,stop);
+               if (t_min < t1L) t1L=t_min;
+               if (t_max > t2L) t2L=t_max;
+            */
+            
+            // dump all massless bodies here
+            osg::ref_ptr<orsa::BodyGroup> bgDump = new orsa::BodyGroup;
+            {
+                const orsa::BodyGroup::BodyList bl = bg->getBodyList();
+                orsa::BodyGroup::BodyList::const_iterator it = bl.begin();
+                while (it != bl.end()) {
+                    if((*it)->getInitialConditions().inertial->mass()==0.0) {
+                        bgDump->addBody((*it).get());
+                        bg->removeBody((*it).get());
+                    }
+                    ++it;
+                }
+            }
+            
+            // integrate massive bodies alone (necessary?)
+            /* if (!integrate(bg, t1***, t2***, sampling_period)) {
+               ORSA_DEBUG("problems...");
+               return false;
+               }
+            */
+            
+            // try to add massless bodies at small groups and integrate
+            // the test for a good addition is that getCommonInterval returns true
+            {
+                // orsa::Cache<unsigned int> old_bgDump_size; // don't init now, to skip first iteration, where the massive bodies are integrated, along with possibly some massless bodies
+                while (bgDump->size() != 0) {
+                    const orsa::BodyGroup::BodyList bl = bgDump->getBodyList();
+                    orsa::BodyGroup::BodyList::const_iterator it = bl.begin();
+                    while (it != bl.end()) {
+                        bg->addBody((*it).get());
+                        bgDump->removeBody((*it).get());
+                        Time t1, t2;
+                        if (!(bg->getCommonInterval(t1, t2, false))) {
+                            /* ORSA_DEBUG("cannot add body [%s] id: %i   [retrying later]",
+                               (*it)->getName().c_str(),
+                               (*it)->id());
+                            */
+                            // cannot add this body now, move it back into bgDump
+                            bgDump->addBody((*it).get());
+                            bg->removeBody((*it).get());
+                        } else {
+                            /* ORSA_DEBUG("added body [%s] id: %i",
+                               (*it)->getName().c_str(),
+                               (*it)->id());
+                            */
+                        }
+                        ++it;
+                    }
+                    if (!integrate(bg, t1G, t2G, sampling_period)) {
+                        ORSA_DEBUG("problems...");
+                        return false;
+                    }
+                    /* if (old_bgDump_size.isSet()) {
+                       if (bgDump->size() == old_bgDump_size.getRef()) {
+                       ORSA_DEBUG("problem while dealing with massless bodies");
+                       break;
+                       }
+                       }
+                       old_bgDump_size = bgDump->size();
+                    */
+                }
+            }
+        }
+    }
+    
+    // finally, we can retrieve the common interval for all bodies
     Time t1, t2;
     if (!(bg->getCommonInterval(t1, t2, false))) {
-        ORSA_ERROR("cannot find common interval");
+        ORSA_ERROR("cannot find common interval [all bodies]");
         return false;
     }
     //
-    // the lowest time in the common interval
-    // const Time t0 = t1;
-    //
-    if (0) {
-        ORSA_DEBUG("t1: %f [day]",
-                   FromUnits(FromUnits(t1.getMuSec().get_d(),Unit::MICROSECOND),Unit::DAY,-1));
-        ORSA_DEBUG("t2: %f [day]",
-                   FromUnits(FromUnits(t2.getMuSec().get_d(),Unit::MICROSECOND),Unit::DAY,-1));
-    }
-    //
+    // orsa::print(t1);
+    // orsa::print(t2);
+    
     /* 
        if (t0 != start) {
        ORSA_DEBUG("splitting integration...");
@@ -90,30 +205,7 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
         // ORSA_DEBUG("F");
         return integrate(bg,t2,stop, sampling_period);
     }
-  
-    /* 
-       Cache<mpz_class> sign;
-       Time t;
-       Time tEnd;
-       //
-       if (t1 == stop) {
-       t = t1;
-       tEnd = start;
-       sign.set(-1);
-       } else if (t2 == start) {
-       t = t2;
-       tEnd = stop;
-       sign.set(+1);
-       } else {
-       // this is the case of a call for refinement, to create one more accurate snapshot of the system
-       if (getClosestCommonTime(t, start, false)) {
-     
-       } else {
-       ORSA_DEBUG("problems...");
-       }
-       }
-    */
-    //
+    
     Cache<mpz_class> sign;
     Time t;
     Time tEnd;
@@ -147,6 +239,7 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
         */
     
         if ((ctstart==start) && (ctstop==stop)) {
+            // ORSA_DEBUG("--- leaving ---");
             return true;
         } else if (ctstart==start) {
             // ORSA_DEBUG("new code ctstart...");
@@ -262,11 +355,9 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
     
         // while (_t <= (stop+sampling_period)) { // one more step...
         // std::cerr << "Integrator::integrate(...) --> t: " << FromUnits(FromUnits(_t.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1) << " [day]" << std::endl;
-        /* 
-           ORSA_DEBUG("Integrator::integrate(...) --> t: %f [day]     t: %f",
-           FromUnits(FromUnits(t.getMuSec(),Unit::MICROSECOND),Unit::DAY,-1)(),
-           t.get_d());
-        */
+        
+        // orsa::print(t);
+        
         // if (!(step(bg,_t,dt))) {
         if (!(step(bg,t,call_dt,next_dt))) {
             ORSA_ERROR("problem encountered in step(...) call");
@@ -316,7 +407,9 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
                orsa::FromUnits(t.get_d(),orsa::Unit::DAY,-1)(),
                bg->totalEnergy(t)());
             */
-      
+
+            // orsa::print(t);
+            
             /* 
                ORSA_DEBUG("successful dt: %f +/- %f [day]",
                FromUnits(stat->average(),Unit::DAY,-1)(),
@@ -391,17 +484,17 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
                     }	  
                 }
             }
-      
+            
             rs->insert(call_dt.get_d());
             //
-            if (rs->isFull()) {
-                /* ORSA_DEBUG("radt: %f %f %f",
-                   FromUnits(t.get_d(),Unit::DAY,-1),
-                   FromUnits(rs->average(),Unit::SECOND,-1),
-                   FromUnits(rs->averageError(),Unit::SECOND,-1));
-                */
-            }
-      
+            /* if (rs->isFull()) {
+               ORSA_DEBUG("radt: %f %f %f",
+               FromUnits(t.get_d(),Unit::DAY,-1),
+               FromUnits(rs->average(),Unit::SECOND,-1),
+               FromUnits(rs->averageError(),Unit::SECOND,-1));
+               }
+            */
+            
         } else {
             // last call was rejected...
         }
@@ -432,7 +525,7 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
             }
         }
     }
-  
+    
     {
         BodyGroup::BodyList::const_iterator _b_it = bg->getBodyList().begin();
         while (_b_it != bg->getBodyList().end()) { 
@@ -462,6 +555,7 @@ bool Integrator::integrate(orsa::BodyGroup  * bg,
             ++_b_it;
         }
     }
-  
+    
+    // ORSA_DEBUG("--- done ---");
     return ret_val;
 }
