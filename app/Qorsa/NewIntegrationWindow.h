@@ -10,6 +10,8 @@
 #include <QtGui/QComboBox>
 #include <QtGui/QPushButton>
 
+#include "UnitComboBox.h"
+
 class MainWindow;
 
 class NewIntegrationWindow : public QWidget
@@ -44,6 +46,7 @@ class NewIntegrationWindow : public QWidget
 		QTimeEdit *startTimeEdit;
 		QTimeEdit *endTimeEdit;
 		QLineEdit *timeStepLineEdit;
+		UnitComboBox *timeStepUnitComboBox;
 		QComboBox *integratorComboBox;
 		QPushButton *okPushButton;
 		QPushButton *cancelPushButton;

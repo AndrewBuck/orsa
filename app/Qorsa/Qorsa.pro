@@ -36,6 +36,7 @@ HEADERS = MainWindow.h \
 	  IntegrationTableModel.h \
 	  IntegrationTableView.h \
 	  AnalyzeIntegrationWindow.h \
+	  UnitComboBox.h \
 	  BodyTableModel.h
 
 SOURCES = Qorsa.cpp \
@@ -45,5 +46,6 @@ SOURCES = Qorsa.cpp \
 	  IntegrationTableModel.cpp \
 	  IntegrationTableView.cpp \
 	  AnalyzeIntegrationWindow.cpp \
+	  UnitComboBox.cpp \
 	  BodyTableModel.cpp
 

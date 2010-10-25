@@ -119,6 +119,12 @@ void MainWindow::performIntegration(orsa::Time startTime, orsa::Time endTime, or
 			break;
 	}
 
+	if(integrator == NULL)
+	{
+		cout << "\n\n\nERROR: Failed to properly initialize an integrator, bailing out of integration.\n\n\n";
+		return;
+	}
+
 	cout << "Beginning integration...\n";
 
 	// Actually carry out the integration.
@@ -149,33 +155,6 @@ void MainWindow::performIntegration(orsa::Time startTime, orsa::Time endTime, or
 		objectsTableModel->addBody(tempBody);
 		bodyGroup->addBody(tempBody);
 	}
-
-	/*
-	cout << "\n\nPerforming integration:\nInitial conditions\nBody\tx\ty\tz\t\tvx\tvy\tvz\n";
-	orsa::BodyGroup::BodyList bl = bodyGroup->getBodyList();
-	for(unsigned int i = 0; i < bl.size(); i++)
-	{
-		cout << "\n\n";
-		const orsa::Body *b = bl[i];
-		orsa::BodyGroup::BodyInterval *bodyInterval = bodyGroup->getBodyInterval(b);
-
-		deque<orsa::IBPS>::iterator itr = bodyInterval->getData().begin();
-		while(itr != bodyInterval->getData().end())
-		{
-			cout << b->getName() << "\t";
-			orsa::Vector position = (*itr).translational->position();
-			orsa::Vector velocity = (*itr).translational->velocity();
-			cout << position.getX() << "\t";
-			cout << position.getY() << "\t";
-			cout << position.getZ() << "\t\t";
-			cout << velocity.getX() << "\t";
-			cout << velocity.getY() << "\t";
-			cout << velocity.getZ() << "\n";
-
-			itr++;
-		}
-	}
-	*/
 }
 
 void MainWindow::newWorkspace()

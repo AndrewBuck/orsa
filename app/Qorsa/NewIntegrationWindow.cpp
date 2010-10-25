@@ -17,7 +17,7 @@ NewIntegrationWindow::NewIntegrationWindow(MainWindow *nSpawningWindow, QWidget 
 	newIntegrationWindowGridLayout = new QGridLayout();
 	startTimeLabel = new QLabel("Start Time");
 	endTimeLabel = new QLabel("End Time");
-	timeStepLabel = new QLabel("Time Step (s)");
+	timeStepLabel = new QLabel("Time Step");
 	integratorLabel = new QLabel("Integrator");
 	startDateEdit = new QDateEdit();
 	endDateEdit = new QDateEdit();
@@ -26,6 +26,7 @@ NewIntegrationWindow::NewIntegrationWindow(MainWindow *nSpawningWindow, QWidget 
 	startTimeEdit = new QTimeEdit();
 	endTimeEdit = new QTimeEdit();
 	timeStepLineEdit = new QLineEdit("1");
+	timeStepUnitComboBox = new UnitComboBox(UnitComboBox::TimeIntervalUnit, "day");
 	okPushButton = new QPushButton("Ok");
 	cancelPushButton = new QPushButton("Cancel");
 
@@ -43,6 +44,7 @@ NewIntegrationWindow::NewIntegrationWindow(MainWindow *nSpawningWindow, QWidget 
 	newIntegrationWindowGridLayout->addWidget(startTimeEdit, 0, 2);
 	newIntegrationWindowGridLayout->addWidget(endTimeEdit, 1, 2);
 	newIntegrationWindowGridLayout->addWidget(timeStepLineEdit, 2, 1);
+	newIntegrationWindowGridLayout->addWidget(timeStepUnitComboBox, 2, 2);
 	newIntegrationWindowGridLayout->addWidget(integratorLabel, 3, 0);
 	newIntegrationWindowGridLayout->addWidget(integratorComboBox, 3, 1, 1, 2);
 	newIntegrationWindowGridLayout->addWidget(okPushButton, 4, 0);
@@ -79,7 +81,8 @@ void NewIntegrationWindow::okButtonPressed()
 
 	// Read in the time step.
 	orsa::Time timeStep;
-	timeStep.set(0, 0, 0, timeStepLineEdit->text().toDouble(), 0);
+	double numSeconds = timeStepUnitComboBox->convertToCurrentUnit(timeStepLineEdit->text().toDouble());
+	timeStep.set(0, 0, 0, numSeconds, 0);
 
 	// Tell the main window to begin computing the integration.
 	spawningWindow->performIntegration(startTime, endTime, timeStep, NewIntegrationWindow::IntegratorType(integratorComboBox->itemData(integratorComboBox->currentIndex()).toInt()));
