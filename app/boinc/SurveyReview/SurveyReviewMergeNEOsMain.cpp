@@ -142,20 +142,21 @@ int main(int argc, char ** argv) {
         
 #warning remember to propagate the mean anomaly
         
-        
         char **sql_result;
         int nrows, ncols;
         char sql_line[1024];
-
-        orsa::Cache<orsaInputOutput::MPCAsteroidDataElement> found;
+        
         orsaInputOutput::MPCAsteroidData::const_iterator it_orb =
             orbitFile->_data.begin();
         while (it_orb != orbitFile->_data.end()) {
+            
+            bool found=false;
+            
             if ((*it_orb).number.isSet()) {
                 std::list<unsigned int>::const_iterator it_num = number_observed.begin();
                 while (it_num != number_observed.end()) {
                     if ((*it_num) == (*it_orb).number.getRef()) {
-                        found=(*it_orb);
+                        found=true;
                         break;
                     }
                     ++it_num;
@@ -164,7 +165,7 @@ int main(int argc, char ** argv) {
                 std::list<std::string>::const_iterator it_des = designation_observed.begin();
                 while (it_des != designation_observed.end()) {
                     if ((*it_des) == (*it_orb).designation.getRef()) {
-                        found=(*it_orb);
+                        found=true;
                         break;
                     }
                     ++it_des;
@@ -173,68 +174,69 @@ int main(int argc, char ** argv) {
                 ORSA_DEBUG("neither one is set?");
             }
             
-            if (found.isSet()) break;
-            ++it_orb;
-        }
-        
-        if (found.isSet()) {
-
+            {
+                
 #warning should have these delta values somewhere else, once and for all
-            const int z_a_delta = lrint(0.05/grain_a_AU);
-            const int z_e_delta = lrint(0.05/grain_e);
-            const int z_i_delta = lrint(5.00/grain_i_DEG);
-            const int z_H_delta = lrint(1.00/grain_H);
-            
-            const int z_a_min = (  lrint(orsa::FromUnits(found.getRef().orbit.getRef().a,orsa::Unit::AU,-1)/grain_a_AU)/z_a_delta)*z_a_delta;
-            const int z_a_max = (1+lrint(orsa::FromUnits(found.getRef().orbit.getRef().a,orsa::Unit::AU,-1)/grain_a_AU)/z_a_delta)*z_a_delta;
-            const int z_e_min = (  lrint(found.getRef().orbit.getRef().e/grain_e)/z_e_delta)*z_e_delta;
-            const int z_e_max = (1+lrint(found.getRef().orbit.getRef().e/grain_e)/z_e_delta)*z_e_delta;
-            const int z_i_min = (  lrint(found.getRef().orbit.getRef().i*orsa::radToDeg()/grain_i_DEG)/z_i_delta)*z_i_delta;
-            const int z_i_max = (1+lrint(found.getRef().orbit.getRef().i*orsa::radToDeg()/grain_i_DEG)/z_i_delta)*z_i_delta;
-            
+                const int z_a_delta = lrint(0.05/grain_a_AU);
+                const int z_e_delta = lrint(0.05/grain_e);
+                const int z_i_delta = lrint(5.00/grain_i_DEG);
+                const int z_H_delta = lrint(1.00/grain_H);
+                
+                const int z_a_min = (  lrint(orsa::FromUnits((*it_orb).orbit.getRef().a,orsa::Unit::AU,-1)/grain_a_AU)/z_a_delta)*z_a_delta;
+                const int z_a_max = (1+lrint(orsa::FromUnits((*it_orb).orbit.getRef().a,orsa::Unit::AU,-1)/grain_a_AU)/z_a_delta)*z_a_delta;
+                const int z_e_min = (  lrint((*it_orb).orbit.getRef().e/grain_e)/z_e_delta)*z_e_delta;
+                const int z_e_max = (1+lrint((*it_orb).orbit.getRef().e/grain_e)/z_e_delta)*z_e_delta;
+                const int z_i_min = (  lrint((*it_orb).orbit.getRef().i*orsa::radToDeg()/grain_i_DEG)/z_i_delta)*z_i_delta;
+                const int z_i_max = (1+lrint((*it_orb).orbit.getRef().i*orsa::radToDeg()/grain_i_DEG)/z_i_delta)*z_i_delta;
+                
 #warning check this "+1"
-            const int z_H     = (1+lrint(found.getRef().H.getRef()/grain_H)/z_H_delta)*z_H_delta;
-            
-            
-            if (found.getRef().number.isSet()) {
-                ORSA_DEBUG("found: [%i] z_a: [%i,%i] z_e: [%i,%i] z_i: [%i,%i] z_H: %i",
-                           found.getRef().number.getRef(),
-                           z_a_min,
-                           z_a_max,
-                           z_e_min,
-                           z_e_max,
-                           z_i_min,
-                           z_i_max,
-                           z_H);
-            } else if (found.getRef().designation.isSet()) {
-                ORSA_DEBUG("found: [%s]",found.getRef().designation.getRef().c_str());
-            } else {
-                ORSA_DEBUG("neither one is set?");
+                const int z_H     = (1+lrint((*it_orb).H.getRef()/grain_H)/z_H_delta)*z_H_delta;
+                
+                
+                if ((*it_orb).number.isSet()) {
+                    ORSA_DEBUG("observed: [%i] obj: [%i] z_a: [%i,%i] z_e: [%i,%i] z_i: [%i,%i] z_H: %i",
+                               found,
+                               (*it_orb).number.getRef(),
+                               z_a_min,
+                               z_a_max,
+                               z_e_min,
+                               z_e_max,
+                               z_i_min,
+                               z_i_max,
+                               z_H);
+                } else if ((*it_orb).designation.isSet()) {
+                    ORSA_DEBUG("observed: [%i] obj: [%s]",
+                               found,
+                               (*it_orb).designation.getRef().c_str());
+                } else {
+                    ORSA_DEBUG("neither one is set?");
+                }
+                
+                /* sprintf(sql_line,"SELECT * FROM grid");
+                   do {
+                   rc = sqlite3_get_table(db,sql_line,&sql_result,&nrows,&ncols,&zErr);
+                   if (rc==SQLITE_BUSY) {
+                   ORSA_DEBUG("database busy, retrying...");
+                   usleep(100000);
+                   }
+                   } while (rc==SQLITE_BUSY);
+                   if (rc != SQLITE_OK) {
+                   if (zErr != NULL) {
+                   ORSA_DEBUG("SQL error: %s\n",zErr);
+                   sqlite3_free(zErr);
+                   sqlite3_close(db);
+                   exit(0);
+                   }
+                   }
+                   //
+                   // loop here...
+                   //
+                   sqlite3_free_table(sql_result);
+                */
             }
             
-            /* sprintf(sql_line,"SELECT * FROM grid");
-               do {
-               rc = sqlite3_get_table(db,sql_line,&sql_result,&nrows,&ncols,&zErr);
-               if (rc==SQLITE_BUSY) {
-               ORSA_DEBUG("database busy, retrying...");
-               usleep(100000);
-               }
-               } while (rc==SQLITE_BUSY);
-               if (rc != SQLITE_OK) {
-               if (zErr != NULL) {
-               ORSA_DEBUG("SQL error: %s\n",zErr);
-               sqlite3_free(zErr);
-               sqlite3_close(db);
-               exit(0);
-               }
-               }
-               //
-               // loop here...
-               //
-               sqlite3_free_table(sql_result);
-            */
+            ++it_orb;
         }
-        
     }
     
     sqlite3_close(db);
