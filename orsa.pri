@@ -16,18 +16,19 @@ macx {
 #CONFIG += qt
 #QT -= gui
 
-
-# define ORSA_PRI as the absolute path to this file
-unix:!macx {
-	ORSA_PRI = /home/buck/Code/orsa/orsa/orsa.pri
+exists(local_qmake_include.pri) {
+	message("local_qmake_include.pri file exists, reading it in...")
+	include(local_qmake_include.pri)
 }
-macx {
-	ORSA_PRI = /Users/buck/Code/orsa/orsa/orsa.pri
+else {
+	message("local_qmake_include.pri does not exist.  This file is needed to create the Makefiles that will allow the project to be built.")
+	message("")
+	message("You can create this file by executing the following command:")
+	message("")
+	message("echo -en \"ORSA_PRI = $$PWD/orsa.pri\" > local_qmake_include.pri")
+	message("")
+	error("Exiting the build process because the local_qmake_include.pri file could not be found, please see the above instructions to remedy this.")
 }
-win32 {
-	ORSA_PRI = C:\orsa\orsa.pri
-}
-
 
 # important tests, don't change
 isEmpty(ORSA_PRI) {
@@ -50,8 +51,8 @@ unix:!macx {
 	QMAKE_CXXFLAGS_RELEASE +=
 	QMAKE_LFLAGS_RELEASE   +=
 
-	QMAKE_CXXFLAGS_DEBUG += -pg -ggdb
-	QMAKE_LFLAGS_DEBUG   += -pg -ggdb
+	QMAKE_CXXFLAGS_DEBUG += -g -pg -ggdb
+	QMAKE_LFLAGS_DEBUG   += -g -pg -ggdb
 }
 macx {
 	CONFIG += x86 # x86 ppc
@@ -70,8 +71,8 @@ macx {
 	QMAKE_CXXFLAGS += -mmacosx-version-min=10.5 -read_only_relocs suppress
 	QMAKE_LFLAGS   += -mmacosx-version-min=10.5 -read_only_relocs suppress
 
-#	QMAKE_CXXFLAGS_DEBUG += -pg
-#	QMAKE_LFLAGS_DEBUG   += -pg
+#	QMAKE_CXXFLAGS_DEBUG += -g -pg
+#	QMAKE_LFLAGS_DEBUG   += -g -pg
 }
 win32 {
 	PLATFORM_NAME = "win32"
@@ -80,15 +81,15 @@ win32 {
 #	QMAKE_CXXFLAGS_RELEASE += -g
 #	QMAKE_LFLAGS_RELEASE   += -g
 
-#	QMAKE_CXXFLAGS_DEBUG += -pg -ggdb
-#	QMAKE_LFLAGS_DEBUG   += -pg -ggdb
+#	QMAKE_CXXFLAGS_DEBUG += -g -pg -ggdb
+#	QMAKE_LFLAGS_DEBUG   += -g -pg -ggdb
 
 }
 #message([$$PLATFORM_NAME])
 
 
 ORSA_BASE = $$dirname(ORSA_PRI)
-#message(ORSA_BASE = $$ORSA_BASE)
+message(ORSA_BASE = $$ORSA_BASE)
 
 SUPPORT_DIR = $$DIR_SEP"support"$$DIR_SEP$$PLATFORM_NAME
 
@@ -99,10 +100,10 @@ ORSA_SUPPORT = $$ORSA_BASE$$SUPPORT_DIR
 
 unix:!macx {
 	boinc_include {
-		INCLUDEPATH += /home/buck/Code/orsa/boinc/ /home/buck/Code/orsa/boinc/api/ /home/buck/Code/orsa/boinc/lib
+		INCLUDEPATH += $$ORSA_BASE/../boinc/ $$ORSA_BASE/../boinc/api/ $$ORSA_BASE/../boinc/lib
 	}
 	boinc_lib {
-		LIBS += /home/buck/Code/orsa/boinc/api/libboinc_api.a /home/buck/Code/orsa/boinc/lib/libboinc.a
+		LIBS += $$ORSA_BASE/../boinc/api/libboinc_api.a $$ORSA_BASE/../boinc/lib/libboinc.a
 	}
 	gmp_include {
 		INCLUDEPATH +=
@@ -117,31 +118,31 @@ unix:!macx {
 		LIBS += -lgsl -lgslcblas
 	}
 	osg_include {
-        	INCLUDEPATH += /home/buck/Code/orsa/OpenSceneGraph/include		
+        	INCLUDEPATH += $$ORSA_BASE/../OpenSceneGraph/include		
 	}
 	osg_lib {
-		LIBS += -L/home/buck/Code/orsa/OpenSceneGraph/lib -L/home/buck/Code/orsa/OpenSceneGraph/lib/osgPlugins-2.8.3
+		LIBS += -L$$ORSA_BASE/../OpenSceneGraph/lib -L$$ORSA_BASE/../OpenSceneGraph/lib/osgPlugins-2.8.3
 	}
 	osg_src {
-		OSG_SRC = /home/buck/Code/orsa/OpenSceneGraph/src/
+		OSG_SRC = $$ORSA_BASE/../OpenSceneGraph/src/
 	}
 	qt_include {
 		INCLUDEPATH += /usr/include/qt3 /usr/include/qt4
 	}
 	qt_lib {
-		LIBS += -L/home/buck/Code/orsa/qwt/lib
+		LIBS += -L$$ORSA_BASE/../qwt/lib
 	}
 	qwt_include {
 		INCLUDEPATH += /usr/include/qwt-qt4
 	}
 	qwt_lib {
-		LIBS += -L/home/buck/Code/orsa/qwt/lib/ -lqwt
+		LIBS += -L$$ORSA_BASE/../qwt/lib/ -lqwt
 	}
 	spice_include {
-		INCLUDEPATH += /home/buck/Code/orsa/cspice/include
+		INCLUDEPATH += $$ORSA_BASE/../cspice/include
 	}
 	spice_lib {
-		LIBS += /home/buck/Code/orsa/cspice/lib/cspice.a /home/buck/Code/orsa/cspice/lib/csupport.a
+		LIBS += $$ORSA_BASE/../cspice/lib/cspice.a $$ORSA_BASE/../cspice/lib/csupport.a
 	}
 	zlib_include {
         	INCLUDEPATH +=
@@ -153,11 +154,11 @@ unix:!macx {
 
 macx {
 	boinc_include {
-		INCLUDEPATH +=  /Users/buck/Code/orsa/boinc/ /Users/buck/Code/orsa/boinc/api/ /Users/buck/Code/orsa/boinc/lib
+		INCLUDEPATH +=  $$ORSA_BASE/../boinc/ $$ORSA_BASE/../boinc/api/ $$ORSA_BASE/../boinc/lib
 	}
 	boinc_lib {
-		LIBS += /Users/buck/Code/orsa/boinc/mac_build/build/boinc.build/Deployment/libboinc.build/Objects-normal/i386/libboinc.a
-		LIBS += /Users/buck/Code/orsa/boinc/mac_build/build/boinc.build/Deployment/api_libboinc.build/Objects-normal/i386/libboinc_api.a
+		LIBS += $$ORSA_BASE/../boinc/mac_build/build/boinc.build/Deployment/libboinc.build/Objects-normal/i386/libboinc.a
+		LIBS += $$ORSA_BASE/../boinc/mac_build/build/boinc.build/Deployment/api_libboinc.build/Objects-normal/i386/libboinc_api.a
 	}
 	gmp_include {
 	     	INCLUDEPATH += $$ORSA_SUPPORT/gmp/include
@@ -172,19 +173,19 @@ macx {
 		LIBS += -L$$ORSA_SUPPORT/gsl/lib -lgsl -lgslcblas
 	}
 	osg_include {
-        	INCLUDEPATH += /Users/buck/Code/orsa/OpenSceneGraph/include
+        	INCLUDEPATH += $$ORSA_BASE/../OpenSceneGraph/include
 	}
 	osg_lib {
-		LIBS += -L/Users/buck/Code/orsa/OpenSceneGraph/lib/
+		LIBS += -L$$ORSA_BASE/../OpenSceneGraph/lib/
 	}
 	osg_src {
-		OSG_SRC = /Users/buck/Code/orsa/OpenSceneGraph/src/
+		OSG_SRC = $$ORSA_BASE/../OpenSceneGraph/src/
 	}
 	qwt_include {
-		INCLUDEPATH += /Users/buck/Code/orsa/qwt/src
+		INCLUDEPATH += $$ORSA_BASE/../qwt/src
 	}
 	qwt_lib {
-		LIBS += -L/Users/buck/Code/orsa/qwt/lib/ -lqwt
+		LIBS += -L$$ORSA_BASE/../qwt/lib/ -lqwt
 	}
 	spice_include {
 		INCLUDEPATH += $$ORSA_SUPPORT/cspice/include
