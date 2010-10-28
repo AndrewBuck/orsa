@@ -22,7 +22,7 @@ unix:!macx {
 }
 
 macx {
-        LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -lOpenThreads -losg -losgGA -losgText -losgViewer -losgUtil
+        LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaOSG -lorsaQt -lorsaSolarSystem -lorsaSPICE -losgViewer -losgdb_freetype /opt/local/lib/libfreetype.a -losgText -losgUtil -losgGA -losg -lOpenThreads -losgDB 
 }
 
 win32 {
