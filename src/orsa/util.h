@@ -15,7 +15,7 @@
 
 #include <map>
 
-#include <QHash>
+#include <QtCore/QHash>
 
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>

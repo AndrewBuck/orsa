@@ -19,12 +19,12 @@ OBJECTS_DIR = .obj/$${PLATFORM_NAME}
 DESTDIR     = ../../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
-	INCLUDEPATH += /home/tricaric/boinc/ /home/tricaric/boinc/lib/ /home/tricaric/boinc/tools/ /home/tricaric/boinc/sched/ /home/tricaric/boinc/db/ /usr/include/mysql/
-	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads /home/tricaric/boinc/api/libboinc_api.a /home/tricaric/boinc/lib/libboinc.a -lmysqlclient -lssl -lcrypto
+	INCLUDEPATH += /home/buck/Code/orsa/boinc/ /home/buck/Code/orsa/boinc/lib/ /home/buck/Code/orsa/boinc/tools/ /home/buck/Code/orsa/boinc/sched/ /home/buck/Code/orsa/boinc/db/ /usr/include/mysql/
+	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads /home/buck/Code/orsa/boinc/api/libboinc_api.a /home/buck/Code/orsa/boinc/lib/libboinc.a -lmysqlclient -lssl -lcrypto
 }
 
 # BOINC sources, needed
-SOURCES += /home/tricaric/boinc/db/boinc_db.cpp /home/tricaric/boinc/db/db_base.cpp /home/tricaric/boinc/sched/sched_msgs.cpp /home/tricaric/boinc/sched/sched_util.cpp /home/tricaric/boinc/sched/sched_config.cpp /home/tricaric/boinc/tools/backend_lib.cpp /home/tricaric/boinc/tools/process_result_template.cpp /home/tricaric/boinc/lib/crypt.cpp
+SOURCES += /home/buck/Code/orsa/boinc/db/boinc_db.cpp /home/buck/Code/orsa/boinc/db/db_base.cpp /home/buck/Code/orsa/boinc/sched/sched_msgs.cpp /home/buck/Code/orsa/boinc/sched/sched_util.cpp /home/buck/Code/orsa/boinc/sched/sched_config.cpp /home/buck/Code/orsa/boinc/tools/backend_lib.cpp /home/buck/Code/orsa/boinc/tools/process_result_template.cpp /home/buck/Code/orsa/boinc/lib/crypt.cpp
 
 HEADERS += SurveyReviewWorkGenerator.h
 SOURCES += SurveyReviewWorkGenerator.cpp

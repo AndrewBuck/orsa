@@ -1,0 +1,36 @@
+Documentation for the SQL Database table design.
+
+The main table in the SQL DB is the objects table.  It stores the orbits of
+objects using their keplerian elements relative to some other body.  The body
+these elements are relative to is specified in the 'referenceObject' field
+which is a foreign key reference to the 'id' field in the objects table.
+The meaning of this feild is as follows.
+
+*  If the 'referenceObject' is NULL, then the reference object is the one
+   specified in the dropdown box at runtime in 'Add Objects Window' in Qorsa.
+
+*  If the 'referenceObject' references the body itself (e.g. the objects
+   'id' is 7 and the 'referenceObject' is also 7), then the object's keplerian
+   elements are ignored and its position and velocity are set to (0,0,0) at the
+   epoch defined in the 'epoch' DB field.
+
+*  For all other values, the 'referenceObject' must reference a valid object in
+   the system, this is enforced by the DB engine by the foreign key constraint.
+
+When objects are imported from the database, if the import is limited by a
+'where' clause given to the SQL select statement and the where clause prevents
+some of the referenced objects from being included in the resultset, then Qorsa
+will perform additional queries to properly resolve the reference objects
+according to the rules above.  Additionally Qorsa will keep resolving parent
+bodies until the reference chain eventually terminates either at a NULL value,
+indicating the reference is ultimately relative to the user defined object, or
+until 'referenceObject' == 'id' meaning the ref object should sit at the
+origin.  This reference chain dependancy list will be maintained in memory for
+the objects imported by the Add Objects Window, the recursively resolved
+objects themselves will not be added to the "object selection box", but the
+initiating body (the one that started the recursive resolution) will be.  If
+the initiating body is then added to the "selected objects" box, the recursive
+references will be added to the box as well so that the gravitational
+interactions will be as expected (i.e. the orbiting object will not just fly
+off into space because the parent body does not exist).
+

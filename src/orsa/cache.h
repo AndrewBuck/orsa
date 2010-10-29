@@ -1,7 +1,7 @@
 #ifndef _ORSA_CACHE_
 #define _ORSA_CACHE_
 
-#include <QQueue>
+#include <QtCore/QQueue>
 
 #define ORSA_CACHE_GET_CHECK 1
 

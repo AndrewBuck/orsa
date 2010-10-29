@@ -9,9 +9,9 @@
 #include <orsa/double.h>
 #include <orsa/cache.h>
 
-#include <QMetaType>
-#include <QObject>
-#include <QTime>
+#include <QtCore/QMetaType>
+#include <QtCore/QObject>
+#include <QtCore/QTime>
 
 namespace orsaOSG {
   

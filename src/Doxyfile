@@ -6,7 +6,7 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = ORSA
 PROJECT_NUMBER         = 1.0.0
-OUTPUT_DIRECTORY       = /home/tricaric/orsa/src/
+OUTPUT_DIRECTORY       = /home/buck/Code/orsa/orsa/src/
 CREATE_SUBDIRS         = YES
 OUTPUT_LANGUAGE        = English
 BRIEF_MEMBER_DESC      = YES
@@ -25,7 +25,7 @@ ABBREVIATE_BRIEF       = "The $name class  " \
 ALWAYS_DETAILED_SEC    = NO
 INLINE_INHERITED_MEMB  = NO
 FULL_PATH_NAMES        = YES
-STRIP_FROM_PATH        = /home/tricaric/orsa/src/
+STRIP_FROM_PATH        = /home/buck/Code/orsa/orsa/src/
 STRIP_FROM_INC_PATH    = 
 SHORT_NAMES            = NO
 JAVADOC_AUTOBRIEF      = NO
@@ -85,15 +85,15 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = /home/tricaric/orsa/src/ \
-                         /home/tricaric/orsa/src/orsa/ \
-                         /home/tricaric/orsa/src/orsaInputOutput/ \
-                         /home/tricaric/orsa/src/orsaOSG/ \
-                         /home/tricaric/orsa/src/orsaQt/ \
-                         /home/tricaric/orsa/src/orsaSolarSystem/ \
-                         /home/tricaric/orsa/src/orsaSPICE/ \
-                         /home/tricaric/orsa/src/orsaTBB/ \
-                         /home/tricaric/orsa/src/orsaEssentialOSG/
+INPUT                  = /home/buck/Code/orsa/orsa/src/ \
+                         /home/buck/Code/orsa/orsa/src/orsa/ \
+                         /home/buck/Code/orsa/orsa/src/orsaInputOutput/ \
+                         /home/buck/Code/orsa/orsa/src/orsaOSG/ \
+                         /home/buck/Code/orsa/orsa/src/orsaQt/ \
+                         /home/buck/Code/orsa/orsa/src/orsaSolarSystem/ \
+                         /home/buck/Code/orsa/orsa/src/orsaSPICE/ \
+                         /home/buck/Code/orsa/orsa/src/orsaTBB/ \
+                         /home/buck/Code/orsa/orsa/src/orsaEssentialOSG/
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.c \
                          *.cc \

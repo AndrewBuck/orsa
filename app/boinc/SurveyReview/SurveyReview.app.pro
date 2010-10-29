@@ -19,13 +19,13 @@ OBJECTS_DIR = .obj/$${PLATFORM_NAME}
 DESTDIR     = ../../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
-	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads -lorsaUtil /home/tricaric/boinc/api/libboinc_api.a /home/tricaric/boinc/lib/libboinc.a -L/home/tricaric/sqlite -lsqlite3
+	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads -lorsaUtil /home/buck/Code/orsa/boinc/api/libboinc_api.a /home/buck/Code/orsa/boinc/lib/libboinc.a -L/home/buck/Code/orsa/sqlite -lsqlite3
 }
 
 macx {
 	QMAKE_LFLAGS += -static-libgcc
 	LIBS += -L../../../lib/$${PLATFORM_NAME} -lorsa -lorsaInputOutput -lorsaSolarSystem -lorsaSPICE -lorsaEssentialOSG -lOpenThreads -lorsaUtil
-	SOURCES += /Users/tricaric/sqlite/sqlite-3.6.23.1/sqlite3.c
+	SOURCES += /Users/buck/Code/orsa/sqlite/sqlite-3.6.23.1/sqlite3.c
 }
 
 win32 {

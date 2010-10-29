@@ -2,6 +2,6 @@ include(../orsa.pri)
 
 TEMPLATE = subdirs
 
-SUBDIRS += boinc RendezvousWithVesta
+SUBDIRS += Qorsa
 
 CONFIG += ordered
