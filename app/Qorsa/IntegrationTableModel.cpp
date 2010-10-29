@@ -37,14 +37,14 @@ QVariant IntegrationTableModel::data(const QModelIndex & index, int role) const
 			case 1: return int(integrationList.at(index.row())->getBodyList().size());        break;
 
 			case 2:
-				integrationList.at(index.row())->getGlobalInterval(startTime, endTime);
+				integrationList.at(index.row())->getGlobalInterval(startTime, endTime, false);
 				//TODO: This should be moved into the orsa library.
 				orsaSolarSystem::gregorDay(startTime, y, m, d, H, M, S, ms);
 				tempSS << y << "-" << m << "-" << d << " " << H << ":" << M << ":" << S << "." << ms/1e6;
 				return tempSS.str().c_str();
 				break;
 			case 3:
-				integrationList.at(index.row())->getGlobalInterval(startTime, endTime);
+				integrationList.at(index.row())->getGlobalInterval(startTime, endTime, false);
 				//TODO: This should be moved into the orsa library.
 				orsaSolarSystem::gregorDay(endTime, y, m, d, H, M, S, ms);
 				tempSS << y << "-" << m << "-" << d << " " << H << ":" << M << ":" << S << "." << ms/1e6;
