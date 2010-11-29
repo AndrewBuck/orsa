@@ -23,16 +23,23 @@ AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawni
 	graphGroupBox->setCheckable(true);
 	graphGroupBox->setChecked(false);
 	graphGridLayout = new QGridLayout();
-	graphTypeXLabel = new QLabel("Graph Type X");
+	graphTypeXLabel = new QLabel("Horizontal\nAxis");
+	//TODO:  Make a QWidget for this.
 	graphTypeXComboBox = new QComboBox();
 	graphTypeXComboBox->addItem("X", BodyDataAccessor::XData);
 	graphTypeXComboBox->addItem("Y", BodyDataAccessor::YData);
 	graphTypeXComboBox->addItem("Z", BodyDataAccessor::ZData);
-	graphTypeYLabel = new QLabel("Graph Type Y");
+	graphTypeXComboBox->addItem("VX", BodyDataAccessor::VXData);
+	graphTypeXComboBox->addItem("VY", BodyDataAccessor::VYData);
+	graphTypeXComboBox->addItem("VZ", BodyDataAccessor::VZData);
+	graphTypeYLabel = new QLabel("Vertical\nAxis");
 	graphTypeYComboBox = new QComboBox();
 	graphTypeYComboBox->addItem("X", BodyDataAccessor::XData);
 	graphTypeYComboBox->addItem("Y", BodyDataAccessor::YData);
 	graphTypeYComboBox->addItem("Z", BodyDataAccessor::ZData);
+	graphTypeYComboBox->addItem("VX", BodyDataAccessor::VXData);
+	graphTypeYComboBox->addItem("VY", BodyDataAccessor::VYData);
+	graphTypeYComboBox->addItem("VZ", BodyDataAccessor::VZData);
 	graphTypeYComboBox->setCurrentIndex(1);
 	graph = new QwtPlot();
 	graphGridLayout->addWidget(graphTypeXLabel, 0, 0);
@@ -106,7 +113,14 @@ void AnalyzeIntegrationWindow::performAnalysisButtonPressed()
 		// Clear the old list of data accessors and create a list based on the current selection and axis settings.
 		// Also create a plot curve for each item and attach it to the graph.
 		graphDataAccessors.clear();
-		//FIXME:  Need to clear the old list of graphPlotCurves and detach them from the graph.
+
+		// Clear the old list of graphPlotCurves and detach them from the graph.
+		for(int i = 0; i < graphPlotCurves.size(); i++)
+		{
+			graphPlotCurves[i]->detach();
+		}
+		graphPlotCurves.clear();
+
 		for(int i = 0; i < selectedRows.size(); i++)
 		{
 			graphDataAccessors.append(BodyDataAccessor(bodyGroup, objectSelectionTableModel->getBody(selectedRows[i].row())));
@@ -153,6 +167,10 @@ double BodyDataAccessor::getDataItem(Axis axis, size_t i) const
 		case XData:  return bodyInterval->getData()[i].translational->position().getX();  break;
 		case YData:  return bodyInterval->getData()[i].translational->position().getY();  break;
 		case ZData:  return bodyInterval->getData()[i].translational->position().getZ();  break;
+
+		case VXData:  return bodyInterval->getData()[i].translational->velocity().getX();  break;
+		case VYData:  return bodyInterval->getData()[i].translational->velocity().getY();  break;
+		case VZData:  return bodyInterval->getData()[i].translational->velocity().getZ();  break;
 	}
 }
 

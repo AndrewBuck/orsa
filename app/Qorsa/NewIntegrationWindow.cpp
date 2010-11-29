@@ -21,8 +21,11 @@ NewIntegrationWindow::NewIntegrationWindow(MainWindow *nSpawningWindow, QWidget 
 	integratorLabel = new QLabel("Integrator");
 	startDateEdit = new QDateEdit();
 	endDateEdit = new QDateEdit();
+	QDate defaultEpochDate(2010, 7, 23);
+	startDateEdit->setDate(defaultEpochDate);
 	startDateEdit->setCalendarPopup(true);
 	endDateEdit->setCalendarPopup(true);
+	endDateEdit->setDate(defaultEpochDate.addDays(1));
 	startTimeEdit = new QTimeEdit();
 	endTimeEdit = new QTimeEdit();
 	timeStepLineEdit = new QLineEdit("1");
