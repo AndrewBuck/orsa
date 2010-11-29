@@ -13,12 +13,16 @@
 #include <qwt-qt4/qwt_plot.h>
 #include <qwt-qt4/qwt_plot_curve.h>
 
+#include <qwt3d_plot3d.h>
+
 #include <orsa/bodygroup.h>
 
 #include "BodyTableModel.h"
 #include "IntegrationTableView.h"
 
 class BodyDataAccessor;
+class AnalyzeIntegrationSubwindow;
+class AnalyzeIntegrationGraphSubwindow;
 
 class AnalyzeIntegrationWindow : public QWidget
 {
@@ -47,18 +51,7 @@ class AnalyzeIntegrationWindow : public QWidget
 
 		QGroupBox *tableGroupBox;
 
-		QGroupBox *graphGroupBox;
-		QWidget *graphWidget;
-		QGridLayout *graphWidgetGridLayout;
-		QGridLayout *graphGridLayout;
-		QPushButton *graphReplotButton;
-		QLabel *graphTypeXLabel;
-		QComboBox *graphTypeXComboBox;
-		QLabel *graphTypeYLabel;
-		QComboBox *graphTypeYComboBox;
-		QList<BodyDataAccessor> graphDataAccessors;
-		QList<QwtPlotCurve*> graphPlotCurves;
-		QwtPlot *graph;
+		AnalyzeIntegrationGraphSubwindow *graphWidget;
 
 		QPushButton *performAnalysisPushButton;
 
@@ -99,6 +92,35 @@ class BodyDataAccessor : public QwtData
 		const orsa::BodyGroup *bodyGroup;
 		const orsa::Body *body;
 		const orsa::BodyGroup::BodyInterval *bodyInterval;
+};
+
+class AnalyzeIntegrationSubwindow : public QWidget
+{
+	Q_OBJECT
+
+	public:
+		AnalyzeIntegrationSubwindow();
+};
+
+class AnalyzeIntegrationGraphSubwindow : public AnalyzeIntegrationSubwindow
+{
+	Q_OBJECT
+
+	public:
+		AnalyzeIntegrationGraphSubwindow();
+
+	protected:
+		QGroupBox *graphGroupBox;
+		QGridLayout *graphWidgetGridLayout;
+		QGridLayout *graphGridLayout;
+		QPushButton *graphReplotButton;
+		QLabel *graphTypeXLabel;
+		QComboBox *graphTypeXComboBox;
+		QLabel *graphTypeYLabel;
+		QComboBox *graphTypeYComboBox;
+		QList<BodyDataAccessor> graphDataAccessors;
+		QList<QwtPlotCurve*> graphPlotCurves;
+		QwtPlot *graph;
 };
 
 #endif

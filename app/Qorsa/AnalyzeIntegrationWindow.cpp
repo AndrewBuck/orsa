@@ -19,46 +19,8 @@ AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawni
 	tableGroupBox->setChecked(false);
 	mainGridLayout->addWidget(tableGroupBox, 0, 0);
 
-	graphGroupBox = new QGroupBox("Graph", NULL);
-	graphWidget = new QWidget();
-	graphWidget->resize(960, 768);
-	graphWidget->show();
-	graphWidgetGridLayout = new QGridLayout();
-	graphWidgetGridLayout->addWidget(graphGroupBox, 0, 1);
-	graphWidget->setLayout(graphWidgetGridLayout);
-	graphGroupBox->setCheckable(true);
-	graphGroupBox->setChecked(false);
-	graphGridLayout = new QGridLayout();
-	graphReplotButton = new QPushButton("Replot");
-	QObject::connect(graphReplotButton, SIGNAL(released()), this, SLOT(performAnalysisButtonPressed()));
-	graphTypeXLabel = new QLabel("Horizontal\nAxis");
-	//TODO:  Make a QWidget for this.
-	graphTypeXComboBox = new QComboBox();
-	graphTypeXComboBox->addItem("X", BodyDataAccessor::XData);
-	graphTypeXComboBox->addItem("Y", BodyDataAccessor::YData);
-	graphTypeXComboBox->addItem("Z", BodyDataAccessor::ZData);
-	graphTypeXComboBox->addItem("VX", BodyDataAccessor::VXData);
-	graphTypeXComboBox->addItem("VY", BodyDataAccessor::VYData);
-	graphTypeXComboBox->addItem("VZ", BodyDataAccessor::VZData);
-	graphTypeXComboBox->addItem("Time", BodyDataAccessor::TData);
-	graphTypeYLabel = new QLabel("Vertical\nAxis");
-	graphTypeYComboBox = new QComboBox();
-	graphTypeYComboBox->addItem("X", BodyDataAccessor::XData);
-	graphTypeYComboBox->addItem("Y", BodyDataAccessor::YData);
-	graphTypeYComboBox->addItem("Z", BodyDataAccessor::ZData);
-	graphTypeYComboBox->addItem("VX", BodyDataAccessor::VXData);
-	graphTypeYComboBox->addItem("VY", BodyDataAccessor::VYData);
-	graphTypeYComboBox->addItem("VZ", BodyDataAccessor::VZData);
-	graphTypeYComboBox->addItem("Time", BodyDataAccessor::TData);
-	graphTypeYComboBox->setCurrentIndex(1);
-	graph = new QwtPlot();
-	graphGridLayout->addWidget(graphReplotButton, 0, 0);
-	graphGridLayout->addWidget(graphTypeXLabel, 0, 1);
-	graphGridLayout->addWidget(graphTypeXComboBox, 0, 2);
-	graphGridLayout->addWidget(graphTypeYLabel, 0, 3);
-	graphGridLayout->addWidget(graphTypeYComboBox, 0, 4);
-	graphGridLayout->addWidget(graph, 3, 0, 1, -1);
-	graphGroupBox->setLayout(graphGridLayout);
+	graphWidget = new AnalyzeIntegrationGraphSubwindow();
+	//QObject::connect(graphReplotButton, SIGNAL(released()), this, SLOT(performAnalysisButtonPressed()));
 	//mainGridLayout->addWidget(graphGroupBox, 0, 1);
 
 	performAnalysisPushButton = new QPushButton("Perform Analysis on Selected Bodies");
@@ -205,5 +167,54 @@ double BodyDataAccessor::x(size_t i) const
 double BodyDataAccessor::y(size_t i) const
 {
 	return getDataItem(YAxis, i);
+}
+
+AnalyzeIntegrationSubwindow::AnalyzeIntegrationSubwindow()
+	: QWidget()
+{
+}
+
+AnalyzeIntegrationGraphSubwindow::AnalyzeIntegrationGraphSubwindow()
+	: AnalyzeIntegrationSubwindow()
+{
+	graphGroupBox = new QGroupBox("Graph", NULL);
+	resize(960, 768);
+	show();
+	graphWidgetGridLayout = new QGridLayout();
+	graphWidgetGridLayout->addWidget(graphGroupBox, 0, 1);
+	setLayout(graphWidgetGridLayout);
+	graphGroupBox->setCheckable(true);
+	graphGroupBox->setChecked(false);
+	graphGridLayout = new QGridLayout();
+	graphReplotButton = new QPushButton("Replot");
+
+	graphTypeXLabel = new QLabel("Horizontal\nAxis");
+	//TODO:  Make a QWidget for this.
+	graphTypeXComboBox = new QComboBox();
+	graphTypeXComboBox->addItem("X", BodyDataAccessor::XData);
+	graphTypeXComboBox->addItem("Y", BodyDataAccessor::YData);
+	graphTypeXComboBox->addItem("Z", BodyDataAccessor::ZData);
+	graphTypeXComboBox->addItem("VX", BodyDataAccessor::VXData);
+	graphTypeXComboBox->addItem("VY", BodyDataAccessor::VYData);
+	graphTypeXComboBox->addItem("VZ", BodyDataAccessor::VZData);
+	graphTypeXComboBox->addItem("Time", BodyDataAccessor::TData);
+	graphTypeYLabel = new QLabel("Vertical\nAxis");
+	graphTypeYComboBox = new QComboBox();
+	graphTypeYComboBox->addItem("X", BodyDataAccessor::XData);
+	graphTypeYComboBox->addItem("Y", BodyDataAccessor::YData);
+	graphTypeYComboBox->addItem("Z", BodyDataAccessor::ZData);
+	graphTypeYComboBox->addItem("VX", BodyDataAccessor::VXData);
+	graphTypeYComboBox->addItem("VY", BodyDataAccessor::VYData);
+	graphTypeYComboBox->addItem("VZ", BodyDataAccessor::VZData);
+	graphTypeYComboBox->addItem("Time", BodyDataAccessor::TData);
+	graphTypeYComboBox->setCurrentIndex(1);
+	graph = new QwtPlot();
+	graphGridLayout->addWidget(graphReplotButton, 0, 0);
+	graphGridLayout->addWidget(graphTypeXLabel, 0, 1);
+	graphGridLayout->addWidget(graphTypeXComboBox, 0, 2);
+	graphGridLayout->addWidget(graphTypeYLabel, 0, 3);
+	graphGridLayout->addWidget(graphTypeYComboBox, 0, 4);
+	graphGridLayout->addWidget(graph, 3, 0, 1, -1);
+	graphGroupBox->setLayout(graphGridLayout);
 }
 
