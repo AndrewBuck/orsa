@@ -10,7 +10,7 @@ AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawni
 	spawningWindow = nSpawningWindow;
 	bodyGroup = ((IntegrationTableModel*)spawningWindow->model())->getIntegration(index);
 
-	resize(800, 600);
+	resize(570, 768);
 
 	mainGridLayout = new QGridLayout();
 
@@ -19,10 +19,18 @@ AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawni
 	tableGroupBox->setChecked(false);
 	mainGridLayout->addWidget(tableGroupBox, 0, 0);
 
-	graphGroupBox = new QGroupBox("Graph");
+	graphGroupBox = new QGroupBox("Graph", NULL);
+	graphWidget = new QWidget();
+	graphWidget->resize(960, 768);
+	graphWidget->show();
+	graphWidgetGridLayout = new QGridLayout();
+	graphWidgetGridLayout->addWidget(graphGroupBox, 0, 1);
+	graphWidget->setLayout(graphWidgetGridLayout);
 	graphGroupBox->setCheckable(true);
 	graphGroupBox->setChecked(false);
 	graphGridLayout = new QGridLayout();
+	graphReplotButton = new QPushButton("Replot");
+	QObject::connect(graphReplotButton, SIGNAL(released()), this, SLOT(performAnalysisButtonPressed()));
 	graphTypeXLabel = new QLabel("Horizontal\nAxis");
 	//TODO:  Make a QWidget for this.
 	graphTypeXComboBox = new QComboBox();
@@ -32,6 +40,7 @@ AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawni
 	graphTypeXComboBox->addItem("VX", BodyDataAccessor::VXData);
 	graphTypeXComboBox->addItem("VY", BodyDataAccessor::VYData);
 	graphTypeXComboBox->addItem("VZ", BodyDataAccessor::VZData);
+	graphTypeXComboBox->addItem("Time", BodyDataAccessor::TData);
 	graphTypeYLabel = new QLabel("Vertical\nAxis");
 	graphTypeYComboBox = new QComboBox();
 	graphTypeYComboBox->addItem("X", BodyDataAccessor::XData);
@@ -40,15 +49,17 @@ AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawni
 	graphTypeYComboBox->addItem("VX", BodyDataAccessor::VXData);
 	graphTypeYComboBox->addItem("VY", BodyDataAccessor::VYData);
 	graphTypeYComboBox->addItem("VZ", BodyDataAccessor::VZData);
+	graphTypeYComboBox->addItem("Time", BodyDataAccessor::TData);
 	graphTypeYComboBox->setCurrentIndex(1);
 	graph = new QwtPlot();
-	graphGridLayout->addWidget(graphTypeXLabel, 0, 0);
-	graphGridLayout->addWidget(graphTypeXComboBox, 0, 1);
-	graphGridLayout->addWidget(graphTypeYLabel, 0, 2);
-	graphGridLayout->addWidget(graphTypeYComboBox, 0, 3);
+	graphGridLayout->addWidget(graphReplotButton, 0, 0);
+	graphGridLayout->addWidget(graphTypeXLabel, 0, 1);
+	graphGridLayout->addWidget(graphTypeXComboBox, 0, 2);
+	graphGridLayout->addWidget(graphTypeYLabel, 0, 3);
+	graphGridLayout->addWidget(graphTypeYComboBox, 0, 4);
 	graphGridLayout->addWidget(graph, 3, 0, 1, -1);
 	graphGroupBox->setLayout(graphGridLayout);
-	mainGridLayout->addWidget(graphGroupBox, 0, 1);
+	//mainGridLayout->addWidget(graphGroupBox, 0, 1);
 
 	performAnalysisPushButton = new QPushButton("Perform Analysis on Selected Bodies");
 	QObject::connect(performAnalysisPushButton, SIGNAL(released()), this, SLOT(performAnalysisButtonPressed()));
@@ -171,6 +182,8 @@ double BodyDataAccessor::getDataItem(Axis axis, size_t i) const
 		case VXData:  return bodyInterval->getData()[i].translational->velocity().getX();  break;
 		case VYData:  return bodyInterval->getData()[i].translational->velocity().getY();  break;
 		case VZData:  return bodyInterval->getData()[i].translational->velocity().getZ();  break;
+
+		case TData:   return bodyInterval->getData()[i].time.get().getMuSec().get_d();  break;
 	}
 }
 

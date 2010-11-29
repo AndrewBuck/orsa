@@ -48,7 +48,10 @@ class AnalyzeIntegrationWindow : public QWidget
 		QGroupBox *tableGroupBox;
 
 		QGroupBox *graphGroupBox;
+		QWidget *graphWidget;
+		QGridLayout *graphWidgetGridLayout;
 		QGridLayout *graphGridLayout;
+		QPushButton *graphReplotButton;
 		QLabel *graphTypeXLabel;
 		QComboBox *graphTypeXComboBox;
 		QLabel *graphTypeYLabel;
