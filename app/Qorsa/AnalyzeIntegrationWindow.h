@@ -8,6 +8,7 @@
 #include <QtGui/QGroupBox>
 #include <QtGui/QTableView>
 #include <QtGui/QPushButton>
+#include <QtGui/QLineEdit>
 
 #include <qwt-qt4/qwt_data.h>
 #include <qwt-qt4/qwt_plot.h>
@@ -31,6 +32,11 @@ class AnalyzeIntegrationWindow : public QWidget
 	public:
 		AnalyzeIntegrationWindow(IntegrationTableView *nSpawningWindow, int index, QWidget *parent = NULL);
 
+		// Public datamembers
+		QTableView *objectSelectionTableView;
+		BodyTableModel *objectSelectionTableModel;
+		orsa::BodyGroup *bodyGroup;
+
 	signals:
 		void analyzeIntegrationWindowClosed();
 
@@ -42,21 +48,22 @@ class AnalyzeIntegrationWindow : public QWidget
 		void okButtonPressed();
 		void cancelButtonPressed();
 		void performAnalysisButtonPressed();
+		void spawnGraphWindow();
+		void spawnEncounterWindow();
 
 	private:
 		IntegrationTableView *spawningWindow;
-		orsa::BodyGroup *bodyGroup;
 
 		QGridLayout *mainGridLayout;
 
 		QGroupBox *tableGroupBox;
 
-		AnalyzeIntegrationGraphSubwindow *graphWidget;
+		QPushButton *spawnGraphWindowPushButton;
+		QPushButton *spawnEncounterWindowPushButton;
+
+		std::vector<AnalyzeIntegrationSubwindow*> subwindows;
 
 		QPushButton *performAnalysisPushButton;
-
-		QTableView *objectSelectionTableView;
-		BodyTableModel *objectSelectionTableModel;
 
 		QPushButton *okPushButton;
 		QPushButton *cancelPushButton;
@@ -65,7 +72,7 @@ class AnalyzeIntegrationWindow : public QWidget
 class BodyDataAccessor : public QwtData
 {
 	public:
-		enum GraphType {XData=1, YData, ZData, 
+		enum GraphType {Zero=0, XData=1, YData, ZData, 
 			VXData, VYData, VZData,
 			TData};
 
@@ -99,7 +106,12 @@ class AnalyzeIntegrationSubwindow : public QWidget
 	Q_OBJECT
 
 	public:
-		AnalyzeIntegrationSubwindow();
+		AnalyzeIntegrationSubwindow(AnalyzeIntegrationWindow *nSpawningWindow, QWidget *parent = NULL);
+
+		virtual void performAnalysis();
+
+	protected:
+		AnalyzeIntegrationWindow *spawningWindow;
 };
 
 class AnalyzeIntegrationGraphSubwindow : public AnalyzeIntegrationSubwindow
@@ -107,7 +119,9 @@ class AnalyzeIntegrationGraphSubwindow : public AnalyzeIntegrationSubwindow
 	Q_OBJECT
 
 	public:
-		AnalyzeIntegrationGraphSubwindow();
+		AnalyzeIntegrationGraphSubwindow(AnalyzeIntegrationWindow *nSpawningWindow, QWidget *parent = NULL);
+
+		void performAnalysis();
 
 	protected:
 		QGroupBox *graphGroupBox;
@@ -121,6 +135,52 @@ class AnalyzeIntegrationGraphSubwindow : public AnalyzeIntegrationSubwindow
 		QList<BodyDataAccessor> graphDataAccessors;
 		QList<QwtPlotCurve*> graphPlotCurves;
 		QwtPlot *graph;
+};
+
+class AnalyzeIntegrationEncounterSubwindow : public AnalyzeIntegrationSubwindow
+{
+	Q_OBJECT
+
+	public:
+		AnalyzeIntegrationEncounterSubwindow(AnalyzeIntegrationWindow *nSpawningWindow, QWidget *parent = NULL);
+
+		void performAnalysis();
+
+		class EncounterResult
+		{
+			public:
+				EncounterResult(const orsa::Body *nb1, const orsa::Body *nb2, double nDistSquared, orsa::Time nTime)
+				{ b1 = nb1;   b2 = nb2;   distSquared = nDistSquared;  time = nTime; }
+
+				const orsa::Body *b1, *b2;
+				orsa::Time time;
+				double getDistance() {return sqrt(distSquared);}
+				double getDistanceSquared() {return distSquared;}
+				orsa::Vector getRelVel(orsa::BodyGroup *bg)
+{
+	orsa::Vector v1, v2;
+
+	bg->getInterpolatedVelocity(v1, b1, time);
+	bg->getInterpolatedVelocity(v2, b2, time);
+
+	return v2-v1;
+}
+
+
+			private:
+				double distSquared;
+		};
+
+	protected:
+		QGroupBox *encounterGroupBox;
+		QGridLayout *encounterWidgetGridLayout;
+		QGridLayout *encounterGridLayout;
+		QPushButton *encounterRecalculateButton;
+		QList<BodyDataAccessor> dataAccessors;
+		QLabel *numStepsLabel;
+		QLabel *numResultsLabel;
+		QLineEdit *numStepsLineEdit;
+		QLineEdit *numResultsLineEdit;
 };
 
 #endif
