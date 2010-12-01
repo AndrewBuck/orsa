@@ -119,6 +119,9 @@ double BodyDataAccessor::getDataItem(Axis axis, size_t i) const
 	{
 		case XAxis:  dataType = xDataType;  break;
 		case YAxis:  dataType = yDataType;  break;
+
+		// This really should never happen, this is just here to prevent the compiler from complaining.
+		default:     dataType = xDataType;  break;
 	}
 
 	switch(dataType)
@@ -249,7 +252,8 @@ void AnalyzeIntegrationGraphSubwindow::performAnalysis()
 }
 
 AnalyzeIntegrationEncounterSubwindow::AnalyzeIntegrationEncounterSubwindow(AnalyzeIntegrationWindow *nSpawningWindow, QWidget *parent)
-	: AnalyzeIntegrationSubwindow(nSpawningWindow, parent)
+	: AnalyzeIntegrationSubwindow(nSpawningWindow, parent),
+	resultSet(nSpawningWindow->bodyGroup)
 {
 	encounterGroupBox = new QGroupBox("Encounter", NULL);
 	resize(960, 768);
@@ -275,6 +279,9 @@ AnalyzeIntegrationEncounterSubwindow::AnalyzeIntegrationEncounterSubwindow(Analy
 	encounterGridLayout->addWidget(numResultsLabel, 0, 2);
 	encounterGridLayout->addWidget(numResultsLineEdit, 0, 3);
 
+	graph = new QwtPlot();
+	encounterGridLayout->addWidget(graph, 2, 0, 1, -1);
+
 	encounterGroupBox->setLayout(encounterGridLayout);
 
 	show();
@@ -288,6 +295,7 @@ void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 	unsigned int numResults = atoi(numResultsLineEdit->text().toStdString().c_str());
 	if(encounterGroupBox->isChecked())
 	{
+		resultSet.results.clear();
 		orsa::BodyGroup::BodyList bodyList = spawningWindow->bodyGroup->getBodyList();
 
 		//TODO: Loop over the body list and remove the objects not in the selectedRows.
@@ -375,11 +383,23 @@ void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 				std::cout << "\n" << enc.getDistance() << "\t" << enc.getRelVel(spawningWindow->bodyGroup).length();
 				std::cout << "\t" << enc.b1->getName() << " - " << enc.b2->getName();
 
+				resultSet.results.push_back(*itr);
+
 				itr++;
 			}
 
 			std::cout.flush();
 		}
+
+		// Attach the resultSet (which implements the QwtData interface) to the graph.
+		graphPlotCurve.detach();
+		graphPlotCurve.setData(resultSet);
+		graphPlotCurve.setStyle(QwtPlotCurve::Dots);
+		QPen pen = graphPlotCurve.pen();
+		pen.setWidth(3);
+		graphPlotCurve.setPen(pen);
+		graphPlotCurve.attach(graph);
+		graph->replot();
 	}
 }
 

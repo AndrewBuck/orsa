@@ -150,25 +150,39 @@ class AnalyzeIntegrationEncounterSubwindow : public AnalyzeIntegrationSubwindow
 		{
 			public:
 				EncounterResult(const orsa::Body *nb1, const orsa::Body *nb2, double nDistSquared, orsa::Time nTime)
-				{ b1 = nb1;   b2 = nb2;   distSquared = nDistSquared;  time = nTime; }
+				{ b1 = nb1;   b2 = nb2;   distSquared = nDistSquared;   time = nTime; }
 
 				const orsa::Body *b1, *b2;
 				orsa::Time time;
-				double getDistance() {return sqrt(distSquared);}
-				double getDistanceSquared() {return distSquared;}
-				orsa::Vector getRelVel(orsa::BodyGroup *bg)
-{
-	orsa::Vector v1, v2;
-
-	bg->getInterpolatedVelocity(v1, b1, time);
-	bg->getInterpolatedVelocity(v2, b2, time);
-
-	return v2-v1;
-}
-
+				double getDistance() const {return sqrt(distSquared);}
+				double getDistanceSquared() const {return distSquared;}
+				orsa::Vector getRelVel(orsa::BodyGroup *bg) const
+				{
+					orsa::Vector v1, v2;
+					bg->getInterpolatedVelocity(v1, b1, time);
+					bg->getInterpolatedVelocity(v2, b2, time);
+					return v2-v1;
+				}
 
 			private:
 				double distSquared;
+		};
+
+		class EncounterResultSet : public QwtData
+		{
+			public:
+				EncounterResultSet(orsa::BodyGroup *nBg) {bg = nBg;}
+
+				// Functions inherited from QwtData.
+				QwtData *copy() const {return new EncounterResultSet(*this);}
+				size_t size() const {return results.size();}
+				double x(size_t i) const {return results[i].getDistance();}
+				double y(size_t i) const {return results[i].getRelVel(bg).length();}
+				//TODO: Implement this function since the default implementation is slow.
+				//QwtDoubleRect boundingRect() const;
+
+				orsa::BodyGroup *bg;
+				std::vector<EncounterResult> results;
 		};
 
 	protected:
@@ -181,6 +195,10 @@ class AnalyzeIntegrationEncounterSubwindow : public AnalyzeIntegrationSubwindow
 		QLabel *numResultsLabel;
 		QLineEdit *numStepsLineEdit;
 		QLineEdit *numResultsLineEdit;
+
+		EncounterResultSet resultSet;
+		QwtPlot *graph;
+		QwtPlotCurve graphPlotCurve;
 };
 
 #endif
