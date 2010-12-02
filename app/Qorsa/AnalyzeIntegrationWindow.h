@@ -12,6 +12,7 @@
 
 #include <qwt-qt4/qwt_data.h>
 #include <qwt-qt4/qwt_plot.h>
+#include <qwt-qt4/qwt_plot_zoomer.h>
 #include <qwt-qt4/qwt_plot_curve.h>
 
 #include <qwt3d_plot3d.h>
@@ -135,6 +136,7 @@ class AnalyzeIntegrationGraphSubwindow : public AnalyzeIntegrationSubwindow
 		QList<BodyDataAccessor> graphDataAccessors;
 		QList<QwtPlotCurve*> graphPlotCurves;
 		QwtPlot *graph;
+		QwtPlotZoomer *plotZoomer;
 };
 
 class AnalyzeIntegrationEncounterSubwindow : public AnalyzeIntegrationSubwindow
@@ -199,6 +201,7 @@ class AnalyzeIntegrationEncounterSubwindow : public AnalyzeIntegrationSubwindow
 		EncounterResultSet resultSet;
 		QwtPlot *graph;
 		QwtPlotCurve graphPlotCurve;
+		QwtPlotZoomer *plotZoomer;
 };
 
 #endif

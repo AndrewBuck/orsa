@@ -209,6 +209,7 @@ AnalyzeIntegrationGraphSubwindow::AnalyzeIntegrationGraphSubwindow(AnalyzeIntegr
 	graphTypeYComboBox->setCurrentIndex(1);
 
 	graph = new QwtPlot();
+	plotZoomer = new QwtPlotZoomer(graph->canvas());
 
 	graphGridLayout->addWidget(graphReplotButton, 0, 0);
 	graphGridLayout->addWidget(graphTypeXLabel, 0, 1);
@@ -247,7 +248,10 @@ void AnalyzeIntegrationGraphSubwindow::performAnalysis()
 			graphPlotCurves[i]->attach(graph);
 		}
 
+		graph->setAxisAutoScale(QwtPlot::xBottom);
+		graph->setAxisAutoScale(QwtPlot::yLeft);
 		graph->replot();
+		plotZoomer->setZoomBase();
 	}
 }
 
@@ -267,19 +271,23 @@ AnalyzeIntegrationEncounterSubwindow::AnalyzeIntegrationEncounterSubwindow(Analy
 	encounterRecalculateButton = new QPushButton("Recalculate");
 	QObject::connect(encounterRecalculateButton, SIGNAL(released()), spawningWindow, SLOT(performAnalysisButtonPressed()));
 
-	encounterGridLayout->addWidget(encounterRecalculateButton, 10, 0);
+	encounterGridLayout->addWidget(encounterRecalculateButton, 0, 0);
 
 	numStepsLabel = new QLabel("Num Steps:");
 	numResultsLabel = new QLabel("Num Results\nper Step:");
 	numStepsLineEdit = new QLineEdit("10");
 	numResultsLineEdit = new QLineEdit("50");
 
-	encounterGridLayout->addWidget(numStepsLabel, 0, 0);
-	encounterGridLayout->addWidget(numStepsLineEdit, 0, 1);
-	encounterGridLayout->addWidget(numResultsLabel, 0, 2);
-	encounterGridLayout->addWidget(numResultsLineEdit, 0, 3);
+	encounterGridLayout->addWidget(numStepsLabel, 0, 1);
+	encounterGridLayout->addWidget(numStepsLineEdit, 0, 2);
+	encounterGridLayout->addWidget(numResultsLabel, 0, 3);
+	encounterGridLayout->addWidget(numResultsLineEdit, 0, 4);
 
 	graph = new QwtPlot();
+	graph->setAxisTitle(QwtPlot::xBottom, "Relative Distance");
+	graph->setAxisTitle(QwtPlot::yLeft, "Relative Velocity");
+	plotZoomer = new QwtPlotZoomer(graph->canvas());
+
 	encounterGridLayout->addWidget(graph, 2, 0, 1, -1);
 
 	encounterGroupBox->setLayout(encounterGridLayout);
@@ -298,7 +306,26 @@ void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 		resultSet.results.clear();
 		orsa::BodyGroup::BodyList bodyList = spawningWindow->bodyGroup->getBodyList();
 
-		//TODO: Loop over the body list and remove the objects not in the selectedRows.
+		// Loop over the body list and remove the objects not in the selectedRows.
+		for(unsigned int i = 0; i < bodyList.size(); i++)
+		{
+			bool bodyFound = false;
+			for(unsigned int j = 0; j < selectedRows.size(); j++)
+			{
+				if(bodyList[i] == spawningWindow->objectSelectionTableModel->getBody(selectedRows[j].row()))
+				{
+					bodyFound = true;
+					break;
+				}
+			}
+
+			if(!bodyFound)
+			{
+				bodyList.erase(bodyList.begin() + i);
+				// Decrement i to cancel the effect of the auto increment done by the loop.
+				i--;
+			}
+		}
 
 		// Loop over the common time interval of the objects in the body group.
 		//FIXME: This really should be the common interval of just the bodies in the subset we are investigating.
@@ -399,7 +426,10 @@ void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 		pen.setWidth(3);
 		graphPlotCurve.setPen(pen);
 		graphPlotCurve.attach(graph);
+		graph->setAxisAutoScale(QwtPlot::xBottom);
+		graph->setAxisAutoScale(QwtPlot::yLeft);
 		graph->replot();
+		plotZoomer->setZoomBase();
 	}
 }
 
