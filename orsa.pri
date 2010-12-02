@@ -138,12 +138,6 @@ unix:!macx {
 	qwt_lib {
 		LIBS += -L$$ORSA_BASE/../qwt/lib/ -lqwt
 	}
-	qwtplot3d_include {
-		INCLUDEPATH += $$ORSA_BASE/../qwtplot3d/trunk/qwtplot3d/include
-	}
-	qwtplot3d_lib {
-		LIBS += -L$$ORSA_BASE/../qwtplot3d/trunk/qwtplot3d/lib -lqwtplot3d
-	}
 	spice_include {
 		INCLUDEPATH += $$ORSA_BASE/../cspice/include
 	}

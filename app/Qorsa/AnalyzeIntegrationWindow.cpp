@@ -15,11 +15,6 @@ AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawni
 
 	mainGridLayout = new QGridLayout();
 
-	tableGroupBox = new QGroupBox("Table");
-	tableGroupBox->setCheckable(true);
-	tableGroupBox->setChecked(false);
-	mainGridLayout->addWidget(tableGroupBox, 0, 0);
-
 	spawnGraphWindowPushButton = new QPushButton("Graph");
 	mainGridLayout->addWidget(spawnGraphWindowPushButton, 1, 0);
 	QObject::connect(spawnGraphWindowPushButton, SIGNAL(released()), this, SLOT(spawnGraphWindow()));

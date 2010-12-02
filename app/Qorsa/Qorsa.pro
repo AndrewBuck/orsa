@@ -4,7 +4,7 @@ TARGET   = qorsa
 
 CONFIG += qt
 
-CONFIG += qt_include     gmp_include gmp_lib      osg_include osg_lib         gsl_include gsl_lib      qwtplot3d_include qwtplot3d_lib
+CONFIG += qt_include     gmp_include gmp_lib      osg_include osg_lib         gsl_include gsl_lib
 
 QT += sql
 

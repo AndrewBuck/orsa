@@ -15,8 +15,6 @@
 #include <qwt-qt4/qwt_plot_zoomer.h>
 #include <qwt-qt4/qwt_plot_curve.h>
 
-#include <qwt3d_plot3d.h>
-
 #include <orsa/bodygroup.h>
 
 #include "BodyTableModel.h"
@@ -56,8 +54,6 @@ class AnalyzeIntegrationWindow : public QWidget
 		IntegrationTableView *spawningWindow;
 
 		QGridLayout *mainGridLayout;
-
-		QGroupBox *tableGroupBox;
 
 		QPushButton *spawnGraphWindowPushButton;
 		QPushButton *spawnEncounterWindowPushButton;
