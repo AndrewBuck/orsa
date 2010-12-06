@@ -1,4 +1,8 @@
 #include <string>
+#include <sstream>
+#include <iostream>
+
+#include <math.h>
 
 #include "AnalyzeIntegrationOppositionSubwindow.h"
 #include "IntegrationTableModel.h"
@@ -71,16 +75,68 @@ void AnalyzeIntegrationOppositionSubwindow::performAnalysis()
 {
 	if(groupBox->isChecked())
 	{
+		resultsTableViewModel->clearAllResults();
+
 		// Find the body that we are making the observations from.
 		orsa::Body::BodyID bodyID = observingBodyComboBox->itemData(observingBodyComboBox->currentIndex()).toUInt();
 		const orsa::Body *observingBody = bodyGroup->getBody(bodyID);
 		orsa::Vector r1, r2;
+
+		orsa::Time startTime, endTime, timeStep, currentTime, bestTime;
+		double dotProduct, bestDotProduct, alpha, distance;
+		bodyGroup->getCommonInterval(startTime, endTime, false);
+		int numSteps = 100;
+		timeStep = (endTime - startTime) / (double)numSteps;
 
 		// Loop over the selected bodies and calculate the opposition times for each body.
 		QModelIndexList selectedRows = spawningWindow->objectSelectionTableView->selectionModel()->selectedRows();
 		for(int i = 0; i < selectedRows.size(); i++)
 		{
 			const orsa::Body *tempBody = spawningWindow->objectSelectionTableModel->getBody(selectedRows[i].row());
+
+			currentTime = startTime;
+			bool firstSeen = true, oppositionApproaching = false;
+			for(unsigned int step = 0; step < numSteps; step++)
+			{
+				currentTime = startTime + step*timeStep;
+
+				bodyGroup->getInterpolatedPosition(r1, observingBody, currentTime);
+				bodyGroup->getInterpolatedPosition(r2, tempBody, currentTime);
+
+				//FIXME: Both r1 and r2 should have the position of the sun subtracted off of them since the location of opposition is really opposite some reference body, not just opposite from the origin.
+
+				dotProduct = orsa::internalProduct(r1, r2);
+
+				if(firstSeen)
+				{
+					firstSeen = false;
+
+					bestDotProduct = dotProduct;
+					bestTime = currentTime;
+					alpha = (180.0/M_PI)*acos(dotProduct/(r1.length()*r2.length()));
+					distance = (r2 - r1).length();
+				}
+				else
+				{
+					if(dotProduct > bestDotProduct)
+					{
+						bestDotProduct = dotProduct;
+						bestTime = currentTime;
+						alpha = (180.0/M_PI)*acos(dotProduct/(r1.length()*r2.length()));
+						distance = (r2 - r1).length();
+						oppositionApproaching = true;
+					}
+					else
+					{
+						if(oppositionApproaching)
+						{
+							resultsTableViewModel->addResult(new OppositionResult(tempBody, bestTime, alpha, distance));
+							break;
+						}
+					}
+				}
+			}
+
 		}
 	}
 }
@@ -108,13 +164,23 @@ QVariant AnalyzeIntegrationOppositionSubwindow::OppositionResultTableModel::data
 	if (index.row() >= resultList.size())
 		return QVariant();
 
+	std::stringstream tempSS;
+	int y, m, d, H, M, S, ms;
 	if (role == Qt::DisplayRole)
 	{
 		switch(index.column())
 		{
-			case 0:
-				return QString(resultList.at(index.row())->body->getName().c_str());
+			case 0: return QString(resultList.at(index.row())->body->getName().c_str());         break;
+
+			case 1:
+				//TODO: This should be moved into the orsa library.
+				orsaSolarSystem::gregorDay(resultList.at(index.row())->oppositionTime, y, m, d, H, M, S, ms);
+				tempSS << y << "-" << m << "-" << d << " " << H << ":" << M << ":" << S << "." << ms/1e6;
+				return tempSS.str().c_str();
 				break;
+
+			case 4: return resultList.at(index.row())->distance;                                 break;
+			case 5: return resultList.at(index.row())->alpha;                                    break;
 
 			default:  return QString("---");                                                     break;
 		}
@@ -144,7 +210,7 @@ QVariant AnalyzeIntegrationOppositionSubwindow::OppositionResultTableModel::head
 			case 2:   return QString("Mag");                     break;
 			case 3:   return QString("App Motion");              break;
 			case 4:   return QString("Rel Dist");                break;
-			case 5:   return QString("Rel Vel");                 break;
+			case 5:   return QString("Alpha");                   break;
 			default:  return QString("Column %1").arg(section);  break;
 		}
 	}

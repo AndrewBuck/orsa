@@ -15,9 +15,13 @@ class AnalyzeIntegrationOppositionSubwindow : public AnalyzeIntegrationSubwindow
 		class OppositionResult
 		{
 			public:
-				orsa::Body *body;
+				OppositionResult(const orsa::Body *nBody, orsa::Time nOppositionTime, double nAlpha, double nDistance)
+				{ body = nBody;  oppositionTime = nOppositionTime;  alpha = nAlpha;  distance = nDistance; }
+
+				const orsa::Body *body;
 				orsa::Time oppositionTime;
 				double alpha;
+				double distance;
 		};
 
 		class OppositionResultTableModel : public QAbstractTableModel
