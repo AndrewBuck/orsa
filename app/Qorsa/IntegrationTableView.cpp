@@ -22,6 +22,16 @@ void IntegrationTableView::contextMenuEvent(QContextMenuEvent *event)
 	}
 }
 
+AnalyzeIntegrationWindow* IntegrationTableView::getAnalyzeIntegrationWindow()
+{
+	return analyzeIntegrationWindow;
+}
+
+void IntegrationTableView::closeAnalyzeIntegrationWindow()
+{
+	analyzeIntegrationWindow->close();
+}
+
 void IntegrationTableView::analyzeIntegration()
 {
 	cout << "Analyzing Integration\n"; 

@@ -16,6 +16,8 @@ class IntegrationTableView : public QTableView
 		IntegrationTableView(QWidget *parent = NULL);
 
 		void contextMenuEvent(QContextMenuEvent *event);
+		AnalyzeIntegrationWindow* getAnalyzeIntegrationWindow();
+		void closeAnalyzeIntegrationWindow();
 
 	private slots:
 		void analyzeIntegration();

@@ -51,8 +51,13 @@ class AnalyzeIntegrationWindow : public QWidget
 		void spawnGraphWindow();
 		void spawnEncounterWindow();
 		void spawnOppositionWindow();
+		void subwindowClosedSlot(AnalyzeIntegrationSubwindow *s);
 
 	private:
+		// Private functions
+		void addSubwindow(AnalyzeIntegrationSubwindow *s);
+
+		// Private datamembers
 		IntegrationTableView *spawningWindow;
 
 		QGridLayout *mainGridLayout;
@@ -110,7 +115,12 @@ class AnalyzeIntegrationSubwindow : public QWidget
 
 		virtual void performAnalysis();
 
+	signals:
+		void subwindowClosed(AnalyzeIntegrationSubwindow *s);
+
 	protected:
+		void closeEvent(QCloseEvent *event);
+
 		AnalyzeIntegrationWindow *spawningWindow;
 };
 

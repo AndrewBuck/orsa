@@ -59,6 +59,12 @@ AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawni
 
 void AnalyzeIntegrationWindow::closeEvent(QCloseEvent *event)
 {
+	// Close all of the subwindows that were opened as a result of this one.
+	while(subwindows.size() > 0)
+	{
+		subwindows[0]->close();
+	}
+
 	emit analyzeIntegrationWindowClosed();
 }
 
@@ -86,19 +92,36 @@ void AnalyzeIntegrationWindow::performAnalysisButtonPressed()
 
 void AnalyzeIntegrationWindow::spawnGraphWindow()
 {
-	subwindows.push_back(new AnalyzeIntegrationGraphSubwindow(this));
+	addSubwindow(new AnalyzeIntegrationGraphSubwindow(this));
 }
 
 void AnalyzeIntegrationWindow::spawnEncounterWindow()
 {
-	subwindows.push_back(new AnalyzeIntegrationEncounterSubwindow(this));
+	addSubwindow(new AnalyzeIntegrationEncounterSubwindow(this));
 }
 
 void AnalyzeIntegrationWindow::spawnOppositionWindow()
 {
-	subwindows.push_back(new AnalyzeIntegrationOppositionSubwindow(this));
+	addSubwindow(new AnalyzeIntegrationOppositionSubwindow(this));
 }
 
+void AnalyzeIntegrationWindow::addSubwindow(AnalyzeIntegrationSubwindow *s)
+{
+	subwindows.push_back(s);
+	QObject::connect(s, SIGNAL(subwindowClosed(AnalyzeIntegrationSubwindow*)), this, SLOT(subwindowClosedSlot(AnalyzeIntegrationSubwindow*)));
+}
+
+void AnalyzeIntegrationWindow::subwindowClosedSlot(AnalyzeIntegrationSubwindow *s)
+{
+	for(unsigned int i = 0; i < subwindows.size(); i++)
+	{
+		if(subwindows[i] == s)
+		{
+			subwindows.erase(subwindows.begin()+i);
+			break;
+		}
+	}
+}
 
 /* ---------------------------------------------------------------------------- */
 
@@ -173,6 +196,11 @@ AnalyzeIntegrationSubwindow::AnalyzeIntegrationSubwindow(AnalyzeIntegrationWindo
 
 void AnalyzeIntegrationSubwindow::performAnalysis()
 {
+}
+
+void AnalyzeIntegrationSubwindow::closeEvent(QCloseEvent *event)
+{
+	emit subwindowClosed(this);
 }
 
 AnalyzeIntegrationGraphSubwindow::AnalyzeIntegrationGraphSubwindow(AnalyzeIntegrationWindow *nSpawningWindow, QWidget *parent)

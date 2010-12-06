@@ -172,8 +172,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	if(addObjectsWindow != NULL)
 		addObjectsWindow->close();
 
-	if(addObjectsWindow != NULL)
+	if(newIntegrationWindow != NULL)
 		newIntegrationWindow->close();
+
+	if(integrationsTableView->getAnalyzeIntegrationWindow() != NULL)
+		integrationsTableView->closeAnalyzeIntegrationWindow();
 
 	QMainWindow::closeEvent(event);
 }

@@ -75,7 +75,7 @@ class MainWindow : public QMainWindow
 		QWidget *integrationsWidget;
 		QVBoxLayout *integrationsVBoxLayout;
 		QLabel *integrationsLabel;
-		QTableView *integrationsTableView;
+		IntegrationTableView *integrationsTableView;
 		IntegrationTableModel *integrationsTableModel;
 		QPushButton *newIntegrationPushButton;
 
