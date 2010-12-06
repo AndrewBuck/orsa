@@ -283,7 +283,16 @@ AnalyzeIntegrationEncounterSubwindow::AnalyzeIntegrationEncounterSubwindow(Analy
 	graph->setAxisTitle(QwtPlot::yLeft, "Relative Velocity");
 	plotZoomer = new QwtPlotZoomer(graph->canvas());
 
-	encounterGridLayout->addWidget(graph, 2, 0, 1, -1);
+	resultsTableView = new QTableView();
+	resultsTableViewModel = new ResultTableModel();
+	resultsTableView->setModel(resultsTableViewModel);
+	resultsTableView->setSortingEnabled(true);
+
+	splitter = new QSplitter(Qt::Horizontal);
+	splitter->addWidget(graph);
+	splitter->addWidget(resultsTableView);
+
+	encounterGridLayout->addWidget(splitter, 2, 0, 1, -1);
 
 	encounterGroupBox->setLayout(encounterGridLayout);
 
@@ -305,7 +314,7 @@ void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 		for(unsigned int i = 0; i < bodyList.size(); i++)
 		{
 			bool bodyFound = false;
-			for(unsigned int j = 0; j < selectedRows.size(); j++)
+			for(int j = 0; j < selectedRows.size(); j++)
 			{
 				if(bodyList[i] == spawningWindow->objectSelectionTableModel->getBody(selectedRows[j].row()))
 				{
@@ -337,7 +346,8 @@ void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 			orsa::print(currentTime);
 
 			// Loop over all pairs of objects and compute their separation distance.
-			std::list<EncounterResult> closeEncounters;
+			std::list<EncounterResult*> closeEncounters;
+			//FIXME: Since this list contains pointers when it is cleared the objects pointed to should eventually be deleted.
 			closeEncounters.clear();
 			for(unsigned int i = 0; i < bodyList.size(); i++)
 			{
@@ -356,31 +366,31 @@ void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 
 					if(closeEncounters.size() == 0)
 					{
-						closeEncounters.push_back(EncounterResult(bodyList[i], bodyList[j], distSquared, currentTime));
+						closeEncounters.push_back(new EncounterResult(spawningWindow->bodyGroup, bodyList[i], bodyList[j], distSquared, currentTime));
 					}
 					else
 					{
 						// Loop backwards over the list of closest encounters seen thus far this time step and try to find where this one fits in.
-						std::list<EncounterResult>::reverse_iterator itr = closeEncounters.rbegin();
-						std::list<EncounterResult>::reverse_iterator nextItr;
-						std::list<EncounterResult>::iterator forwardItr;
+						std::list<EncounterResult*>::reverse_iterator itr = closeEncounters.rbegin();
+						std::list<EncounterResult*>::reverse_iterator nextItr;
+						std::list<EncounterResult*>::iterator forwardItr;
 						while(itr != closeEncounters.rend())
 						{
 							nextItr = itr;
 							nextItr++;
 							if(nextItr == closeEncounters.rend())
 							{
-								if(distSquared < itr->getDistanceSquared())
+								if(distSquared < (*itr)->getDistanceSquared())
 								{
-									closeEncounters.push_front(EncounterResult(bodyList[i], bodyList[j], distSquared, currentTime));
+									closeEncounters.push_front(new EncounterResult(spawningWindow->bodyGroup, bodyList[i], bodyList[j], distSquared, currentTime));
 								}
 
 								break;
 							}
 
-							if(nextItr->getDistanceSquared() <= distSquared && distSquared <= itr->getDistanceSquared())
+							if((*nextItr)->getDistanceSquared() <= distSquared && distSquared <= (*itr)->getDistanceSquared())
 							{
-								closeEncounters.insert(nextItr.base(), EncounterResult(bodyList[i], bodyList[j], distSquared, currentTime));
+								closeEncounters.insert(nextItr.base(), new EncounterResult(spawningWindow->bodyGroup, bodyList[i], bodyList[j], distSquared, currentTime));
 								break;
 							}
 
@@ -396,16 +406,19 @@ void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 			}
 
 			// Now that we have computed the list of close encounters for this time step, print out the results.
-			std::list<EncounterResult>::iterator itr = closeEncounters.begin();
+			std::list<EncounterResult*>::iterator itr = closeEncounters.begin();
 			std::cout << "\nDistance\tRel. Vel.\tBody 1 - Body 2";
 			std::cout << "\n--------\t---------\t------   ------\n";
 			while(itr != closeEncounters.end())
 			{
-				EncounterResult enc = *itr;
-				std::cout << "\n" << enc.getDistance() << "\t" << enc.getRelVel(spawningWindow->bodyGroup).length();
-				std::cout << "\t" << enc.b1->getName() << " - " << enc.b2->getName();
+				EncounterResult *enc = *itr;
+				std::cout << "\n" << enc->getDistance() << "\t" << enc->getRelVel(spawningWindow->bodyGroup).length();
+				std::cout << "\t" << enc->b1->getName() << " - " << enc->b2->getName();
 
 				resultSet.results.push_back(*itr);
+
+				// Add the result to the results table.
+				resultsTableViewModel->addResult(*itr);
 
 				itr++;
 			}
@@ -426,5 +439,139 @@ void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 		graph->replot();
 		plotZoomer->setZoomBase();
 	}
+}
+
+AnalyzeIntegrationEncounterSubwindow::ResultTableModel::ResultTableModel(QObject *parent)
+	: QAbstractTableModel(parent)
+{
+}
+
+int AnalyzeIntegrationEncounterSubwindow::ResultTableModel::rowCount(const QModelIndex & parent) const
+{
+	return resultList.size();
+}
+
+int AnalyzeIntegrationEncounterSubwindow::ResultTableModel::columnCount(const QModelIndex & parent) const
+{
+	return 5;
+}
+
+QVariant AnalyzeIntegrationEncounterSubwindow::ResultTableModel::data(const QModelIndex & index, int role) const
+{
+	orsa::Time tempTime;
+	stringstream tempSS;
+	int y, m, d, H, M, S, ms;
+
+	if (!index.isValid())
+		return QVariant();
+
+	if (index.row() >= resultList.size())
+		return QVariant();
+
+	if (role == Qt::DisplayRole)
+	{
+		switch(index.column())
+		{
+			case 0:
+				return QString(resultList.at(index.row())->b1->getName().c_str());
+				break;
+			case 1:
+				return QString(resultList.at(index.row())->b2->getName().c_str());
+				break;
+
+			case 2:
+				tempTime = resultList.at(index.row())->time;
+				orsaSolarSystem::gregorDay(tempTime, y, m, d, H, M, S, ms);
+				tempSS << y << "-" << m << "-" << d << " " << H << ":" << M << ":" << S << "." << ms/1e6;
+				return tempSS.str().c_str();
+				break;
+
+			case 3:
+				return resultList.at(index.row())->getDistance();
+				break;
+
+			case 4:
+				return resultList.at(index.row())->getRelVel(resultList.at(index.row())->bodyGroup).length();
+				break;
+
+			default:  return QString("---");                                                     break;
+		}
+
+		//QVariant tempVariant(QVariant::UserType);
+		//tempVariant.setValue(bodyList.at(index.row()));
+		//return tempVariant;
+	}
+	else
+	{
+		return QVariant();
+	}
+}
+
+QVariant AnalyzeIntegrationEncounterSubwindow::ResultTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+	if(role != Qt::DisplayRole)
+		return QVariant();
+
+	// For the labels across the top of the QTableView.
+	if(orientation == Qt::Horizontal)
+	{
+		switch(section)
+		{
+			case 0:   return QString("Body 1");                  break;
+			case 1:   return QString("Body 2");                  break;
+			case 2:   return QString("Date");                    break;
+			case 3:   return QString("Rel Dist");                break;
+			case 4:   return QString("Rel Vel.");                break;
+			default:  return QString("Column %1").arg(section);  break;
+		}
+	}
+	// For the labels across down the side of the QTableView.
+	else if(orientation == Qt::Vertical)
+	{
+		return section+1;
+	}
+
+	return QVariant();
+}
+
+void AnalyzeIntegrationEncounterSubwindow::ResultTableModel::sort(int column, Qt::SortOrder order)
+{
+}
+
+void AnalyzeIntegrationEncounterSubwindow::ResultTableModel::addResult(const EncounterResult *r)
+{
+	beginResetModel();
+
+	//TODO: Check that this result has not already been added to the model.
+
+	resultList.append(r);
+
+	//TODO: Could this be optimized somehow?
+	reset();
+	endResetModel();
+}
+
+void AnalyzeIntegrationEncounterSubwindow::ResultTableModel::removeResult(int index)
+{
+	beginResetModel();
+
+	resultList.erase(resultList.begin() + index);
+
+	//TODO:  Could this be optimized somehow?
+	reset();
+	endResetModel();
+}
+
+void AnalyzeIntegrationEncounterSubwindow::ResultTableModel::clearAllResults()
+{
+	beginResetModel();
+	resultList.clear();
+	reset();
+	endResetModel();
+}
+
+const AnalyzeIntegrationEncounterSubwindow::EncounterResult* AnalyzeIntegrationEncounterSubwindow::ResultTableModel::getResult(int index)
+{
+	return resultList[index];
 }
 
