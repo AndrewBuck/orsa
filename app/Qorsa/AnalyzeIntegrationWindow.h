@@ -50,6 +50,7 @@ class AnalyzeIntegrationWindow : public QWidget
 		void performAnalysisButtonPressed();
 		void spawnGraphWindow();
 		void spawnEncounterWindow();
+		void spawnOppositionWindow();
 
 	private:
 		IntegrationTableView *spawningWindow;
@@ -58,6 +59,7 @@ class AnalyzeIntegrationWindow : public QWidget
 
 		QPushButton *spawnGraphWindowPushButton;
 		QPushButton *spawnEncounterWindowPushButton;
+		QPushButton *spawnOppositionWindowPushButton;
 
 		std::vector<AnalyzeIntegrationSubwindow*> subwindows;
 

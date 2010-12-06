@@ -3,6 +3,7 @@
 using namespace std;
 
 #include "AnalyzeIntegrationWindow.h"
+#include "AnalyzeIntegrationOppositionSubwindow.h"
 #include "IntegrationTableModel.h"
 
 AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawningWindow, int index, QWidget *parent)
@@ -22,6 +23,10 @@ AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawni
 	spawnEncounterWindowPushButton = new QPushButton("Encounter");
 	mainGridLayout->addWidget(spawnEncounterWindowPushButton, 1, 1);
 	QObject::connect(spawnEncounterWindowPushButton, SIGNAL(released()), this, SLOT(spawnEncounterWindow()));
+
+	spawnOppositionWindowPushButton = new QPushButton("Opposition");
+	mainGridLayout->addWidget(spawnOppositionWindowPushButton, 1, 2);
+	QObject::connect(spawnOppositionWindowPushButton, SIGNAL(released()), this, SLOT(spawnOppositionWindow()));
 
 	performAnalysisPushButton = new QPushButton("Perform Analysis on Selected Bodies");
 	QObject::connect(performAnalysisPushButton, SIGNAL(released()), this, SLOT(performAnalysisButtonPressed()));
@@ -87,6 +92,11 @@ void AnalyzeIntegrationWindow::spawnGraphWindow()
 void AnalyzeIntegrationWindow::spawnEncounterWindow()
 {
 	subwindows.push_back(new AnalyzeIntegrationEncounterSubwindow(this));
+}
+
+void AnalyzeIntegrationWindow::spawnOppositionWindow()
+{
+	subwindows.push_back(new AnalyzeIntegrationOppositionSubwindow(this));
 }
 
 
@@ -171,7 +181,6 @@ AnalyzeIntegrationGraphSubwindow::AnalyzeIntegrationGraphSubwindow(AnalyzeIntegr
 	graphGroupBox = new QGroupBox("Graph", NULL);
 	resize(960, 768);
 	//setTitle("Graph");
-	show();
 	graphWidgetGridLayout = new QGridLayout();
 	graphWidgetGridLayout->addWidget(graphGroupBox, 0, 1);
 	setLayout(graphWidgetGridLayout);
@@ -213,6 +222,8 @@ AnalyzeIntegrationGraphSubwindow::AnalyzeIntegrationGraphSubwindow(AnalyzeIntegr
 	graphGridLayout->addWidget(graphTypeYComboBox, 0, 4);
 	graphGridLayout->addWidget(graph, 3, 0, 1, -1);
 	graphGroupBox->setLayout(graphGridLayout);
+
+	show();
 }
 
 void AnalyzeIntegrationGraphSubwindow::performAnalysis()

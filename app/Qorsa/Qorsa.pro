@@ -19,7 +19,7 @@ OBJECTS_DIR = .obj/$${PLATFORM_NAME}
 DESTDIR     = ../../bin/$${PLATFORM_NAME}
 
 unix:!macx {
-	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaSolarSystem    -lgmp -lgmpxx          -losgViewer -losgText -losgUtil -losgGA -losgdb_freetype -losgDB -losg      -lqwt-qt4
+	LIBS += -L../../lib/$${PLATFORM_NAME} -lorsa -lorsaSolarSystem    -lgmp -lgmpxx          -lOpenThreads -losgViewer -losgText -losgUtil -losgGA -losgdb_freetype -losgDB -losg      -lqwt-qt4
 }
 
 macx {
@@ -36,6 +36,7 @@ HEADERS = MainWindow.h \
 	  IntegrationTableModel.h \
 	  IntegrationTableView.h \
 	  AnalyzeIntegrationWindow.h \
+	  AnalyzeIntegrationOppositionSubwindow.h \
 	  UnitComboBox.h \
 	  BodyTableModel.h
 
@@ -46,6 +47,7 @@ SOURCES = Qorsa.cpp \
 	  IntegrationTableModel.cpp \
 	  IntegrationTableView.cpp \
 	  AnalyzeIntegrationWindow.cpp \
+	  AnalyzeIntegrationOppositionSubwindow.cpp \
 	  UnitComboBox.cpp \
 	  BodyTableModel.cpp
 

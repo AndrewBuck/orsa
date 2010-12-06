@@ -24,8 +24,10 @@ NewIntegrationWindow::NewIntegrationWindow(MainWindow *nSpawningWindow, QWidget 
 	QDate defaultEpochDate(2010, 7, 23);
 	startDateEdit->setDate(defaultEpochDate);
 	startDateEdit->setCalendarPopup(true);
+	startDateEdit->setDisplayFormat("yyyy-MM-dd");
 	endDateEdit->setCalendarPopup(true);
 	endDateEdit->setDate(defaultEpochDate.addDays(1));
+	endDateEdit->setDisplayFormat("yyyy-MM-dd");
 	startTimeEdit = new QTimeEdit();
 	endTimeEdit = new QTimeEdit();
 	timeStepLineEdit = new QLineEdit("1");

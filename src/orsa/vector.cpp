@@ -97,3 +97,7 @@ orsa::Vector orsa::externalProduct (const orsa::Vector & lhs, const orsa::Vector
                          lhs.getZ()*rhs.getX()-lhs.getX()*rhs.getZ(),
                          lhs.getX()*rhs.getY()-lhs.getY()*rhs.getX()); 
 }
+
+double orsa::internalProduct (const Vector & lhs, const Vector & rhs) {
+    return lhs.getX()*rhs.getX() + lhs.getY()*rhs.getY() + lhs.getZ()*rhs.getZ();
+}

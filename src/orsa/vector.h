@@ -168,6 +168,9 @@ namespace orsa {
         //
         Vector & normalize();
     
+    public:
+	double dot(Vector &v);
+
     protected:
         void check() const;
     
@@ -213,6 +216,7 @@ namespace orsa {
     }
   
     Vector externalProduct (const Vector & lhs, const Vector & rhs);
+    double internalProduct (const Vector & lhs, const Vector & rhs);
   
     bool operator == (const Vector &, const Vector &);
   
