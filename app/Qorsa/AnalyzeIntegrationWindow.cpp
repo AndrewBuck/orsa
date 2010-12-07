@@ -33,7 +33,7 @@ AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawni
 	mainGridLayout->addWidget(performAnalysisPushButton, 2, 0, 1, -1);
 
 	objectSelectionTableView = new QTableView();
-	objectSelectionTableModel = new BodyTableModel();
+	objectSelectionTableModel = new BodyTableModel(bodyGroup);
 
 	proxyModel = new QSortFilterProxyModel(this);
 	proxyModel->setSourceModel(objectSelectionTableModel);

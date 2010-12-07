@@ -1,8 +1,9 @@
 #include "BodyTableModel.h"
 
-BodyTableModel::BodyTableModel(QObject *parent)
+BodyTableModel::BodyTableModel(orsa::BodyGroup *nBodyGroup, QObject *parent)
 	: QAbstractTableModel(parent)
 {
+	bodyGroup = nBodyGroup;
 }
 
 int BodyTableModel::rowCount(const QModelIndex & parent) const
@@ -29,6 +30,45 @@ QVariant BodyTableModel::data(const QModelIndex & index, int role) const
 		{
 			case 0:   return QString(bodyList.at(index.row())->getName().c_str());               break;
 			case 1:   return bodyList.at(index.row())->getInitialConditions().inertial->mass();  break;
+			case 2:
+				  if(bodyGroup != NULL)
+				  {
+					const orsa::Body *tempBody = bodyList.at(index.row());
+					orsa::Time startTime, endTime;
+					bodyGroup->getCommonInterval(startTime, endTime, false);
+					startTime = tempBody->getInitialConditions().time.get();
+					return getOrbitForBody(bodyGroup, bodyList.at(index.row()), startTime).a;
+				  }
+
+				  return "NULL";
+				  break;
+
+			case 3:
+				  if(bodyGroup != NULL)
+				  {
+					const orsa::Body *tempBody = bodyList.at(index.row());
+					orsa::Time startTime, endTime;
+					bodyGroup->getCommonInterval(startTime, endTime, false);
+					startTime = tempBody->getInitialConditions().time.get();
+					return getOrbitForBody(bodyGroup, bodyList.at(index.row()), startTime).e;
+				  }
+
+				  return "NULL";
+				  break;
+
+			case 4:
+				  if(bodyGroup != NULL)
+				  {
+					const orsa::Body *tempBody = bodyList.at(index.row());
+					orsa::Time startTime, endTime;
+					bodyGroup->getCommonInterval(startTime, endTime, false);
+					startTime = tempBody->getInitialConditions().time.get();
+					return getOrbitForBody(bodyGroup, tempBody, startTime).i;
+				  }
+
+				  return "NULL";
+				  break;
+
 			default:  return QString("---");                                                     break;
 		}
 
@@ -55,8 +95,8 @@ QVariant BodyTableModel::headerData(int section, Qt::Orientation orientation, in
 			case 0:   return QString("Name");                    break;
 			case 1:   return QString("Mass");                    break;
 			case 2:   return QString("S-maj axis");              break;
-			case 3:   return QString("eccentricity");            break;
-			case 4:   return QString("inclination");             break;
+			case 3:   return QString("Eccentricity");            break;
+			case 4:   return QString("Inclination");             break;
 			default:  return QString("Column %1").arg(section);  break;
 		}
 	}
@@ -121,5 +161,19 @@ void BodyTableModel::clearAllBodies()
 const orsa::Body* BodyTableModel::getBody(int index)
 {
 	return bodyList[index];
+}
+
+orsa::Orbit BodyTableModel::getOrbitForBody(orsa::BodyGroup *bodyGroup, const orsa::Body *b, orsa::Time t) const
+{
+	  orsa::Orbit tempOrbit;
+	  orsa::Vector bgcm, bgcmVel, relPos, relVel;
+
+	  bodyGroup->centerOfMassPosVel(bgcm, bgcmVel, t);
+	  bodyGroup->getInterpolatedPosVel(relPos, relVel, b, t);
+	  relPos -= bgcm;
+	  relVel -= bgcmVel;
+
+	  tempOrbit.compute(relPos, relVel, bodyGroup->getTotalMu(t));
+	  return tempOrbit;
 }
 

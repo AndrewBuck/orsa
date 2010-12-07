@@ -5,11 +5,12 @@
 
 #include <orsa/orbit.h>
 #include <orsa/body.h>
+#include <orsa/bodygroup.h>
 
 class BodyTableModel : public QAbstractTableModel
 {
 	public:
-		BodyTableModel(QObject *parent = NULL);
+		BodyTableModel(orsa::BodyGroup *nBodyGroup, QObject *parent = NULL);
 
 		// Functions to enable Read-only access to the model.
 		int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -23,6 +24,7 @@ class BodyTableModel : public QAbstractTableModel
 		void clearAndEraseAllBodies();
 		void clearAllBodies();
 		const orsa::Body* getBody(int index);
+		orsa::Orbit getOrbitForBody(orsa::BodyGroup *bodyGroup, const orsa::Body *b, orsa::Time t) const;
 
 		// Functions to enable Read-write access to the model.
 		//bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
@@ -30,6 +32,7 @@ class BodyTableModel : public QAbstractTableModel
 
 	private:
 		QList<const orsa::Body*> bodyList;
+		orsa::BodyGroup *bodyGroup;
 };
 
 Q_DECLARE_METATYPE(orsa::Body*)

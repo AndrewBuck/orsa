@@ -33,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
 	// Create the Table View's for the objects on the left and the integrations on the right of the main window.
 	objectsLabel = new QLabel("Objects in Universe");
 	objectsTableView = new QTableView(this);
-	objectsTableModel = new BodyTableModel();
+	objectsTableModel = new BodyTableModel(bodyGroup);
 	objectsTableView->setModel(objectsTableModel);
 	objectsTableView->setShowGrid(true);
 	objectsTableView->setSelectionBehavior(QAbstractItemView::SelectRows);

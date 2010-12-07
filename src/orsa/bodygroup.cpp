@@ -759,6 +759,23 @@ void BodyGroup::centerOfMassPosVel(orsa::Vector     & r,
     v = sum_mb_vb/sum_mb;
 }
 
+double BodyGroup::getTotalMass(orsa::Time t) {
+    double totalMass;
+    BodyList::const_iterator it = _b_list.begin();
+    while (it != _b_list.end()) {
+        double tempMass;
+        getInterpolatedMass(tempMass, *it, t);
+        totalMass += tempMass;
+        it++;
+    }
+
+    return totalMass;
+}
+
+double BodyGroup::getTotalMu(orsa::Time t) {
+    return orsa::Unit::G() * getTotalMass(t);
+}
+
 double BodyGroup::totalEnergy(const orsa::Time & t) const {
   
     orsa::Vector r,v;

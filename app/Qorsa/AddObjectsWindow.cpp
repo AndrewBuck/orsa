@@ -205,7 +205,7 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 	// Fill in the object selection group box.
 	objectSelectionVBoxLayout = new QVBoxLayout();
 	objectSelectionTableView = new QTableView();
-	objectSelectionTableModel = new BodyTableModel();
+	objectSelectionTableModel = new BodyTableModel(NULL);
 	objectSelectionTableView->setModel(objectSelectionTableModel);
 	objectSelectionTableView->setShowGrid(true);
 	objectSelectionTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -222,7 +222,7 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 	selectedObjectsHBoxLayout = new QHBoxLayout();
 	selectedObjectsOkButton = new QPushButton("Ok");
 	selectedObjectsCancelButton = new QPushButton("Cancel");
-	selectedObjectsTableModel = new BodyTableModel();
+	selectedObjectsTableModel = new BodyTableModel(NULL);
 	selectedObjectsTableView->setModel(selectedObjectsTableModel);
 	selectedObjectsTableView->setShowGrid(true);
 	selectedObjectsTableView->setSelectionBehavior(QAbstractItemView::SelectRows);

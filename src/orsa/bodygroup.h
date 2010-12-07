@@ -231,6 +231,12 @@ namespace orsa {
                                 const orsa::Time & t) const;
   
     public:
+       double getTotalMass(orsa::Time t);
+
+    public:
+       double getTotalMu(orsa::Time t);
+
+    public:
         //! total energy with respect to the barycenter
         double totalEnergy(const orsa::Time & t) const;
   
