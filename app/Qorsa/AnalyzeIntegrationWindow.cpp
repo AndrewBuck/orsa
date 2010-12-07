@@ -34,7 +34,13 @@ AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawni
 
 	objectSelectionTableView = new QTableView();
 	objectSelectionTableModel = new BodyTableModel();
-	objectSelectionTableView->setModel(objectSelectionTableModel);
+
+	proxyModel = new QSortFilterProxyModel(this);
+	proxyModel->setSourceModel(objectSelectionTableModel);
+	proxyModel->setDynamicSortFilter(true);
+	objectSelectionTableView->setModel(proxyModel);
+	objectSelectionTableView->setSortingEnabled(true);
+
 	objectSelectionTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 	objectSelectionTableView->setSelectionMode(QAbstractItemView::MultiSelection);
 	orsa::BodyGroup::BodyList bl = bodyGroup->getBodyList();
@@ -273,7 +279,7 @@ void AnalyzeIntegrationGraphSubwindow::performAnalysis()
 
 		for(int i = 0; i < selectedRows.size(); i++)
 		{
-			graphDataAccessors.append(BodyDataAccessor(spawningWindow->bodyGroup, spawningWindow->objectSelectionTableModel->getBody(selectedRows[i].row())));
+			graphDataAccessors.append(BodyDataAccessor(spawningWindow->bodyGroup, spawningWindow->objectSelectionTableModel->getBody(spawningWindow->proxyModel->mapToSource(selectedRows[i]).row())));
 			graphDataAccessors[i].xDataType = (BodyDataAccessor::GraphType)(graphTypeXComboBox->itemData(graphTypeXComboBox->currentIndex()).toInt());
 			graphDataAccessors[i].yDataType = (BodyDataAccessor::GraphType)(graphTypeYComboBox->itemData(graphTypeYComboBox->currentIndex()).toInt());
 
@@ -324,8 +330,12 @@ AnalyzeIntegrationEncounterSubwindow::AnalyzeIntegrationEncounterSubwindow(Analy
 
 	resultsTableView = new QTableView();
 	resultsTableViewModel = new ResultTableModel();
-	resultsTableView->setModel(resultsTableViewModel);
 	resultsTableView->setSortingEnabled(true);
+
+	proxyModel = new QSortFilterProxyModel(this);
+	proxyModel->setSourceModel(resultsTableViewModel);
+	proxyModel->setDynamicSortFilter(true);
+	resultsTableView->setModel(proxyModel);
 
 	splitter = new QSplitter(Qt::Horizontal);
 	splitter->addWidget(graph);
@@ -355,7 +365,7 @@ void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 			bool bodyFound = false;
 			for(int j = 0; j < selectedRows.size(); j++)
 			{
-				if(bodyList[i] == spawningWindow->objectSelectionTableModel->getBody(selectedRows[j].row()))
+				if(bodyList[i] == spawningWindow->objectSelectionTableModel->getBody(spawningWindow->proxyModel->mapToSource(selectedRows[j]).row()))
 				{
 					bodyFound = true;
 					break;
@@ -573,9 +583,20 @@ QVariant AnalyzeIntegrationEncounterSubwindow::ResultTableModel::headerData(int 
 	return QVariant();
 }
 
+/*
 void AnalyzeIntegrationEncounterSubwindow::ResultTableModel::sort(int column, Qt::SortOrder order)
 {
+	switch(column)
+	{
+		case 3:  std::sort(resultList.begin(), resultList.end(), AnalyzeIntegrationEncounterSubwindow::ResultTableModel::distanceComparitor);  break;
+	}
 }
+
+bool AnalyzeIntegrationEncounterSubwindow::ResultTableModel::distanceComparitor(const EncounterResult *r1, const EncounterResult *r2)
+{
+	return r1->getDistance() < r2->getDistance();
+}
+*/
 
 void AnalyzeIntegrationEncounterSubwindow::ResultTableModel::addResult(const EncounterResult *r)
 {

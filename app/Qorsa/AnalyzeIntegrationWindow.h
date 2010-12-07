@@ -10,6 +10,7 @@
 #include <QtGui/QPushButton>
 #include <QtGui/QLineEdit>
 #include <QtGui/QSplitter>
+#include <QtGui/QSortFilterProxyModel>
 
 #include <qwt-qt4/qwt_data.h>
 #include <qwt-qt4/qwt_plot.h>
@@ -35,6 +36,7 @@ class AnalyzeIntegrationWindow : public QWidget
 		// Public datamembers
 		QTableView *objectSelectionTableView;
 		BodyTableModel *objectSelectionTableModel;
+		QSortFilterProxyModel *proxyModel;
 		orsa::BodyGroup *bodyGroup;
 
 	signals:
@@ -208,7 +210,8 @@ class AnalyzeIntegrationEncounterSubwindow : public AnalyzeIntegrationSubwindow
 				QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
 				QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
-				void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
+				//void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
+				//static bool distanceComparitor(const EncounterResult *r1, const EncounterResult *r2);
 
 				// My functions
 				void addResult(const EncounterResult *r);
@@ -242,6 +245,7 @@ class AnalyzeIntegrationEncounterSubwindow : public AnalyzeIntegrationSubwindow
 
 		QTableView *resultsTableView;
 		ResultTableModel *resultsTableViewModel;
+		QSortFilterProxyModel *proxyModel;
 
 		QSplitter *splitter;
 

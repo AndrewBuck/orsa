@@ -419,13 +419,13 @@ void AddObjectsWindow::resolveSqlQueryResult(map<int, orsa::Body*> &referenceBod
 	tempOrbit.i = query->value(index).toDouble()*M_PI/180.0;
 
 	index = query->record().indexOf("lan");
-	tempOrbit.omega_node = query->value(index).toDouble();
+	tempOrbit.omega_node = (M_PI/180.0)*query->value(index).toDouble();
 
 	index = query->record().indexOf("peri");
-	tempOrbit.omega_pericenter = query->value(index).toDouble();
+	tempOrbit.omega_pericenter = (M_PI/180.0)*query->value(index).toDouble();
 
 	index = query->record().indexOf("anomaly");
-	tempOrbit.M = query->value(index).toDouble();
+	tempOrbit.M = (M_PI/180.0)*query->value(index).toDouble();
 
 	index = query->record().indexOf("referenceObject");
 	if(!query->isNull(index))

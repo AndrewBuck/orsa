@@ -92,7 +92,7 @@ void AnalyzeIntegrationOppositionSubwindow::performAnalysis()
 		QModelIndexList selectedRows = spawningWindow->objectSelectionTableView->selectionModel()->selectedRows();
 		for(int i = 0; i < selectedRows.size(); i++)
 		{
-			const orsa::Body *tempBody = spawningWindow->objectSelectionTableModel->getBody(selectedRows[i].row());
+			const orsa::Body *tempBody = spawningWindow->objectSelectionTableModel->getBody(spawningWindow->proxyModel->mapToSource(selectedRows[i]).row());
 
 			currentTime = startTime;
 			bool firstSeen = true, oppositionApproaching = false;
