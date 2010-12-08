@@ -242,9 +242,10 @@ void AnalyzeIntegrationEncounterSubwindow::insertResultsIntoDatabase()
 		std::cout << tempResult->b2->getName() << ")...\n";
 
 		std::stringstream tempSS;
-		tempSS << "insert into gravInteractions (name1, name2, date) values ('";
+		tempSS << "insert into gravInteractions (name1, name2, date, distance, velocity) values ('";
 		tempSS << tempResult->b1->getName() << "', '" << tempResult->b2->getName() << "', ";
-		tempSS << orsaSolarSystem::timeToJulian(tempResult->time) << ");";
+		tempSS << orsaSolarSystem::timeToJulian(tempResult->time);
+		tempSS << tempResult->getDistance() << ", " << tempResult->getRelVel(spawningWindow->bodyGroup).length() << ");";
 
 		query.prepare(tempSS.str().c_str());
 		if(query.exec())
