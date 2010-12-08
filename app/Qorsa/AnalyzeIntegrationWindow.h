@@ -53,6 +53,7 @@ class AnalyzeIntegrationWindow : public QWidget
 		void spawnGraphWindow();
 		void spawnEncounterWindow();
 		void spawnOppositionWindow();
+		void spawnConjunctionWindow();
 		void subwindowClosedSlot(AnalyzeIntegrationSubwindow *s);
 
 	private:
@@ -67,6 +68,7 @@ class AnalyzeIntegrationWindow : public QWidget
 		QPushButton *spawnGraphWindowPushButton;
 		QPushButton *spawnEncounterWindowPushButton;
 		QPushButton *spawnOppositionWindowPushButton;
+		QPushButton *spawnConjunctionWindowPushButton;
 
 		std::vector<AnalyzeIntegrationSubwindow*> subwindows;
 
@@ -126,8 +128,9 @@ class AnalyzeIntegrationSubwindow : public QWidget
 		AnalyzeIntegrationWindow *spawningWindow;
 };
 
-#include "AnalyzeIntegrationGraphSubwindow.h"
+#include "AnalyzeIntegrationConjunctionSubwindow.h"
 #include "AnalyzeIntegrationEncounterSubwindow.h"
+#include "AnalyzeIntegrationGraphSubwindow.h"
 
 #endif
 

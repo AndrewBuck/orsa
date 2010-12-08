@@ -43,7 +43,10 @@ AnalyzeIntegrationOppositionSubwindow::AnalyzeIntegrationOppositionSubwindow(Ana
 			observingBodyComboBox->addItem(QString(tempString.c_str()), QVariant(tempBody->id()));
 
 			if(tempString.compare("Earth") == 0)
+			{
 				indexOfEarth = i;
+				break;
+			}
 		}
 
 	}
@@ -54,6 +57,12 @@ AnalyzeIntegrationOppositionSubwindow::AnalyzeIntegrationOppositionSubwindow(Ana
 
 	gridLayout->addWidget(observingBodyLabel, 0, 1);
 	gridLayout->addWidget(observingBodyComboBox, 0, 2);
+
+	numTimeStepsLabel = new QLabel("Num time steps");
+	numTimeStepsLineEdit = new QLineEdit("200");
+
+	gridLayout->addWidget(numTimeStepsLabel, 0, 3);
+	gridLayout->addWidget(numTimeStepsLineEdit, 0, 4);
 
 	resultsTableView = new QTableView();
 	resultsTableViewModel = new OppositionResultTableModel();
@@ -85,7 +94,7 @@ void AnalyzeIntegrationOppositionSubwindow::performAnalysis()
 		orsa::Time startTime, endTime, timeStep, currentTime, bestTime;
 		double dotProduct, bestDotProduct, alpha, distance;
 		bodyGroup->getCommonInterval(startTime, endTime, false);
-		int numSteps = 100;
+		int numSteps = atoi(numTimeStepsLineEdit->text().toStdString().c_str());
 		timeStep = (endTime - startTime) / (double)numSteps;
 
 		// Loop over the selected bodies and calculate the opposition times for each body.

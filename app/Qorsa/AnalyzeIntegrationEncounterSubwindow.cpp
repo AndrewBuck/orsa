@@ -71,13 +71,15 @@ AnalyzeIntegrationEncounterSubwindow::AnalyzeIntegrationEncounterSubwindow(Analy
 
 void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 {
-	QModelIndexList selectedRows = spawningWindow->objectSelectionTableView->selectionModel()->selectedRows();
-
-	unsigned int numSteps = atoi(numStepsLineEdit->text().toStdString().c_str());
-	unsigned int numResults = atoi(numResultsLineEdit->text().toStdString().c_str());
 	if(encounterGroupBox->isChecked())
 	{
+		QModelIndexList selectedRows = spawningWindow->objectSelectionTableView->selectionModel()->selectedRows();
+
+		unsigned int numSteps = atoi(numStepsLineEdit->text().toStdString().c_str());
+		unsigned int numResults = atoi(numResultsLineEdit->text().toStdString().c_str());
+
 		resultSet.results.clear();
+		resultsTableViewModel->clearAllResults();
 		orsa::BodyGroup::BodyList bodyList = spawningWindow->bodyGroup->getBodyList();
 
 		// Loop over the body list and remove the objects not in the selectedRows.
@@ -244,7 +246,7 @@ void AnalyzeIntegrationEncounterSubwindow::insertResultsIntoDatabase()
 		std::stringstream tempSS;
 		tempSS << "insert into gravInteractions (name1, name2, date, distance, velocity) values ('";
 		tempSS << tempResult->b1->getName() << "', '" << tempResult->b2->getName() << "', ";
-		tempSS << orsaSolarSystem::timeToJulian(tempResult->time);
+		tempSS << orsaSolarSystem::timeToJulian(tempResult->time) << ", ";
 		tempSS << tempResult->getDistance() << ", " << tempResult->getRelVel(spawningWindow->bodyGroup).length() << ");";
 
 		query.prepare(tempSS.str().c_str());

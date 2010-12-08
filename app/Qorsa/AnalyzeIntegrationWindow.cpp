@@ -28,9 +28,13 @@ AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawni
 	mainGridLayout->addWidget(spawnOppositionWindowPushButton, 1, 2);
 	QObject::connect(spawnOppositionWindowPushButton, SIGNAL(released()), this, SLOT(spawnOppositionWindow()));
 
+	spawnConjunctionWindowPushButton = new QPushButton("Conjunction");
+	mainGridLayout->addWidget(spawnConjunctionWindowPushButton, 2, 0);
+	QObject::connect(spawnConjunctionWindowPushButton, SIGNAL(released()), this, SLOT(spawnConjunctionWindow()));
+
 	performAnalysisPushButton = new QPushButton("Perform Analysis on Selected Bodies");
 	QObject::connect(performAnalysisPushButton, SIGNAL(released()), this, SLOT(performAnalysisButtonPressed()));
-	mainGridLayout->addWidget(performAnalysisPushButton, 2, 0, 1, -1);
+	mainGridLayout->addWidget(performAnalysisPushButton, 10, 0, 1, -1);
 
 	objectSelectionTableView = new QTableView();
 	objectSelectionTableModel = new BodyTableModel(bodyGroup);
@@ -49,13 +53,13 @@ AnalyzeIntegrationWindow::AnalyzeIntegrationWindow(IntegrationTableView *nSpawni
 		objectSelectionTableModel->addBody(bl[i]);
 	}
 
-	mainGridLayout->addWidget(objectSelectionTableView, 3, 0, 1, -1);
+	mainGridLayout->addWidget(objectSelectionTableView, 11, 0, 1, -1);
 
 	okPushButton = new QPushButton("Ok");
 	cancelPushButton = new QPushButton("Cancel");
 
-	mainGridLayout->addWidget(okPushButton, 5, 0);
-	mainGridLayout->addWidget(cancelPushButton, 5, 1);
+	mainGridLayout->addWidget(okPushButton, 20, 0);
+	mainGridLayout->addWidget(cancelPushButton, 20, 1);
 
 	setLayout(mainGridLayout);
 
@@ -109,6 +113,11 @@ void AnalyzeIntegrationWindow::spawnEncounterWindow()
 void AnalyzeIntegrationWindow::spawnOppositionWindow()
 {
 	addSubwindow(new AnalyzeIntegrationOppositionSubwindow(this));
+}
+
+void AnalyzeIntegrationWindow::spawnConjunctionWindow()
+{
+	addSubwindow(new AnalyzeIntegrationConjunctionSubwindow(this));
 }
 
 void AnalyzeIntegrationWindow::addSubwindow(AnalyzeIntegrationSubwindow *s)

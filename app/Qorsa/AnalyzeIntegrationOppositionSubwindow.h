@@ -62,6 +62,9 @@ class AnalyzeIntegrationOppositionSubwindow : public AnalyzeIntegrationSubwindow
 		QLabel *observingBodyLabel;
 		QComboBox *observingBodyComboBox;
 
+		QLabel *numTimeStepsLabel;
+		QLineEdit *numTimeStepsLineEdit;
+
 		QTableView *resultsTableView;
 		OppositionResultTableModel *resultsTableViewModel;
 
