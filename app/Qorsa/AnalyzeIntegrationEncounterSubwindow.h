@@ -105,6 +105,9 @@ class AnalyzeIntegrationEncounterSubwindow : public AnalyzeIntegrationSubwindow
 		QSplitter *tbSplitter;
 
 		MysqlConnectionWidget *mysqlConnectionWidget;
+
+	private slots:
+		void insertResultsIntoDatabase();
 };
 
 #endif

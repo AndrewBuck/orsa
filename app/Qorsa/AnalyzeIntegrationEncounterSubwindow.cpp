@@ -1,6 +1,10 @@
 #include <iostream>
 #include <sstream>
 
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlError>
+
 #include "AnalyzeIntegrationEncounterSubwindow.h"
 
 AnalyzeIntegrationEncounterSubwindow::AnalyzeIntegrationEncounterSubwindow(AnalyzeIntegrationWindow *nSpawningWindow, QWidget *parent)
@@ -39,6 +43,8 @@ AnalyzeIntegrationEncounterSubwindow::AnalyzeIntegrationEncounterSubwindow(Analy
 	resultsTableView = new QTableView();
 	resultsTableViewModel = new ResultTableModel();
 	resultsTableView->setSortingEnabled(true);
+	resultsTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+	resultsTableView->setSelectionMode(QAbstractItemView::MultiSelection);
 
 	proxyModel = new QSortFilterProxyModel(this);
 	proxyModel->setSourceModel(resultsTableViewModel);
@@ -46,6 +52,7 @@ AnalyzeIntegrationEncounterSubwindow::AnalyzeIntegrationEncounterSubwindow(Analy
 	resultsTableView->setModel(proxyModel);
 
 	mysqlConnectionWidget = new MysqlConnectionWidget(false);
+	QObject::connect(mysqlConnectionWidget, SIGNAL(executeQueryButtonPressed()), this, SLOT(insertResultsIntoDatabase()));
 
 	lrSplitter = new QSplitter(Qt::Horizontal);
 	lrSplitter->addWidget(graph);
@@ -204,6 +211,58 @@ void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 	}
 }
 
+void AnalyzeIntegrationEncounterSubwindow::insertResultsIntoDatabase()
+{
+	if(!mysqlConnectionWidget->isReady())
+		return;
+
+	//TODO: Add a QComboBox that lets you select the database driver which will be passed to addDatabase().
+	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+	db.setHostName(mysqlConnectionWidget->getHostname());
+	db.setPort(mysqlConnectionWidget->getPort());
+	db.setDatabaseName(mysqlConnectionWidget->getDatabase());
+	db.setUserName(mysqlConnectionWidget->getUsername());
+	db.setPassword(mysqlConnectionWidget->getPassword());
+	if(!db.open())
+	{
+		std::cerr << "ERROR: Could not open the database connection.\n";
+		return;
+	}
+
+	std::cout << "Database connection opened successfully.  Performing query...\n";
+
+	QSqlQuery query;
+
+	QModelIndexList selectedRows = resultsTableView->selectionModel()->selectedRows();
+	for(int i = 0; i < selectedRows.size(); i++)
+	{
+		const EncounterResult *tempResult = resultsTableViewModel->getResult(proxyModel->mapToSource(selectedRows[i]).row());
+
+		std::cout << "\nInserting result for (" << tempResult->b1->getName() << ", ";
+		std::cout << tempResult->b2->getName() << ")...\n";
+
+		std::stringstream tempSS;
+		tempSS << "insert into gravInteractions (name1, name2, date) values ('";
+		tempSS << tempResult->b1->getName() << "', '" << tempResult->b2->getName() << "', ";
+		tempSS << orsaSolarSystem::timeToJulian(tempResult->time) << ");";
+
+		query.prepare(tempSS.str().c_str());
+		if(query.exec())
+		{
+			std::cout << "Query completed successfully.";
+		}
+		else
+		{
+			std::cerr << "ERROR: Failed to perform the query.  The query was:\n\n";
+			std::cerr << tempSS.str();
+			std::cerr << "\n\nThe response from the DB was:\n";
+			std::cerr << query.lastError().databaseText().toStdString();
+		}
+
+
+	}
+}
+
 AnalyzeIntegrationEncounterSubwindow::ResultTableModel::ResultTableModel(QObject *parent)
 	: QAbstractTableModel(parent)
 {
@@ -264,10 +323,8 @@ QVariant AnalyzeIntegrationEncounterSubwindow::ResultTableModel::data(const QMod
 		//tempVariant.setValue(bodyList.at(index.row()));
 		//return tempVariant;
 	}
-	else
-	{
-		return QVariant();
-	}
+
+	return QVariant();
 }
 
 QVariant AnalyzeIntegrationEncounterSubwindow::ResultTableModel::headerData(int section, Qt::Orientation orientation, int role) const

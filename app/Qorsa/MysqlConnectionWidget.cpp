@@ -58,12 +58,16 @@ void MysqlConnectionWidget::queryButtonHandler()
 
 bool MysqlConnectionWidget::isReady()
 {
-	return (mysqlDatabaseSourceHostnameLineEdit->text().length() != 0 && \
+	bool tempBool = (mysqlDatabaseSourceHostnameLineEdit->text().length() != 0 && \
 			mysqlDatabaseSourcePortLineEdit->text().length() != 0 && \
 			mysqlDatabaseSourceUsernameLineEdit->text().length() != 0 && \
 			mysqlDatabaseSourcePasswordLineEdit->text().length() != 0 && \
-			mysqlDatabaseSourceDatabaseLineEdit->text().length() != 0 && \
-			mysqlDatabaseSourceQueryTextEdit->toPlainText().length() != 0);
+			mysqlDatabaseSourceDatabaseLineEdit->text().length());
+
+	if(hasQueryField)
+		tempBool &= mysqlDatabaseSourceQueryTextEdit->toPlainText().length() != 0;
+
+	return tempBool;
 }
 
 QString MysqlConnectionWidget::getHostname()
