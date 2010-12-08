@@ -40,6 +40,7 @@ HEADERS = MainWindow.h \
 	  AnalyzeIntegrationGraphSubwindow.h \
 	  AnalyzeIntegrationOppositionSubwindow.h \
 	  UnitComboBox.h \
+	  MysqlConnectionWidget.h \
 	  BodyTableModel.h
 
 SOURCES = Qorsa.cpp \
@@ -53,5 +54,6 @@ SOURCES = Qorsa.cpp \
 	  AnalyzeIntegrationGraphSubwindow.cpp \
 	  AnalyzeIntegrationOppositionSubwindow.cpp \
 	  UnitComboBox.cpp \
+	  MysqlConnectionWidget.cpp \
 	  BodyTableModel.cpp
 

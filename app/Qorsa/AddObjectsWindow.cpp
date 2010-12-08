@@ -38,45 +38,9 @@ AddObjectsWindow::AddObjectsWindow(MainWindow *nSpawningWindow, QWidget *nParent
 	localFileSourceWidget->setLayout(localFileSourceGridLayout);
 
 	// The "MYSQL Query" tab
-	mysqlDatabaseSourceGridLayout = new QGridLayout();
-	mysqlDatabaseSourceWidget = new QWidget();
-	mysqlDatabaseSourceHostnameLabel = new QLabel("Hostname");
-	mysqlDatabaseSourcePortLabel = new QLabel("Port");
-	mysqlDatabaseSourceUsernameLabel = new QLabel("Username");
-	mysqlDatabaseSourcePasswordLabel = new QLabel("Password");
-	mysqlDatabaseSourceDatabaseLabel = new QLabel("Database");
-	mysqlDatabaseSourceQueryLabel = new QLabel("Query:");
-	mysqlDatabaseSourceHostnameLineEdit = new QLineEdit("localhost");
-	mysqlDatabaseSourcePortLineEdit = new QLineEdit("3306");
-	mysqlDatabaseSourceUsernameLineEdit = new QLineEdit("qorsa");
-	mysqlDatabaseSourcePasswordLineEdit = new QLineEdit("qorsa");
-	mysqlDatabaseSourcePasswordLineEdit->setEchoMode(QLineEdit::Password);
-	mysqlDatabaseSourceDatabaseLineEdit = new QLineEdit("qorsa");
-	mysqlDatabaseSourceQueryTextEdit = new QTextEdit();
-	mysqlDatabaseSourceQueryTextEdit->setPlainText("select * from objects\norder by id\nlimit 10\n;");
-	mysqlDatabaseSourceQueryTextEdit->setAcceptRichText(false);
-	mysqlDatabaseSourceQuerySpacer = new QSpacerItem(1, 15);
-	mysqlDatabaseSourceExecuteQueryButton = new QPushButton("Execute Query");
+	mysqlDatabaseSourceWidget = new MysqlConnectionWidget();
+	QObject::connect(mysqlDatabaseSourceWidget, SIGNAL(executeQueryButtonPressed()), this, SLOT(mysqlDatabaseSourceExecuteQueryButtonPressed()));
 
-	QObject::connect(mysqlDatabaseSourceExecuteQueryButton, SIGNAL(released()), this, SLOT(mysqlDatabaseSourceExecuteQueryButtonPressed()));
-
-	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourceHostnameLabel, 0, 0);
-	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourcePortLabel, 0, 4);
-	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourceUsernameLabel, 1, 0);
-	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourcePasswordLabel, 1, 2);
-	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourceDatabaseLabel, 1, 4);
-	mysqlDatabaseSourceGridLayout->addItem(mysqlDatabaseSourceQuerySpacer, 2, 0);
-	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourceQueryLabel, 3, 0);
-
-	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourceHostnameLineEdit, 0, 1, 1, 3);
-	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourcePortLineEdit, 0, 5);
-	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourceUsernameLineEdit, 1, 1);
-	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourcePasswordLineEdit, 1, 3);
-	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourceDatabaseLineEdit, 1, 5);
-	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourceQueryTextEdit, 4, 0, 1, -1);
-	mysqlDatabaseSourceGridLayout->addWidget(mysqlDatabaseSourceExecuteQueryButton, 5, 2, 1, 2);
-
-	mysqlDatabaseSourceWidget->setLayout(mysqlDatabaseSourceGridLayout);
 
 	// The "Custom Object" tab
 	customObjectSourceGridLayout = new QGridLayout();
@@ -321,12 +285,7 @@ void AddObjectsWindow::mysqlDatabaseSourceExecuteQueryButtonPressed()
 	vector< pair<int, orsa::Body*> > unresolvedBodies;
 	stack< pair<QSqlQuery*, int> > queryStack;
 
-	if(!(mysqlDatabaseSourceHostnameLineEdit->text().length() != 0 && \
-			mysqlDatabaseSourcePortLineEdit->text().length() != 0 && \
-			mysqlDatabaseSourceUsernameLineEdit->text().length() != 0 && \
-			mysqlDatabaseSourcePasswordLineEdit->text().length() != 0 && \
-			mysqlDatabaseSourceDatabaseLineEdit->text().length() != 0 && \
-			mysqlDatabaseSourceQueryTextEdit->toPlainText().length() != 0))
+	if(!mysqlDatabaseSourceWidget->isReady())
 	{
 		cout << "Some of the required input fields were left empty, aborting query.\n";
 		return;
@@ -334,11 +293,11 @@ void AddObjectsWindow::mysqlDatabaseSourceExecuteQueryButtonPressed()
 
 	//TODO: Add a QComboBox that lets you select the database driver which will be passed to addDatabase().
 	QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
-	db.setHostName(mysqlDatabaseSourceHostnameLineEdit->text());
-	db.setPort(mysqlDatabaseSourcePortLineEdit->text().toInt());
-	db.setDatabaseName(mysqlDatabaseSourceDatabaseLineEdit->text());
-	db.setUserName(mysqlDatabaseSourceUsernameLineEdit->text());
-	db.setPassword(mysqlDatabaseSourcePasswordLineEdit->text());
+	db.setHostName(mysqlDatabaseSourceWidget->getHostname());
+	db.setPort(mysqlDatabaseSourceWidget->getPort());
+	db.setDatabaseName(mysqlDatabaseSourceWidget->getDatabase());
+	db.setUserName(mysqlDatabaseSourceWidget->getUsername());
+	db.setPassword(mysqlDatabaseSourceWidget->getPassword());
 	if(!db.open())
 	{
 		cerr << "ERROR: Could not open the database connection.\n";
@@ -348,7 +307,7 @@ void AddObjectsWindow::mysqlDatabaseSourceExecuteQueryButtonPressed()
 	cout << "Database connection opened successfully.  Performing query...\n";
 
 	QSqlQuery *query = new QSqlQuery();
-	query->prepare(mysqlDatabaseSourceQueryTextEdit->toPlainText());
+	query->prepare(mysqlDatabaseSourceWidget->getQuery());
 	if(!query->exec())
 	{
 		cerr << "ERROR: Failed to perform the query.\n";

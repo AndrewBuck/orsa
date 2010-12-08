@@ -45,11 +45,17 @@ AnalyzeIntegrationEncounterSubwindow::AnalyzeIntegrationEncounterSubwindow(Analy
 	proxyModel->setDynamicSortFilter(true);
 	resultsTableView->setModel(proxyModel);
 
-	splitter = new QSplitter(Qt::Horizontal);
-	splitter->addWidget(graph);
-	splitter->addWidget(resultsTableView);
+	mysqlConnectionWidget = new MysqlConnectionWidget(false);
 
-	encounterGridLayout->addWidget(splitter, 2, 0, 1, -1);
+	lrSplitter = new QSplitter(Qt::Horizontal);
+	lrSplitter->addWidget(graph);
+	lrSplitter->addWidget(resultsTableView);
+
+	tbSplitter = new QSplitter(Qt::Vertical);
+	tbSplitter->addWidget(lrSplitter);
+	tbSplitter->addWidget(mysqlConnectionWidget);
+
+	encounterGridLayout->addWidget(tbSplitter, 2, 0, 1, -1);
 
 	encounterGroupBox->setLayout(encounterGridLayout);
 

@@ -2,6 +2,7 @@
 #define ANALYZEINTEGRATIONENCOUNTERSUBWINDOW_H
 
 #include "AnalyzeIntegrationWindow.h"
+#include "MysqlConnectionWidget.h"
 
 class AnalyzeIntegrationEncounterSubwindow : public AnalyzeIntegrationSubwindow
 {
@@ -100,8 +101,10 @@ class AnalyzeIntegrationEncounterSubwindow : public AnalyzeIntegrationSubwindow
 		ResultTableModel *resultsTableViewModel;
 		QSortFilterProxyModel *proxyModel;
 
-		QSplitter *splitter;
+		QSplitter *lrSplitter;
+		QSplitter *tbSplitter;
 
+		MysqlConnectionWidget *mysqlConnectionWidget;
 };
 
 #endif

@@ -31,6 +31,7 @@ using namespace std;
 #include <orsa/body.h>
 
 #include "BodyTableModel.h"
+#include "MysqlConnectionWidget.h"
 
 class MainWindow;
 
@@ -86,22 +87,7 @@ class AddObjectsWindow : public QWidget
 		QPushButton *localFileSourceBrowseButton;
 
 		// The "MYSQL Query" tab
-		QGridLayout *mysqlDatabaseSourceGridLayout;
-		QWidget *mysqlDatabaseSourceWidget;
-		QLabel *mysqlDatabaseSourceHostnameLabel;
-		QLabel *mysqlDatabaseSourcePortLabel;
-		QLabel *mysqlDatabaseSourceUsernameLabel;
-		QLabel *mysqlDatabaseSourcePasswordLabel;
-		QLabel *mysqlDatabaseSourceDatabaseLabel;
-		QLabel *mysqlDatabaseSourceQueryLabel;
-		QLineEdit *mysqlDatabaseSourceHostnameLineEdit;
-		QLineEdit *mysqlDatabaseSourcePortLineEdit;
-		QLineEdit *mysqlDatabaseSourceUsernameLineEdit;
-		QLineEdit *mysqlDatabaseSourcePasswordLineEdit;
-		QLineEdit *mysqlDatabaseSourceDatabaseLineEdit;
-		QTextEdit *mysqlDatabaseSourceQueryTextEdit;
-		QSpacerItem *mysqlDatabaseSourceQuerySpacer;
-		QPushButton *mysqlDatabaseSourceExecuteQueryButton;
+		MysqlConnectionWidget *mysqlDatabaseSourceWidget;
 
 		// The "Custom Object" tab
 		QGridLayout *customObjectSourceGridLayout;
