@@ -31,6 +31,7 @@ QVariant BodyTableModel::data(const QModelIndex & index, int role) const
 			case 0:   return QString(bodyList.at(index.row())->getName().c_str());               break;
 			case 1:   return bodyList.at(index.row())->getInitialConditions().inertial->mass();  break;
 			case 2:
+				  return "blah";
 				  if(bodyGroup != NULL)
 				  {
 					const orsa::Body *tempBody = bodyList.at(index.row());
@@ -44,6 +45,7 @@ QVariant BodyTableModel::data(const QModelIndex & index, int role) const
 				  break;
 
 			case 3:
+				  return "blah";
 				  if(bodyGroup != NULL)
 				  {
 					const orsa::Body *tempBody = bodyList.at(index.row());
@@ -57,6 +59,7 @@ QVariant BodyTableModel::data(const QModelIndex & index, int role) const
 				  break;
 
 			case 4:
+				  return "blah";
 				  if(bodyGroup != NULL)
 				  {
 					const orsa::Body *tempBody = bodyList.at(index.row());

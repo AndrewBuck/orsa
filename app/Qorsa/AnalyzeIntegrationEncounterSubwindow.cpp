@@ -1,5 +1,7 @@
 #include <iostream>
 #include <sstream>
+#include <utility>
+#include <cmath>
 
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
@@ -73,6 +75,8 @@ void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 {
 	if(encounterGroupBox->isChecked())
 	{
+		orsa::Vector r1, r2;
+
 		QModelIndexList selectedRows = spawningWindow->objectSelectionTableView->selectionModel()->selectedRows();
 
 		unsigned int numSteps = atoi(numStepsLineEdit->text().toStdString().c_str());
@@ -103,6 +107,19 @@ void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 			}
 		}
 
+		// Create a lattice of cells which will contain the addresses of
+		// objects based on their position to allow the lookups to proceed faster.
+		const int numCells = 20;  //NOTE: This should be divisible by 2 to allow for +/- in each axis.
+		double xSize = orsa::Unit::FromUnits(0.5, orsa::Unit::AU);
+		double ySize = orsa::Unit::FromUnits(0.5, orsa::Unit::AU);
+		double zSize = orsa::Unit::FromUnits(0.5, orsa::Unit::AU);
+		double xStart = -0.5 * xSize * (double)numCells;
+		double yStart = -0.5 * ySize * (double)numCells;
+		double zStart = -0.5 * zSize * (double)numCells;
+		double xMin, xMax, yMin, yMax, zMin, zMax;
+		std::vector<const orsa::Body*> cells[numCells][numCells][numCells];
+		std::vector<const orsa::Body*> overflowBodies;
+
 		// Loop over the common time interval of the objects in the body group.
 		//FIXME: This really should be the common interval of just the bodies in the subset we are investigating.
 		orsa::Time startTime, stopTime;
@@ -116,64 +133,163 @@ void AnalyzeIntegrationEncounterSubwindow::performAnalysis()
 
 			std::cout << "\nStep " << step << std::endl;
 			orsa::print(currentTime);
+			std::cout << "\nxSize: " << xSize << "\tySize: " << ySize << "\tzSize: " << zSize;
+			std::cout.flush();
 
+			// Clear the overflow list and the list in each cell.
+			overflowBodies.clear();
+			for(int i = 0; i < numCells; i++)
+				for(int j = 0; j < numCells; j++)
+					for(int k = 0; k < numCells; k++)
+						cells[i][j][k].clear();
+
+			// Coarse grain the orbiting bodies into cells.
+			//TODO:  Adjust xStart and xSize (same for other dims too) to try to keep the boxes small but with few objects in the overflow list.
+			bool firstLoop = true;
+			for(unsigned int i = 0; i < bodyList.size(); i++)
+			{
+				spawningWindow->bodyGroup->getInterpolatedPosition(r1, bodyList[i], currentTime);
+
+				double x, y, z;
+				x = r1.getX();
+				y = r1.getY();
+				z = r1.getZ();
+
+				int xIndex = floor( x/xSize ) + numCells/2;
+				int yIndex = floor( y/ySize ) + numCells/2;
+				int zIndex = floor( z/zSize ) + numCells/2;
+
+				//std::cout << "\nx = " << x << "\txStart = " << xStart << "\txSize = " << xSize << "\txIndex = " << xIndex;
+
+				if(firstLoop)
+				{
+					firstLoop = false;
+					xMin = xMax = x;
+					yMin = yMax = y;
+					zMin = zMax = z;
+				}
+				else
+				{
+					if(x < xMin)  xMin = x;
+					if(x > xMax)  xMax = x;
+					if(y < yMin)  yMin = y;
+					if(y > yMax)  yMax = y;
+					if(z < zMin)  zMin = z;
+					if(z > zMax)  zMax = z;
+				}
+
+				if(xIndex >= 0 && yIndex >= 0 && zIndex >= 0 && xIndex < numCells && yIndex < numCells && zIndex < numCells)
+					cells[xIndex][yIndex][zIndex].push_back(bodyList[i]);
+				else
+					overflowBodies.push_back(bodyList[i]);
+
+			}
+
+			std::cout << "\nThere are " << overflowBodies.size() << " of " << bodyList.size() << " bodies in the overflow list.";
+			std::cout.flush();
+
+			// Create and fill up a list of all the pairs which should be checked for close interactions.
+			std::vector< std::pair<const orsa::Body*, const orsa::Body*> > interactingPairs;
+			overflowBodies.clear();
+			for(int i = 0; i < numCells; i++)
+			{
+				for(int j = 0; j < numCells; j++)
+				{
+					for(int k = 0; k < numCells; k++)
+					{
+						// Add all the pairs in this cell.
+						for(unsigned int l = 0; l < cells[i][j][k].size(); l++)
+							for(unsigned int m = l+1; m < cells[i][j][k].size(); m++)
+								interactingPairs.push_back(std::pair<const orsa::Body*,const orsa::Body*>(cells[i][j][k][l],cells[i][j][k][m]));
+
+						/*
+						// Add all the pairs with the objects in the overflow list.
+						for(unsigned int l = 0; l < cells[i][j][k].size(); l++)
+						{
+							if(i+1 < numCells)
+								for(unsigned int m = 0; m < cells[i+1][j][k].size(); m++)
+									interactingPairs.push_back(std::pair<const orsa::Body*,const orsa::Body*>(cells[i][j][k][l],cells[i][j][k][m]));
+
+							if(j+1 < numCells)
+								for(unsigned int m = 0; m < cells[i][j+1][k].size(); m++)
+									interactingPairs.push_back(std::pair<const orsa::Body*,const orsa::Body*>(cells[i][j][k][l],cells[i][j][k][m]));
+
+							if(k+1 < numCells)
+								for(unsigned int m = 0; m < cells[i][j][k+1].size(); m++)
+									interactingPairs.push_back(std::pair<const orsa::Body*,const orsa::Body*>(cells[i][j][k][l],cells[i][j][k][m]));
+						}
+
+
+						// Add all the pairs with the cells 1 "higher" in each dimension.
+						for(unsigned int l = 0; l < cells[i][j][k].size(); l++)
+						{
+							for(unsigned int m = 0; m < overflowBodies.size(); m++)
+							{
+									interactingPairs.push_back(std::pair<const orsa::Body*,const orsa::Body*>(cells[i][j][k][l],overflowBodies[m]));
+							}
+						}
+						*/
+					}
+				}
+			}
+
+			std::cout << "\nBeginning pair evaluation.";
+			std::cout.flush();
 			// Loop over all pairs of objects and compute their separation distance.
 			std::list<EncounterResult*> closeEncounters;
 			//FIXME: Since this list contains pointers when it is cleared the objects pointed to should eventually be deleted.
 			closeEncounters.clear();
-			for(unsigned int i = 0; i < bodyList.size(); i++)
+			for(unsigned int i = 0; i < interactingPairs.size(); i++)
 			{
-				for(unsigned int j = i+1; j < bodyList.size(); j++)
+				if(interactingPairs[i].first == interactingPairs[i].second)
+					continue;
+
+				// Compute the distance between bodies i and j.
+				spawningWindow->bodyGroup->getInterpolatedPosition(r1, interactingPairs[i].first, currentTime);
+				spawningWindow->bodyGroup->getInterpolatedPosition(r2, interactingPairs[i].second, currentTime);
+
+				double dx = r2.getX() - r1.getX();
+				double dy = r2.getY() - r1.getY();
+				double dz = r2.getZ() - r1.getZ();
+
+				double distSquared = dx*dx + dy*dy + dz*dz;
+
+				if(closeEncounters.size() == 0)
 				{
-					// Compute the distance between bodies i and j.
-					orsa::Vector r1, r2;
-					spawningWindow->bodyGroup->getInterpolatedPosition(r1, bodyList[i], currentTime);
-					spawningWindow->bodyGroup->getInterpolatedPosition(r2, bodyList[j], currentTime);
-
-					double dx = r2.getX() - r1.getX();
-					double dy = r2.getY() - r1.getY();
-					double dz = r2.getZ() - r1.getZ();
-
-					double distSquared = dx*dx + dy*dy + dz*dz;
-
-					if(closeEncounters.size() == 0)
+					closeEncounters.push_back(new EncounterResult(spawningWindow->bodyGroup, interactingPairs[i].first, interactingPairs[i].second, distSquared, currentTime));
+				}
+				else
+				{
+					// Loop backwards over the list of closest encounters seen thus far this time step and try to find where this one fits in.
+					std::list<EncounterResult*>::reverse_iterator itr = closeEncounters.rbegin();
+					std::list<EncounterResult*>::reverse_iterator nextItr;
+					std::list<EncounterResult*>::iterator forwardItr;
+					while(itr != closeEncounters.rend())
 					{
-						closeEncounters.push_back(new EncounterResult(spawningWindow->bodyGroup, bodyList[i], bodyList[j], distSquared, currentTime));
-					}
-					else
-					{
-						// Loop backwards over the list of closest encounters seen thus far this time step and try to find where this one fits in.
-						std::list<EncounterResult*>::reverse_iterator itr = closeEncounters.rbegin();
-						std::list<EncounterResult*>::reverse_iterator nextItr;
-						std::list<EncounterResult*>::iterator forwardItr;
-						while(itr != closeEncounters.rend())
+						nextItr = itr;
+						nextItr++;
+						if(nextItr == closeEncounters.rend())
 						{
-							nextItr = itr;
-							nextItr++;
-							if(nextItr == closeEncounters.rend())
+							if(distSquared < (*itr)->getDistanceSquared())
 							{
-								if(distSquared < (*itr)->getDistanceSquared())
-								{
-									closeEncounters.push_front(new EncounterResult(spawningWindow->bodyGroup, bodyList[i], bodyList[j], distSquared, currentTime));
-								}
-
-								break;
+								closeEncounters.push_front(new EncounterResult(spawningWindow->bodyGroup, interactingPairs[i].first, interactingPairs[i].second, distSquared, currentTime));
 							}
 
-							if((*nextItr)->getDistanceSquared() <= distSquared && distSquared <= (*itr)->getDistanceSquared())
-							{
-								closeEncounters.insert(nextItr.base(), new EncounterResult(spawningWindow->bodyGroup, bodyList[i], bodyList[j], distSquared, currentTime));
-								break;
-							}
-
-							itr++;
+							break;
 						}
 
-						if(closeEncounters.size() > numResults)
-							closeEncounters.pop_back();
+						if((*nextItr)->getDistanceSquared() <= distSquared && distSquared <= (*itr)->getDistanceSquared())
+						{
+							closeEncounters.insert(nextItr.base(), new EncounterResult(spawningWindow->bodyGroup, interactingPairs[i].first, interactingPairs[i].second, distSquared, currentTime));
+							break;
+						}
 
+						itr++;
 					}
-					
+
+					if(closeEncounters.size() > numResults)
+						closeEncounters.pop_back();
+
 				}
 			}
 
@@ -278,7 +394,7 @@ int AnalyzeIntegrationEncounterSubwindow::ResultTableModel::rowCount(const QMode
 
 int AnalyzeIntegrationEncounterSubwindow::ResultTableModel::columnCount(const QModelIndex & parent) const
 {
-	return 5;
+	return 6;
 }
 
 QVariant AnalyzeIntegrationEncounterSubwindow::ResultTableModel::data(const QModelIndex & index, int role) const
@@ -319,6 +435,13 @@ QVariant AnalyzeIntegrationEncounterSubwindow::ResultTableModel::data(const QMod
 				return resultList.at(index.row())->getRelVel(resultList.at(index.row())->bodyGroup).length();
 				break;
 
+			case 5:
+				double r, v;
+				r = resultList.at(index.row())->getRelVel(resultList.at(index.row())->bodyGroup).length();
+				v = resultList.at(index.row())->getDistance();
+				return log10(r*r*v);
+				break;
+
 			default:  return QString("---");                                                     break;
 		}
 
@@ -345,6 +468,7 @@ QVariant AnalyzeIntegrationEncounterSubwindow::ResultTableModel::headerData(int 
 			case 2:   return QString("Date");                    break;
 			case 3:   return QString("Rel Dist");                break;
 			case 4:   return QString("Rel Vel.");                break;
+			case 5:   return QString("Score");                break;
 			default:  return QString("Column %1").arg(section);  break;
 		}
 	}
